@@ -1,1 +1,10 @@
 .vs/
+**/bin/
+**/obj/
+*.user
+*.suo
+database/
+TestResults/
+coverage/
+.env
+appsettings.Local.json
