@@ -1,0 +1,22 @@
+@host = http://localhost:5164
+
+### OpenAPI foundation
+GET {{host}}/openapi/v1.json
+
+### Customer login
+POST {{host}}/api/v1/auth/customer/login
+Content-Type: application/json
+
+{
+  "phoneNumber": "0900000000",
+  "password": "configured-test-password"
+}
+
+### Employee login
+POST {{host}}/api/v1/auth/employee/login
+Content-Type: application/json
+
+{
+  "email": "staff@example.test",
+  "password": "configured-test-password"
+}

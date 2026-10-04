@@ -1,0 +1,7 @@
+{
+  "name": "@frms/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": { "test": "playwright test", "test:list": "playwright test --list", "install:browsers": "playwright install chromium" },
+  "devDependencies": { "@playwright/test": "1.63.0" }
+}

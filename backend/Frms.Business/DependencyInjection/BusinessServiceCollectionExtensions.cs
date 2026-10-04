@@ -1,0 +1,16 @@
+using Frms.Business.Abstractions.Time;
+using Frms.Business.Services.Implementations;
+using Frms.Business.Services.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Frms.Business.DependencyInjection;
+
+public static class BusinessServiceCollectionExtensions
+{
+    public static IServiceCollection AddBusiness(this IServiceCollection services)
+    {
+        services.AddSingleton<IClock, SystemClock>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
+        return services;
+    }
+}

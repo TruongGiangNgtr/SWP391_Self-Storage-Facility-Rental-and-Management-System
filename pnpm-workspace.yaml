@@ -1,0 +1,4 @@
+packages:
+  - frontend
+  - tests/postman
+  - tests/e2e/playwright

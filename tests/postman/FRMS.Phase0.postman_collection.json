@@ -1,0 +1,8 @@
+{
+  "info": { "_postman_id": "c0a0eac0-0000-4000-8000-000000000002", "name": "FRMS Phase 0 Foundation", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "item": [{
+    "name": "API-P0-001 OpenAPI is available",
+    "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/openapi/v1.json", "host": ["{{baseUrl}}"], "path": ["openapi", "v1.json"] } },
+    "event": [{ "listen": "test", "script": { "exec": ["pm.test('OpenAPI responds 200', () => pm.response.to.have.status(200));", "pm.test('Auth paths are documented', () => { const doc = pm.response.json(); pm.expect(doc.paths).to.have.property('/api/v1/auth/customer/login'); pm.expect(doc.paths).to.have.property('/api/v1/auth/employee/login'); });"] } }]
+  }]
+}
