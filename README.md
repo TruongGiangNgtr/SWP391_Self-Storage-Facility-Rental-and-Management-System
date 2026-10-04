@@ -1,188 +1,231 @@
-# FRMS - Self-Storage Facility Rental and Management System
+# FRMS backend scaffold
 
-FRMS is a web-based platform for renting and operating self-storage facilities. It covers the customer journey from capacity search and reservation through payment, handover, access, renewal, return, inspection, settlement, and support, together with facility and system administration.
+FRMS (Self-Storage Facility Rental and Management System) hiện ở trạng thái **backend scaffold**. Repository này cung cấp technical foundation và contract foundation để chia task; chưa chứa business logic, persistence model hay external-provider implementation.
 
-> Status: requirements and technical baseline are defined; application scaffolding has not yet been added to this repository.
+## Authority và phạm vi
 
-## Product scope
+Thứ tự authority được áp dụng:
 
-### Roles
+1. FRMS SRS V10 FINAL.
+2. FRMS Data Dictionary V2.1.
+3. Topic/Scope.
+4. Technical implementation detail trong `AGENTS.md` và `TECH_BASELINE.md`, miễn không thay đổi semantics của SRS.
 
-| Role | Primary responsibility |
-|---|---|
-| Storage Customer | Browse capacity, reserve, pay, receive and manage units, renew/return, request support |
-| Facility Staff | Check in visits, support handover/access/return, inspect units, record issues and fees |
-| Facility Manager | Manage physical units, select units at handover, monitor facility operation, decide damage, assign support |
-| Business Operations Manager | Manage facilities, pricing, policy versions, discounts, fees, and system-wide reporting |
-| System Administrator | Manage accounts, roles, facility assignments, login history, and audit visibility |
+Scaffold được dựng sau khi đọc đầy đủ Topic PDF, SRS V10, Data Dictionary V2.1, `AGENTS.md`, `TECH_BASELINE.md` và README ban đầu. Không dùng SRS V9 làm implementation authority.
 
-The code-level role names are:
+## Target framework
 
-```text
-CUSTOMER
-FACILITY_STAFF
-FACILITY_MANAGER
-BUSINESS_OPERATIONS_MANAGER
-SYSTEM_ADMINISTRATOR
-```
+- .NET SDK: `10.0.401` được pin bằng `global.json`.
+- Target framework: `net10.0`.
+- ASP.NET Core/EF Core packages: `10.0.12`, không dùng preview package.
+- Nullable reference types và implicit global usings được bật.
+- Backend tests dùng NUnit 4.
 
-### Seven core flows
+.NET 10 được chọn vì repository chưa có backend TFM trước đó, SDK LTS này đã được cài sẵn và tương thích với toàn bộ package scaffold.
 
-1. Storage Unit Reservation.
-2. Storage Check-in and Handover.
-3. Rented Storage Unit Management.
-4. Business Rules, Fee Management, and Revenue Monitoring.
-5. Facility Storage and Staff Management.
-6. Storage Renewal and Overdue Handling.
-7. Support Request and Issue Handling.
-
-A reservation holds capacity for a Facility, Unit Type, and month range. It does **not** reserve a physical unit; a Facility Manager selects the concrete `StorageUnit` during handover.
-
-## Technology baseline
-
-| Component | Technology |
-|---|---|
-| Frontend | React + TypeScript |
-| Backend | ASP.NET Core Web API + C# |
-| Database | SQL Server |
-| Data access | Entity Framework Core + stored procedures |
-| Authentication | Custom accounts, JWT Bearer, BCrypt |
-| Backend testing | NUnit |
-| API testing | Postman |
-| Browser E2E | Playwright |
-
-The backend has three logical application layers plus an Infrastructure adapter assembly:
+## Cấu trúc
 
 ```text
-HTTP:      React -> Controller -> Business Service -> Repository -> SQL Server
-Scheduled: Api BackgroundJob -> Business Service -> Repository -> SQL Server
-External:  Infrastructure Adapter -> Business-owned provider interface
+backend/
+├── Frms.sln
+├── Frms.Api/
+│   ├── Authentication/
+│   ├── Authorization/
+│   ├── BackgroundJobs/
+│   ├── Controllers/
+│   ├── DependencyInjection/
+│   ├── DTOs/Requests/
+│   ├── DTOs/Responses/
+│   ├── Mapping/
+│   ├── Middleware/
+│   ├── Validation/
+│   └── Program.cs
+├── Frms.Business/
+│   ├── Abstractions/{External,Security,Time}/
+│   ├── Models/{Commands,Common,Results}/
+│   ├── Services/{Interfaces,Implementations}/
+│   ├── Calculations/ Events/ Exceptions/ Mapping/ Rules/ Validators/
+│   └── DependencyInjection/
+├── Frms.DataAccess/
+│   ├── Persistence/{Entities,Configurations}/
+│   ├── Repositories/{Interfaces,Implementations}/
+│   ├── StoredProcedures/{Commands,Models,Sql}/
+│   ├── Migrations/
+│   └── DependencyInjection/
+├── Frms.Infrastructure/
+│   ├── Payments/ Email/ Ai/ Notifications/
+│   └── DependencyInjection/
+└── tests/
+    ├── Frms.UnitTests/
+    ├── Frms.ApiTests/
+    ├── Frms.IntegrationTests/
+    └── Frms.ArchitectureTests/
+
+tests/
+└── postman/
 ```
 
-Critical multi-table lifecycle changes are transactional database operations. Controllers and services never access `DbContext` directly.
+Không có `Frms.Worker`, frontend hay Playwright scaffold trong thay đổi này. Scheduled execution sau này nằm trong `Frms.Api/BackgroundJobs` và chỉ được gọi Business Service.
 
-## Repository documents
+## Project references
 
-| File | Purpose |
+| Project | FRMS project references |
 |---|---|
-| `project_sources/01-Topic.pdf` | Original one-page topic and actor summary |
-| `project_sources/02-FRMS_SRS_V10.md` | FRMS SRS V10 FINAL — governing Release 1 implementation baseline |
-| `project_sources/03-FRMS_Data_Dictionary_V2_1.md` | Database entities, lifecycle, stored procedures, triggers, jobs and constraints |
-| `AGENTS.md` | Mandatory repository rules for coding agents and contributors |
-| `TECH_BASELINE.md` | Consolidated architecture, stack, contracts, security, data, and quality baseline |
+| `Frms.Api` | `Frms.Business`, `Frms.DataAccess`, `Frms.Infrastructure` |
+| `Frms.Business` | `Frms.DataAccess` |
+| `Frms.DataAccess` | Không có |
+| `Frms.Infrastructure` | `Frms.Business` |
+| `Frms.UnitTests` | `Frms.Business` |
+| `Frms.ApiTests` | `Frms.Api` |
+| `Frms.IntegrationTests` | `Frms.Api`, `Frms.DataAccess` |
+| `Frms.ArchitectureTests` | Bốn production assemblies để kiểm tra boundary |
 
-The SRS has highest authority. The Topic PDF is useful for orientation but must not override detailed SRS behavior.
+Luồng bắt buộc là `Controller -> Business Service -> Repository -> EF/SP -> SQL Server`. Tham chiếu của `Frms.Api` tới DataAccess và Infrastructure chỉ dành cho composition root trong `Program.cs`; Controller, middleware và BackgroundJob không được gọi Repository, `FrmsDbContext` hoặc stored procedure.
 
-## Planned repository structure
+## Technical foundation
 
-```text
-.
-├── backend/
-│   ├── Frms.Api/
-│   ├── Frms.Business/
-│   ├── Frms.DataAccess/
-│   ├── Frms.Infrastructure/
-│   └── tests/
-│       ├── Frms.UnitTests/
-│       ├── Frms.ApiTests/
-│       ├── Frms.IntegrationTests/
-│       └── Frms.ArchitectureTests/
-├── frontend/
-│   └── src/
-├── tests/
-│   ├── postman/
-│   └── e2e/
-├── docs/
-├── project_sources/
-├── AGENTS.md
-└── TECH_BASELINE.md
+`Frms.Api` có:
+
+- controller discovery;
+- JSON `camelCase` và enum dạng string;
+- built-in OpenAPI document;
+- process health check `GET /health`;
+- JWT Bearer configuration binding và authentication/authorization middleware;
+- năm role-name constants đã khóa;
+- global exception middleware log exception cùng trace ID và trả sanitized `500 INTERNAL_SERVER_ERROR`;
+- focused DI extensions `AddBusiness`, `AddDataAccess`, `AddInfrastructure`;
+- configuration cho Development, Testing và Production;
+- HTTPS redirection ngoài Testing environment.
+
+`AddBusiness` và `AddInfrastructure` chưa đăng ký placeholder hoặc fake implementation. `AddDataAccess` chỉ đăng ký `FrmsDbContext` với SQL Server.
+
+`FrmsDbContext` hiện rỗng: không có `DbSet`, entity mapping, business-specific `OnModelCreating`, seed, `EnsureCreated` hoặc migration-on-start. Repository cũng chưa có implementation.
+
+## Restore, build, run và test
+
+Từ repository root:
+
+```powershell
+dotnet --info
+dotnet restore backend/Frms.sln
+dotnet build backend/Frms.sln --no-restore
+dotnet test backend/Frms.sln --no-build --no-restore
+dotnet format backend/Frms.sln --verify-no-changes --no-restore
+dotnet run --project backend/Frms.Api --no-build --no-restore --launch-profile http
 ```
 
-This is a target structure, not a claim that the projects already exist.
+Khi API chạy ở launch profile mặc định:
 
-## Development phases
+- process health: `http://localhost:5029/health`;
+- OpenAPI/Swagger contract: `http://localhost:5029/openapi/v1.json`;
+- các request kỹ thuật mẫu: `backend/Frms.Api/Frms.Api.http`.
 
-### Phase 0 - Technical foundation
+Scaffold dùng built-in ASP.NET Core OpenAPI document và không tự thêm Swagger UI package vì source documents không khóa package/UI đó. Mọi operation nghiệp vụ trong document có description cho biết đây là contract scaffold trả `501 Not Implemented`.
 
-- Backend and frontend structure.
-- Three logical layer boundaries plus the Infrastructure adapter assembly.
-- API DTO mapping and Business Command/Result contracts.
-- Dependency-injection composition root and architecture-boundary tests.
-- EF Core migration/seed baseline.
-- Customer phone login and employee email login.
-- JWT, BCrypt, global exception middleware, logging, Swagger.
-- UTC persistence and GMT+7 business/display handling.
-- NUnit, Postman, and Playwright test skeletons.
+## Configuration và secrets
 
-### Phase 1 - Core demo
+`appsettings*.json` chỉ chứa placeholder. Không commit database password, JWT signing key hoặc credential của MoMo/email/AI/notification.
 
-Demonstrate all seven flows with the five roles, MoMo Sandbox deposit/rental payment, real transaction behavior, concurrency protection, authorization isolation, reproducible database setup, and seven Playwright journeys.
+Ưu tiên secret store hoặc environment variables. Ví dụ:
 
-### Phase 2 - Release 1
+```powershell
+$env:ConnectionStrings__FrmsDatabase = "<local SQL Server connection string>"
+$env:Jwt__SigningKey = "<local development signing key>"
+dotnet run --project backend/Frms.Api --launch-profile http
+```
 
-Complete the approved feature catalogue, negative/empty/error states, jobs, full RBAC and ownership checks, API/Swagger synchronization, audit/logging, migration and seed validation, regression testing, traceability, and release evidence.
+Không gọi `EnsureCreated`, không tự tạo database và không tự chạy migration khi ứng dụng start.
 
-## Local setup
+## Contract scaffold
 
-Executable projects and pinned tool versions are not present yet, so there is no honest one-command setup at this stage. Before application development starts, the team must record and pin:
+Có 88 action signatures, phân theo catalogue SRS:
 
-- .NET SDK/ASP.NET Core version;
-- Node.js and package-manager version;
-- React, TypeScript, and Playwright versions;
-- SQL Server version/edition;
-- frontend build tool;
-- environment-specific configuration and secret-management approach.
+| Controller | API groups | Actions |
+|---|---|---|
+| `AuthController` | AUTH-001..005 | register customer, customer login, employee login, current account, customer profile update |
+| `CatalogController` | CAT-001..004 | browse/get facility, list/get unit type |
+| `AiController` | AI-001 | unit-type recommendation |
+| `ReservationsController` | RES-001..005 | create/list/get/confirm/cancel reservation |
+| `BillingController` | BIL-001..002, PAY-001..004 | invoice list/detail, start MoMo payments, payment detail, callback |
+| `ContractsController` | CON-001..005, VIS-001..002, INS-008 | contract list/detail/renew/billing/return summary, create access/return visit, finalize return |
+| `VisitsController` | VIS-003..006, OPS-002/003/005 | visit list/detail/reschedule/cancel, check-in/out, confirm return |
+| `StaffOperationsController` | OPS-001/004 | work items, complete handover |
+| `InspectionsController` | INS-001..007, INS-009..010 | inspection list/detail/claim, damage/fee/evidence, complete, decision, damage types |
+| `SupportTicketsController` | SUP-001..006 | create/list/get/cancel/assign/complete support ticket |
+| `StorageUnitsController` | UNIT-001..005 | storage-unit list/create/get/update/status |
+| `BusinessController` | BOM-001..014 | facilities, unit types, policies, discounts, extra-fee types |
+| `ReportsController` | REP-001..004 | facility operations/revenue, business overview/export |
+| `AdminController` | ADM-001..012 | users, customers, employees, assignments, login history, audit logs, credential resend |
 
-Once scaffolding is committed, this section should contain exact restore, configuration, migration, seed, run, and test commands verified from a clean machine.
+Mỗi action chỉ trả `501 Not Implemented`; action không inject service/repository/DbContext, không thay đổi state, không truy cập database và không trả fake `200 OK`. Authorization metadata chỉ được đặt theo role catalogue đã xác định trong SRS.
 
-## Configuration principles
+### DTO đã tạo
 
-Maintain separate `Development`, `Testing`, and `Production` configuration. Never commit database passwords, JWT signing keys, MoMo credentials, AI keys, email/notification credentials, access tokens, or plaintext passwords.
+Request DTO chỉ được tạo khi field đủ rõ:
 
-Time and money conventions:
+- authentication: `RegisterCustomerRequest`, `CustomerLoginRequest`, `EmployeeLoginRequest`;
+- catalogue/AI: `RecommendUnitTypeRequest`;
+- reservation: `CreateReservationRequest`, `ConfirmReservationRequest`, `CancelReservationRequest`;
+- payment: `StartInvoiceMomoPaymentRequest`, `StartFirstMonthMomoPaymentRequest`;
+- contract/visit: `RenewContractRequest`, `CreateAccessVisitRequest`, `CreateReturnVisitRequest`, `RescheduleVisitRequest`, `CancelVisitRequest`, `CompleteHandoverRequest`, `ConfirmActualReturnRequest`;
+- inspection: `RecordDamageRequest`, `RecordExtraFeeRequest`, `UploadInspectionEvidenceRequest`, `CompleteInspectionRequest`, `DecideDamageRequest`;
+- support: `CreateSupportTicketRequest`, `CancelSupportTicketRequest`, `AssignSupportTicketRequest`, `CompleteSupportTicketRequest`;
+- storage unit: `CreateStorageUnitRequest`, `UpdateStorageUnitRequest`, `ChangeStorageUnitStatusRequest`;
+- business operations: `CreateFacilityRequest`, `UpdateUnitTypePriceRequest`, `CreatePolicyVersionRequest`, `CreateCustomerDiscountRequest`, `UpdateDiscountRequest`, `UpdateExtraFeeTypeRequest`;
+- administration: `CreateEmployeeRequest`, `AssignEmployeeRequest`.
 
-- persist and exchange timestamps in UTC;
-- evaluate business calendar rules and display timestamps in `Asia/Ho_Chi_Minh` (GMT+7);
-- keep month-only values as `YYYY-MM`;
-- use `decimal` for currency;
-- use an injected `IClock` for time-dependent business logic.
+Response DTO đã tạo cho common envelopes/errors; auth token; facility/unit-type availability and recommendation; reservation detail/confirmation; invoice/payment initiation and detail; visit/work-item/handover/return; renewal; damage type/deposit settlement/final return; support ticket; facility operations và business overview report.
 
-## API conventions
+API Request/Response DTO, Business Command/Result, EF Entity và Stored Procedure Model vẫn là các boundary riêng. Scaffold chưa tạo Command/Result hoặc persistence type vì chưa có service/repository signature đủ chính xác để sử dụng chúng.
 
-- Base path: `/api/v1`.
-- JSON fields: `camelCase`.
-- Enums: strings.
-- API timestamps: UTC ISO-8601.
-- Default pagination: `page=1&pageSize=20`; maximum `pageSize=100`.
-- Frontend branches on stable error codes, not message text.
-- Swagger, controller DTOs, SRS schemas, and TypeScript models change together.
-- Inspection evidence uses multipart upload; report export is UTF-8 CSV.
+### Contract chưa tạo do thiếu canonical schema/signature
 
-## Testing and quality
+Các mục sau dừng ở route/action boundary:
 
-The project uses ten test groups: unit, controller/DTO contract, repository/EF integration, database lifecycle, concurrency/idempotency, security, API/Postman, external integration/jobs, Playwright E2E, and regression/acceptance.
+- AUTH-005: field update profile và required/optional/patch semantics chưa đủ duy nhất;
+- PAY-004: raw MoMo callback wire contract thuộc provider adapter và chưa được source khóa;
+- CON contract detail: schema phần tử `extensions` chưa đủ;
+- inspection detail: nested damage/fee/evidence schemas chưa đủ;
+- một số list/detail/summary của UNIT, BOM, ADM và CON chưa có canonical response schema đầy đủ;
+- BOM-003 và ADM-006: update fields/patch semantics chưa đủ;
+- REP-002 và REP-004: filter/export schema chưa đủ;
+- một số create/update success response schemas chưa đủ.
 
-SQL Server-specific claims require real SQL Server tests. EF Core InMemory cannot prove stored procedures, filtered indexes, triggers, locking, isolation, or race handling.
+Không tạo Service interface, Repository interface hoặc provider method signature để lấp các khoảng trống trên. Khi module owner nhận task, chữ ký phải được xác nhận từ SRS/approved clarification trước khi thêm. Không dùng `object`, `dynamic`, dictionary, generic repository hoặc Unit of Work để né blocker.
 
-A feature is not complete until it has the applicable positive, negative/authorization, database/concurrency, and E2E evidence. Release 1 includes the `DBT-01..25` minimum database baseline and `E2E-F01..F07` journeys.
+## Chưa được triển khai
 
-## Contribution rules
+- business logic, lifecycle, calculation, validator/rule và business mapping;
+- service/repository implementation;
+- EF Core entity/configuration/migration/seed;
+- stored procedure, trigger và scheduled-job implementation;
+- login/register/token generation/password hashing;
+- Facility/resource-ownership authorization handler;
+- MoMo/email/AI/notification adapter, fake hoặc mock production provider;
+- database integration/concurrency/business tests;
+- frontend, E2E và `Frms.Worker`.
 
-Read `AGENTS.md` before changing code. In particular:
+## Quy tắc nhận task module
 
-- identify the SRS requirement and traceability path first;
-- do not invent business entities, states, permissions, formulas, or workflows;
-- preserve Controller -> Service -> Repository boundaries;
-- map API DTOs to Business Commands/Results at the Presentation boundary;
-- keep external-provider implementations in Infrastructure behind Business interfaces;
-- keep API-hosted background jobs on Business services rather than Repository/DbContext;
-- keep authentication, role, facility, ownership, and state checks server-side;
-- add migration/seed/test updates with model changes;
-- update Swagger and frontend types with API changes;
-- report exactly which verification commands ran.
+Một module task chỉ được sửa trong các folder được giao. Controller map DTO sang Business Command/Result; Business Service gọi Repository/provider interface; Repository chịu EF/SP access. Module task không được đưa API DTO vào Business, EF Entity ra khỏi DataAccess, hoặc gọi DbContext từ Controller/Service.
 
-Semantic changes require an approved SRS revision with its associated change record. An ADR, ticket, or implementation alone is not an approved business decision.
+| Module | Owner | Allowed folders | Required interfaces | Dependencies | Not implemented yet | Relevant SRS/API IDs | Relevant database objects | Relevant test groups |
+|---|---|---|---|---|---|---|---|---|
+| Authentication/Profile | — | Api Authentication/Controllers/DTOs; Business Security/Services; DataAccess Repositories | Business auth/security contracts after exact signatures are approved | JWT wiring, account persistence | login/register/profile/token/password logic | AUTH-001..005 | `UserAccount`, `UserRole`, `Customer`, `Employee`, `LoginHistory` | UT, CTL, DAL, SEC, API |
+| Catalogue/AI | — | Api Catalog/Ai controllers/DTOs; Business Services/External; Infrastructure Ai | service contract; `IAiRecommendationProvider` methods pending | Facility/unit-type reads; optional AI adapter | catalogue query and recommendation | CAT-001..004, AI-001 | `Facility`, `UnitType`, facility/unit-type relationship | UT, CTL, DAL, INT, API |
+| Reservation | — | Api Reservations/DTOs/Mapping; Business Services/Models/Rules; DataAccess Repositories/SP | reservation service/repository contracts pending | catalogue, capacity, policy | reservation lifecycle/capacity transaction | RES-001..005 | `Reservation` and SRS reservation-capacity objects | UT, CTL, DAL, DBT, CON, SEC, API |
+| Billing/Payment | — | Api Billing/DTOs; Business Services/External; DataAccess Repositories/SP; Infrastructure Payments | billing contracts; `IPaymentGateway` methods pending | invoice, contract/reservation, MoMo | billing/payment/idempotency/callback | BIL-001..002, PAY-001..004 | `Invoice`, `Payment`, reservation/contract snapshots | UT, CTL, DAL, DBT, CON, SEC, INT, API |
+| Contract/Visit/Handover | — | Api Contracts/Visits/StaffOperations/DTOs; Business Services/Models; DataAccess Repositories/SP | contract/visit service and repository contracts pending | reservation, unit, billing | handover/access/renewal/return lifecycle | CON-001..005, VIS-001..006, OPS-001..005 | `Contract`, `ContractExtension`, `Visit`, `StorageUnit` | UT, CTL, DAL, DBT, CON, SEC, API |
+| Inspection/Settlement | — | Api Inspections/DTOs; Business Services/Models/Rules; DataAccess Repositories/SP | inspection/damage/settlement contracts pending | contract return, policy, fee types | claim/damage/fee/finalization lifecycle | INS-001..010 | `Inspection`, `DamageRecord`, `DamageType`, evidence and extra-fee objects | UT, CTL, DAL, DBT, CON, SEC, API |
+| Support | — | Api SupportTickets/DTOs; Business Services/Models; DataAccess Repositories | support service/repository contracts pending | customer/staff/facility scope | support lifecycle/assignment | SUP-001..006 | `SupportTicket` and its authoritative history objects | UT, CTL, DAL, DBT, SEC, API |
+| Facility Units | — | Api StorageUnits/DTOs; Business Services/Models; DataAccess Repositories | storage-unit service/repository contracts pending | facility/unit type | create/update/status logic | UNIT-001..005 | `StorageUnit`, `Facility`, `UnitType` | UT, CTL, DAL, DBT, SEC, API |
+| Business Operations | — | Api Business/DTOs; Business Services/Models/Rules; DataAccess Repositories | facility/policy/discount/fee contracts pending | facility and policy data | operational configuration logic | BOM-001..014 | facility, unit type, policy, discount and extra-fee objects from SRS §9.2 | UT, CTL, DAL, DBT, SEC, API |
+| Reporting | — | Api Reports/DTOs; Business Services/Models; DataAccess Repositories/SP | reporting service/query contracts pending | operational read models | report queries/export | REP-001..004 | authoritative reporting sources named by each SRS report | UT, CTL, DAL, DBT, API |
+| Administration | — | Api Admin/DTOs; Business Services/Security; DataAccess Repositories; Infrastructure Email | admin contracts; `IEmailService` methods pending | accounts, roles, facility assignments | account admin/audit/email logic | ADM-001..012 | `UserAccount`, `UserRole`, `Employee`, assignments, `LoginHistory`, `AuditLog` | UT, CTL, DAL, DBT, SEC, INT, API |
+| Technical foundation | — | Api Middleware/DI/Configuration; project files; technical tests | existing focused DI extensions | ASP.NET Core, EF Core SQL Server | future non-business observability refinements | Technical baseline only | none | API, Architecture, Integration |
 
-## Current source caveat
+## Technical test scope
 
-The sole governing SRS is **FRMS SRS V10 FINAL** at `project_sources/02-FRMS_SRS_V10.md`. Earlier SRS versions are obsolete and must not be used as implementation authority. V10 locks the backend project structure, type boundaries, external adapters, API-hosted background jobs and architecture tests.
+Current tests verify host startup, `/health`, JWT scheme wiring, sanitized exception behavior, the 88-operation OpenAPI catalogue and scaffold descriptions, universal direct-action `501`, locked roles, empty `FrmsDbContext`, DI registration, exact project references, presentation/data-access boundaries, no BackgroundJob implementation type and absence of `Frms.Worker`.
+
+Test-project README files describe future test ownership. Current tests do not claim that any business flow, SQL Server behavior, authentication flow, provider integration, stored procedure, trigger or database concurrency behavior works.

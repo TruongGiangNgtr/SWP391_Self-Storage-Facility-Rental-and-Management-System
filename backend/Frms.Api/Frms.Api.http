@@ -1,0 +1,25 @@
+@Frms.Api_HostAddress = http://localhost:5029
+
+GET {{Frms.Api_HostAddress}}/health
+Accept: application/json
+
+###
+
+GET {{Frms.Api_HostAddress}}/openapi/v1.json
+Accept: application/json
+
+###
+
+# Representative anonymous business contract scaffold: returns 501 until implemented.
+POST {{Frms.Api_HostAddress}}/api/v1/auth/customer/register
+Content-Type: application/json
+Accept: application/json
+
+{
+  "fullName": "Scaffold User",
+  "phoneNumber": "0900000000",
+  "email": "scaffold@example.invalid",
+  "password": "not-a-real-password",
+  "address": "Ho Chi Minh City",
+  "cccd": null
+}
