@@ -1,20 +1,20 @@
 # FRMS — Software Requirements Specification (SRS)
 
-**Project:** Self-Storage Facility Rental and Management System (FRMS)  
-**Document:** Software Requirements Specification + Architecture + API Contract + Testing Baseline  
-**Version:** V10 FINAL  
-**Baseline Date:** 2026-10-02  
-**Architecture Revision Date:** 2026-10-04  
-**Status:** Final Implementation Baseline — Project Structure Revision  
-**Architecture:** 3 Logical Layers + Repository Pattern + Infrastructure Adapters  
-**Backend:** ASP.NET Core Web API / C#  
-**Frontend:** React + TypeScript  
-**Database:** Microsoft SQL Server  
-**ORM:** Entity Framework Core  
-**Unit Testing:** NUnit  
-**API Testing:** Postman  
-**UI / E2E Testing:** Playwright  
-**AI-assisted Development Tools:** ChatGPT / Claude / Gemini  
+**Project:** Self-Storage Facility Rental and Management System (FRMS)
+**Document:** Software Requirements Specification + Architecture + API Contract + Testing Baseline
+**Version:** V10 FINAL
+**Baseline Date:** 2026-10-02
+**Architecture Revision Date:** 2026-10-04
+**Status:** Final Implementation Baseline — Project Structure Revision
+**Architecture:** 3 Logical Layers + Repository Pattern + Infrastructure Adapters
+**Backend:** ASP.NET Core Web API / C#
+**Frontend:** React + TypeScript
+**Database:** Microsoft SQL Server
+**ORM:** Entity Framework Core
+**Unit Testing:** NUnit
+**API Testing:** Postman
+**UI / E2E Testing:** Playwright
+**AI-assisted Development Tools:** ChatGPT / Claude / Gemini
 
 ---
 
@@ -33,6 +33,7 @@
 | **V9 FINAL** | Remaining Deferred Decisions Lock | Resolves DD-01, DD-02, DD-13 and DD-15; completes Employee credential email provisioning, Manager Damage decision, first-month Discount rule, and production DamageType seed. |
 | **V9.1 EDITORIAL** | Version-reference consistency correction | Replaces stale current-baseline references to V5/V6/V7 with V9.1/current-SRS wording. No actor, scope, business rule, lifecycle, API contract, data model, security rule, calculation, or test requirement is changed. Historical version references remain unchanged where they describe actual document history or decision provenance. |
 | **V10 FINAL** | Backend Structure and Dependency Boundary Lock | Preserves V9 business semantics while locking API DTO mapping, Business Command/Result models, provider abstractions and adapters, dependency injection composition, background-job hosts, stored-procedure access organization, and architecture tests. Aligns the database authority reference to Data Dictionary V2.1. |
+| **V10 FINAL — 2026-10-05 clarification** | Owner-approved Phase 0 seed scope | Phase 0 requires UserRole, Policy v1 and the fixed DamageType catalogue only. ExtraFeeType schema/constraints remain; its five rows are deferred beyond Phase 0 until amounts and currency are approved. No rental/payment rule changes. |
 
 ## V5 Review Summary
 
@@ -627,7 +628,7 @@ Runtime provider is intentionally provider-agnostic and selected by configuratio
 
 ## 6.1 Phase 0 — Structure & Technical Foundation
 
-**Primary Implementer / Owner:** Nguyễn Trần Trường Giang  
+**Primary Implementer / Owner:** Nguyễn Trần Trường Giang
 **Architecture / Cross-module Review:** Bùi Đình Long
 
 Phase 0 establishes:
@@ -643,7 +644,7 @@ Phase 0 establishes:
 - external-provider abstraction and adapter baseline;
 - dependency-injection composition root;
 - background-job host baseline;
-- migration/seed baseline;
+- migration baseline and approved Phase 0 seed: five UserRoles, Policy v1 and fixed DamageTypes;
 - Customer phone login;
 - Employee email login;
 - JWT + BCrypt;
@@ -667,7 +668,7 @@ Phase 0 establishes:
 [ ] External-provider implementations are resolved through Business interfaces
 [ ] Background workers call Business services and do not access Repository/DbContext directly
 [ ] Empty database migrates successfully
-[ ] Seed data loads successfully
+[ ] Phase 0 seed loads successfully: five UserRoles, Policy v1 and six fixed DamageTypes
 [ ] Customer phone login baseline works
 [ ] Employee email login baseline works using seeded/test Employee account(s); this does not depend on the deferred production Employee credential-provisioning workflow
 [ ] JWT authorization baseline works
@@ -681,6 +682,8 @@ Phase 0 establishes:
 [ ] Postman environment runs
 [ ] Playwright project runs
 ```
+
+ExtraFeeType entity/table and its CHECK constraints remain part of the Phase 0 database structure. Phase 0 MUST NOT seed its five categories or invent DefaultAmount/currency. Those rows are deferred beyond Phase 0 until deployment values are approved; they are not part of this exit gate.
 
 ## 6.2 Phase 1 — Core Demo
 
@@ -1548,6 +1551,8 @@ SQL Server Agent may be used where available; otherwise the `Frms.Api` applicati
 
 Required production baseline seed:
 
+For Phase 0, the required subset is the five UserRole rows, Policy v1 and six fixed DamageType rows below. ExtraFeeType data belongs to a later approved deployment; the database entity/table/constraints are retained in Phase 0 without seed rows.
+
 ```text
 UserRole:
 CUSTOMER
@@ -1571,7 +1576,9 @@ Initial Policy:
 | LateFeeDivisorDays | 31 |
 | EarlyReturnWaiveFeeUntilDay | 5 |
 
-ExtraFeeType:
+ExtraFeeType catalogue for later deployment (not Phase 0 seed):
+
+Do not seed these five rows in Phase 0. DefaultAmount and currency require approved deployment data; no zero or other amount may be inferred.
 
 ```text
 KEY_REPLACEMENT
@@ -5581,7 +5588,7 @@ Only PENDING may transition. APPROVED/REJECTED are terminal. Decision is atomic 
 
 APPROVED DamageAmount is included in settlement; REJECTED contributes zero. Finalize Return remains blocked while any DamageRecord is PENDING.
 
-API: `INS-009`  
+API: `INS-009`
 Procedure: `usp_DecideDamage`.
 
 ## 23.3 DD-03 — Report Export Format — RESOLVED

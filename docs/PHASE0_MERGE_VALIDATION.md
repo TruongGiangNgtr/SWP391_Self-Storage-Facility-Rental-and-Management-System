@@ -1,6 +1,6 @@
 # Phase 0 merge validation
 
-Date: 2026-10-05. Branch: `setup/project-scaffold`. Status: **In Progress — ExtraFeeType seed gate blocked**.
+Date: 2026-10-05. Branch: `setup/project-scaffold`. Status: **In Progress — final committed-diff verification pending**.
 
 ## Scope and merge
 
@@ -12,7 +12,7 @@ No Phase 1 business implementation, production account/secret seed, extra persis
 
 ## Actual validation
 
-All rows below completed successfully after fixing discovered failures. The local pnpm executable was supplied using temporary Corepack shims with the repository-pinned pnpm 11.19.0.
+The mandatory backend/frontend/SQL/Postman/Playwright commands were rerun successfully for the path-normalization and owner-approved seed-scope clarification below. The local pnpm executable was supplied using temporary Corepack shims with the repository-pinned pnpm 11.19.0. The earlier migration evidence is retained separately; no schema or seed migration changed in this follow-up.
 
 | Command | Actual result |
 |---|---|
@@ -29,11 +29,11 @@ All rows below completed successfully after fixing discovered failures. The loca
 | `dotnet tool run dotnet-ef migrations script --project backend/Frms.DataAccess --startup-project backend/Frms.Api --no-build --configuration Release --idempotent` | PASS — 1,296 script lines; both migration IDs and corrected constraints present |
 | `dotnet tool run dotnet-ef database update --project backend/Frms.DataAccess --startup-project backend/Frms.Api --no-build --configuration Release` | PASS — initial + corrective migration on empty local `Frms_Phase0_MergeVerification` database |
 | Real SQL subset (`--filter 'FullyQualifiedName~RealSqlServer'`) | PASS — Passed: 9, Failed: 0, Skipped: 0 |
-| Git whitespace/conflict checks | PASS — no unresolved conflict entries or whitespace errors |
+| `git diff --check origin/main...HEAD` | PENDING — run after committing the SRS/Data Dictionary trailing-whitespace fixes |
 
 Full tests run with `FRMS_TEST_CONNECTION_STRING` targeting isolated local `Frms_Test_Phase0_MergeGate` using Windows integrated authentication. Connection encryption is disabled for this local-only test instance. Tests enforce the `Frms_Test_*` database prefix. Test fixture accounts remain in that disposable database; schema fixture transactions roll back. The temporary API was stopped after Postman. No shared/production database was changed.
 
-An actual SQL query on the empty-database verification instance confirms **27 domain tables, 5 roles, 1 Policy, 6 DamageTypes, 0 ExtraFeeTypes** and both migration IDs. The zero ExtraFeeType count is the documented blocked seed gate, not a passing complete-seed assertion.
+An actual SQL query on the empty-database verification instance confirms **27 domain tables, 5 roles, 1 Policy, 6 DamageTypes, 0 ExtraFeeTypes** and both migration IDs. These counts were rechecked for this follow-up. The zero ExtraFeeType count is intentional and satisfies the owner-approved Phase 0 seed scope; its entity/table/check constraints are retained.
 
 ## Migration changes
 
@@ -53,7 +53,7 @@ Real API testing exposed an EF translation failure when filtering properties aft
 | External providers resolved through Business interfaces | PASS | `ExternalProviderBoundaries_ResolveAndFailExplicitlyWhenNotConfigured` resolves all four adapters and asserts stable code + 503 for every call |
 | Background workers exclude direct data dependencies | PASS | `ApiBackgroundJobs_DoNotDependOnDataAccessOrDbContext`; hosting boundary only, no Phase 1 jobs |
 | Empty database migration | PASS | Both migrations applied to empty SQL Server database |
-| Required seed loads | BLOCKED | Five roles, Policy v1, six DamageTypes present; mandatory five ExtraFeeType rows await approved amounts/currency |
+| Required Phase 0 seed loads | PASS | Actual SQL Server: five roles, Policy v1 and six fixed DamageTypes; ExtraFeeType rows deferred beyond Phase 0 per SRS §6.1.1/§9.13 and DD §30 |
 | Customer phone login | PASS | `INT_AUTH_001_CustomerAndEmployeeLogin_UseRealSqlServerBcryptAndJwtAndRejectInactiveAccount` |
 | Employee email login with test account | PASS | Same INT_AUTH_001; asserts staff role and actual current-account facility scope |
 | JWT authorization | PASS | Same INT_AUTH_001 accepts both issued JWTs on /auth/me; deactivation rejects earlier token with 401 UNAUTHORIZED |
@@ -74,11 +74,38 @@ Additional SQL assertions:
 
 Release 1 DBT-01..25, concurrency and E2E-F01..F07 remain later-phase work and are not claimed by these Phase 0 tests.
 
-## Exact remaining owner input
+## Owner-approved Phase 0 closure scope
 
-Phase 0 owner **Nguyễn Trần Trường Giang** must supply approved non-negative decimal DefaultAmount values for KEY_REPLACEMENT, ACCESS_CARD_REPLACEMENT, LOCK_REPLACEMENT, CLEANING_FEE, OTHER, plus the currency basis. Architecture review owner: **Bùi Đình Long**. No zero or guessed amount is inserted. After approval, add a forward seed migration and verify all five rows on SQL Server. Only then may the seed gate and Phase 0 status become Completed.
+The 2026-10-05 owner-approved SRS/Data Dictionary clarification requires only UserRole, Policy v1 and DamageType seed in Phase 0. ExtraFeeType schema/checks remain without its five seed rows; later deployment must supply approved DefaultAmount values and currency. No schema, financial defaults or business workflows changed in this follow-up. Phase 0 owner: **Nguyễn Trần Trường Giang**; architecture review owner: **Bùi Đình Long**.
 
-## Exact changed-file manifest
+## Cross-platform dependency-test correction
+
+`ProjectDependencyTests.GetFrmsProjectReferences` replaces backslashes with forward slashes before `Path.GetFileNameWithoutExtension`, so Windows-style ProjectReference paths are handled on Unix as well. Actual project dependencies are unchanged. The focused NUnit run passed all three requested tests, Passed: 3, Failed: 0, Skipped: 0:
+
+- `BusinessReferencesOnlyDataAccessAmongFrmsProductionProjects`
+- `InfrastructureReferencesOnlyBusinessAmongFrmsProductionProjects`
+- `ApiCompositionRootReferencesBusinessDataAccessAndInfrastructure`
+
+The full solution suite also passed all 53 tests, including real SQL Server tests, with zero skips. Execution was on Windows; a native Linux run was not performed because WSL/Linux is not installed on this host. No SQL/E2E prerequisite remained missing: real SQL Server and Chromium were available, Postman passed 2 assertions and the technical Playwright shell test passed. No test was removed/commented/skipped.
+
+The original `git diff --check origin/main...HEAD` identified trailing whitespace in SRS and Data Dictionary metadata/annotation lines. Only that whitespace and the requested ExtraFeeType Phase 0 scope were edited in the authoritative documents. `origin/main` was fetched and remains an ancestor of this branch; the final committed-diff check records the result above.
+
+## Follow-up changed files
+
+Relative to preceding merge commit `5ca54f8`, this follow-up changes exactly:
+
+```text
+README.md
+backend/README.md
+backend/Frms.DataAccess/README.md
+backend/tests/Frms.ArchitectureTests/ProjectDependencyTests.cs
+docs/FRMS_SRS_V10.md
+docs/03-FRMS_Data_Dictionary_V2_1.md
+docs/PHASE0_FOUNDATION.md
+docs/PHASE0_MERGE_VALIDATION.md
+```
+
+## Earlier foundation-merge changed-file manifest
 
 Relative to branch HEAD before integrating main (`b3f8c12`), including files brought in from main. A = added; M = modified; D = removed from Git (the three generated/user-local copies remain on disk). Line-ending-only working-copy normalization produces no substantive Git change and is excluded.
 

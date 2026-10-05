@@ -1,12 +1,12 @@
 # FRMS Data Dictionary — Version 2.1 (SRS V10 Aligned)
 
-**Project:** Self-Storage Facility Rental and Management System (FRMS)  
-**Document:** Data Dictionary / Lifecycle / Database Automation Specification  
-**Version:** 2.1  
-**Date:** 2026-10-04  
-**Baseline:** `02-FRMS_SRS_V10.md` (highest authority) + Data Dictionary V2 database baseline + aligned Scope.  
-**Authority:** `SRS V10 FINAL > Data Dictionary V2.1 > aligned Scope > implementation detail`.  
-**Revision scope:** Authority/version alignment only; V2 database entities, lifecycle rules, stored procedures, triggers, jobs and constraints are unchanged.
+**Project:** Self-Storage Facility Rental and Management System (FRMS)
+**Document:** Data Dictionary / Lifecycle / Database Automation Specification
+**Version:** 2.1
+**Date:** 2026-10-04
+**Baseline:** `02-FRMS_SRS_V10.md` (highest authority) + Data Dictionary V2 database baseline + aligned Scope.
+**Authority:** `SRS V10 FINAL > Data Dictionary V2.1 > aligned Scope > implementation detail`.
+**Revision scope:** Authority/version alignment plus the owner-approved 2026-10-05 Phase 0 seed clarification in SRS §6.1.1/§9.13; database entities, lifecycle rules, stored procedures, triggers, jobs and constraints are unchanged.
 
 ---
 
@@ -1448,6 +1448,8 @@ Requirements:
 
 ## 30. Seed Data Requirements
 
+Phase 0 requires only the approved values for five UserRoles (§30.1), Policy v1 (§30.2), and six fixed DamageTypes (§30.4). ExtraFeeType schema and CHECK constraints remain in the Phase 0 baseline, but its five rows are deferred beyond Phase 0 pending approved amounts and currency.
+
 ### 30.1 `UserRole`
 
 Seed exactly five rows:
@@ -1482,7 +1484,7 @@ Initial baseline values from the current scope/design:
 
 ### 30.3 `ExtraFeeType`
 
-Seed:
+Catalogue for later approved deployment, not a Phase 0 seed requirement:
 
 ```text
 KEY_REPLACEMENT
@@ -1492,7 +1494,7 @@ CLEANING_FEE
 OTHER
 ```
 
-`DefaultAmount` is business-configurable and must be supplied by deployment/test seed data; the source does not define specific monetary values.
+Phase 0 MUST NOT seed these five rows. `DefaultAmount` and currency must be supplied through approved later deployment data; the source does not define specific monetary values. Do not infer zero or any other amount. The entity/table and existing name/status/amount CHECK constraints remain unchanged.
 
 ### 30.4 `DamageType`
 
@@ -1566,7 +1568,7 @@ A practical creation order that avoids FK dependency problems:
 27. `AuditLog`.
 28. `NotificationLog`.
 29. Native CHECK/UNIQUE/filtered indexes not already declared inline.
-30. Seed `UserRole`, initial `Policy`, `ExtraFeeType`, and fixed production `DamageType` rows.
+30. Seed the five `UserRole` rows, initial `Policy` v1, and fixed production `DamageType` rows for Phase 0; defer `ExtraFeeType` rows to a later deployment with approved amounts and currency.
 31. Integrity/audit triggers.
 32. Stored procedures.
 33. SQL Agent jobs / application scheduler configuration.
@@ -1600,7 +1602,7 @@ The schema is ready for DDL generation when all items below are explicitly repre
 - [ ] Payment callback and recurring jobs are idempotent.
 - [ ] Trigger code is multi-row safe.
 - [ ] Audit rules exclude secrets/binary payloads.
-- [ ] Seed data created for roles, initial Policy, ExtraFeeType, and fixed DamageType catalogue.
+- [ ] Phase 0 seed data created for the five roles, initial Policy v1, and six fixed DamageTypes; ExtraFeeType schema/checks exist without seeded rows.
 - [ ] Time-based jobs configured outside triggers.
 - [ ] DB roles/permissions prevent unauthorized direct lifecycle updates where applicable.
 - [ ] Integration tests cover every valid and invalid state transition.

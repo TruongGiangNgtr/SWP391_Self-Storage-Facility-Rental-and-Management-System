@@ -48,7 +48,7 @@ public sealed class ProjectDependencyTests
             .Descendants("ProjectReference")
             .Select(element => element.Attribute("Include")?.Value)
             .Where(value => value is not null)
-            .Select(value => Path.GetFileNameWithoutExtension(value!))
+            .Select(value => Path.GetFileNameWithoutExtension(value!.Replace('\\', '/')))
             .Where(value => value.StartsWith("Frms.", StringComparison.Ordinal))
             .OrderBy(value => value, StringComparer.Ordinal)
             .ToArray();

@@ -4,14 +4,14 @@ FRMS is a React + TypeScript and ASP.NET Core system for the five approved roles
 
 ## Phase 0 status
 
-**In Progress.** The technical foundation is implemented: solution and workspace scaffolding, the four backend assemblies, DTO-to-Command/Result mapping, architecture-boundary tests, the 27-entity EF Core schema migrations, authentication, error contract, OpenAPI, and NUnit/Postman/Playwright harnesses. Empty-database migration and real SQL Server authentication/constraint tests pass. The seed exit gate remains open until the five approved ExtraFeeType default amounts and currency are supplied and the seed is implemented and verified.
+**In Progress — final validation underway.** The Phase 0 seed scope is five UserRoles, Policy v1 and six fixed DamageTypes, per the owner-approved SRS clarification. ExtraFeeType schema/checks remain without seeded rows; amounts and currency belong to later approved deployment data. Completion requires all current build/test/SQL/Postman/Playwright checks to pass.
 
 Phase 1 is deliberately out of scope. The preserved SRS route catalogue is contract-only: those controllers return `501 ENDPOINT_NOT_IMPLEMENTED` and do not contain reservation, payment, handover, rental, inspection, return, facility-operation, or support behavior.
 
 Production credentials and monetary defaults remain outside source control:
 
 - Production accounts are not seeded. The Testing fixture creates disposable accounts with BCrypt hashes and generates its own JWT key.
-- The ExtraFeeType names are authoritative but their default monetary amounts are not. They remain an explicit deployment-data decision.
+- The ExtraFeeType names are authoritative; its data is deferred beyond Phase 0 until amounts and currency are approved.
 
 See [Phase 0 foundation notes](docs/PHASE0_FOUNDATION.md) for the exact boundary and follow-up decisions.
 
@@ -49,7 +49,7 @@ pnpm install --frozen-lockfile
 Keep database and JWT secrets outside source control. For a local session, set the following environment variables (replace placeholders):
 
 ```powershell
-$env:ConnectionStrings__Frms = 'Server=localhost;Database=Frms_Local;Trusted_Connection=True;TrustServerCertificate=True'
+$env:ConnectionStrings__Frms = '<your-local-sql-server-connection-string>'
 $env:Jwt__SigningKey = '<at-least-32-byte-secret>'
 ```
 
@@ -71,15 +71,31 @@ The implemented Phase 0 API endpoints are `/api/v1/auth/customer/login`, `/api/v
 ## Verification
 
 ```powershell
-$env:FRMS_TEST_CONNECTION_STRING = 'Server=localhost;Database=Frms_Test_Phase0;Integrated Security=true;Encrypt=false;TrustServerCertificate=true'
+$env:FRMS_TEST_CONNECTION_STRING = '<connection-string-for-a-disposable-Frms_Test_*-database>'
+dotnet tool restore
+dotnet restore Frms.slnx --disable-parallel
 dotnet build Frms.slnx --no-restore --configuration Release
 dotnet test Frms.slnx --no-restore --configuration Release
+pnpm install --frozen-lockfile
 pnpm build:frontend
 pnpm test:postman
+pnpm --dir tests/e2e/playwright run install:browsers
 pnpm test:e2e
+git diff --check origin/main...HEAD
 ```
 
-The SQL integration tests require a disposable database named `Frms_Test_*` and permission to create/migrate it. The example disables encryption for local development only; use the connection's approved TLS settings on a hosted SQL Server. SQL tests fail when this input is absent rather than silently skipping the gate. Schema fixtures roll back; authentication fixtures remain in the disposable test database. Start the API at `http://localhost:5164` before `pnpm test:postman`. When `pnpm` is not on PATH, use Corepack to enable the repository-pinned version.
+There is no CI workflow in this checkout; run these gates locally from the repository root. The SQL integration tests require an actual SQL Server connection to a disposable database named `Frms_Test_*` and permission to create/migrate it. Supply the connection through the environment using the instance's approved authentication/TLS settings; do not put connection strings or credentials in committed files. SQL tests fail when this input is absent rather than skipping the gate. Schema fixtures roll back; authentication fixtures remain in the disposable test database. When `pnpm` is not on PATH, use Corepack to enable the repository-pinned version.
+
+After the Release build, start a temporary API in another terminal before `pnpm test:postman`. Provide the same disposable test connection in that terminal and generate a session-only signing key:
+
+```powershell
+$env:ConnectionStrings__Frms = $env:FRMS_TEST_CONNECTION_STRING
+$env:ASPNETCORE_ENVIRONMENT = 'Testing'
+$env:Jwt__SigningKey = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+dotnet run --project backend/Frms.Api --no-build --configuration Release --no-launch-profile --urls http://localhost:5164
+```
+
+Stop the temporary API with Ctrl+C after Postman; do not persist its key or fixture accounts as production configuration.
 
 Install the pinned browser once before the E2E command:
 
