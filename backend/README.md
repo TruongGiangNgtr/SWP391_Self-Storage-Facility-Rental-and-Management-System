@@ -17,8 +17,13 @@ Run the following from the repository root (`C:\SWP391`). SQL Server must be run
 # Backend terminal: values last only for this session
 $env:ConnectionStrings__FrmsDb = "Server=<SERVER>;Database=<DATABASE>;Trusted_Connection=True;TrustServerCertificate=True"
 $env:Jwt__SigningKey = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
-dotnet tool restore
-dotnet ef database update --project backend/Frms.DataAccess --startup-project backend/Frms.Api
+dotnet tool restore --tool-manifest backend/dotnet-tools.json
+Push-Location backend
+try {
+    dotnet ef database update --project Frms.DataAccess --startup-project Frms.Api
+} finally {
+    Pop-Location
+}
 dotnet run --project backend/Frms.Api
 ```
 
@@ -41,4 +46,4 @@ Frontend API requests use `/api/v1` on the same origin. Vite development forward
 
 `Frms.Api` implements the Phase 0 authentication endpoints and `/openapi/v1.json`; the retained SRS route catalogue is 501 contract scaffolding only. It has no production-account provisioning endpoint and no committed credentials. A real SQL Server integration fixture creates disposable accounts when `FRMS_TEST_CONNECTION_STRING` points to a disposable database. Phase 0 seed comprises five roles, Policy v1, and six approved DamageTypes only. ExtraFeeType schema/checks remain; its rows are deferred beyond Phase 0 until amounts and currency are approved.
 
-Run solution validation from the repository root using `Frms.slnx`. Real SQL tests require `FRMS_TEST_CONNECTION_STRING` targeting a disposable `Frms_Test_*` database and fail if it is absent. No CI workflow is configured; the root README documents the full local commands and temporary API setup for Postman. See `docs/PHASE0_FOUNDATION.md` for migration/redeploy reasoning.
+Run solution validation from the repository root using `backend/Frms.slnx`. Real SQL tests require `FRMS_TEST_CONNECTION_STRING` targeting a disposable `Frms_Test_*` database and fail if it is absent. No CI workflow is configured; the root README documents the full local commands and temporary API setup for Postman. See `docs/PHASE0_FOUNDATION.md` for migration/redeploy reasoning.

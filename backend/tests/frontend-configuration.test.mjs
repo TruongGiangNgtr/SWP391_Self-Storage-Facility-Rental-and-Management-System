@@ -29,20 +29,32 @@ async function withProxyEnvironment(target, allowSelfSigned, run) {
 }
 
 test('REG_CONFIG_001_API_client_calls_relative_api_v1', async () => {
-  const source = readFileSync(join(frontend, 'src/api/apiClient.ts'), 'utf8')
-  const javascript = stripTypeScriptTypes(source, { mode: 'transform' })
-  const { apiRequest } = await import(`data:text/javascript;base64,${Buffer.from(javascript).toString('base64')}`)
+  const source = readFileSync(join(frontend, 'src/api/httpClient.ts'), 'utf8')
+  const tokenSource = readFileSync(join(frontend, 'src/api/authToken.ts'), 'utf8')
+  const tokenModule = `data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(tokenSource)).toString('base64')}`
+  const javascript = stripTypeScriptTypes(source).replace(/from ['"]\.\/authToken['"]/, `from '${tokenModule}'`)
   const originalFetch = globalThis.fetch
+  const storageDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'sessionStorage')
+  Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: { getItem: () => null } })
   let requestedUrl
   globalThis.fetch = async url => {
     requestedUrl = url
     return Response.json({ data: { userAccountId: 'fixture' } })
   }
   try {
-    const response = await apiRequest('/auth/me')
-    assert.equal(requestedUrl, '/api/v1/auth/me')
-    assert.equal(response.data.userAccountId, 'fixture')
-  } finally { globalThis.fetch = originalFetch }
+    for (const environment of [{}, { VITE_API_BASE_URL: '/api/v1/' }]) {
+      // Emulate Vite's environment substitution while executing the real shared client.
+      const module = javascript.replaceAll('import.meta.env', `(${JSON.stringify(environment)})`)
+      const { httpClient } = await import(`data:text/javascript;base64,${Buffer.from(module).toString('base64')}`)
+      const response = await httpClient.get('/auth/me')
+      assert.equal(requestedUrl, '/api/v1/auth/me')
+      assert.equal(response.data.userAccountId, 'fixture')
+    }
+  } finally {
+    globalThis.fetch = originalFetch
+    if (storageDescriptor) Object.defineProperty(globalThis, 'sessionStorage', storageDescriptor)
+    else delete globalThis.sessionStorage
+  }
 })
 
 test('REG_CONFIG_002_proxy_uses_environment_target_and_verifies_TLS_by_default', async () => {

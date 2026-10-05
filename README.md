@@ -38,13 +38,13 @@ tests/e2e/playwright             Phase 0 browser-shell smoke test
 
 ## Local setup
 
-Run these commands from the repository root (`C:\SWP391`). The solution on this branch is `Frms.slnx` at the root, not `backend/Frms.slnx`.
+Run these commands from the repository root (`C:\SWP391`). The solution and .NET tool manifest are in `backend/Frms.slnx` and `backend/dotnet-tools.json`.
 
 Restore dependencies:
 
 ```powershell
-dotnet tool restore
-dotnet restore Frms.slnx --disable-parallel
+dotnet tool restore --tool-manifest backend/dotnet-tools.json
+dotnet restore backend/Frms.slnx --disable-parallel
 pnpm install --frozen-lockfile
 ```
 
@@ -55,8 +55,13 @@ SQL Server must be running and accessible before applying the existing migration
 $env:ConnectionStrings__FrmsDb = "Server=<SERVER>;Database=<DATABASE>;Trusted_Connection=True;TrustServerCertificate=True"
 $env:Jwt__SigningKey = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
 
-dotnet tool restore
-dotnet ef database update --project backend/Frms.DataAccess --startup-project backend/Frms.Api
+dotnet tool restore --tool-manifest backend/dotnet-tools.json
+Push-Location backend
+try {
+    dotnet ef database update --project Frms.DataAccess --startup-project Frms.Api
+} finally {
+    Pop-Location
+}
 dotnet run --project backend/Frms.Api
 ```
 
@@ -80,7 +85,12 @@ The existing anonymous `/health` endpoint now probes the configured SQL Server t
 After a Release build, generate a reviewable idempotent deployment script with:
 
 ```powershell
-dotnet tool run dotnet-ef migrations script --project backend/Frms.DataAccess --startup-project backend/Frms.Api --no-build --configuration Release --idempotent
+Push-Location backend
+try {
+    dotnet tool run dotnet-ef migrations script --project Frms.DataAccess --startup-project Frms.Api --no-build --configuration Release --idempotent
+} finally {
+    Pop-Location
+}
 ```
 
 The implemented Phase 0 API endpoints are `/api/v1/auth/customer/login`, `/api/v1/auth/employee/login`, `/api/v1/auth/me`, `/health`, and `/openapi/v1.json`. The remaining documented routes are 501 contract scaffolds. Login needs an account provisioned through an approved operational path; the real SQL integration fixture provisions disposable test accounts only when `FRMS_TEST_CONNECTION_STRING` is supplied.
@@ -89,10 +99,10 @@ The implemented Phase 0 API endpoints are `/api/v1/auth/customer/login`, `/api/v
 
 ```powershell
 $env:FRMS_TEST_CONNECTION_STRING = '<connection-string-for-a-disposable-Frms_Test_*-database>'
-dotnet tool restore
-dotnet restore Frms.slnx --disable-parallel
-dotnet build Frms.slnx --no-restore --configuration Release
-dotnet test Frms.slnx --no-restore --configuration Release
+dotnet tool restore --tool-manifest backend/dotnet-tools.json
+dotnet restore backend/Frms.slnx --disable-parallel
+dotnet build backend/Frms.slnx --no-restore --configuration Release
+dotnet test backend/Frms.slnx --no-restore --configuration Release
 pnpm install --frozen-lockfile
 pnpm build:frontend
 pnpm test:postman

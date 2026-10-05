@@ -1,0 +1,13 @@
+<Solution>
+  <Project Path="Frms.Api/Frms.Api.csproj" />
+  <Project Path="Frms.Business/Frms.Business.csproj" />
+  <Project Path="Frms.DataAccess/Frms.DataAccess.csproj" />
+  <Project Path="Frms.Infrastructure/Frms.Infrastructure.csproj" />
+
+  <Folder Name="/tests/">
+    <Project Path="tests/Frms.UnitTests/Frms.UnitTests.csproj" />
+    <Project Path="tests/Frms.ApiTests/Frms.ApiTests.csproj" />
+    <Project Path="tests/Frms.IntegrationTests/Frms.IntegrationTests.csproj" />
+    <Project Path="tests/Frms.ArchitectureTests/Frms.ArchitectureTests.csproj" />
+  </Folder>
+</Solution>
