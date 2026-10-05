@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Frms.Api.Authentication;
 using Frms.Api.BackgroundJobs;
+using Frms.Api.Configuration;
 using Frms.Api.DTOs.Responses;
 using Frms.Api.Middleware;
 using Frms.Business.Abstractions.Security;
@@ -16,6 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddDevelopmentEnvFile(builder.Environment);
 builder.Services.AddDataAccess(builder.Configuration);
 builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.Configure<ApiBehaviorOptions>(options => options.InvalidModelStateResponseFactory = context =>

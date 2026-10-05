@@ -48,26 +48,23 @@ dotnet restore backend/Frms.slnx --disable-parallel
 pnpm install --frozen-lockfile
 ```
 
-SQL Server must be running and accessible before applying the existing migration. Replace the placeholders locally; keep the connection string and JWT key only in the current backend terminal session:
+Create the backend's ignored local file from its placeholder example, then edit the file with your own SQL Server settings. Do not overwrite an existing local file without saving your settings:
 
 ```powershell
-# Backend terminal: session-only configuration, never commit these values
-$env:ConnectionStrings__FrmsDb = "Server=<SERVER>;Database=<DATABASE>;Trusted_Connection=True;TrustServerCertificate=True"
+Copy-Item .\backend\Frms.Api\.env.example .\backend\Frms.Api\.env
+# Edit backend/Frms.Api/.env locally; never commit it.
+# The existing JWT configuration also requires a session-only signing key.
 $env:Jwt__SigningKey = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
-
-dotnet tool restore --tool-manifest backend/dotnet-tools.json
-Push-Location backend
-try {
-    dotnet ef database update --project Frms.DataAccess --startup-project Frms.Api
-} finally {
-    Pop-Location
-}
-dotnet run --project backend/Frms.Api
+dotnet run --project .\backend\Frms.Api
 ```
 
-The existing connection-string name `ConnectionStrings:Frms` remains supported through `ConnectionStrings__Frms` and takes precedence over the `FrmsDb` alias. Set only one name in a local session. Runtime configuration uses standard .NET configuration, including environment variables. The EF design-time factory also supports legacy `FRMS_CONNECTION_STRING` first, then `ConnectionStrings__Frms`, then `ConnectionStrings__FrmsDb`; it fails clearly if none is configured. There is no default database or automatic startup migration.
+From `C:\SWP391\backend`, the corresponding run command is `dotnet run --project .\Frms.Api`. The default launch profile selects Development. SQL Server must be running for database access and the `/health` connectivity probe; starting the API does not apply migrations or modify the database.
 
-`backend/Frms.Api/appsettings.Example.json` contains placeholders only and is a reference, not an automatically loaded local configuration. Do not commit local settings, passwords, database files, or signing keys. `TrustServerCertificate=True` in the example is for local development; use the deployment's approved authentication and certificate settings in production.
+In Development only, DotNetEnv reads `.env` from the API's `ContentRootPath`, independently of the terminal directory. `ConnectionStrings__FrmsDb` maps to `ConnectionStrings:FrmsDb`. Existing Windows/PowerShell environment variables and command-line configuration override the file. The file is optional: other .NET configuration sources remain available when it is absent. Loading it does not change process environment variables. Production and Testing do not load this local file.
+
+The existing `ConnectionStrings:Frms` name remains supported and takes precedence over the `FrmsDb` alias; configure only one name locally. A missing connection string produces a clear configuration error. The runtime `.env` loader is not used by the EF design-time factory, and the API never runs migrations automatically.
+
+`backend/Frms.Api/.env.example` and `appsettings.Example.json` contain placeholders only. `.env` is ignored by Git and excluded from build/publish items. Do not commit local settings, passwords, database files, or signing keys. `TrustServerCertificate=True` in the example is for local development, not a production TLS policy.
 
 In a separate frontend terminal at the repository root:
 
@@ -82,20 +79,23 @@ The shared frontend API client calls relative `/api/v1` paths, for example `fetc
 
 The existing anonymous `/health` endpoint now probes the configured SQL Server through `FrmsDbContext`: HTTP 200 when reachable, HTTP 503 when unavailable, with no connection details in its response. This checks connectivity, not migration/schema completeness.
 
-After a Release build, generate a reviewable idempotent deployment script with:
-
-```powershell
-Push-Location backend
-try {
-    dotnet tool run dotnet-ef migrations script --project Frms.DataAccess --startup-project Frms.Api --no-build --configuration Release --idempotent
-} finally {
-    Pop-Location
-}
-```
-
 The implemented Phase 0 API endpoints are `/api/v1/auth/customer/login`, `/api/v1/auth/employee/login`, `/api/v1/auth/me`, `/health`, and `/openapi/v1.json`. The remaining documented routes are 501 contract scaffolds. Login needs an account provisioned through an approved operational path; the real SQL integration fixture provisions disposable test accounts only when `FRMS_TEST_CONNECTION_STRING` is supplied.
 
-## Verification
+## Backend local configuration verification
+
+These checks do not require a SQL test database and do not run migrations:
+
+```powershell
+dotnet restore backend/Frms.slnx --disable-parallel
+dotnet build backend/Frms.slnx --no-restore --configuration Release
+dotnet test backend/tests/Frms.UnitTests/Frms.UnitTests.csproj --configuration Release
+dotnet test backend/tests/Frms.ApiTests/Frms.ApiTests.csproj --configuration Release
+dotnet test backend/tests/Frms.ArchitectureTests/Frms.ArchitectureTests.csproj --configuration Release
+```
+
+The existing SQL integration suite is a separate Phase 0 release gate, not a prerequisite for configuring or starting the local API. It is unchanged by the dotenv setup.
+
+## Full Phase 0 verification (separate release gates)
 
 ```powershell
 $env:FRMS_TEST_CONNECTION_STRING = '<connection-string-for-a-disposable-Frms_Test_*-database>'
