@@ -15,6 +15,19 @@ namespace Frms.Api.Controllers;
 public sealed class AuthController(IAuthenticationService authenticationService) : ControllerBase
 {
     [AllowAnonymous]
+    [HttpPost("customer/register")]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status501NotImplemented)]
+    public ActionResult<ApiErrorResponse> RegisterCustomer(RegisterCustomerRequest request)
+    {
+        return StatusCode(
+            StatusCodes.Status501NotImplemented,
+            new ApiErrorResponse(
+                "ENDPOINT_NOT_IMPLEMENTED",
+                "AUTH-001 is a contract scaffold and has not been implemented.",
+                HttpContext.TraceIdentifier));
+    }
+
+    [AllowAnonymous]
     [HttpPost("customer/login")]
     [ProducesResponseType(typeof(ApiResponse<AuthTokenDataResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]

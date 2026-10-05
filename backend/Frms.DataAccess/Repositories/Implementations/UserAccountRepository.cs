@@ -9,13 +9,13 @@ namespace Frms.DataAccess.Repositories.Implementations;
 internal sealed class UserAccountRepository(FrmsDbContext dbContext) : IUserAccountRepository
 {
     public Task<AuthenticationAccount?> FindByPhoneNumberAsync(string normalizedPhoneNumber, CancellationToken cancellationToken) =>
-        Query().SingleOrDefaultAsync(x => x.PhoneNumber == normalizedPhoneNumber, cancellationToken);
+        Query(dbContext.UserAccounts.Where(x => x.PhoneNumber == normalizedPhoneNumber)).SingleOrDefaultAsync(cancellationToken);
 
     public Task<AuthenticationAccount?> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken) =>
-        Query().SingleOrDefaultAsync(x => x.Email == normalizedEmail, cancellationToken);
+        Query(dbContext.UserAccounts.Where(x => x.Email == normalizedEmail)).SingleOrDefaultAsync(cancellationToken);
 
     public Task<AuthenticationAccount?> FindByIdAsync(Guid userAccountId, CancellationToken cancellationToken) =>
-        Query().SingleOrDefaultAsync(x => x.UserAccountId == userAccountId, cancellationToken);
+        Query(dbContext.UserAccounts.Where(x => x.UserAccountId == userAccountId)).SingleOrDefaultAsync(cancellationToken);
 
     public async Task AppendLoginHistoryAsync(Guid userAccountId, bool succeeded, string? ipAddress, string? deviceInfo, DateTime loginAtUtc, CancellationToken cancellationToken)
     {
@@ -31,8 +31,8 @@ internal sealed class UserAccountRepository(FrmsDbContext dbContext) : IUserAcco
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private IQueryable<AuthenticationAccount> Query() =>
-        from account in dbContext.UserAccounts.AsNoTracking()
+    private IQueryable<AuthenticationAccount> Query(IQueryable<UserAccount> accounts) =>
+        from account in accounts.AsNoTracking()
         join role in dbContext.UserRoles.AsNoTracking() on account.RoleId equals role.RoleId
         join customer in dbContext.Customers.AsNoTracking() on account.UserAccountId equals customer.UserAccountId into customers
         from customer in customers.DefaultIfEmpty()

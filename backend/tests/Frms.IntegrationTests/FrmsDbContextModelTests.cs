@@ -1,8 +1,8 @@
 using Frms.DataAccess.Persistence;
 using Frms.DataAccess.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 namespace Frms.IntegrationTests;
 

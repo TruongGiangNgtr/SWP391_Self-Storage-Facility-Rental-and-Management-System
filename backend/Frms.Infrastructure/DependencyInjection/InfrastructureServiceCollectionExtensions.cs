@@ -1,3 +1,5 @@
+using Frms.Business.Abstractions.External;
+using Frms.Infrastructure.External;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Frms.Infrastructure.DependencyInjection;
@@ -6,8 +8,10 @@ public static class InfrastructureServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
-        // SRS V10 defines provider ownership but does not define enough Phase 0 method-level
-        // contracts or selected providers to register a truthful runtime adapter here.
+        services.AddSingleton<IPaymentGateway, UnconfiguredPaymentGateway>();
+        services.AddSingleton<IAiRecommendationProvider, UnconfiguredAiRecommendationProvider>();
+        services.AddSingleton<IEmailService, UnconfiguredEmailService>();
+        services.AddSingleton<INotificationSender, UnconfiguredNotificationSender>();
         return services;
     }
 }

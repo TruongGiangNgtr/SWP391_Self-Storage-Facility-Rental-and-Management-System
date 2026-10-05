@@ -25,6 +25,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options => options.InvalidModelSt
 builder.Services.AddOpenApi();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.AddHealthChecks();
 builder.Services.AddOptions<BCryptOptions>().Bind(builder.Configuration.GetSection(BCryptOptions.SectionName)).Validate(options => options.WorkFactor is >= 4 and <= 31).ValidateOnStart();
 builder.Services.AddOptions<JwtOptions>().Bind(builder.Configuration.GetSection(JwtOptions.SectionName)).Validate(options => !string.IsNullOrWhiteSpace(options.Issuer)).Validate(options => !string.IsNullOrWhiteSpace(options.Audience)).Validate(options => Encoding.UTF8.GetByteCount(options.SigningKey ?? string.Empty) >= 32).Validate(options => options.LifetimeMinutes > 0).ValidateOnStart();
 
@@ -72,6 +73,7 @@ app.UseStatusCodePages(async context =>
 app.MapOpenApi();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHealthChecks("/health").AllowAnonymous();
 app.MapControllers();
 app.Run();
 

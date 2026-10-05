@@ -94,7 +94,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("ACTIVE");
 
                     b.Property<Guid>("StorageUnitId")
                         .HasColumnType("uniqueidentifier");
@@ -219,7 +221,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("PENDING");
 
                     b.HasKey("DamageRecordId");
 
@@ -251,7 +255,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("ACTIVE");
 
                     b.HasKey("DamageTypeId");
 
@@ -324,7 +330,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("PENDING");
 
                     b.Property<decimal>("TotalDeduction")
                         .HasColumnType("decimal(18,2)");
@@ -367,7 +375,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("ACTIVE");
 
                     b.HasKey("DiscountId");
 
@@ -460,7 +470,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("ACTIVE");
 
                     b.HasKey("ExtraFeeTypeId");
 
@@ -503,7 +515,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("INACTIVE");
 
                     b.HasKey("FacilityId");
 
@@ -534,7 +548,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("PENDING");
 
                     b.Property<Guid>("StorageUnitId")
                         .HasColumnType("uniqueidentifier");
@@ -630,7 +646,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("UNPAID");
 
                     b.HasKey("InvoiceId");
 
@@ -747,7 +765,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("PENDING");
 
                     b.Property<Guid>("UserAccountId")
                         .HasColumnType("uniqueidentifier");
@@ -758,6 +778,8 @@ namespace Frms.DataAccess.Migrations
 
                     b.ToTable("NotificationLog", null, t =>
                         {
+                            t.HasCheckConstraint("CK_NotificationLog_SentAt", "([Status]='PENDING' AND [SentAt] IS NULL) OR ([Status]='SENT' AND [SentAt] IS NOT NULL)");
+
                             t.HasCheckConstraint("CK_NotificationLog_Status", "[Status] IN ('PENDING','SENT')");
                         });
                 });
@@ -788,7 +810,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("PENDING");
 
                     b.Property<string>("TransactionCode")
                         .HasColumnType("varchar(150)");
@@ -820,7 +844,9 @@ namespace Frms.DataAccess.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2(3)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2(3)")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
 
                     b.Property<int>("DepositTimeoutHours")
                         .HasColumnType("int");
@@ -851,7 +877,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("ACTIVE");
 
                     b.Property<int>("Version")
                         .HasColumnType("int");
@@ -867,7 +895,7 @@ namespace Frms.DataAccess.Migrations
 
                     b.ToTable("Policy", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Policy_Days", "[DepositTimeoutHours]>0 AND [ReservationVisitStartDay] BETWEEN 1 AND 31 AND [ReservationVisitEndDay] BETWEEN 1 AND 31 AND [MonthlyPaymentDueDay] BETWEEN 1 AND 31 AND [OverdueStartDay] BETWEEN 1 AND 31 AND [LateFeeDivisorDays]>0 AND [EarlyReturnWaiveFeeUntilDay] BETWEEN 1 AND 31");
+                            t.HasCheckConstraint("CK_Policy_Days", "[DepositTimeoutHours]>0 AND [ReservationVisitStartDay] BETWEEN 1 AND 31 AND [ReservationVisitEndDay] BETWEEN 1 AND 31 AND [ReservationVisitStartDay] <= [ReservationVisitEndDay] AND [MonthlyPaymentDueDay] BETWEEN 1 AND 31 AND [OverdueStartDay] BETWEEN 1 AND 31 AND [LateFeeDivisorDays]>0 AND [EarlyReturnWaiveFeeUntilDay] BETWEEN 1 AND 31");
 
                             t.HasCheckConstraint("CK_Policy_Status", "[Status] IN ('ACTIVE','INACTIVE')");
                         });
@@ -924,7 +952,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("PENDING_DEPOSIT");
 
                     b.Property<Guid>("UnitTypeId")
                         .HasColumnType("uniqueidentifier");
@@ -964,7 +994,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("AVAILABLE");
 
                     b.Property<string>("UnitCode")
                         .IsRequired()
@@ -1023,7 +1055,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("OPEN");
 
                     b.HasKey("SupportTicketId");
 
@@ -1109,7 +1143,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("ACTIVE");
 
                     b.HasKey("UserAccountId");
 
@@ -1196,7 +1232,9 @@ namespace Frms.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("SCHEDULED");
 
                     b.Property<DateOnly>("VisitDate")
                         .HasColumnType("date");
