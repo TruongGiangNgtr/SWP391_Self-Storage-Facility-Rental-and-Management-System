@@ -59,6 +59,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
+
 builder.Services.AddBusiness();
 builder.Services.AddDataAccess(builder.Configuration.GetConnectionString("Frms") ?? throw new InvalidOperationException("ConnectionStrings:Frms is required."));
 builder.Services.AddInfrastructure();

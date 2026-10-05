@@ -12,6 +12,7 @@ public static class DataAccessServiceCollectionExtensions
     {
         services.AddDbContext<FrmsDbContext>(options => options.UseSqlServer(connectionString));
         services.AddScoped<IUserAccountRepository, UserAccountRepository>();
+        services.AddScoped<IStorageUnitRepository, StorageUnitRepository>();
         return services;
     }
 }
