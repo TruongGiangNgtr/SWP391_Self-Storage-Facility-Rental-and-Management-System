@@ -10,3 +10,9 @@ public interface ITokenService
 {
     Models.Results.IssuedToken Generate(Guid userAccountId, string role);
 }
+
+public interface ICurrentUserContext {
+    bool IsAuthenticated { get; }
+    Guid UserAccountId { get; }
+    string Role { get; }
+}

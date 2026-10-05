@@ -54,6 +54,9 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("FACILITY_MANAGER", policy => policy.RequireRole("FACILITY_MANAGER"))
     .AddPolicy("BUSINESS_OPERATIONS_MANAGER", policy => policy.RequireRole("BUSINESS_OPERATIONS_MANAGER"))
     .AddPolicy("SYSTEM_ADMINISTRATOR", policy => policy.RequireRole("SYSTEM_ADMINISTRATOR"));
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddBusiness();
