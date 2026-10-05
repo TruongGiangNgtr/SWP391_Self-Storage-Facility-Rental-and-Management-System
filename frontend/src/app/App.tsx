@@ -1,8 +1,10 @@
-import { useCurrentRoute } from '../routes/useCurrentRoute'
-import { FoundationPage } from '../pages/FoundationPage'
-import { NotFoundPage } from '../pages/NotFoundPage'
+import { AuthProvider } from '../auth/AuthProvider'
+import { AppRouter } from '../routes/router'
 
 export function App() {
-  const route = useCurrentRoute()
-  return route === 'foundation' ? <FoundationPage /> : <NotFoundPage />
+  return (
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
+  )
 }
