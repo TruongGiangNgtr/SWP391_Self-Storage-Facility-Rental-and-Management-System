@@ -3,12 +3,14 @@ using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Frms.Business.Models.Commands;
+using Frms.Business.Services.Interfaces;
 
 namespace Frms.Api.Controllers;
 
 [Authorize(Roles = RoleNames.FacilityManager)]
 [Route("api/v1")]
-public sealed class StorageUnitsController : ScaffoldControllerBase
+public sealed class StorageUnitsController(IStorageUnitService storageUnitService) : ScaffoldControllerBase
 {
     /// <summary>UNIT-001: List Facility StorageUnits scaffold.</summary>
     [HttpGet("facilities/{facilityId:guid}/storage-units")]
@@ -18,13 +20,28 @@ public sealed class StorageUnitsController : ScaffoldControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default) => ScaffoldNotImplemented("UNIT-001");
 
-    /// <summary>UNIT-002: Create StorageUnit scaffold.</summary>
+    /// <summary>UNIT-002: Create StorageUnit.</summary>
     [HttpPost("facilities/{facilityId:guid}/storage-units")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    public ActionResult<ApiErrorResponse> CreateStorageUnit(
+    [ProducesResponseType(typeof(ApiResponse<Guid>), StatusCodes.Status201Created)]
+    public async Task<ActionResult<ApiResponse<Guid>>> CreateStorageUnit(
         Guid facilityId,
         [FromBody] CreateStorageUnitRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("UNIT-002");
+        CancellationToken cancellationToken)
+    {
+        var storageUnitId = await storageUnitService.CreateAsync(
+            facilityId,
+            new CreateStorageUnitCommand(
+                request.UnitTypeId,
+                request.UnitCode,
+                request.LocationInfo),
+            cancellationToken);
+
+        return StatusCode(
+            StatusCodes.Status201Created,
+            new ApiResponse<Guid>(
+                storageUnitId,
+                "StorageUnit created."));
+    }
 
     /// <summary>UNIT-003: StorageUnit detail scaffold.</summary>
     [HttpGet("storage-units/{storageUnitId:guid}")]
