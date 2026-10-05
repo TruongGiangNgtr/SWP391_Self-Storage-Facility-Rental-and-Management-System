@@ -2,7 +2,7 @@
 
 ## Scope applied
 
-This implementation covers only SRS V10 §6.1 Phase 0 and its exit gate. It establishes the repository layout, backend/frontend build baseline, dependency boundaries, 27-entity EF Core schema baseline, approved reference seed, authentication technical foundation, error/OpenAPI conventions, and test harnesses. It does not implement a Phase 1 business flow. **Status: In Progress — final validation underway.**
+This implementation covers only SRS V10 §6.1 Phase 0 and its exit gate. It establishes the repository layout, backend/frontend build baseline, dependency boundaries, 27-entity EF Core schema baseline, approved reference seed, authentication technical foundation, error/OpenAPI conventions, and test harnesses. It does not implement a Phase 1 business flow. **Status: Completed — verified 2026-10-05.** All mandatory checks passed, including real SQL Server tests and the committed branch whitespace check.
 
 ## Traceability
 
@@ -42,4 +42,4 @@ Deploy forward using the idempotent migration script documented in README. `Down
 
 ## Validation and phase boundary
 
-Phase 0 completion depends on the actual mandatory validation results in `PHASE0_MERGE_VALIDATION.md`. Release 1 business workflows, real provider integrations, and approved later ExtraFeeType deployment data remain outside this change. Phase 0 owner: Nguyễn Trần Trường Giang; architecture review owner: Bùi Đình Long.
+Phase 0 can close based on the actual mandatory validation results in `PHASE0_MERGE_VALIDATION.md`: 53 NUnit tests passed without skips, the required reference seed was verified on SQL Server, frontend/Postman/Playwright passed, and `git diff --check origin/main...HEAD` passed after commit `1acc349`. Release 1 business workflows, real provider integrations, and approved later ExtraFeeType deployment data remain outside this change. Phase 0 owner: Nguyễn Trần Trường Giang; architecture review owner: Bùi Đình Long.

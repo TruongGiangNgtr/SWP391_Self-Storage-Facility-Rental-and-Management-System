@@ -1,6 +1,6 @@
 # Phase 0 merge validation
 
-Date: 2026-10-05. Branch: `setup/project-scaffold`. Status: **In Progress — final committed-diff verification pending**.
+Date: 2026-10-05. Branch: `setup/project-scaffold`. Status: **Completed — all mandatory Phase 0 checks verified**.
 
 ## Scope and merge
 
@@ -26,10 +26,10 @@ The mandatory backend/frontend/SQL/Postman/Playwright commands were rerun succes
 | `pnpm --dir tests/e2e/playwright run install:browsers` | PASS — Chromium installed/available |
 | `pnpm test:e2e` | PASS — `E2E-P0-001 technical React shell loads without a business workflow` |
 | `dotnet format Frms.slnx --verify-no-changes --no-restore` | PASS |
-| `dotnet tool run dotnet-ef migrations script --project backend/Frms.DataAccess --startup-project backend/Frms.Api --no-build --configuration Release --idempotent` | PASS — 1,296 script lines; both migration IDs and corrected constraints present |
-| `dotnet tool run dotnet-ef database update --project backend/Frms.DataAccess --startup-project backend/Frms.Api --no-build --configuration Release` | PASS — initial + corrective migration on empty local `Frms_Phase0_MergeVerification` database |
-| Real SQL subset (`--filter 'FullyQualifiedName~RealSqlServer'`) | PASS — Passed: 9, Failed: 0, Skipped: 0 |
-| `git diff --check origin/main...HEAD` | PENDING — run after committing the SRS/Data Dictionary trailing-whitespace fixes |
+| `dotnet tool run dotnet-ef migrations script --project backend/Frms.DataAccess --startup-project backend/Frms.Api --no-build --configuration Release --idempotent` | PASS — prior foundation validation: 1,296 script lines; both migration IDs and corrected constraints present; migrations unchanged |
+| `dotnet tool run dotnet-ef database update --project backend/Frms.DataAccess --startup-project backend/Frms.Api --no-build --configuration Release` | PASS — prior foundation validation: initial + corrective migration on empty local `Frms_Phase0_MergeVerification` database; schema unchanged |
+| Real SQL subset (`--filter 'FullyQualifiedName~RealSqlServer'`) | PASS — prior focused run: Passed: 9, Failed: 0, Skipped: 0; the same 9 real SQL cases executed in the current full solution run |
+| `git diff --check origin/main...HEAD` | PASS — exit 0 after `1acc349`; SRS/Data Dictionary trailing whitespace corrected |
 
 Full tests run with `FRMS_TEST_CONNECTION_STRING` targeting isolated local `Frms_Test_Phase0_MergeGate` using Windows integrated authentication. Connection encryption is disabled for this local-only test instance. Tests enforce the `Frms_Test_*` database prefix. Test fixture accounts remain in that disposable database; schema fixture transactions roll back. The temporary API was stopped after Postman. No shared/production database was changed.
 
@@ -68,6 +68,7 @@ Real API testing exposed an EF translation failure when filtering properties aft
 | Playwright project runs | PASS | Technical shell smoke test only |
 
 Additional SQL assertions:
+
 - `DBT_PHASE0_002_PolicyVisitDays_RejectReversedRangeAndAcceptEqualBoundary`: accepts 1..31 and 10..10; rejects 20..19 with SQL error 547 naming CK_Policy_Days.
 - `DBT_PHASE0_003_NotificationSentAt_MatchesDeliveryStatus`: all four PENDING/SENT × null/non-null cases; rejects violations with SQL error 547 naming CK_NotificationLog_SentAt.
 - INT_AUTH_001 rejects inactive customer login with ACCOUNT_INACTIVE/403 and a non-empty trace ID.
@@ -88,7 +89,7 @@ The 2026-10-05 owner-approved SRS/Data Dictionary clarification requires only Us
 
 The full solution suite also passed all 53 tests, including real SQL Server tests, with zero skips. Execution was on Windows; a native Linux run was not performed because WSL/Linux is not installed on this host. No SQL/E2E prerequisite remained missing: real SQL Server and Chromium were available, Postman passed 2 assertions and the technical Playwright shell test passed. No test was removed/commented/skipped.
 
-The original `git diff --check origin/main...HEAD` identified trailing whitespace in SRS and Data Dictionary metadata/annotation lines. Only that whitespace and the requested ExtraFeeType Phase 0 scope were edited in the authoritative documents. `origin/main` was fetched and remains an ancestor of this branch; the final committed-diff check records the result above.
+The original `git diff --check origin/main...HEAD` identified trailing whitespace in SRS and Data Dictionary metadata/annotation lines. Only that whitespace and the requested ExtraFeeType Phase 0 scope were edited in the authoritative documents. `origin/main` was fetched and remains an ancestor of this branch; no merge conflict remains. After commit `1acc349`, the exact committed-diff check exited 0. Phase 0 status was changed to Completed only after this final mandatory check passed.
 
 ## Follow-up changed files
 

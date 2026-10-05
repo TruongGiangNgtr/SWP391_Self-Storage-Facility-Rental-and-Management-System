@@ -4,7 +4,7 @@ FRMS is a React + TypeScript and ASP.NET Core system for the five approved roles
 
 ## Phase 0 status
 
-**In Progress — final validation underway.** The Phase 0 seed scope is five UserRoles, Policy v1 and six fixed DamageTypes, per the owner-approved SRS clarification. ExtraFeeType schema/checks remain without seeded rows; amounts and currency belong to later approved deployment data. Completion requires all current build/test/SQL/Postman/Playwright checks to pass.
+**Completed — verified 2026-10-05.** All required build/test/SQL/Postman/Playwright and committed-diff whitespace checks passed. The Phase 0 seed scope is five UserRoles, Policy v1 and six fixed DamageTypes, per the owner-approved SRS clarification. ExtraFeeType schema/checks remain without seeded rows; amounts and currency belong to later approved deployment data.
 
 Phase 1 is deliberately out of scope. The preserved SRS route catalogue is contract-only: those controllers return `501 ENDPOINT_NOT_IMPLEMENTED` and do not contain reservation, payment, handover, rental, inspection, return, facility-operation, or support behavior.
 
