@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDataAccess(builder.Configuration);
 builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.Configure<ApiBehaviorOptions>(options => options.InvalidModelStateResponseFactory = context =>
 {
@@ -57,7 +58,6 @@ builder.Services.AddAuthorizationBuilder()
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddBusiness();
-builder.Services.AddDataAccess(builder.Configuration.GetConnectionString("Frms") ?? throw new InvalidOperationException("ConnectionStrings:Frms is required."));
 builder.Services.AddInfrastructure();
 builder.Services.AddFrmsBackgroundJobs();
 

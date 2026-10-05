@@ -1,6 +1,6 @@
 import type { ApiError } from '../models/api'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5164/api/v1'
+const API_BASE_URL = '/api/v1'
 
 export class FrmsApiError extends Error { constructor(public readonly error: ApiError, public readonly status: number) { super(error.message) } }
 

@@ -38,6 +38,8 @@ tests/e2e/playwright             Phase 0 browser-shell smoke test
 
 ## Local setup
 
+Run these commands from the repository root (`C:\SWP391`). The solution on this branch is `Frms.slnx` at the root, not `backend/Frms.slnx`.
+
 Restore dependencies:
 
 ```powershell
@@ -46,21 +48,36 @@ dotnet restore Frms.slnx --disable-parallel
 pnpm install --frozen-lockfile
 ```
 
-Keep database and JWT secrets outside source control. For a local session, set the following environment variables (replace placeholders):
+SQL Server must be running and accessible before applying the existing migration. Replace the placeholders locally; keep the connection string and JWT key only in the current backend terminal session:
 
 ```powershell
-$env:ConnectionStrings__Frms = '<your-local-sql-server-connection-string>'
-$env:Jwt__SigningKey = '<at-least-32-byte-secret>'
-```
+# Backend terminal: session-only configuration, never commit these values
+$env:ConnectionStrings__FrmsDb = "Server=<SERVER>;Database=<DATABASE>;Trusted_Connection=True;TrustServerCertificate=True"
+$env:Jwt__SigningKey = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
 
-Apply the baseline migration and run the API:
-
-```powershell
+dotnet tool restore
 dotnet ef database update --project backend/Frms.DataAccess --startup-project backend/Frms.Api
 dotnet run --project backend/Frms.Api
 ```
 
-The design-time factory uses `FRMS_CONNECTION_STRING`, then `ConnectionStrings__Frms`; an unset connection falls back to `Frms_DesignTime`. Always configure the intended database explicitly. After a Release build, generate a reviewable idempotent deployment script with:
+The existing connection-string name `ConnectionStrings:Frms` remains supported through `ConnectionStrings__Frms` and takes precedence over the `FrmsDb` alias. Set only one name in a local session. Runtime configuration uses standard .NET configuration, including environment variables. The EF design-time factory also supports legacy `FRMS_CONNECTION_STRING` first, then `ConnectionStrings__Frms`, then `ConnectionStrings__FrmsDb`; it fails clearly if none is configured. There is no default database or automatic startup migration.
+
+`backend/Frms.Api/appsettings.Example.json` contains placeholders only and is a reference, not an automatically loaded local configuration. Do not commit local settings, passwords, database files, or signing keys. `TrustServerCertificate=True` in the example is for local development; use the deployment's approved authentication and certificate settings in production.
+
+In a separate frontend terminal at the repository root:
+
+```powershell
+Copy-Item frontend/.env.example frontend/.env.local
+pnpm dev
+```
+
+The default launch profile uses `http://localhost:5164`, which is the sample `VITE_API_PROXY_TARGET`. The HTTPS profile uses `https://localhost:7235` (and HTTP 5164). To use it, start the API with `dotnet run --project backend/Frms.Api --launch-profile https` and set the target in the ignored `.env.local` to that HTTPS URL. Only for its self-signed ASP.NET Core development certificate, set `VITE_API_PROXY_ALLOW_SELF_SIGNED=true`; other targets keep certificate verification enabled. Restart Vite after changing the environment.
+
+The shared frontend API client calls relative `/api/v1` paths, for example `fetch("/api/v1/auth/me")`. Vite forwards all `/api` requests without rewriting the path and with `changeOrigin: true`. Production builds and `vite preview` do not use the dev proxy: configure the production web server to route same-origin `/api` requests to the API. Never place a SQL connection string or any secret in a `VITE_*` variable.
+
+The existing anonymous `/health` endpoint now probes the configured SQL Server through `FrmsDbContext`: HTTP 200 when reachable, HTTP 503 when unavailable, with no connection details in its response. This checks connectivity, not migration/schema completeness.
+
+After a Release build, generate a reviewable idempotent deployment script with:
 
 ```powershell
 dotnet tool run dotnet-ef migrations script --project backend/Frms.DataAccess --startup-project backend/Frms.Api --no-build --configuration Release --idempotent
@@ -84,7 +101,24 @@ pnpm test:e2e
 git diff --check origin/main...HEAD
 ```
 
-There is no CI workflow in this checkout; run these gates locally from the repository root. The SQL integration tests require an actual SQL Server connection to a disposable database named `Frms_Test_*` and permission to create/migrate it. Supply the connection through the environment using the instance's approved authentication/TLS settings; do not put connection strings or credentials in committed files. SQL tests fail when this input is absent rather than skipping the gate. Schema fixtures roll back; authentication fixtures remain in the disposable test database. When `pnpm` is not on PATH, use Corepack to enable the repository-pinned version.
+There is no CI workflow in this checkout; run these gates locally from the repository root. The SQL integration tests require an actual SQL Server connection to a disposable database named `Frms_Test_*` and permission to create/migrate it. Supply the connection through the environment using the instance's approved authentication/TLS settings; do not put connection strings or credentials in committed files. SQL tests fail when this input is absent rather than skipping the gate. Schema fixtures roll back; authentication fixtures remain in the disposable test database.
+
+If `pnpm` is not on PATH, create Corepack shims only in a temporary directory and update the current terminal's PATH; Corepack uses the version pinned in `package.json`:
+
+```powershell
+$pnpmShimDir = Join-Path $env:TEMP 'frms-corepack-shims'
+New-Item -ItemType Directory -Path $pnpmShimDir -Force | Out-Null
+corepack enable --install-directory $pnpmShimDir
+$env:PATH = $pnpmShimDir + [IO.Path]::PathSeparator + $env:PATH
+```
+
+After building the frontend, run the configuration regression checks (Node.js 24, as used for validation):
+
+```powershell
+node --test backend/tests/frontend-configuration.test.mjs
+```
+
+These check relative API calls, the dev proxy and local certificate opt-in, actual path forwarding, and exclusion of backend configuration/local data files from the bundle and tracked configuration.
 
 After the Release build, start a temporary API in another terminal before `pnpm test:postman`. Provide the same disposable test connection in that terminal and generate a session-only signing key:
 
