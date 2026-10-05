@@ -1,3 +1,3 @@
 # Frms.DataAccess scaffold
 
-This project owns future repository interfaces/implementations, EF Core entities/configurations, migrations and stored-procedure access. The current `FrmsDbContext` intentionally has no `DbSet`, mapping, seed or migration.
+This project owns repository contracts/implementations, the 27-entity SQL Server EF model, reference seeds, and migrations. The account repository supports actual phone/email/id queries and login history. The initial migration remains unchanged; `PhaseZeroBaselineConstraints` corrects defaults and checks. Phase 0 requires five UserRoles, Policy v1 and six fixed DamageTypes; ExtraFeeType schema/checks remain without seeded rows until a later deployment supplies approved amounts and currency. Authoritative business stored procedures are deferred to their corresponding later phases.

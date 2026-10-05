@@ -1,0 +1,7 @@
+{
+  "name": "@frms/postman",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": { "test": "newman run FRMS.Phase0.postman_collection.json -e FRMS.Local.postman_environment.json" },
+  "devDependencies": { "newman": "^6.2.1" }
+}

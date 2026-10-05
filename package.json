@@ -1,0 +1,10 @@
+{
+  "name": "frms-workspace",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "scripts": {
+    "build:frontend": "pnpm --dir frontend build",
+    "test:postman": "pnpm --dir tests/postman test",
+    "test:e2e": "pnpm --dir tests/e2e/playwright test"
+  }
+}

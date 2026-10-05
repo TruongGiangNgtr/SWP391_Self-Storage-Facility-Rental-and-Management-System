@@ -1,47 +1,65 @@
-using Frms.Api.Authorization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
+using Frms.Api.Mapping;
+using Frms.Business.Exceptions;
+using Frms.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Frms.Api.Controllers;
 
-[Route("api/v1")]
-public sealed class AuthController : ScaffoldControllerBase
+[ApiController]
+[Route("api/v1/auth")]
+public sealed class AuthController(IAuthenticationService authenticationService) : ControllerBase
 {
-    /// <summary>AUTH-001: Customer self-registration scaffold.</summary>
     [AllowAnonymous]
-    [HttpPost("auth/customer/register")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    public ActionResult<ApiErrorResponse> RegisterCustomer(
-        [FromBody] RegisterCustomerRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("AUTH-001");
+    [HttpPost("customer/register")]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status501NotImplemented)]
+    public ActionResult<ApiErrorResponse> RegisterCustomer(RegisterCustomerRequest request)
+    {
+        return StatusCode(
+            StatusCodes.Status501NotImplemented,
+            new ApiErrorResponse(
+                "ENDPOINT_NOT_IMPLEMENTED",
+                "AUTH-001 is a contract scaffold and has not been implemented.",
+                HttpContext.TraceIdentifier));
+    }
 
-    /// <summary>AUTH-002: Customer login by PhoneNumber scaffold.</summary>
     [AllowAnonymous]
-    [HttpPost("auth/customer/login")]
-    [ProducesResponseType(typeof(AuthTokenResponse), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> CustomerLogin(
-        [FromBody] CustomerLoginRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("AUTH-002");
+    [HttpPost("customer/login")]
+    [ProducesResponseType(typeof(ApiResponse<AuthTokenDataResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ApiResponse<AuthTokenDataResponse>>> CustomerLogin(CustomerLoginRequest request, CancellationToken cancellationToken)
+    {
+        var result = await authenticationService.LoginCustomerAsync(request.ToCommand(HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString()), cancellationToken);
+        return Ok(result.ToResponse());
+    }
 
-    /// <summary>AUTH-003: Employee login by Email scaffold.</summary>
     [AllowAnonymous]
-    [HttpPost("auth/employee/login")]
-    [ProducesResponseType(typeof(AuthTokenResponse), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> EmployeeLogin(
-        [FromBody] EmployeeLoginRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("AUTH-003");
+    [HttpPost("employee/login")]
+    [ProducesResponseType(typeof(ApiResponse<AuthTokenDataResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ApiResponse<AuthTokenDataResponse>>> EmployeeLogin(EmployeeLoginRequest request, CancellationToken cancellationToken)
+    {
+        var result = await authenticationService.LoginEmployeeAsync(request.ToCommand(HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString()), cancellationToken);
+        return Ok(result.ToResponse());
+    }
 
-    /// <summary>AUTH-004: Current authenticated account/profile scaffold.</summary>
     [Authorize]
-    [HttpGet("auth/me")]
-    public ActionResult<ApiErrorResponse> GetCurrentAccount(CancellationToken cancellationToken) =>
-        ScaffoldNotImplemented("AUTH-004");
-
-    /// <summary>AUTH-005: Update limited Customer profile fields scaffold.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
-    [HttpPatch("customers/me/profile")]
-    public ActionResult<ApiErrorResponse> UpdateCustomerProfile(CancellationToken cancellationToken) =>
-        ScaffoldNotImplemented("AUTH-005");
+    [HttpGet("me")]
+    [ProducesResponseType(typeof(ApiResponse<CurrentAccountDataResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ApiResponse<CurrentAccountDataResponse>>> Me(CancellationToken cancellationToken)
+    {
+        var value = User.FindFirstValue(JwtRegisteredClaimNames.Sub) ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(value, out var userAccountId)) throw new BusinessException("UNAUTHORIZED", "Authentication is required.", 401);
+        var result = await authenticationService.GetCurrentAccountAsync(userAccountId, cancellationToken);
+        return Ok(result.ToResponse());
+    }
 }

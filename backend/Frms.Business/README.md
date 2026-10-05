@@ -1,3 +1,3 @@
 # Frms.Business scaffold
 
-This project owns future service interfaces, Commands, Results, business rules, calculations, provider abstractions, security abstractions and time abstractions. No business implementation is present.
+This project owns service interfaces, Commands/Results, authentication orchestration, security/time abstractions, and the payment, optional AI, email, and notification provider interfaces. Rental/reservation/payment business workflows are deferred beyond Phase 0.

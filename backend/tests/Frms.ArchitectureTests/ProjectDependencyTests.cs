@@ -48,7 +48,7 @@ public sealed class ProjectDependencyTests
             .Descendants("ProjectReference")
             .Select(element => element.Attribute("Include")?.Value)
             .Where(value => value is not null)
-            .Select(value => Path.GetFileNameWithoutExtension(value!))
+            .Select(value => Path.GetFileNameWithoutExtension(value!.Replace('\\', '/')))
             .Where(value => value.StartsWith("Frms.", StringComparison.Ordinal))
             .OrderBy(value => value, StringComparer.Ordinal)
             .ToArray();
@@ -60,9 +60,9 @@ public sealed class ProjectDependencyTests
 
         while (current is not null)
         {
-            if (File.Exists(Path.Combine(current.FullName, "Frms.sln")))
+            if (File.Exists(Path.Combine(current.FullName, "Frms.slnx")))
             {
-                return current.FullName;
+                return Path.Combine(current.FullName, "backend");
             }
 
             current = current.Parent;

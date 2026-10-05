@@ -17,7 +17,7 @@ public sealed class SolutionBoundaryTests
 
         while (current is not null)
         {
-            var candidate = Path.Combine(current.FullName, "Frms.sln");
+            var candidate = Path.Combine(current.FullName, "Frms.slnx");
             if (File.Exists(candidate))
             {
                 return candidate;
@@ -26,6 +26,6 @@ public sealed class SolutionBoundaryTests
             current = current.Parent;
         }
 
-        throw new FileNotFoundException("Could not locate backend/Frms.sln from the test output directory.");
+        throw new FileNotFoundException("Could not locate Frms.slnx from the test output directory.");
     }
 }

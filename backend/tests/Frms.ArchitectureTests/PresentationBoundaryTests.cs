@@ -29,14 +29,21 @@ public sealed class PresentationBoundaryTests
     }
 
     [Test]
-    public void BackgroundJobsContainNoImplementationTypesInTheScaffold()
+    public void BackgroundJobsDoNotDependOnDataAccessOrDbContext()
     {
         var backgroundJobTypes = typeof(ScaffoldControllerBase).Assembly
             .GetTypes()
             .Where(type => type.Namespace?.StartsWith("Frms.Api.BackgroundJobs", StringComparison.Ordinal) == true)
             .ToArray();
 
-        Assert.That(backgroundJobTypes, Is.Empty);
+        var dependencies = backgroundJobTypes
+            .SelectMany(GetPublicAndInjectedTypes)
+            .Where(IsDataAccessType)
+            .Select(type => type.FullName)
+            .Distinct()
+            .ToArray();
+
+        Assert.That(dependencies, Is.Empty);
     }
 
     private static IEnumerable<Type> GetPublicAndInjectedTypes(Type type)

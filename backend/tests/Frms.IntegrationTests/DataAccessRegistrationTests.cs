@@ -17,7 +17,7 @@ public sealed class DataAccessRegistrationTests
         Assert.Multiple(() =>
         {
             Assert.That(dbContext.Database.ProviderName, Is.EqualTo("Microsoft.EntityFrameworkCore.SqlServer"));
-            Assert.That(dbContext.Model.GetEntityTypes(), Is.Empty);
+            Assert.That(dbContext.Model.GetEntityTypes().ToArray(), Has.Length.EqualTo(27));
         });
     }
 }

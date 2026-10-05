@@ -1,3 +1,3 @@
 # Frms.Infrastructure scaffold
 
-This supporting assembly will contain external-provider adapters behind interfaces owned by `Frms.Business`. No payment, email, AI or notification implementation is registered.
+This supporting assembly registers payment, email, optional AI, and notification adapters behind Business-owned interfaces. Phase 0 adapters fail with `EXTERNAL_PROVIDER_NOT_CONFIGURED` (503); they never fabricate successful delivery/payment. Actual provider integration is deferred to the corresponding later phase.
