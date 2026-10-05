@@ -54,12 +54,19 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("FACILITY_MANAGER", policy => policy.RequireRole("FACILITY_MANAGER"))
     .AddPolicy("BUSINESS_OPERATIONS_MANAGER", policy => policy.RequireRole("BUSINESS_OPERATIONS_MANAGER"))
     .AddPolicy("SYSTEM_ADMINISTRATOR", policy => policy.RequireRole("SYSTEM_ADMINISTRATOR"));
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
+
 builder.Services.AddBusiness();
 builder.Services.AddDataAccess(builder.Configuration.GetConnectionString("Frms") ?? throw new InvalidOperationException("ConnectionStrings:Frms is required."));
 builder.Services.AddInfrastructure();
 builder.Services.AddFrmsBackgroundJobs();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 app.UseExceptionHandler();
@@ -70,6 +77,12 @@ app.UseStatusCodePages(async context =>
     var (code, message) = response.StatusCode switch { 404 => ("RESOURCE_NOT_FOUND", "The requested resource was not found."), 405 => ("METHOD_NOT_ALLOWED", "The HTTP method is not allowed for this resource."), _ => ("HTTP_ERROR", "The request could not be completed.") };
     await response.WriteAsJsonAsync(new ApiErrorResponse(code, message, context.HttpContext.TraceIdentifier));
 });
+
+if (app.Environment.IsDevelopment()) {
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.MapOpenApi();
 app.UseAuthentication();
 app.UseAuthorization();
