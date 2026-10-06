@@ -15,6 +15,7 @@ using Frms.Infrastructure.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddDevelopmentEnvFile(builder.Environment);
@@ -68,7 +69,21 @@ builder.Services.AddInfrastructure();
 builder.Services.AddFrmsBackgroundJobs();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options => {
+    options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "JWT Authorization header using the Bearer scheme."
+    });
+
+    options.AddSecurityRequirement(document =>
+        new OpenApiSecurityRequirement {
+            [new OpenApiSecuritySchemeReference(
+                "bearer",
+                document)] = []
+        });
+});
 
 var app = builder.Build();
 app.UseExceptionHandler();
