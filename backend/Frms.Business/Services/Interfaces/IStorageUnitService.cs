@@ -1,5 +1,6 @@
 using Frms.Business.Models.Commands;
 using Frms.Business.Models.Results;
+using Frms.Business.Models;
 
 namespace Frms.Business.Services.Interfaces;
 
