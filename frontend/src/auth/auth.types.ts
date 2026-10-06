@@ -27,11 +27,11 @@ export interface CurrentAccount {
   email: string
   phoneNumber: string
   profile: {
-    customerId?: string
-    employeeId?: string
-    fullName: string
-    facilityId?: string | null
-  }
+    customerId: string | null
+    employeeId: string | null
+    fullName: string | null
+    facilityId: string | null
+  } | null
 }
 
 export interface CustomerRegisterRequest {

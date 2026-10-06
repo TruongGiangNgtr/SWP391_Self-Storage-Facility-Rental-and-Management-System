@@ -29,6 +29,9 @@ public sealed class RealSqlServerAuthenticationTests
         var fixture = await SeedAuthenticationAccountsAsync(factory.Services);
         using var client = factory.CreateClient();
 
+        using var health = await client.GetAsync("/health");
+        Assert.That(health.StatusCode, Is.EqualTo(HttpStatusCode.OK), "The health endpoint must check the real SQL Server connection.");
+
         var customerLogin = await client.PostAsJsonAsync("/api/v1/auth/customer/login", new { phoneNumber = fixture.CustomerPhone, password = TestPassword });
         var customerToken = await customerLogin.Content.ReadFromJsonAsync<ApiResponse<AuthTokenDataResponse>>();
         Assert.Multiple(() =>

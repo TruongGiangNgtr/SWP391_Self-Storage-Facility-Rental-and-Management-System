@@ -62,7 +62,7 @@ public sealed class ProjectDependencyTests
         {
             if (File.Exists(Path.Combine(current.FullName, "Frms.slnx")))
             {
-                return Path.Combine(current.FullName, "backend");
+                return current.FullName;
             }
 
             current = current.Parent;

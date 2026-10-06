@@ -9,7 +9,9 @@ public sealed class FrmsDbContextFactory : IDesignTimeDbContextFactory<FrmsDbCon
     {
         var connectionString = Environment.GetEnvironmentVariable("FRMS_CONNECTION_STRING")
             ?? Environment.GetEnvironmentVariable("ConnectionStrings__Frms")
-            ?? "Server=localhost;Database=Frms_DesignTime;Trusted_Connection=True;TrustServerCertificate=True";
+            ?? Environment.GetEnvironmentVariable("ConnectionStrings__FrmsDb");
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new InvalidOperationException("SQL Server configuration is required for EF tools. Set ConnectionStrings__Frms or ConnectionStrings__FrmsDb. No default database is selected.");
         return new FrmsDbContext(new DbContextOptionsBuilder<FrmsDbContext>().UseSqlServer(connectionString).Options);
     }
 }

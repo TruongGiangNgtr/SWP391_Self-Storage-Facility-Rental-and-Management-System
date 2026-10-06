@@ -17,9 +17,9 @@ function mapCurrentAccount(
     userAccountId: account.userAccountId,
     role: account.role,
     status: account.status,
-    customerId: account.profile.customerId,
-    employeeId: account.profile.employeeId,
-    facilityId: account.profile.facilityId,
+    customerId: account.profile?.customerId ?? undefined,
+    employeeId: account.profile?.employeeId ?? undefined,
+    facilityId: account.profile?.facilityId,
   }
 }
 
@@ -70,12 +70,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         return await loadCurrentAccount()
-      } catch {
-        setUser(response.data.user)
-        return response.data.user
+      } catch (error) {
+        logout()
+        throw error
       }
     },
-    [loadCurrentAccount],
+    [loadCurrentAccount, logout],
   )
 
   const loginEmployee = useCallback(
@@ -85,12 +85,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         return await loadCurrentAccount()
-      } catch {
-        setUser(response.data.user)
-        return response.data.user
+      } catch (error) {
+        logout()
+        throw error
       }
     },
-    [loadCurrentAccount],
+    [loadCurrentAccount, logout],
   )
 
   const value = useMemo<AuthContextValue>(
