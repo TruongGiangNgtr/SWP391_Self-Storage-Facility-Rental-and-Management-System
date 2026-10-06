@@ -25,7 +25,7 @@ public sealed class FacilityAuthorizationService(
         if (account.FacilityId is null ||
             account.FacilityId.Value != targetFacilityId) {
             throw new BusinessException(
-                "FACILITY_ACCESS_DENIED",
+                "FORBIDDEN",
                 "You are not authorized to access this facility.",
                 403);
         }
