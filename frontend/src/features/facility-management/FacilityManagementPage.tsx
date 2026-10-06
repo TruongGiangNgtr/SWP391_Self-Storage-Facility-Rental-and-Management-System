@@ -1,8 +1,11 @@
 import {
   type SyntheticEvent,
+  useEffect,
   useMemo,
   useState,
 } from 'react'
+import { businessApi } from '../../../src/api/businessApi'
+import { ApiRequestError } from '../../../src/api/httpClient'
 import type {
   Facility,
   FacilityStatus,
@@ -32,16 +35,86 @@ const emptyCreateFacilityForm: CreateFacilityForm = {
 
 
 export function FacilityManagementPage() {
-  const [isLoading] = useState(false)
+ const [isLoading, setIsLoading] =
+    useState(true)
 
-  const [pageError] = useState<string | null>(null)
+  const [pageError, setPageError] =
+    useState<string | null>(null)
   const [currentPage, setCurrentPage] =
     useState(1)
 
   const pageSize = 5
+  useEffect(() => {
+  let cancelled = false
 
+  async function loadFacilities() {
+    setIsLoading(true)
+    setPageError(null)
+
+    try {
+      const response =
+        await businessApi.listFacilities(
+          1,
+          100,
+        )
+
+      if (cancelled) {
+        return
+      }
+
+      setFacilities(response.data)
+    } catch (error) {
+      if (cancelled) {
+        return
+      }
+
+      if (error instanceof ApiRequestError) {
+        if (error.status === 501) {
+          setFacilities(mockFacilities)
+          setPageError(null)
+          return
+        }
+
+        if (error.status === 401) {
+          setFacilities([])
+          setPageError(
+            'Unauthorized. Please sign in as Business Operations Manager.',
+          )
+          return
+        }
+
+        if (error.status === 403) {
+          setFacilities([])
+          setPageError(
+            'You do not have permission to access Facility Management.',
+          )
+          return
+        }
+
+        setFacilities([])
+        setPageError(error.message)
+        return
+      }
+
+      setFacilities([])
+      setPageError(
+        'Unable to load facilities.',
+      )
+    } finally {
+      if (!cancelled) {
+        setIsLoading(false)
+      }
+    }
+  }
+
+  void loadFacilities()
+
+  return () => {
+    cancelled = true
+  }
+}, [])
   const [facilities, setFacilities] =
-  useState<Facility[]>(mockFacilities)
+  useState<Facility[]>([])
   const [isCreateOpen, setIsCreateOpen] =
     useState(false)
   const [selectedFacility, setSelectedFacility] =
@@ -70,7 +143,7 @@ const [editErrors, setEditErrors] =
   const [statusFilter, setStatusFilter] = useState<
     'ALL' | FacilityStatus
   >('ALL')
-
+  
   const totalFacilities = facilities.length
 
   const activeFacilities = facilities.filter(
