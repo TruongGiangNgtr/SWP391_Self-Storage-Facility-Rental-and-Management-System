@@ -182,4 +182,123 @@ internal sealed class VisitRepository(
                     contract.CustomerId == customerId)
             ));
     }
+
+    public Task<Employee?> GetEmployeeByUserAccountIdAsync(
+        Guid userAccountId,
+        CancellationToken cancellationToken)
+    {
+        return dbContext.Employees
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                x => x.UserAccountId == userAccountId,
+                cancellationToken);
+    }
+
+    public Task<Visit?> GetByIdAsync(
+        Guid visitId,
+        CancellationToken cancellationToken)
+    {
+        return dbContext.Visits
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                x => x.VisitId == visitId,
+                cancellationToken);
+    }
+
+    public Task<Reservation?> GetReservationForVisitAsync(
+        Guid visitId,
+        CancellationToken cancellationToken)
+    {
+        return (
+            from visit in dbContext.Visits.AsNoTracking()
+            join reservation in dbContext.Reservations.AsNoTracking()
+                on visit.EntityId equals reservation.ReservationId
+            where visit.VisitId == visitId
+                && visit.VisitType == "RESERVATION"
+            select reservation)
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<Visit> CheckInAsync(
+        Guid visitId,
+        Guid employeeId,
+        CancellationToken cancellationToken)
+    {
+        var connection = dbContext.Database.GetDbConnection();
+        var shouldCloseConnection =
+            connection.State != ConnectionState.Open;
+
+        try
+        {
+            if (shouldCloseConnection)
+            {
+                await connection.OpenAsync(cancellationToken);
+            }
+
+            await using var command = connection.CreateCommand();
+
+            command.CommandText = "dbo.usp_CheckInVisit";
+            command.CommandType = CommandType.StoredProcedure;
+
+            var visitParameter = command.CreateParameter();
+            visitParameter.ParameterName = "@VisitId";
+            visitParameter.DbType = DbType.Guid;
+            visitParameter.Value = visitId;
+            command.Parameters.Add(visitParameter);
+
+            var employeeParameter = command.CreateParameter();
+            employeeParameter.ParameterName = "@EmployeeId";
+            employeeParameter.DbType = DbType.Guid;
+            employeeParameter.Value = employeeId;
+            command.Parameters.Add(employeeParameter);
+
+            await command.ExecuteNonQueryAsync(
+                cancellationToken);
+        }
+        catch (SqlException ex)
+        {
+            if (ex.Message.Contains(
+                    "VISIT_INVALID_STATUS",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                throw new StoredProcedureBusinessException(
+                    "VISIT_INVALID_STATUS",
+                    "VISIT_INVALID_STATUS");
+            }
+
+            if (ex.Message.Contains(
+                    "VISIT_ENTITY_MISMATCH",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                throw new StoredProcedureBusinessException(
+                    "VISIT_ENTITY_MISMATCH",
+                    "VISIT_ENTITY_MISMATCH");
+            }
+
+            if (ex.Message.Contains(
+                    "FORBIDDEN",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                throw new StoredProcedureBusinessException(
+                    "FORBIDDEN",
+                    "FORBIDDEN");
+            }
+
+            throw;
+        }
+        finally
+        {
+            if (shouldCloseConnection &&
+                connection.State == ConnectionState.Open)
+            {
+                await connection.CloseAsync();
+            }
+        }
+
+        return await dbContext.Visits
+            .AsNoTracking()
+            .SingleAsync(
+                x => x.VisitId == visitId,
+                cancellationToken);
+    }
 }
