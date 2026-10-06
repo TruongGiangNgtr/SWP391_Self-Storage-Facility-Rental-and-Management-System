@@ -20,6 +20,7 @@ public sealed record CreateEmployeeRequest
     public Guid? FacilityId { get; init; }
 }
 
+
 /// <summary>Payload for assigning an Employee role and Facility (ADM-009).</summary>
 public sealed record AssignEmployeeRequest
 {
@@ -27,4 +28,9 @@ public sealed record AssignEmployeeRequest
     public required string Role { get; init; }
 
     public Guid? FacilityId { get; init; }
+}
+
+public sealed record UpdateAdminEmployeeRequest {
+    [Required]
+    public required string FullName { get; init; }
 }

@@ -141,12 +141,16 @@ internal sealed class VisitRepository(
 
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
-        catch (SqlException ex)
-            when (ex.Number is 51112 or 51115)
-        {
+        catch (SqlException ex) when (ex.Number == 51112) {
             throw new StoredProcedureBusinessException(
                 "VISIT_INVALID_STATUS",
                 "VISIT_INVALID_STATUS");
+        }
+
+        catch (SqlException ex) when (ex.Number == 51115) {
+            throw new StoredProcedureBusinessException(
+                "RESERVATION_VISIT_CANCEL_NOT_ALLOWED",
+                "RESERVATION_VISIT_CANCEL_NOT_ALLOWED");
         }
         finally
         {
