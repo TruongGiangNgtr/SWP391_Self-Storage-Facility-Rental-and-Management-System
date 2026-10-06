@@ -1,4 +1,3 @@
-using Frms.DataAccess.Repositories.Models;
 using Frms.DataAccess.Persistence.Entities;
 
 namespace Frms.DataAccess.Repositories.Interfaces;

@@ -2,7 +2,6 @@ using Frms.DataAccess.Persistence;
 using Frms.DataAccess.Persistence.Entities;
 using Frms.DataAccess.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Frms.DataAccess.Repositories.Models;
 
 namespace Frms.DataAccess.Repositories.Implementations;
 
