@@ -66,4 +66,30 @@ internal sealed class StorageUnitService(
                 x.Status))
             .ToList();
     }
+
+    public async Task<StorageUnitListItem?> GetByIdAsync(
+        Guid storageUnitId,
+        CancellationToken cancellationToken = default)
+    {
+        var record = await repository.GetByIdAsync(
+            storageUnitId,
+            cancellationToken);
+
+        if (record is null)
+        {
+            return null;
+        }
+
+        await facilityAuthorizationService.EnsureSameFacilityAsync(
+            record.FacilityId,
+            cancellationToken);
+
+        return new StorageUnitListItem(
+            record.StorageUnitId,
+            record.FacilityId,
+            record.UnitTypeId,
+            record.UnitCode,
+            record.LocationInfo,
+            record.Status);
+    }
 }

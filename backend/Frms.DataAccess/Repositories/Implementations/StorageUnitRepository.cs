@@ -65,4 +65,21 @@ internal sealed class StorageUnitRepository(
                 x.Status))
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<StorageUnitRecord?> GetByIdAsync(
+        Guid storageUnitId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.StorageUnits
+            .AsNoTracking()
+            .Where(x => x.StorageUnitId == storageUnitId)
+            .Select(x => new StorageUnitRecord(
+                x.StorageUnitId,
+                x.FacilityId,
+                x.UnitTypeId,
+                x.UnitCode,
+                x.LocationInfo,
+                x.Status))
+            .SingleOrDefaultAsync(cancellationToken);
+    }
 }

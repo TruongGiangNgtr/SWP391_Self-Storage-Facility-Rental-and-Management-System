@@ -12,4 +12,8 @@ public interface IStorageUnitService {
     Task<IReadOnlyList<StorageUnitListItem>> ListByFacilityAsync(
         Guid facilityId,
         CancellationToken cancellationToken = default);
+
+    Task<StorageUnitListItem?> GetByIdAsync(
+        Guid storageUnitId,
+        CancellationToken cancellationToken = default);
 }

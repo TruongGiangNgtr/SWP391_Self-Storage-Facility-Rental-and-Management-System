@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Frms.Business.Models.Commands;
 using Frms.Business.Services.Interfaces;
+using Frms.Business.Models;
 
 namespace Frms.Api.Controllers;
 
@@ -12,13 +13,25 @@ namespace Frms.Api.Controllers;
 [Route("api/v1")]
 public sealed class StorageUnitsController(IStorageUnitService storageUnitService) : ScaffoldControllerBase
 {
-    /// <summary>UNIT-001: List Facility StorageUnits scaffold.</summary>
+    /// <summary>UNIT-001: List StorageUnits of a Facility.</summary>
     [HttpGet("facilities/{facilityId:guid}/storage-units")]
-    public ActionResult<ApiErrorResponse> ListStorageUnits(
-        Guid facilityId,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default) => ScaffoldNotImplemented("UNIT-001");
+    [ProducesResponseType(
+        typeof(ApiResponse<IReadOnlyList<StorageUnitListItem>>),
+        StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<StorageUnitListItem>>>>
+        GetStorageUnits(
+            Guid facilityId,
+            CancellationToken cancellationToken)
+    {
+        var items = await storageUnitService.ListByFacilityAsync(
+            facilityId,
+            cancellationToken);
+
+        return Ok(
+            new ApiResponse<IReadOnlyList<StorageUnitListItem>>(
+                items,
+                "StorageUnits retrieved."));
+    }
 
     /// <summary>UNIT-002: Create StorageUnit.</summary>
     [HttpPost("facilities/{facilityId:guid}/storage-units")]
@@ -43,11 +56,29 @@ public sealed class StorageUnitsController(IStorageUnitService storageUnitServic
                 "StorageUnit created."));
     }
 
-    /// <summary>UNIT-003: StorageUnit detail scaffold.</summary>
+    /// <summary>UNIT-003: Get StorageUnit detail.</summary>
     [HttpGet("storage-units/{storageUnitId:guid}")]
-    public ActionResult<ApiErrorResponse> GetStorageUnit(
+    [ProducesResponseType(
+        typeof(ApiResponse<StorageUnitListItem>),
+        StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<StorageUnitListItem>>> GetStorageUnit(
         Guid storageUnitId,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("UNIT-003");
+        CancellationToken cancellationToken)
+    {
+        var item = await storageUnitService.GetByIdAsync(
+            storageUnitId,
+            cancellationToken);
+
+        if (item is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(
+            new ApiResponse<StorageUnitListItem>(
+                item,
+                "StorageUnit retrieved."));
+    }
 
     /// <summary>UNIT-004: Update allowed StorageUnit fields scaffold.</summary>
     [HttpPatch("storage-units/{storageUnitId:guid}")]
