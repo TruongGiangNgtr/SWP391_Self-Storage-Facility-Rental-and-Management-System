@@ -92,4 +92,63 @@ internal sealed class StorageUnitService(
             record.LocationInfo,
             record.Status);
     }
+
+    public async Task UpdateAsync(
+        Guid storageUnitId,
+        UpdateStorageUnitCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var record = await repository.GetByIdAsync(
+            storageUnitId,
+            cancellationToken);
+
+        if (record is null)
+        {
+            throw new BusinessException(
+                "STORAGE_UNIT_NOT_FOUND",
+                "Storage unit was not found.",
+                404);
+        }
+
+        await facilityAuthorizationService.EnsureSameFacilityAsync(
+            record.FacilityId,
+            cancellationToken);
+
+        if (command.UnitTypeId != record.UnitTypeId)
+        {
+            if (!await repository.UnitTypeExistsAsync(
+                    command.UnitTypeId,
+                    cancellationToken))
+            {
+                throw new BusinessException(
+                    "UNIT_TYPE_NOT_FOUND",
+                    "Unit type was not found.",
+                    404);
+            }
+
+            if (record.Status is "IN_USE" or "INSPECTION")
+            {
+                throw new BusinessException(
+                    "UNIT_TYPE_CHANGE_NOT_ALLOWED",
+                    "Unit type cannot be changed while the storage unit is in use or inspection.",
+                    409);
+            }
+
+            if (await repository.HasActiveContractAsync(
+                    storageUnitId,
+                    cancellationToken))
+            {
+                throw new BusinessException(
+                    "UNIT_TYPE_CHANGE_NOT_ALLOWED",
+                    "Unit type cannot be changed while the storage unit has an active contract.",
+                    409);
+            }
+        }
+
+        await repository.UpdateAsync(
+            storageUnitId,
+            command.UnitTypeId,
+            command.LocationInfo?.Trim(),
+            cancellationToken);
+    }
 }

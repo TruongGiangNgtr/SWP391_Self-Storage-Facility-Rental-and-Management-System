@@ -80,12 +80,28 @@ public sealed class StorageUnitsController(IStorageUnitService storageUnitServic
                 "StorageUnit retrieved."));
     }
 
-    /// <summary>UNIT-004: Update allowed StorageUnit fields scaffold.</summary>
+    /// <summary>UNIT-004: Update StorageUnit.</summary>
     [HttpPatch("storage-units/{storageUnitId:guid}")]
-    public ActionResult<ApiErrorResponse> UpdateStorageUnit(
+    [ProducesResponseType(
+        typeof(ApiResponse<bool>),
+        StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<bool>>> UpdateStorageUnit(
         Guid storageUnitId,
         [FromBody] UpdateStorageUnitRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("UNIT-004");
+        CancellationToken cancellationToken)
+    {
+        await storageUnitService.UpdateAsync(
+            storageUnitId,
+            new UpdateStorageUnitCommand(
+                request.UnitTypeId,
+                request.LocationInfo),
+            cancellationToken);
+
+        return Ok(
+            new ApiResponse<bool>(
+                true,
+                "StorageUnit updated."));
+    }
 
     /// <summary>UNIT-005: Operational StorageUnit status transition scaffold.</summary>
     [HttpPost("storage-units/{storageUnitId:guid}/status")]

@@ -82,4 +82,33 @@ internal sealed class StorageUnitRepository(
                 x.Status))
             .SingleOrDefaultAsync(cancellationToken);
     }
+
+    public Task<bool> HasActiveContractAsync(
+        Guid storageUnitId,
+        CancellationToken cancellationToken)
+    {
+        return dbContext.Contracts
+            .AsNoTracking()
+            .AnyAsync(
+                x => x.StorageUnitId == storageUnitId
+                    && x.Status == "ACTIVE",
+                cancellationToken);
+    }
+
+    public async Task UpdateAsync(
+        Guid storageUnitId,
+        Guid unitTypeId,
+        string? locationInfo,
+        CancellationToken cancellationToken)
+    {
+        var entity = await dbContext.StorageUnits
+            .SingleAsync(
+                x => x.StorageUnitId == storageUnitId,
+                cancellationToken);
+
+        entity.UnitTypeId = unitTypeId;
+        entity.LocationInfo = locationInfo;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

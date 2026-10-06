@@ -25,4 +25,14 @@ public interface IStorageUnitRepository {
     Task<StorageUnitRecord?> GetByIdAsync(
         Guid storageUnitId,
         CancellationToken cancellationToken);
+
+    Task<bool> HasActiveContractAsync(
+        Guid storageUnitId,
+        CancellationToken cancellationToken);
+
+    Task UpdateAsync(
+        Guid storageUnitId,
+        Guid unitTypeId,
+        string? locationInfo,
+        CancellationToken cancellationToken);
 }
