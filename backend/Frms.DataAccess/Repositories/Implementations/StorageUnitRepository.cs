@@ -2,6 +2,7 @@ using Frms.DataAccess.Persistence;
 using Frms.DataAccess.Persistence.Entities;
 using Frms.DataAccess.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Frms.DataAccess.Repositories.Models;
 
 namespace Frms.DataAccess.Repositories.Implementations;
 
@@ -45,5 +46,23 @@ internal sealed class StorageUnitRepository(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return storageUnit.StorageUnitId;
+    }
+
+    public async Task<IReadOnlyList<StorageUnitRecord>> ListByFacilityAsync(
+        Guid facilityId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.StorageUnits
+            .AsNoTracking()
+            .Where(x => x.FacilityId == facilityId)
+            .OrderBy(x => x.UnitCode)
+            .Select(x => new StorageUnitRecord(
+                x.StorageUnitId,
+                x.FacilityId,
+                x.UnitTypeId,
+                x.UnitCode,
+                x.LocationInfo,
+                x.Status))
+            .ToListAsync(cancellationToken);
     }
 }

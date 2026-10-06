@@ -1,3 +1,5 @@
+using Frms.DataAccess.Repositories.Models;
+
 namespace Frms.DataAccess.Repositories.Interfaces;
 
 public interface IStorageUnitRepository {
@@ -14,5 +16,9 @@ public interface IStorageUnitRepository {
         Guid unitTypeId,
         string unitCode,
         string? locationInfo,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<StorageUnitRecord>> ListByFacilityAsync(
+        Guid facilityId,
         CancellationToken cancellationToken);
 }

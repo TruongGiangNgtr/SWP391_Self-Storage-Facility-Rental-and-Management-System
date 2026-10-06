@@ -2,6 +2,7 @@ using Frms.Business.Exceptions;
 using Frms.Business.Models.Commands;
 using Frms.Business.Services.Interfaces;
 using Frms.DataAccess.Repositories.Interfaces;
+using Frms.Business.Models;
 
 namespace Frms.Business.Services.Implementations;
 
@@ -41,5 +42,28 @@ internal sealed class StorageUnitService(
             command.UnitCode.Trim(),
             command.LocationInfo?.Trim(),
             cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<StorageUnitListItem>> ListByFacilityAsync(
+        Guid facilityId,
+        CancellationToken cancellationToken = default)
+    {
+        await facilityAuthorizationService.EnsureSameFacilityAsync(
+            facilityId,
+            cancellationToken);
+
+        var records = await repository.ListByFacilityAsync(
+            facilityId,
+            cancellationToken);
+
+        return records
+            .Select(x => new StorageUnitListItem(
+                x.StorageUnitId,
+                x.FacilityId,
+                x.UnitTypeId,
+                x.UnitCode,
+                x.LocationInfo,
+                x.Status))
+            .ToList();
     }
 }
