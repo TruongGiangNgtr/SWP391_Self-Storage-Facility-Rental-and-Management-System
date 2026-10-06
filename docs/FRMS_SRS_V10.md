@@ -5,7 +5,8 @@
 **Version:** V10 FINAL
 **Baseline Date:** 2026-10-02
 **Architecture Revision Date:** 2026-10-04
-**Status:** Final Implementation Baseline — Project Structure Revision
+**Business Revision Date:** 2026-10-07 — REV-2026-10-07-FM-OFFLINE
+**Status:** Final Implementation Baseline — Approved Offline First-Month Revision
 **Architecture:** 3 Logical Layers + Repository Pattern + Infrastructure Adapters
 **Backend:** ASP.NET Core Web API / C#
 **Frontend:** React + TypeScript
@@ -34,6 +35,7 @@
 | **V9.1 EDITORIAL** | Version-reference consistency correction | Replaces stale current-baseline references to V5/V6/V7 with V9.1/current-SRS wording. No actor, scope, business rule, lifecycle, API contract, data model, security rule, calculation, or test requirement is changed. Historical version references remain unchanged where they describe actual document history or decision provenance. |
 | **V10 FINAL** | Backend Structure and Dependency Boundary Lock | Preserves V9 business semantics while locking API DTO mapping, Business Command/Result models, provider abstractions and adapters, dependency injection composition, background-job hosts, stored-procedure access organization, and architecture tests. Aligns the database authority reference to Data Dictionary V2.1. |
 | **V10 FINAL — 2026-10-05 clarification** | Owner-approved Phase 0 seed scope | Phase 0 requires UserRole, Policy v1 and the fixed DamageType catalogue only. ExtraFeeType schema/constraints remain; its five rows are deferred beyond Phase 0 until amounts and currency are approved. No rental/payment rule changes. |
+| **V10 FINAL — 2026-10-07 business revision** | Owner-approved offline first-month collection | REV-2026-10-07-FM-OFFLINE replaces first-month online Payment/Invoice with Staff's offline-receipt acknowledgment through OPS-004 and Contract-based settlement. PAY-002 is retired; billing starts after Contract.StartMonth; first-month revenue uses Reservation.LockedRentalPrice in Contract.StartMonth. |
 
 ## V5 Review Summary
 
@@ -62,11 +64,31 @@ V5 performs a consistency review rather than adding a new business flow.
 - Replace ambiguous “recommended” wording with either a mandatory rule, an explicitly equivalent alternative, or a Deferred Decision.
 - Distinguish source-derived rule, SRS technical decision, and unresolved source gap.
 
-> V10 FINAL is the implementation source of truth for FRMS Release 1. It preserves the approved V9 business semantics and adds an implementation-level project-structure and dependency-boundary baseline.
+> V10 FINAL, including the approved 2026-10-07 business revision, is the implementation source of truth. The original architecture revision preserved V9 semantics; REV-2026-10-07-FM-OFFLINE supersedes the online first-month model. Earlier version-history and V5-review entries describe historical decisions, not current first-month requirements.
 
 ---
 
 # 0. Document Authority and Source of Truth
+
+## 0.0 Approved Change Record — REV-2026-10-07-FM-OFFLINE
+
+**Approval:** The project owner confirms team approval of this model on 2026-10-07. This approved change is incorporated into the governing SRS, not an implementation-only ADR.
+
+**Approved model:**
+
+- Customer pays the full first rental month offline at the Facility.
+- The authorized Staff's OPS-004 command acknowledges that full first-month rent has been received and handover is complete.
+- Successful Contract creation is FRMS's business record of first-month settlement. No first-month Invoice, Payment, receipt entity, paid flag or new Contract attribute is created.
+- First-month amount = Reservation.LockedRentalPrice, without Contract Discount.
+- Deposit retains the existing Invoice/Payment/MoMo flow. Online Rental Fee invoices start strictly after Contract.StartMonth.
+- First-month recognized revenue is derived once per Contract from Reservation.LockedRentalPrice and attributed to Contract.StartMonth; this is not a physical cash-receipt timestamp.
+- PAY-002 is retired. OPS-004 retains VisitId, StorageUnitId and nullable DiscountId but removes FirstMonthPaymentId.
+
+**Affected requirements:** Flow 2; BR-HO-02/03; BR-DIS-05; BR-BIL-06; CALC-FIRST-01; CALC-REP-02; DD-13; OPS-004; CWP-08/FWP-03/SSP-06/08; monthly billing, reporting, callback scope, DBT-24, E2E-F02/F04 and release gates.
+
+**Authority and scope:** This revision overrides conflicting first-month rules in Data Dictionary V2.1, earlier proposals, DTOs, Swagger, SQL objects and code. Only this SRS is updated in the present task; alignment of those artifacts is a follow-up implementation task. Do not claim the new API/DB behavior is already implemented or synchronized. Architecture, five roles, 27 entities, Deposit flow, subsequent online payments, captured Policy and other approved flows remain unchanged.
+
+**Historical-data protection:** Do not delete, rewrite or fabricate links for existing first-month Invoice/Payment or unlinked legacy payment rows. Preserve historical evidence; new handovers must not create those records. Require an approved migration/deployment review before changing constraints or replacing old SQL/API behavior. Revenue must not count a historical first-month Invoice/Payment in addition to the Contract-derived amount.
 
 
 ## 0.1 Authority Order
@@ -171,7 +193,7 @@ Technical detail MAY be refined behind interfaces/configuration boundaries only 
 
 `DESIGN-LOCKED — FINAL`
 
-This V10 document is the FRMS Release 1 implementation baseline and preserves the approved business semantics of V9 FINAL.
+This V10 document is the FRMS Release 1 implementation baseline. It preserves the approved V9 business semantics except where the owner-approved REV-2026-10-07-FM-OFFLINE explicitly replaces the first-month payment, billing and revenue model.
 
 After approval:
 
@@ -239,11 +261,11 @@ Current FRMS Release 1 business scope includes:
 - Reservation Visit scheduling in the captured Policy window;
 - Staff check-in;
 - Manager physical StorageUnit selection;
-- first-month Rental Fee payment;
+- offline first-month collection acknowledged by Staff at Complete Handover, without a first-month Invoice/Payment;
 - atomic Complete Handover;
 - Contract lifecycle and multiple active rentals per Customer where business rules allow;
 - ACCESS Visits;
-- monthly Rental Fee invoice generation;
+- monthly Rental Fee invoice generation strictly after Contract.StartMonth;
 - payment-result processing;
 - overdue detection and LateFee;
 - Contract renewal using append-only `ContractExtension`;
@@ -262,7 +284,7 @@ Current FRMS Release 1 business scope includes:
 - Notification queue/retry support;
 - optional AI Size Guide / Unit Type recommendation.
 
-Payment integration in the core demo is limited to Deposit and Rental Fee.
+MoMo payment integration is limited to Deposit and Rental Fee invoices from the second rental month onward. The first month is collected offline and represented by Contract creation, not an Invoice/Payment.
 
 ## 2.4 Out-of-Scope
 
@@ -331,7 +353,7 @@ Customer may:
 - browse active Facilities;
 - view Unit Types, size/mode, current price and requested-period capacity;
 - create Reservation;
-- pay Deposit and Rental Fee;
+- pay Deposit via MoMo, pay the first rental month offline before handover, and pay subsequent Rental Fee invoices via MoMo;
 - schedule/reschedule valid RESERVATION Visit;
 - receive a StorageUnit through the handover flow;
 - manage multiple Contracts;
@@ -355,6 +377,7 @@ Facility Staff belongs to exactly one Facility and may:
 
 - process Reservation check-in at that Facility;
 - verify system payment state without manually marking Invoice `PAID`;
+- acknowledge full offline first-month receipt by invoking Complete Handover; this receipt creates no Invoice/Payment;
 - complete handover according to authorized workflow;
 - process ACCESS and RETURN Visits;
 - confirm actual physical return;
@@ -445,7 +468,7 @@ Internal system responsibilities include:
 
 ## 3.7 External Providers
 
-- **MoMo Sandbox** — Deposit and Rental Fee payment processing.
+- **MoMo Sandbox** — Deposit and second-month-onward Rental Fee Invoice payment processing.
 - **Runtime AI service** — optional Size Guide recommendation.
 - **Future Google Identity Provider** — Employee external login only; Future Work.
 
@@ -483,15 +506,15 @@ Reservation CONFIRMED
 -> RESERVATION Visit SCHEDULED
 -> Staff CHECKED_IN
 -> Manager selects AVAILABLE matching StorageUnit
--> first-month Payment SUCCESS
--> Complete Handover
+-> Staff receives full first-month rent offline
+-> Staff Complete Handover (OPS-004 acknowledges offline receipt)
 -> Contract ACTIVE
 -> StorageUnit IN_USE
 -> Reservation COMPLETED
 -> Visit CHECKED_OUT
 ```
 
-Complete Handover is an atomic multi-table transaction.
+Complete Handover is an atomic multi-table transaction without a first-month Invoice/Payment. The authorized Staff command acknowledges offline receipt; FRMS does not verify cash through MoMo. Contract existence records initial settlement, including after its status becomes COMPLETED or TERMINATED.
 
 ## 4.3 Flow 3 — Rented Storage Unit Management
 
@@ -518,7 +541,7 @@ Includes:
 - versioned Policy rows;
 - Customer-owned Discount;
 - ExtraFeeType configuration;
-- monthly Rental Fee invoice generation;
+- monthly Rental Fee invoice generation strictly after Contract.StartMonth;
 - overdue and LateFee calculation;
 - reporting and revenue monitoring.
 
@@ -694,7 +717,7 @@ Mandatory Core Demo concerns:
 - correct lifecycle;
 - transaction correctness;
 - role/facility/resource authorization;
-- MoMo Sandbox Deposit/Rental Fee flow;
+- MoMo Sandbox Deposit and second-month-onward Rental Fee flow; offline first-month handover confirmation;
 - critical concurrency protection;
 - reproducible migration/seed;
 - seven E2E journeys.
@@ -711,7 +734,8 @@ Mandatory Core Demo concerns:
 [ ] Flow 7 Support lifecycle works
 [ ] All five roles can perform required demo actions
 [ ] MoMo Sandbox Deposit works
-[ ] Rental Fee payment works
+[ ] Offline first-month receipt is acknowledged by OPS-004 without Invoice/Payment
+[ ] Second-month-onward Rental Fee payment works
 [ ] Reservation overbooking race is protected
 [ ] Handover same-unit race is protected
 [ ] Renewal capacity race is protected
@@ -1426,7 +1450,7 @@ FAILED
 - `Contract.DiscountId` nullable.
 - `Invoice.BillingMonth` null for DEPOSIT; required for RENTAL_FEE.
 - `Invoice.DiscountId` null for DEPOSIT.
-- `Payment.InvoiceId` may be temporarily null only for the specific pre-handover first-month payment state.
+- Every new Payment MUST reference an existing Invoice through Payment.InvoiceId. No first-month Payment is allowed. Historical null InvoiceId rows from the superseded model must be preserved until an approved migration/deployment review; do not silently link or delete them.
 - `Payment.TransactionCode` nullable before gateway reference exists; unique when present.
 - `Payment.PaidAt` required for `SUCCESS`.
 - `Policy.EffectiveTo` nullable for current active version.
@@ -1483,7 +1507,7 @@ Minimum design:
 | `usp_CancelReservation` | cancel eligible Reservation/Visit and release hold | Yes |
 | `usp_CheckInVisit` | facility/date/role validation + CHECKED_IN | Yes |
 | `usp_CancelVisit` | valid SCHEDULED cancellation | Yes |
-| `usp_CompleteHandover` | Contract + Invoice/Payment link + Unit IN_USE + lifecycle completion | Mandatory |
+| `usp_CompleteHandover` | Staff offline-receipt acknowledgment + Contract + Unit IN_USE + lifecycle completion; no first-month Invoice/Payment | Mandatory |
 | `usp_CreateAccessVisit` | create valid ACCESS Visit | Yes |
 | `usp_CreateReturnVisit` | create RETURN Visit and block conflicting actions | Yes |
 | `usp_ConfirmActualReturn` | ActualReturnDate + unit INSPECTION + Inspection creation | Mandatory |
@@ -1495,7 +1519,7 @@ Minimum design:
 | `usp_CompleteInspection` | complete inspection + set unit AVAILABLE/MAINTENANCE | Yes |
 | `usp_FinalizeReturn` | calculate settlement + terminal Contract state | Mandatory |
 | `usp_RenewContract` | contiguous capacity-safe renewal + ContractExtension | Mandatory |
-| `usp_CreateMonthlyInvoice` | generate one logical monthly Rental Fee invoice | Yes |
+| `usp_CreateMonthlyInvoice` | generate one logical Rental Fee invoice only for Contract.StartMonth < BillingMonth <= Contract.EndMonth | Yes |
 | `usp_ApplyPaymentResult` | idempotent gateway result processing | Yes |
 | `usp_CalculateLateFee` | calculate/update LateFee | Yes |
 | `usp_MarkOverdueInvoices` | mark eligible invoices OVERDUE | Yes |
@@ -1533,7 +1557,7 @@ Triggers MUST NOT orchestrate Complete Handover or Return finalization.
 |---|---|
 | `job_ExpirePendingReservations` | cancel unpaid expired Reservation |
 | `job_ProcessReservationNoShow` | handle handover no-show/incomplete visit |
-| `job_GenerateMonthlyInvoices` | create missing Rental Fee invoices |
+| `job_GenerateMonthlyInvoices` | create missing Rental Fee invoices strictly after Contract.StartMonth; never recreate a first-month charge |
 | `job_MarkOverdueInvoices` | mark overdue using captured Policy |
 | `job_RecalculateOpenLateFees` | refresh current LateFee |
 | `job_RetryNotifications` | retry PENDING notifications |
@@ -1753,7 +1777,7 @@ The following is the API-level authorization baseline.
 | Reservation create/cancel/view | Own | Facility operational read | Facility read | System read | No business mutation |
 | Visit create | Own where applicable | No customer creation | Monitor | Read | No |
 | Visit check-in/out | No | Same Facility | Monitor | No | No |
-| Complete Handover | No | Same Facility | Unit selection/monitor | No | No |
+| Complete Handover | No | Same Facility; command acknowledges offline first-month receipt | Unit selection/monitor | No | No |
 | StorageUnit management | No | Operational handling only | Same Facility | Read/monitor | No |
 | Contract view | Own | Same Facility read | Same Facility read | System read | No business mutation |
 | Contract renewal | Own request | No | Monitor | Monitor | No |
@@ -1905,7 +1929,7 @@ Acceptance Criteria:
 | `CWP-05` | Reservation Visit Management | Flow 1 -> 2 |
 | `CWP-06` | Rental Management | Flow 3 / 6 |
 | `CWP-07` | Access Visit Management | Flow 3 |
-| `CWP-08` | Rental Payment | Flow 2 / 6 |
+| `CWP-08` | Rental Payment | Flow 3 / 6 — second month onward |
 | `CWP-09` | Contract Renewal | Flow 6 |
 | `CWP-10` | Storage Return Visit | Flow 6 |
 | `CWP-11` | Fee & Return Tracking | Flow 6 |
@@ -1996,7 +2020,7 @@ EPS-02 — Employee Initial Credential Email Delivery
 Used for:
 
 - Deposit;
-- Rental Fee.
+- Rental Fee invoices from the second month onward; offline first-month receipt does not use MoMo.
 
 It is not the settlement mechanism for LateFee, ExtraFee, Damage, RefundAmount or AdditionalAmountDue in FRMS Release 1.
 
@@ -2032,8 +2056,8 @@ The following rule IDs are canonical for FRMS Release 1:
 - `BR-VIS-03` ACCESS Visit requires ACTIVE Contract.
 - `BR-VIS-04` pending RETURN Visit blocks ACCESS and Renewal.
 - `BR-HO-01` selected StorageUnit must be AVAILABLE and match Facility + UnitType.
-- `BR-HO-02` first-month Payment must be SUCCESS before handover.
-- `BR-HO-03` Complete Handover atomically creates Contract and updates all related lifecycle state.
+- `BR-HO-02` Staff may invoke Complete Handover only after receiving the full first-month rent offline. The authorized command acknowledges receipt; Contract creation records settlement without an Invoice/Payment or payment reference.
+- `BR-HO-03` Complete Handover atomically creates Contract and updates Unit/Reservation/Visit state; it must not create or link a first-month Invoice/Payment. Retry must not create another Contract or duplicate initial recognized revenue.
 
 ### Contract / Discount / Billing
 
@@ -2043,18 +2067,18 @@ The following rule IDs are canonical for FRMS Release 1:
 - `BR-DIS-02` Contract uses zero or one Discount and it must belong to the Contract Customer.
 - `BR-DIS-03` Contract-selected Discount is fixed for the Contract lifecycle in FRMS Release 1.
 - `BR-DIS-04` issued rental Invoice snapshots Discount reference/amount.
-- `BR-DIS-05` the first Rental Fee Invoice created at handover does not apply Contract Discount; Contract Discount begins with subsequent Rental Fee invoices.
+- `BR-DIS-05` first-month offline rent does not use Contract Discount. Captured Contract Discount may apply to eligible invoices from Contract.StartMonth + 1 month onward, including the first generated Rental Fee invoice.
 - `BR-BIL-01` exactly one logical Deposit Invoice per Reservation.
 - `BR-BIL-02` at most one Rental Fee Invoice per Contract + BillingMonth.
 - `BR-BIL-03` initial-period BaseAmount uses Reservation.LockedRentalPrice.
 - `BR-BIL-04` extension-period BaseAmount uses ContractExtension.AppliedMonthlyPrice.
 - `BR-BIL-05` unpaid Rental Invoice becomes OVERDUE by captured Policy threshold.
-- `BR-BIL-06` first-month pre-handover Payment and first Rental Fee Invoice equal `Reservation.LockedRentalPrice` with `DiscountAmount = 0`.
+- `BR-BIL-06` the first month is settled offline for Reservation.LockedRentalPrice and has no Invoice/Payment. Rental Fee invoice generation, overdue detection and rental LateFee must exclude Contract.StartMonth.
 
 ### Payment / Late Fee
 
 - `BR-PAY-01` payment callback is idempotent.
-- `BR-PAY-02` Staff/Manager cannot manually mark Invoice paid.
+- `BR-PAY-02` Staff/Manager cannot manually mark an Invoice paid or create a successful gateway Payment. Staff's OPS-004 first-month receipt acknowledgment does not create or mark an Invoice/Payment.
 - `BR-LATE-01` LateFee exists only for overdue RENTAL_FEE Invoice.
 - `BR-LATE-02` LateFee uses Contract-captured Policy divisor.
 
@@ -2208,7 +2232,7 @@ Reservation creation and Renewal capacity checks require concurrency protection.
 | `CALC-DEP-01` | `DepositAmount = UnitType.RentalPrice` snapshot |
 | `CALC-INV-01` | Initial BaseAmount = `Reservation.LockedRentalPrice` |
 | `CALC-INV-02` | Renewal BaseAmount = `ContractExtension.AppliedMonthlyPrice` |
-| `CALC-FIRST-01` | First-month Rental Fee: `BaseAmount = Reservation.LockedRentalPrice`, `DiscountAmount = 0`, `AmountDue = BaseAmount` |
+| `CALC-FIRST-01` | First-month offline amount and Contract-derived recognized revenue = Reservation.LockedRentalPrice, without Contract Discount or first-month Invoice/Payment |
 | `CALC-DIS-01` | For subsequent eligible Rental Fee invoices: `BaseAmount * Percentage / 100` |
 | `CALC-INV-03` | `MAX(BaseAmount - DiscountAmount, 0)` |
 | `CALC-LATE-01` | OverdueDays from captured Policy threshold to cutoff |
@@ -2218,9 +2242,43 @@ Reservation creation and Renewal capacity checks require concurrency protection.
 | `CALC-SET-03` | `MAX(TotalDeduction - DepositPaidAmount, 0)` |
 | `CALC-CAP-01` | capacity formula above |
 | `CALC-REP-01` | IN_USE rentable units / total rentable units |
-| `CALC-REP-02` | successfully paid Rental Fee revenue; excludes Deposit/Late/Extra/Damage |
+| `CALC-REP-02` | Contract-derived first-month revenue attributed to Contract.StartMonth + successfully paid second-month-onward Rental Fee Invoice amounts; excludes Deposit/Late/Extra/Damage and double counting |
 
 Money calculations use decimal arithmetic; final persisted monetary values use consistent rounding.
+
+### 12.4.1 First-month settlement, billing and revenue boundaries
+
+First-month offline rent equals the immutable Reservation.LockedRentalPrice snapshot. Contract existence records Staff's acknowledgment of full receipt during successful handover. Do not add a firstMonthPaid attribute, cash Payment, initial Invoice or receipt table.
+
+Rental Fee billing MUST enforce:
+
+```text
+Contract.StartMonth < BillingMonth <= Contract.EndMonth
+```
+
+Use the original Contract.StartMonth even after renewal; do not skip the first month of each ContractExtension. A one-month Contract has no Rental Fee Invoice. The first generated invoice, if any, represents at least the second rental month and may apply the valid captured Contract Discount.
+
+For an authorized reporting period and Facility scope:
+
+```text
+FirstMonthRecognizedRevenue
+= SUM(Reservation.LockedRentalPrice once per Contract
+      whose Contract.StartMonth falls in the reporting period)
+
+SubsequentPaidRentalRevenue
+= SUM(AmountDue once per successfully paid RENTAL_FEE Invoice
+      with BillingMonth > its Contract.StartMonth
+      and authoritative PaidAt in the reporting period)
+
+RentalRevenue
+= FirstMonthRecognizedRevenue + SubsequentPaidRentalRevenue
+```
+
+Include Contract history in ACTIVE, COMPLETED and TERMINATED states. Do not lose initial recognized revenue when rental ends. Use the immutable Reservation price, not a current UnitType/extension price. Deduplicate by Contract for initial recognition and by Invoice for subsequent paid revenue; joins, retries, callbacks and multiple Payment attempts must not multiply either amount.
+
+Contract.StartMonth is the offline recognition month, not an actual cash-receipt timestamp. Online PaidAt reporting boundaries retain the GMT+7 business-calendar interpretation of UTC timestamps. Reporting is server-owned; the FE must not calculate the total.
+
+Legacy first-month Invoice/Payment rows remain historical evidence but are excluded from the paid-invoice component, avoiding double counting with Contract-derived revenue. During a first-month return, no Rental Fee Invoice exists to waive or mark overdue and no rental LateFee is created for that month; existing Deposit/ExtraFee/Damage/settlement rules still apply.
 
 ## 12.5 Policy Version Rules
 
@@ -2283,7 +2341,6 @@ CONTRACT_NOT_ACTIVE
 RETURN_VISIT_PENDING
 UNIT_NOT_AVAILABLE
 UNIT_FACILITY_TYPE_MISMATCH
-FIRST_MONTH_PAYMENT_NOT_SUCCESS
 DISCOUNT_NOT_OWNED_BY_CUSTOMER
 DISCOUNT_NOT_VALID
 INVOICE_ALREADY_EXISTS
@@ -2667,7 +2724,6 @@ For `RENTAL_FEE`, the configured `MonthlyPaymentDueDay` is the final non-overdue
 | `BIL-001` | `GET` | `/api/v1/invoices` | List own invoices | CUSTOMER | CWP-08/CWP-11 |
 | `BIL-002` | `GET` | `/api/v1/invoices/{invoiceId}` | Get own invoice detail | CUSTOMER | CWP-08/CWP-11 |
 | `PAY-001` | `POST` | `/api/v1/invoices/{invoiceId}/payments/momo` | Start MoMo payment for Deposit/Rental Invoice | CUSTOMER | CWP-04/CWP-08 |
-| `PAY-002` | `POST` | `/api/v1/reservations/{reservationId}/first-month-payments/momo` | Start pre-handover first-month payment | CUSTOMER | CWP-08 |
 | `PAY-003` | `GET` | `/api/v1/payments/{paymentId}` | Get own payment status | CUSTOMER | CWP-08 |
 | `PAY-004` | `POST` | `/api/v1/payments/momo/callback` | MoMo provider callback | EXTERNAL | EPS-01/SSP-07 |
 | `CON-001` | `GET` | `/api/v1/contracts` | List own Contracts | CUSTOMER | CWP-06 |
@@ -3057,53 +3113,15 @@ Response:
 
 FE MUST NOT treat redirect completion as payment success. FE refreshes `PAY-003` / invoice status.
 
-### PAY-002 — Start First-Month Pre-Handover Payment
+### First-month offline collection — no payment endpoint
 
-Request:
+The first rental month is collected offline before Staff invokes OPS-004. Successful Contract creation records settlement; no first-month Invoice or Payment is created, returned or linked.
 
-```json
-{
-  "returnUrl": "https://frontend.example/payment-result"
-}
-```
+PAY-002 is retired by REV-2026-10-07-FM-OFFLINE and removed from the current endpoint inventory. Its identifier must not be reused. Do not expose/call the old first-month MoMo route, substitute PAY-001 for it, or fabricate an Invoice/Payment for Contract.StartMonth.
 
-Response:
+The amount is Reservation.LockedRentalPrice without Contract Discount. A Discount selected at handover may apply to eligible invoices strictly after Contract.StartMonth. Deposit and later Rental Fee invoices retain PAY-001/PAY-003/PAY-004.
 
-```json
-{
-  "data": {
-    "paymentId": "uuid",
-    "invoiceId": null,
-    "reservationId": "uuid",
-    "amount": 1500000.00,
-    "status": "PENDING",
-    "paymentUrl": "<provider redirect URL>"
-  }
-}
-```
-
-The successful Payment is linked to the created first-month Invoice atomically during Complete Handover.
-
-`DESIGN-LOCKED — V9 FINAL`
-
-First-month pre-handover payment does **not** apply Contract Discount.
-
-```text
-PAY-002 Amount = Reservation.LockedRentalPrice
-```
-
-At Complete Handover, the first `RENTAL_FEE` Invoice is created with:
-
-```text
-BaseAmount      = Reservation.LockedRentalPrice
-DiscountId      = NULL
-DiscountAmount  = 0
-AmountDue       = Reservation.LockedRentalPrice
-```
-
-If a `discountId` is selected for the Contract at handover, it is stored on the Contract and begins applying from the **next** Rental Fee invoice after the first month.
-
-Any commercial accommodation/discount for the first month handled outside FRMS is outside the core payment workflow. FRMS does not calculate, refund, or settle that external adjustment; FRMS records only its own official first-month Invoice/Payment and the Contract Discount used for later invoices.
+Contract existence records Staff's offline-receipt acknowledgment, not gateway verification. No separate Payment SUCCESS status is required for the first month.
 
 ### PAY-004 — MoMo Callback
 
@@ -3268,13 +3286,16 @@ Procedure: `usp_CheckInVisit`.
 
 ### OPS-004 — Complete Handover
 
+Submitting this command as authorized Facility Staff acknowledges that full first-month rent (Reservation.LockedRentalPrice, without Contract Discount) has been received offline and handover is complete. FRMS relies on Staff confirmation; it does not independently verify physical cash through a provider.
+
+Keep the existing Reservation/Visit/Facility/unit/policy/ownership checks and validate any Contract Discount. The payload has no first-month payment reference, Invoice reference, payment method or client-supplied amount. Contract creation records settlement; no separate paid flag is added.
+
 Request:
 
 ```json
 {
   "visitId": "uuid",
   "storageUnitId": "uuid",
-  "firstMonthPaymentId": "uuid",
   "discountId": null
 }
 ```
@@ -3306,12 +3327,13 @@ RESERVATION_INVALID_STATUS          -> 409
 VISIT_INVALID_STATUS                -> 409
 UNIT_NOT_AVAILABLE                  -> 409
 UNIT_FACILITY_TYPE_MISMATCH         -> 409
-FIRST_MONTH_PAYMENT_NOT_SUCCESS     -> 409
 DISCOUNT_NOT_OWNED_BY_CUSTOMER      -> 409
 DISCOUNT_NOT_VALID                  -> 409
 ```
 
 Procedure: `usp_CompleteHandover`.
+
+The transaction creates Contract and updates Unit/Reservation/Visit states without creating a first-month Invoice/Payment. Preserve the authenticated Staff audit trail for handover; it is operational/security history, not a cash-payment entity or the primary settlement record.
 
 Manager unit selection is **not persisted as a separate state/entity**. Manager obtains eligible unit information through `UNIT-001`; the selected `storageUnitId` is supplied to the handover transaction. Because no preassignment entity/field exists, the database can enforce unit eligibility but cannot independently prove who visually selected the ID before Staff submits the handover. This is an intentional non-persisted operational responsibility, not a hidden assignment workflow.
 
@@ -3765,7 +3787,7 @@ Response may include:
 }
 ```
 
-Revenue follows `CALC-REP-02`.
+Revenue follows revised CALC-REP-02 (section 12.4.1): Contract-derived first-month recognition in Contract.StartMonth plus paid later Rental Fee invoices. Keep the rentalRevenue field. An Invoice/Payment-only total omits the first month; counting legacy first-month invoices again duplicates that amount.
 
 ### REP-004 — Export
 
@@ -4143,6 +4165,8 @@ Formatting is allowed; business calculation is not.
 
 ## 14.10 Payment UI Rules
 
+This provider flow applies only to Deposit and second-month-onward Rental Fee Invoice payments:
+
 ```text
 Start payment
 -> redirect/open provider
@@ -4152,6 +4176,10 @@ Start payment
 ```
 
 Navigation to/from MoMo is never proof of payment success.
+
+For the first month, Customer receives offline-payment instructions and Staff acknowledges full receipt by submitting Complete Handover. Do not show a first-month MoMo payment button or create an initial Invoice/Payment history row. Contract creation records settlement; absence of an initial invoice is intentional, not an unpaid charge.
+
+Staff sees the server-owned Reservation.LockedRentalPrice and must acknowledge full receipt before submitting OPS-004. The authorized request itself is the acknowledgment; no separately persisted first-month-paid flag is required. UI checks do not replace server authorization and lifecycle validation.
 
 ## 14.11 Loading / Empty / Error States
 
@@ -4220,7 +4248,7 @@ Current gateway scope:
 
 ```text
 Deposit
-Rental Fee
+Rental Fee invoices for BillingMonth > Contract.StartMonth
 ```
 
 Payment state is taken from gateway result/callback.
@@ -4235,7 +4263,7 @@ Required characteristics:
 - update Payment idempotently;
 - update related Invoice where applicable;
 - repeated success callback creates no duplicate financial/lifecycle effect;
-- first-month pre-handover Payment may be linked atomically to the first Rental Fee Invoice during handover.
+- current-model callbacks concern existing Invoices only; offline first-month receipt has no MoMo callback and must not create an Invoice/Payment. Legacy data/callback handling requires the deployment review in section 0.0.
 
 ## 15.3 Notification Processing
 
@@ -4640,33 +4668,35 @@ FUNCTION ConfirmReservation(reservationId, reservationVisitDate):
 ## 17.6 Complete Handover
 
 ```text
-FUNCTION CompleteHandover(reservationId, visitId, storageUnitId, paymentId):
+FUNCTION CompleteHandover(reservationId, visitId, storageUnitId, discountId):
+
+    REQUIRE authenticated ACTIVE Facility Staff
+    // This Staff command acknowledges full offline first-month receipt
+    // of Reservation.LockedRentalPrice and completion of handover.
+    // It does not request a Payment/Invoice or verify physical cash.
 
     BEGIN AUTHORITATIVE DB TRANSACTION
 
-        load Reservation / Visit / StorageUnit / Payment with required locks
+        load Reservation / Visit / StorageUnit with required locks
 
+        REQUIRE Staff belongs to Reservation.FacilityId
         REQUIRE Reservation.Status == CONFIRMED
+        REQUIRE Visit.VisitType == RESERVATION
+        REQUIRE Visit.EntityId == Reservation.ReservationId
         REQUIRE Visit.Status == CHECKED_IN
         REQUIRE StorageUnit.Status == AVAILABLE
         REQUIRE StorageUnit.FacilityId == Reservation.FacilityId
         REQUIRE StorageUnit.UnitTypeId == Reservation.UnitTypeId
-        REQUIRE Payment.Status == SUCCESS
         REQUIRE one Contract does not already exist for Reservation
 
         validate Contract Discount if present
 
         create Contract(
             Status = ACTIVE,
-            PolicyId = Reservation.PolicyId
+            PolicyId = Reservation.PolicyId,
+            DiscountId = validated discountId or NULL
         )
-        create first RENTAL_FEE Invoice(
-            BaseAmount = Reservation.LockedRentalPrice,
-            DiscountId = NULL,
-            DiscountAmount = 0,
-            AmountDue = Reservation.LockedRentalPrice
-        )
-        link successful Payment to Invoice
+        // No first-month Invoice, Payment, paid flag or receipt entity.
 
         StorageUnit.Status = IN_USE
         Reservation.Status = COMPLETED
@@ -4674,8 +4704,11 @@ FUNCTION CompleteHandover(reservationId, visitId, storageUnitId, paymentId):
 
     COMMIT
 
-    RETURN Contract
+    record existing handover audit according to audit requirements
+    RETURN canonical OPS-004 outcome
 ```
+
+Apply section 16.8 repeat behavior: return an authorized existing outcome or a controlled already-completed conflict. Do not create another Contract, first-month charge or recognized offline amount on retry.
 
 ## 17.7 Monthly Billing
 
@@ -4683,26 +4716,24 @@ FUNCTION CompleteHandover(reservationId, visitId, storageUnitId, paymentId):
 FUNCTION CreateMonthlyInvoice(contractId, billingMonth):
 
     REQUIRE Contract ACTIVE
+    REQUIRE Contract.StartMonth < billingMonth <= Contract.EndMonth
     REQUIRE logical Invoice does not already exist
 
-    IF billingMonth == Contract.StartMonth
+    IF billingMonth inside original reservation period
         baseAmount = Reservation.LockedRentalPrice
-        discountId = NULL
-        discountAmount = 0
     ELSE
-        IF billingMonth inside original reservation period
-            baseAmount = Reservation.LockedRentalPrice
-        ELSE
-            baseAmount = ContractExtension.AppliedMonthlyPrice
-                for extension covering billingMonth
+        baseAmount = ContractExtension.AppliedMonthlyPrice
+            for extension covering billingMonth
 
-        discountId = Contract.DiscountId
-        discountAmount = CalculateContractDiscount(baseAmount)
-
+    discountId = Contract.DiscountId when eligible
+    discountAmount = CalculateContractDiscount(baseAmount)
+        using captured Discount semantics
     amountDue = MAX(baseAmount - discountAmount, 0)
 
     create RENTAL_FEE Invoice
 ```
+
+Skip Contract.StartMonth rather than creating a paid, zero-value or overdue initial Invoice. The first generated invoice may apply Contract Discount because it represents a later month. Renewal does not reset this exclusion.
 
 ## 17.8 Apply Payment Result
 
@@ -4710,6 +4741,8 @@ FUNCTION CreateMonthlyInvoice(contractId, billingMonth):
 FUNCTION ApplyPaymentResult(gatewayResult):
 
     REQUIRE gateway reference valid
+    REQUIRE current-model Payment references an existing Invoice
+    // Offline first-month collection has no Payment to process.
 
     IF same gateway transaction already applied
         RETURN existing logical result
@@ -5129,7 +5162,7 @@ EF Core InMemory is not sufficient evidence for those behaviors.
 | `DBT-21` | Manager decides PENDING Damage | only same-Facility Manager succeeds; terminal status stored |
 | `DBT-22` | Concurrent Damage decisions | exactly one terminal decision wins |
 | `DBT-23` | Finalize with REJECTED Damage | rejected Damage contributes zero |
-| `DBT-24` | First-month Contract with Discount | first invoice/payment has DiscountAmount 0; next invoice applies Contract Discount |
+| `DBT-24` | Offline first-month handover with Contract Discount | no initial Invoice/Payment; billing skips StartMonth; first eligible later invoice applies Discount; Contract-derived first-month revenue is counted once |
 | `DBT-25` | Employee credential email failure | account remains INACTIVE; no plaintext persisted/logged |
 
 ## 19.5 Critical Concurrency Scenarios
@@ -5254,14 +5287,14 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 | `CWP-05` | Reservation Visit Management | Triển / Khoa | RES-004, VIS-003..006 | BR-RES-07; BR-VIS-01..02 | UT-VIS, API-VIS, E2E-F01/F02 | Yes |
 | `CWP-06` | Rental Management | Triển / Khoa | CON-001..002, CON-004..005 | BR-CON-* | API-CON, SEC, E2E-F03/F06 | Yes |
 | `CWP-07` | Access Visit Management | Triển / Khoa | VIS-001, VIS-003..006 | BR-VIS-01..04 | UT/API/E2E-F03 | Yes |
-| `CWP-08` | Rental Payment | Triển / Giang | BIL-*, PAY-001..003, CON-004 | BR-BIL-*; BR-PAY-* | UT-PAY, DBT-08/09, CON-PAY, API-PAY | Yes |
+| `CWP-08` | Rental Payment (second month onward) | Triển / Giang | BIL-*, PAY-001, PAY-003, CON-004 | BR-BIL-*; BR-PAY-* | UT-PAY, DBT-08/09, CON-PAY, API-PAY | Yes |
 | `CWP-09` | Contract Renewal | Triển / Khoa | CON-003 | BR-REN-01..04 | UT-REN, DBT-11, CON-REN, API-REN, E2E-F06 | Yes |
 | `CWP-10` | Storage Return Visit | Triển / Giang | VIS-002..006, CON-005 | BR-RET-01..02 | UT-RET, API-RET, E2E-F06 | Yes |
 | `CWP-11` | Fee & Return Tracking | Triển / Giang | CON-004..005, BIL-* | BR-LATE-*; BR-SET-* | UT/API/E2E-F06 | Yes |
 | `CWP-12` | Customer Support | Triển / Giang | SUP-001..004 | BR-SUP-01 | UT-SUP, API-SUP, E2E-F07 | Yes |
 | `FWP-01` | Daily Work List | Triển / Long | OPS-001 | Derived Visits/Inspections/Tickets | DAL/API/SEC | Yes |
 | `FWP-02` | Reservation Check-in | Triển / Khoa | OPS-002 | BR-VIS-* | UT/API/E2E-F02 | Yes |
-| `FWP-03` | Handover Processing | Triển / Khoa | OPS-004 | BR-HO-01..03 | DBT-06, CON-HO, API-HO, E2E-F02 | Yes |
+| `FWP-03` | Offline-receipt acknowledgment & Handover Processing | Triển / Khoa | OPS-004 | BR-HO-01..03; BR-BIL-06; CALC-FIRST-01 | DBT-06/24, CON-HO, API-HO, E2E-F02 | Yes |
 | `FWP-04` | Access Visit Processing | Triển / Khoa | OPS-002..003 | BR-VIS-* | UT/API/E2E-F03 | Yes |
 | `FWP-05` | Return Confirmation | Triển / Giang | OPS-002, OPS-005 | BR-RET-01..02,06 | DBT-20, CON-RET, API-RET, E2E-F06 | Yes |
 | `FWP-06` | Return Inspection | Triển / Giang | INS-001..003,006..007 | BR-RET-03; BR-DMG-01 | DBT-10, CON-INS, API-INS, E2E-F06 | Yes |
@@ -5294,7 +5327,7 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 | `SSP-05` | Handover Window Expiration | System / Khoa | job_ProcessReservationNoShow | Policy visit window | JOB/DBT | Yes |
 | `SSP-06` | Rental Fee Calculation | System / Giang | Billing APIs/jobs | CALC-INV-*; CALC-DIS-* | UT/DBT/API | Yes |
 | `SSP-07` | Payment Result Processing | System / Giang | PAY-004 | BR-PAY-01 | DBT-09, CON-PAY, INT-MOMO | Yes |
-| `SSP-08` | Atomic Complete Handover | System / Khoa | OPS-004 | BR-HO-03 | DBT-06, CON-HO | Yes |
+| `SSP-08` | Atomic Complete Handover without first-month Invoice/Payment | System / Khoa | OPS-004 | BR-HO-02..03; BR-BIL-06 | DBT-06/24, CON-HO | Yes |
 | `SSP-09` | Monthly Billing Management | System / Giang | billing jobs | BR-BIL-* | DBT-08, CON-INV, JOB | Yes |
 | `SSP-10` | Overdue & Late Fee Calculation | System / Giang | CON-004 + jobs | BR-BIL-05; BR-LATE-* | UT/JOB/DBT | Yes |
 | `SSP-11` | Renewal Processing | System / Khoa | CON-003 | BR-REN-* | DBT-11, CON-REN | Yes |
@@ -5305,7 +5338,7 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 | `SSP-16` | Policy Version Application | System / Long | BOM-008..009 | BR-POL-* | DBT-12, CON-POL | Yes |
 | `SSP-17` | RBAC & Facility Authorization | System / Long | all protected endpoints | actor matrix | SEC-* | Yes |
 | `SSP-18` | Actor & Activity Audit | System / Long | audit paths | BR-AUD-01 | DAL/API/REG | Yes |
-| `EPS-01` | MoMo Sandbox Payment Processing | External / Giang | PAY-001..004 | BR-PAY-01 | INT-MOMO, API-PAY | Yes |
+| `EPS-01` | MoMo Sandbox Payment Processing (Deposit and later Rental Invoices) | External / Giang | PAY-001, PAY-003, PAY-004 | BR-PAY-01 | INT-MOMO, API-PAY | Yes |
 | `EPS-02` | Employee Initial Credential Email Delivery | External / Long | ADM-005, ADM-012 | DD-01 resolved workflow | INT-EMAIL, SEC, API-ADM | Yes |
 
 ## 20.3 API → Service / Stored Procedure Mapping
@@ -5870,28 +5903,25 @@ Then:
     Contract does NOT use Policy V2
 ```
 
-## 23.13 DD-13 — First-Month Pre-Handover Payment vs Contract Discount — RESOLVED
+## 23.13 DD-13 — Offline First-Month Settlement and Contract Discount — RESOLVED
 
-`DESIGN-LOCKED — V9 FINAL`
+`OWNER-APPROVED — REV-2026-10-07-FM-OFFLINE`
 
-V9 selects Option A: **the first month does not use Contract Discount**.
+The approved 2026-10-07 revision supersedes V9's online first-month Payment/Invoice linkage. The initial amount remains undiscounted; its representation is offline receipt acknowledged by Staff when creating Contract.
 
 ```text
-First-month Payment amount = Reservation.LockedRentalPrice
-First RENTAL_FEE DiscountId = NULL
-First RENTAL_FEE DiscountAmount = 0
+First-month offline amount = Reservation.LockedRentalPrice
+First-month settlement record = successful Contract creation
+First-month Invoice = none
+First-month Payment = none
+Rental Invoice BillingMonth > Contract.StartMonth
 ```
 
-A Contract Discount selected at handover begins applying from the next Rental Fee invoice after the first month.
+Contract Discount may apply to eligible later invoices, including the first generated invoice because it represents at least the second rental month.
 
-Any first-month discount/rebate/manual accommodation handled outside FRMS is external handling only:
+No pre-handover Payment, cash-payment record, paid flag, receipt entity or new Contract attribute is introduced. Authorized OPS-004 records Staff's acknowledgment through Contract creation, without gateway confirmation or another approval workflow.
 
-- FRMS does not calculate it;
-- FRMS does not create a Refund/Adjustment entity for it;
-- FRMS does not alter its official first-month Invoice/Payment because of it;
-- FRMS records its normal first-month Invoice/Payment and the Contract Discount used for later invoices.
-
-This avoids adding a pre-handover Discount snapshot entity.
+Recognize the first-month amount once per Contract in Contract.StartMonth using the immutable Reservation price (section 12.4.1). Preserve historical Invoice/Payment evidence without reproducing the retired charge model or counting it twice. External commercial accommodation does not change the official snapshot-derived amount or create a FRMS adjustment/refund workflow.
 
 ## 23.14 DD-14 — Mutation of a Discount Referenced by a Contract — RESOLVED
 
@@ -6088,7 +6118,7 @@ Future Work is not automatically Release 1 scope.
 
 # 25. Final Locked Design Summary
 
-V10 FINAL consolidates the following implementation baseline while preserving the approved V9 business semantics:
+V10 FINAL consolidates the following implementation baseline, including the owner-approved offline first-month revision; V9 decisions not superseded by that revision remain in force:
 1. Authority order is `SRS V10 FINAL > Data Dictionary V2.1 > Scope V8`.
 2. This SRS is the FRMS Release 1 implementation source of truth.
 3. Five roles are fixed: CUSTOMER, FACILITY_STAFF, FACILITY_MANAGER, BUSINESS_OPERATIONS_MANAGER, SYSTEM_ADMINISTRATOR.
@@ -6181,8 +6211,8 @@ V10 FINAL consolidates the following implementation baseline while preserving th
 90. Employee account remains INACTIVE until initial credential email is accepted; ADM-012 retries provisioning with a new password.
 91. Facility Manager is the DamageRecord approval/rejection actor.
 92. DamageRecord lifecycle is PENDING -> APPROVED or PENDING -> REJECTED; terminal decisions are audited.
-93. First-month Rental Fee never uses Contract Discount; Contract Discount begins with subsequent Rental Fee invoices.
-94. Any first-month discount accommodation outside FRMS does not alter the official FRMS Invoice/Payment.
+93. First-month rent is collected offline for Reservation.LockedRentalPrice without Contract Discount; Contract creation records settlement and no initial Invoice/Payment is created.
+94. Contract Discount may apply to eligible invoices strictly after Contract.StartMonth; first-month recognized revenue is Contract-derived and must not be counted again through legacy Invoice/Payment data.
 95. Production DamageType seed is LOCK_DAMAGE, DOOR_DAMAGE, WALL_DAMAGE, FLOOR_DAMAGE, WATER_DAMAGE, OTHER with no Release 1 CRUD.
 96. All DD-01..DD-18 decisions identified through V9 are resolved.
 97. API Request/Response DTOs, Business Commands/Results and persistence Entities are separate boundary types.
@@ -6250,7 +6280,8 @@ FRMS Release 1 is accepted only when all applicable conditions below are true.
 [ ] Stable error.code handling implemented
 [ ] Pagination contract implemented
 [ ] Protected endpoints enforce server-side authorization
-[ ] PAY-002/OPS-004 follow one approved DD-13 model
+[ ] Retired first-month MoMo route/payment reference are absent from current API/FE contracts
+[ ] OPS-004 follows the approved offline DD-13 model without initial Invoice/Payment
 ```
 
 ## 26.5 Security Acceptance
@@ -6290,7 +6321,9 @@ All known DD-01..DD-18 decisions are resolved in V9.
 ```text
 [ ] Employee initial credential email flow verified
 [ ] Facility Manager Damage decision flow verified
-[ ] First-month no-Discount rule verified
+[ ] Offline first-month amount and Staff acknowledgment verified
+[ ] No Invoice/Payment is generated for Contract.StartMonth by billing/return/callback paths
+[ ] Later-invoice Discount behavior and Contract-derived first-month revenue verified
 [ ] Production DamageType seed verified
 [ ] No implementation introduces an unrecorded new business decision
 ```
@@ -6323,8 +6356,8 @@ Browse Facility / UnitType
 -> RESERVATION Visit
 -> CHECKED_IN
 -> select AVAILABLE StorageUnit
--> first Rental Payment SUCCESS
--> Complete Handover
+-> Staff receives full first-month rent offline
+-> Staff Complete Handover (OPS-004 acknowledges offline receipt)
 -> Contract ACTIVE / Unit IN_USE
 ```
 
@@ -6333,8 +6366,8 @@ During rental:
 ```text
 ACTIVE Contract
 -> ACCESS Visit(s)
--> monthly Invoice(s)
--> Payment / Overdue / LateFee
+-> monthly Invoice(s) strictly after Contract.StartMonth
+-> MoMo Payment / Overdue / LateFee for those invoices
 -> optional Renewal -> ContractExtension
 ```
 
@@ -6361,10 +6394,10 @@ RETURN Visit
 | StorageUnit | Physical rentable unit/position |
 | Reservation | Future capacity hold by Facility + UnitType + month range |
 | Visit | RESERVATION, ACCESS or RETURN visit record |
-| Contract | Rental agreement and actual occupancy source after handover |
+| Contract | Rental agreement, occupancy source and first-month offline settlement record after successful handover |
 | ContractExtension | Append-only successful renewal history |
-| Invoice | DEPOSIT or RENTAL_FEE billing record |
-| Payment | MoMo payment attempt/result |
+| Invoice | DEPOSIT or second-month-onward RENTAL_FEE billing record; none for the initial month |
+| Payment | Invoice-backed MoMo payment attempt/result; no first-month offline Payment |
 | Policy | Complete immutable versioned operational-parameter row |
 | Inspection | Official return/recovery inspection record |
 | DamageRecord | Damage found during Inspection |
@@ -6399,7 +6432,6 @@ CONTRACT_NOT_ACTIVE
 RETURN_VISIT_PENDING
 UNIT_NOT_AVAILABLE
 UNIT_FACILITY_TYPE_MISMATCH
-FIRST_MONTH_PAYMENT_NOT_SUCCESS
 DISCOUNT_NOT_OWNED_BY_CUSTOMER
 DISCOUNT_NOT_VALID
 INVOICE_ALREADY_EXISTS
@@ -6473,7 +6505,6 @@ Quick index:
 | `BIL-001` | `GET` | `/api/v1/invoices` |
 | `BIL-002` | `GET` | `/api/v1/invoices/{invoiceId}` |
 | `PAY-001` | `POST` | `/api/v1/invoices/{invoiceId}/payments/momo` |
-| `PAY-002` | `POST` | `/api/v1/reservations/{reservationId}/first-month-payments/momo` |
 | `PAY-003` | `GET` | `/api/v1/payments/{paymentId}` |
 | `PAY-004` | `POST` | `/api/v1/payments/momo/callback` |
 | `CON-001` | `GET` | `/api/v1/contracts` |
