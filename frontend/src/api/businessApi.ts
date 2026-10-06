@@ -17,6 +17,11 @@ import type {
   CreatePolicyVersionRequest,
   Policy,
 } from '../models/policy'
+import type {
+  CreateCustomerDiscountRequest,
+  Discount,
+  UpdateDiscountRequest,
+} from '../models/discount'
 
 async function readAllPages<T>(
   readPage: (page: number) => Promise<ApiCollectionResponse<T>>,
@@ -126,6 +131,44 @@ export const businessApi = {
   ): Promise<ApiResponse<Policy>> {
     return httpClient.post(
       '/business/policies',
+      request,
+    )
+  },
+
+  listCustomerDiscounts(
+    customerId: string,
+    page = 1,
+    pageSize = 20,
+  ): Promise<ApiCollectionResponse<Discount>> {
+    return httpClient.get(
+      `/business/customers/${encodeURIComponent(customerId)}/discounts?page=${page}&pageSize=${pageSize}`,
+    )
+  },
+
+  listAllCustomerDiscounts(
+    customerId: string,
+  ): Promise<Discount[]> {
+    return readAllPages((page) =>
+      businessApi.listCustomerDiscounts(customerId, page, 100),
+    )
+  },
+
+  createCustomerDiscount(
+    customerId: string,
+    request: CreateCustomerDiscountRequest,
+  ): Promise<ApiResponse<Discount>> {
+    return httpClient.post(
+      `/business/customers/${encodeURIComponent(customerId)}/discounts`,
+      request,
+    )
+  },
+
+  updateDiscount(
+    discountId: string,
+    request: UpdateDiscountRequest,
+  ): Promise<ApiResponse<Discount>> {
+    return httpClient.patch(
+      `/business/discounts/${encodeURIComponent(discountId)}`,
       request,
     )
   },

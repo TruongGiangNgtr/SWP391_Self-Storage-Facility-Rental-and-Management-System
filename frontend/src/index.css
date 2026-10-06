@@ -2111,3 +2111,139 @@ a {
 .policy-detail-modal .facility-detail-row > span {
   background: transparent;
 }
+
+/* BWP-04 Discount Management */
+.discount-customer-scope {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(420px, 1.2fr);
+  gap: 28px;
+  align-items: end;
+  margin-bottom: 22px;
+  padding: 24px 26px;
+  border: 1px solid #d9e1ea;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(21, 40, 65, 0.06);
+}
+
+.discount-customer-scope__copy {
+  display: grid;
+  gap: 5px;
+}
+
+.discount-customer-scope__copy strong {
+  color: #172a41;
+  font-size: 1.05rem;
+}
+
+.discount-customer-scope__copy p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+.discount-customer-scope__control {
+  display: grid;
+  gap: 8px;
+}
+
+.discount-customer-scope__control label {
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.discount-customer-scope__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.discount-customer-scope__row input,
+.facility-form-field select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #ccd6e0;
+  border-radius: 8px;
+  background: #fff;
+  color: #172a41;
+  font: inherit;
+  outline: none;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.discount-customer-scope__row input {
+  min-height: 42px;
+  padding: 0 13px;
+}
+
+.facility-form-field select {
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+.discount-customer-scope__row input:focus,
+.facility-form-field select:focus {
+  border-color: #0f6f64;
+  box-shadow: 0 0 0 3px rgba(15, 111, 100, 0.1);
+}
+
+.discount-customer-scope__row input:disabled,
+.facility-form-field select:disabled {
+  cursor: not-allowed;
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.discount-table td:nth-child(2) {
+  white-space: nowrap;
+}
+
+.discount-percentage {
+  color: #0f6f64;
+  font-size: 1rem;
+}
+
+.discount-actions {
+  flex-wrap: wrap;
+}
+
+.discount-modal {
+  max-width: 760px;
+}
+
+.discount-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+}
+
+.discount-form-field--wide {
+  grid-column: 1 / -1;
+}
+
+.discount-field-hint {
+  display: block;
+  margin-top: 6px;
+  color: #718096;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 980px) {
+  .discount-customer-scope {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .discount-customer-scope__row,
+  .discount-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .discount-form-field--wide {
+    grid-column: auto;
+  }
+}
