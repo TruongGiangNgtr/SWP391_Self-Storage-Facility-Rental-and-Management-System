@@ -18,6 +18,7 @@ public static class BusinessServiceCollectionExtensions
         services.AddScoped<IVisitService, VisitService>();
         services.AddScoped<ICapacityService, CapacityService>();
         services.AddScoped<IReservationExpirationService,ReservationExpirationService>();
+        services.AddScoped<IHandoverService, HandoverService>();
         return services;
     }
 }
