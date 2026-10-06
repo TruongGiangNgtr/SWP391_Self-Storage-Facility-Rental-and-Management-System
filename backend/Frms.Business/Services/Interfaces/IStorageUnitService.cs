@@ -26,4 +26,12 @@ public interface IStorageUnitService {
         Guid storageUnitId,
         ChangeStorageUnitStatusCommand command,
         CancellationToken cancellationToken = default);
+
+    Task<StorageUnitPageResult> ListByFacilityPageAsync(
+        Guid facilityId,
+        Guid? unitTypeId,
+        string? status,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }

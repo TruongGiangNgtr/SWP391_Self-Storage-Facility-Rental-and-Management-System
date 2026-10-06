@@ -40,4 +40,18 @@ public interface IStorageUnitRepository {
         Guid storageUnitId,
         string status,
         CancellationToken cancellationToken);
+
+    Task<int> CountByFacilityAsync(
+        Guid facilityId,
+        Guid? unitTypeId,
+        string? status,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<StorageUnitRecord>> ListByFacilityPageAsync(
+        Guid facilityId,
+        Guid? unitTypeId,
+        string? status,
+        int skip,
+        int take,
+        CancellationToken cancellationToken);
 }

@@ -16,21 +16,43 @@ public sealed class StorageUnitsController(IStorageUnitService storageUnitServic
     /// <summary>UNIT-001: List StorageUnits of a Facility.</summary>
     [HttpGet("facilities/{facilityId:guid}/storage-units")]
     [ProducesResponseType(
-        typeof(ApiResponse<IReadOnlyList<StorageUnitListItem>>),
+        typeof(PaginatedResponse<StorageUnitListItem>),
         StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<IReadOnlyList<StorageUnitListItem>>>>
-        GetStorageUnits(
-            Guid facilityId,
-            CancellationToken cancellationToken)
+    public async Task<IActionResult> GetStorageUnits(
+        Guid facilityId,
+        [FromQuery] Guid? unitTypeId = null,
+        [FromQuery] string? status = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
     {
-        var items = await storageUnitService.ListByFacilityAsync(
-            facilityId,
-            cancellationToken);
+        var result =
+            await storageUnitService.ListByFacilityPageAsync(
+                facilityId,
+                unitTypeId,
+                status,
+                page,
+                pageSize,
+                cancellationToken);
 
-        return Ok(
-            new ApiResponse<IReadOnlyList<StorageUnitListItem>>(
-                items,
-                "StorageUnits retrieved."));
+        var totalPages =
+            result.TotalItems == 0
+                ? 0
+                : (int)Math.Ceiling(
+                    result.TotalItems /
+                    (double)pageSize);
+
+        return Ok(new
+        {
+            data = result.Items,
+            pagination = new
+            {
+                page,
+                pageSize,
+                totalItems = result.TotalItems,
+                totalPages
+            }
+        });
     }
 
     /// <summary>UNIT-002: Create StorageUnit.</summary>
