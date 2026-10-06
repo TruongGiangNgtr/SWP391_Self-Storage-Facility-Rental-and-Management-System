@@ -13,6 +13,15 @@ public static class BusinessServiceCollectionExtensions
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IFacilityAuthorizationService, FacilityAuthorizationService>();
         services.AddScoped<IStorageUnitService, StorageUnitService>();
+        services.AddScoped<IFacilityService, FacilityService>();
+        services.AddScoped<IReservationService, ReservationService>();
+        services.AddScoped<IVisitService, VisitService>();
+        services.AddScoped<ICapacityService, CapacityService>();
+        services.AddScoped<IReservationExpirationService,ReservationExpirationService>();
+        services.AddScoped<IUnitTypeService, UnitTypeService>();
+        services.AddScoped<IPolicyService, PolicyService>();
+        services.AddScoped<IAdminUserService, AdminUserService>();
+        services.AddScoped<IAdminEmployeeService, AdminEmployeeService>();
         return services;
     }
 }

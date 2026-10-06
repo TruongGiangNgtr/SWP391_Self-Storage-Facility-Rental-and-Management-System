@@ -38,14 +38,14 @@ export function CustomerRegisterPage() {
   return (
     <main className="page-container">
       <section className="auth-card">
-        <h1>Đăng ký khách hàng</h1>
+        <h1>Customer Registration</h1>
         <form className="form-grid" onSubmit={handleSubmit}>
           <div className="form-field">
-            <label htmlFor="fullName">Họ và tên</label>
+            <label htmlFor="fullName">Full Name</label>
             <input id="fullName" name="fullName" autoComplete="name" required />
           </div>
           <div className="form-field">
-            <label htmlFor="registerPhoneNumber">Số điện thoại</label>
+            <label htmlFor="registerPhoneNumber">Phone Number</label>
             <input
               id="registerPhoneNumber"
               name="phoneNumber"
@@ -58,7 +58,7 @@ export function CustomerRegisterPage() {
             <input id="registerEmail" name="email" type="email" autoComplete="email" required />
           </div>
           <div className="form-field">
-            <label htmlFor="registerPassword">Mật khẩu</label>
+            <label htmlFor="registerPassword">Password</label>
             <input
               id="registerPassword"
               name="password"
@@ -70,18 +70,18 @@ export function CustomerRegisterPage() {
             />
           </div>
           <div className="form-field">
-            <label htmlFor="address">Địa chỉ</label>
+            <label htmlFor="address">Address</label>
             <input id="address" name="address" autoComplete="street-address" />
           </div>
           <div className="form-field">
-            <label htmlFor="cccd">CCCD</label>
+            <label htmlFor="cccd">National ID (CCCD)</label>
             <input id="cccd" name="cccd" />
           </div>
           <ApiErrorAlert error={error} />
           <button className="button" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang đăng ký...' : 'Đăng ký'}
+            {isSubmitting ? 'Creating your account...' : 'Create Account'}
           </button>
-          <Link to="/auth/customer/login">Đã có tài khoản? Đăng nhập</Link>
+          <Link to="/auth/customer/login">Already have an account? Sign in</Link>
         </form>
       </section>
     </main>

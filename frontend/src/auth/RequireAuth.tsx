@@ -8,7 +8,7 @@ export function RequireAuth() {
   const location = useLocation()
 
   if (isInitializing) {
-    return <main className="page-container">Đang khôi phục phiên đăng nhập...</main>
+    return <main className="page-container">Restoring your session...</main>
   }
 
   if (!isAuthenticated) {
