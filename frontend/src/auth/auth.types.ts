@@ -6,6 +6,8 @@ export type UserRole =
   | 'SYSTEM_ADMINISTRATOR'
 
 export interface AuthUser {
+  fullName?: string | null
+  email?: string
   userAccountId: string
   role: UserRole
   status: 'ACTIVE' | 'INACTIVE'

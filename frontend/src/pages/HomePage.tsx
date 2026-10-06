@@ -7,15 +7,15 @@ export function HomePage() {
         <p className="muted">Self-Storage Facility Rental and Management System</p>
         <h1>FRMS Frontend Foundation</h1>
         <p>
-          Nền tảng React + TypeScript cho Customer, Staff, Manager, Business và Admin
-          Portal theo SRS V10.
+          A React + TypeScript foundation for Customer, Staff, Manager, Business and Admin
+          portals, following SRS V10.
         </p>
         <div className="hero-actions">
           <Link className="button" to="/auth/customer/login">
-            Đăng nhập khách hàng
+            Customer Sign In
           </Link>
           <Link className="button button-secondary" to="/auth/employee/login">
-            Đăng nhập nhân viên
+            Employee Sign In
           </Link>
         </div>
       </section>
