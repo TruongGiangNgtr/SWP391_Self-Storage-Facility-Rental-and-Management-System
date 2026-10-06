@@ -15,6 +15,7 @@ import { PaymentResultPage } from '../pages/PaymentResultPage'
 import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
 import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
 import { FacilityManagementPage } from '../features/facility-management/FacilityManagementPage'
+import { UnitTypePricingPage } from '../features/unit-type-pricing/UnitTypePricingPage'
 import { ReservationConfirmPage } from '../pages/ReservationConfirmPage'
 import { ReservationCreatePage } from '../pages/ReservationCreatePage'
 import { ReservationDetailPage } from '../pages/ReservationDetailPage'
@@ -188,6 +189,11 @@ export function AppRouter() {
         <Route
           path="facilities"
           element={<FacilityManagementPage />}
+        />
+
+        <Route
+          path="unit-types"
+          element={<UnitTypePricingPage />}
         />
       </Route>
     </Route>
