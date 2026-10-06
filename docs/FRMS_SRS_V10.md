@@ -6,7 +6,8 @@
 **Baseline Date:** 2026-10-02
 **Architecture Revision Date:** 2026-10-04
 **Business Revision Date:** 2026-10-07 — REV-2026-10-07-FM-OFFLINE
-**Status:** Final Implementation Baseline — Approved Offline First-Month Revision
+**Operational Consistency Revision Date:** 2026-10-07 — REV-2026-10-07-OP-READ
+**Status:** Final Implementation Baseline — Approved Offline First-Month and Operational Consistency Revisions
 **Architecture:** 3 Logical Layers + Repository Pattern + Infrastructure Adapters
 **Backend:** ASP.NET Core Web API / C#
 **Frontend:** React + TypeScript
@@ -36,6 +37,7 @@
 | **V10 FINAL** | Backend Structure and Dependency Boundary Lock | Preserves V9 business semantics while locking API DTO mapping, Business Command/Result models, provider abstractions and adapters, dependency injection composition, background-job hosts, stored-procedure access organization, and architecture tests. Aligns the database authority reference to Data Dictionary V2.1. |
 | **V10 FINAL — 2026-10-05 clarification** | Owner-approved Phase 0 seed scope | Phase 0 requires UserRole, Policy v1 and the fixed DamageType catalogue only. ExtraFeeType schema/constraints remain; its five rows are deferred beyond Phase 0 until amounts and currency are approved. No rental/payment rule changes. |
 | **V10 FINAL — 2026-10-07 business revision** | Owner-approved offline first-month collection | REV-2026-10-07-FM-OFFLINE replaces first-month online Payment/Invoice with Staff's offline-receipt acknowledgment through OPS-004 and Contract-based settlement. PAY-002 is retired; billing starts after Contract.StartMonth; first-month revenue uses Reservation.LockedRentalPrice in Contract.StartMonth. |
+| **V10 FINAL — 2026-10-07 operational consistency revision** | Owner-approved operational reads, return release and reporting | REV-2026-10-07-OP-READ aligns Staff/Manager/BOM reads and operational catalogues; locks Unit release at Finalize Return, usageRate over all scoped Units, Visit work-item navigation and resolved DamageType wording. No new entity or first-month payment change. |
 
 ## V5 Review Summary
 
@@ -64,7 +66,7 @@ V5 performs a consistency review rather than adding a new business flow.
 - Replace ambiguous “recommended” wording with either a mandatory rule, an explicitly equivalent alternative, or a Deferred Decision.
 - Distinguish source-derived rule, SRS technical decision, and unresolved source gap.
 
-> V10 FINAL, including the approved 2026-10-07 business revision, is the implementation source of truth. The original architecture revision preserved V9 semantics; REV-2026-10-07-FM-OFFLINE supersedes the online first-month model. Earlier version-history and V5-review entries describe historical decisions, not current first-month requirements.
+> V10 FINAL, including the approved 2026-10-07 revisions, is the implementation source of truth. The original architecture revision preserved V9 semantics; REV-2026-10-07-FM-OFFLINE supersedes the online first-month model and REV-2026-10-07-OP-READ locks operational read contracts. Earlier version-history and V5-review entries describe historical decisions, not current first-month requirements.
 
 ---
 
@@ -90,6 +92,27 @@ V5 performs a consistency review rather than adding a new business flow.
 
 **Historical-data protection:** Do not delete, rewrite or fabricate links for existing first-month Invoice/Payment or unlinked legacy payment rows. Preserve historical evidence; new handovers must not create those records. Require an approved migration/deployment review before changing constraints or replacing old SQL/API behavior. Revenue must not count a historical first-month Invoice/Payment in addition to the Contract-derived amount.
 
+
+## 0.0.1 Approved Change Record — REV-2026-10-07-OP-READ
+
+**Approval:** The project owner confirms team approval of operational read and consistency corrections on 2026-10-07, including the explicit follow-up choices for return release, usageRate and reuse of existing read endpoints.
+
+**Approved scope:**
+
+- FACILITY_STAFF may read Reservation, Contract and Visit detail only within the actor's assigned Facility through RES-003, CON-002 and VIS-004. Customer ownership rules remain unchanged.
+- FACILITY_MANAGER may list/read Reservation, Contract and Visit through RES-002/003, CON-001/002 and VIS-003/004 only in the assigned Facility; BUSINESS_OPERATIONS_MANAGER may use these reads system-wide. Staff gains no Reservation/Contract/Visit list permission through this revision.
+- BOM-010 allows Customer own-Discount read and same-Facility Staff/Manager Customer-Discount read for Customers with a Reservation/Contract in that Facility. BOM-013 supplies active ExtraFeeTypes to Staff/Manager; existing BOM management access remains. Catalogue write roles do not change.
+- BIL-001/002, PAY-003 and CON-004/005 allow Customer own reads, same-Facility Staff/Manager operational reads and BOM system-wide reads. No payment initiation, manual PAID mutation or other command permission is granted to employees.
+- OPS-001 Visit work items identify the Visit, its referenced Reservation/Contract and the minimal Customer name/phone needed for daily reception.
+- Staff obtains first-month rent from Reservation.LockedRentalPrice and the related RESERVATION Visit from ReservationDetail/VIS-004. ContractDetail already contains ReservationId; no duplicate field or derived financial/Visit field is added to the Contract entity or schema.
+- After successful handover, the existing OPS-004 contractId permits CON-002 navigation. An authorized Contract read can follow reservationId to RES-003 for immutable rental-price and handover-Visit data.
+- DamageType provisioning is resolved by DD-15; obsolete unresolved wording in section 9.13 is corrected without changing the fixed seed catalogue.
+- Complete Inspection leaves StorageUnit in INSPECTION. Only atomic Finalize Return releases it to AVAILABLE/MAINTENANCE together with settlement and terminal Contract state. Move the non-persisted storageUnitStatus command parameter from INS-007 to INS-008; do not add an intermediate entity/status/field.
+- usageRate = scoped IN_USE StorageUnits / all scoped StorageUnits, including INSPECTION/MAINTENANCE in the denominator; an empty denominator returns 0. This report metric does not change rentable-capacity eligibility.
+
+**Affected requirements:** actor scopes, Flow 2/6, procedure catalogue, DD-15, authorization, endpoint registry and detail/catalogue/return/report contracts, pseudocode, FE requirements, tests, traceability, acceptance and lifecycle summaries; FWP-01..07, MWP-01/03/04, BWP-06, SSP-12/14/15/17.
+
+**Implementation boundary:** This task updates the SRS only. Backend role gates, authoritative Facility/ownership checks, DTOs/Swagger, return stored procedures and frontend types/UI must be aligned and verified by their owners before the affected feature is declared complete. No new entity, persisted attribute, role, state, first-month Invoice/Payment or write-role permission is introduced. The existing offline-first-month revision remains in force. The approved Finalize Return release rule supersedes conflicting Complete Inspection release wording in the lower-level Data Dictionary; its SQL deployment alignment requires the existing migration/redeploy review process, not a new database field.
 
 ## 0.1 Authority Order
 
@@ -193,7 +216,7 @@ Technical detail MAY be refined behind interfaces/configuration boundaries only 
 
 `DESIGN-LOCKED — FINAL`
 
-This V10 document is the FRMS Release 1 implementation baseline. It preserves the approved V9 business semantics except where the owner-approved REV-2026-10-07-FM-OFFLINE explicitly replaces the first-month payment, billing and revenue model.
+This V10 document is the FRMS Release 1 implementation baseline. It preserves the approved V9 business semantics except for the explicit owner-approved revisions recorded in section 0.0 and its subsections.
 
 After approval:
 
@@ -376,6 +399,7 @@ Customer self-registration assigns role `CUSTOMER`.
 Facility Staff belongs to exactly one Facility and may:
 
 - process Reservation check-in at that Facility;
+- read Reservation/Contract detail and related Visit detail within that Facility for authorized operational handling;
 - verify system payment state without manually marking Invoice `PAID`;
 - acknowledge full offline first-month receipt by invoking Complete Handover; this receipt creates no Invoice/Payment;
 - complete handover according to authorized workflow;
@@ -581,14 +605,16 @@ ACTIVE Contract
 -> ActualReturnDate
 -> StorageUnit INSPECTION
 -> Inspection PENDING
--> claim/complete Inspection
--> Damage / ExtraFee / LateFee
--> DepositSettlement
--> Contract COMPLETED or TERMINATED
--> StorageUnit AVAILABLE or MAINTENANCE
+-> claim Inspection / record Damage and ExtraFee
+-> complete Inspection (Unit remains INSPECTION)
+-> resolve any pending Damage decisions before Finalize Return
+-> Staff Finalize Return selects AVAILABLE or MAINTENANCE
+-> atomic DepositSettlement + Contract COMPLETED or TERMINATED + Unit AVAILABLE or MAINTENANCE
 ```
 
 `ActualReturnDate` determines Normal Return vs Early Return.
+
+Inspection completion alone never releases the Unit. Applicable LateFee and recorded approved Damage/ExtraFee contribute to Finalize Return; a pending Damage decision blocks that transaction. Manager may decide recorded Damage before or after Inspection completion, but every pending decision must be resolved before Finalize Return; this does not add an Inspection-completion approval gate.
 
 ## 4.7 Flow 7 — Support Request and Issue Handling
 
@@ -1516,8 +1542,8 @@ Minimum design:
 | `usp_DecideDamage` | Facility Manager atomically APPROVE/REJECT a PENDING DamageRecord | Yes |
 | `usp_RecordExtraFee` | record ExtraFee | Yes |
 | `usp_AddInspectionEvidence` | store binary evidence | Yes |
-| `usp_CompleteInspection` | complete inspection + set unit AVAILABLE/MAINTENANCE | Yes |
-| `usp_FinalizeReturn` | calculate settlement + terminal Contract state | Mandatory |
+| `usp_CompleteInspection` | complete Inspection; keep unit INSPECTION until Finalize Return | Yes |
+| `usp_FinalizeReturn` | calculate settlement + terminal Contract state + unit AVAILABLE/MAINTENANCE | Mandatory |
 | `usp_RenewContract` | contiguous capacity-safe renewal + ContractExtension | Mandatory |
 | `usp_CreateMonthlyInvoice` | generate one logical Rental Fee invoice only for Contract.StartMonth < BillingMonth <= Contract.EndMonth | Yes |
 | `usp_ApplyPaymentResult` | idempotent gateway result processing | Yes |
@@ -1635,7 +1661,7 @@ Therefore:
 
 - Release/demo deployment MUST provide required UnitType master rows through approved deployment seed/data preparation.
 - This does not create a new UnitType CRUD workflow.
-- DamageType is different: because no production list or management capability is defined, DamageType provisioning remains a blocking Deferred Decision in Section 23.
+- DamageType provisioning is resolved by DD-15: the six fixed ACTIVE seed rows above and INS-010 provide the Release 1 production catalogue; no DamageType CRUD workflow is introduced.
 
 # 10. Authentication and Authorization
 
@@ -1774,17 +1800,20 @@ The following is the API-level authorization baseline.
 |---|---:|---:|---:|---:|---:|
 | Own account/profile | Limited | Limited | Limited | Limited | View all basic accounts |
 | Browse active Facility/UnitType | Yes | Read | Read | Read/manage | Read as needed |
-| Reservation create/cancel/view | Own | Facility operational read | Facility read | System read | No business mutation |
+| Reservation create/cancel | Own | No | No | No | No |
+| Reservation read/list | Own | Same Facility detail; OPS-001 work list | Same Facility list/detail | System list/detail | No |
 | Visit create | Own where applicable | No customer creation | Monitor | Read | No |
+| Visit read/list | Own | Same Facility detail; OPS-001 work list | Same Facility list/detail | System list/detail | No |
 | Visit check-in/out | No | Same Facility | Monitor | No | No |
 | Complete Handover | No | Same Facility; command acknowledges offline first-month receipt | Unit selection/monitor | No | No |
 | StorageUnit management | No | Operational handling only | Same Facility | Read/monitor | No |
-| Contract view | Own | Same Facility read | Same Facility read | System read | No business mutation |
+| Contract read/list | Own | Same Facility detail | Same Facility list/detail | System list/detail | No |
 | Contract renewal | Own request | No | Monitor | Monitor | No |
-| Invoice/Payment | Own view/pay | Verify state only | Monitor | Report/monitor | No manual PAID |
+| Invoice/Payment | Own view/pay | Same Facility read/verify only | Same Facility read/monitor | System read/report | No manual PAID |
 | Policy | Read if exposed | Read | Read | Create version | No |
 | UnitType price/master | Read | Read | Read | Manage | No |
-| Discount | Own eligible usage | Read if needed | Read | Manage | No |
+| Discount | Own read/eligible usage | Read for Customer with same-Facility Reservation/Contract | Same-Facility Customer read | Manage | No |
+| ExtraFeeType catalogue | No | ACTIVE types read | ACTIVE types read | Read/manage | No |
 | Inspection | Own return progress | Claim/perform same Facility | Monitor same Facility | Read | No |
 | Damage/ExtraFee | Own settlement read | Record during authorized Inspection | Monitor | Manage type masters | No |
 | SupportTicket | Own create/view/cancel | Process assigned | Assign/monitor same Facility | Read/monitor | No |
@@ -1795,7 +1824,7 @@ The following is the API-level authorization baseline.
 
 Facility Staff and Facility Manager MUST be scoped to exactly their assigned Facility.
 
-For any facility-scoped command:
+For every facility-scoped read or command:
 
 ```text
 actor.Employee.FacilityId
@@ -1806,6 +1835,10 @@ targetResource.FacilityId
 Failure -> `403 FORBIDDEN`.
 
 Facility scope MUST be checked server-side even if FE routes hide other Facilities.
+
+For Reservation detail, the resource Facility is Reservation.FacilityId. For Contract detail, it is Contract.FacilityId. For Visit detail and Visit work items, resolve Visit.EntityId by VisitType: RESERVATION -> Reservation.FacilityId; ACCESS/RETURN -> Contract.FacilityId. Do not treat every EntityId as a ReservationId or trust a client-supplied Facility identifier.
+
+RES-003, CON-002 and VIS-004 require an authenticated ACTIVE actor. Staff access additionally requires a current Employee assignment to the resource Facility. Staff may read different Customers' resources within that Facility; Staff is not evaluated under Customer-own-resource semantics. Cross-Facility access returns 403 FORBIDDEN. A nonexistent detail resource returns 404 RESOURCE_NOT_FOUND. Read permission does not authorize a state transition or bypass command-specific lifecycle checks.
 
 ## 10.8 Resource Ownership Authorization
 
@@ -1822,6 +1855,8 @@ Customer-owned resources include, where applicable:
 Backend derives Customer identity from authenticated `UserAccount`; client-supplied `customerId` MUST NOT override actor identity.
 
 Unauthorized cross-customer access returns `403` or non-disclosing `404` according to endpoint security design, but behavior MUST be consistent inside each resource family.
+
+For shared operational-read endpoints, authorization MUST branch on the authoritative role: Customer -> own-resource check; Staff/Manager -> same-Facility operational-read check; BOM -> authorized system-wide read. Merely widening a Controller role attribute while retaining a Customer-only service query does not implement operational access. Never accept CustomerId or FacilityId from the UI as a substitute for authoritative authorization.
 
 ## 10.9 Inactive Account
 
@@ -2097,6 +2132,7 @@ The following rule IDs are canonical for FRMS Release 1:
 - `BR-RET-04` early return terminates Contract after finalization.
 - `BR-RET-05` normal return completes only after physical return/recovery + Inspection + settlement.
 - `BR-RET-06` early return inside Policy waive window may cancel/waive unpaid current-month Invoice and must not create LateFee for that month.
+- `BR-RET-07` Complete Inspection keeps Unit INSPECTION. Finalize Return atomically creates the settlement, terminates/completes Contract and changes Unit to AVAILABLE/MAINTENANCE. No Unit is released for a new handover while the prior return is unfinalized.
 - `BR-DMG-01` DamageRecord belongs to Inspection and active DamageType.
 - `BR-DMG-02` Staff records Damage as PENDING; same-Facility Manager atomically decides PENDING -> APPROVED or PENDING -> REJECTED. APPROVED/REJECTED are terminal.
 - `BR-DMG-03` Settlement includes APPROVED Damage only and Finalize Return is blocked while any Damage remains PENDING.
@@ -2155,6 +2191,8 @@ MAINTENANCE -> AVAILABLE
 ```
 
 `AVAILABLE -> MAINTENANCE` is a V8 design override for preventive maintenance by the same-Facility Manager. MAINTENANCE units are excluded from capacity.
+
+During a return, INSPECTION -> AVAILABLE/MAINTENANCE occurs only in usp_FinalizeReturn (INS-008), after the completed Inspection and settlement prerequisites. INS-007 leaves the Unit INSPECTION; UNIT-005 cannot perform an alternative return release.
 
 ### Invoice
 
@@ -2241,10 +2279,12 @@ Reservation creation and Renewal capacity checks require concurrency protection.
 | `CALC-SET-02` | Normal Refund = `MAX(DepositPaidAmount - TotalDeduction, 0)`; Early = 0 |
 | `CALC-SET-03` | `MAX(TotalDeduction - DepositPaidAmount, 0)` |
 | `CALC-CAP-01` | capacity formula above |
-| `CALC-REP-01` | IN_USE rentable units / total rentable units |
+| `CALC-REP-01` | Scoped IN_USE StorageUnits / all scoped StorageUnits (AVAILABLE + IN_USE + INSPECTION + MAINTENANCE); denominator 0 -> usageRate 0 |
 | `CALC-REP-02` | Contract-derived first-month revenue attributed to Contract.StartMonth + successfully paid second-month-onward Rental Fee Invoice amounts; excludes Deposit/Late/Extra/Damage and double counting |
 
 Money calculations use decimal arithmetic; final persisted monetary values use consistent rounding.
+
+CALC-REP-01 is a physical-unit usage metric, not CALC-CAP-01 available rental capacity. Count all persisted StorageUnits in the authorized reporting Facility scope regardless of Unit status; only IN_USE enters the numerator. For a system-wide report, divide total IN_USE across the scoped Facilities by total Units across those Facilities rather than averaging Facility percentages. Do not exclude INSPECTION/MAINTENANCE from this denominator or infer a Facility ACTIVE filter that the report query does not specify.
 
 ### 12.4.1 First-month settlement, billing and revenue boundaries
 
@@ -2307,6 +2347,7 @@ Existing Reservation/Contract keeps captured `PolicyId`.
 | Deposit invoice creation | logical uniqueness |
 | Create Policy version | lock active version / sequence |
 | Finalize Return | unique settlement + terminal-state guard |
+| Return Unit release | same authoritative Finalize Return transaction; no release at Inspection completion |
 | Retry Notification | claim/update or background-job lock |
 
 ## 12.7 Idempotency Rules
@@ -2717,24 +2758,24 @@ For `RENTAL_FEE`, the configured `MonthlyPaymentDueDay` is the final non-overdue
 | `CAT-004` | `GET` | `/api/v1/unit-types/{unitTypeId}` | Unit Type detail | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER | CWP-01 / operational read |
 | `AI-001` | `POST` | `/api/v1/ai/unit-type-recommendations` | Optional AI Size Guide | CUSTOMER | CWP-02 |
 | `RES-001` | `POST` | `/api/v1/reservations` | Create Reservation + Deposit Invoice | CUSTOMER | CWP-03 |
-| `RES-002` | `GET` | `/api/v1/reservations` | List own Reservations | CUSTOMER | CWP-04 |
-| `RES-003` | `GET` | `/api/v1/reservations/{reservationId}` | Get own Reservation detail | CUSTOMER | CWP-04 |
+| `RES-002` | `GET` | `/api/v1/reservations` | Customer own / Manager Facility / BOM system Reservation list | CUSTOMER,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-04 / operational monitoring |
+| `RES-003` | `GET` | `/api/v1/reservations/{reservationId}` | Authorized own / Facility / system Reservation detail | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-04 / FWP-02/03 / operational monitoring |
 | `RES-004` | `POST` | `/api/v1/reservations/{reservationId}/confirm` | Confirm after paid Deposit and create RESERVATION Visit | CUSTOMER | CWP-04/CWP-05 |
 | `RES-005` | `POST` | `/api/v1/reservations/{reservationId}/cancel` | Cancel eligible Reservation | CUSTOMER | CWP-04 |
-| `BIL-001` | `GET` | `/api/v1/invoices` | List own invoices | CUSTOMER | CWP-08/CWP-11 |
-| `BIL-002` | `GET` | `/api/v1/invoices/{invoiceId}` | Get own invoice detail | CUSTOMER | CWP-08/CWP-11 |
+| `BIL-001` | `GET` | `/api/v1/invoices` | Authorized own / Facility / system Invoice list | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-08/CWP-11 / operational monitoring |
+| `BIL-002` | `GET` | `/api/v1/invoices/{invoiceId}` | Authorized own / Facility / system Invoice detail | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-08/CWP-11 / operational monitoring |
 | `PAY-001` | `POST` | `/api/v1/invoices/{invoiceId}/payments/momo` | Start MoMo payment for Deposit/Rental Invoice | CUSTOMER | CWP-04/CWP-08 |
-| `PAY-003` | `GET` | `/api/v1/payments/{paymentId}` | Get own payment status | CUSTOMER | CWP-08 |
+| `PAY-003` | `GET` | `/api/v1/payments/{paymentId}` | Authorized own / Facility / system Payment status | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-08 / operational verification |
 | `PAY-004` | `POST` | `/api/v1/payments/momo/callback` | MoMo provider callback | EXTERNAL | EPS-01/SSP-07 |
-| `CON-001` | `GET` | `/api/v1/contracts` | List own Contracts | CUSTOMER | CWP-06 |
-| `CON-002` | `GET` | `/api/v1/contracts/{contractId}` | Get own Contract detail | CUSTOMER | CWP-06 |
+| `CON-001` | `GET` | `/api/v1/contracts` | Customer own / Manager Facility / BOM system Contract list | CUSTOMER,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-06 / operational monitoring |
+| `CON-002` | `GET` | `/api/v1/contracts/{contractId}` | Authorized own / Facility / system Contract detail | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-06 / operational read |
 | `CON-003` | `POST` | `/api/v1/contracts/{contractId}/renew` | Renew active Contract | CUSTOMER | CWP-09 |
-| `CON-004` | `GET` | `/api/v1/contracts/{contractId}/billing` | Contract billing/overdue summary | CUSTOMER | CWP-08/CWP-11 |
-| `CON-005` | `GET` | `/api/v1/contracts/{contractId}/return-summary` | Return/inspection/settlement summary | CUSTOMER | CWP-10/CWP-11 |
+| `CON-004` | `GET` | `/api/v1/contracts/{contractId}/billing` | Authorized Contract billing/overdue summary | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-08/CWP-11 / operational monitoring |
+| `CON-005` | `GET` | `/api/v1/contracts/{contractId}/return-summary` | Authorized return/inspection/settlement summary | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-10/CWP-11 / operational monitoring |
 | `VIS-001` | `POST` | `/api/v1/contracts/{contractId}/access-visits` | Create ACCESS Visit | CUSTOMER | CWP-07 |
 | `VIS-002` | `POST` | `/api/v1/contracts/{contractId}/return-visits` | Create RETURN Visit | CUSTOMER | CWP-10 |
-| `VIS-003` | `GET` | `/api/v1/visits` | List own Visits | CUSTOMER | CWP-05/CWP-07/CWP-10 |
-| `VIS-004` | `GET` | `/api/v1/visits/{visitId}` | Get own Visit detail | CUSTOMER | CWP-05/CWP-07/CWP-10 |
+| `VIS-003` | `GET` | `/api/v1/visits` | Customer own / Manager Facility / BOM system Visit list | CUSTOMER,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-05/CWP-07/CWP-10 / operational monitoring |
+| `VIS-004` | `GET` | `/api/v1/visits/{visitId}` | Authorized own / Facility / system Visit detail | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-05/CWP-07/CWP-10 / FWP-02..05 |
 | `VIS-005` | `PATCH` | `/api/v1/visits/{visitId}/schedule` | Reschedule eligible SCHEDULED Visit | CUSTOMER | CWP-05/CWP-07/CWP-10 |
 | `VIS-006` | `POST` | `/api/v1/visits/{visitId}/cancel` | Cancel eligible SCHEDULED Visit | CUSTOMER | CWP-05/CWP-07/CWP-10 |
 | `OPS-001` | `GET` | `/api/v1/staff/work-items` | Derived daily Staff work list | FACILITY_STAFF | FWP-01 |
@@ -2748,8 +2789,8 @@ For `RENTAL_FEE`, the configured `MonthlyPaymentDueDay` is the final non-overdue
 | `INS-004` | `POST` | `/api/v1/inspections/{inspectionId}/damages` | Record DamageRecord | FACILITY_STAFF | FWP-07 |
 | `INS-005` | `POST` | `/api/v1/inspections/{inspectionId}/extra-fees` | Record ExtraFee | FACILITY_STAFF | FWP-07 |
 | `INS-006` | `POST` | `/api/v1/inspections/{inspectionId}/evidence` | Upload InspectionEvidence | FACILITY_STAFF | FWP-06 |
-| `INS-007` | `POST` | `/api/v1/inspections/{inspectionId}/complete` | Complete Inspection and set next StorageUnit operational state | FACILITY_STAFF | FWP-06 |
-| `INS-008` | `POST` | `/api/v1/contracts/{contractId}/finalize-return` | Finalize settlement and terminal Contract state | FACILITY_STAFF | FWP-07/SSP-14 |
+| `INS-007` | `POST` | `/api/v1/inspections/{inspectionId}/complete` | Complete Inspection; keep StorageUnit INSPECTION | FACILITY_STAFF | FWP-06 |
+| `INS-008` | `POST` | `/api/v1/contracts/{contractId}/finalize-return` | Atomic settlement, terminal Contract and Unit release | FACILITY_STAFF | FWP-07/SSP-14 |
 | `INS-009` | `POST` | `/api/v1/damage-records/{damageRecordId}/decision` | Approve or reject PENDING DamageRecord | FACILITY_MANAGER | MWP-04 |
 | `INS-010` | `GET` | `/api/v1/damage-types` | List active seeded DamageTypes for inspection use | FACILITY_STAFF,FACILITY_MANAGER | FWP-07/MWP-04 |
 | `SUP-001` | `POST` | `/api/v1/support-tickets` | Create Contract-related SupportTicket | CUSTOMER | CWP-12 |
@@ -2772,10 +2813,10 @@ For `RENTAL_FEE`, the configured `MonthlyPaymentDueDay` is the final non-overdue
 | `BOM-007` | `PATCH` | `/api/v1/business/unit-types/{unitTypeId}/price` | Update current UnitType RentalPrice | BUSINESS_OPERATIONS_MANAGER | BWP-02 |
 | `BOM-008` | `GET` | `/api/v1/business/policies` | List Policy versions | BUSINESS_OPERATIONS_MANAGER | BWP-03 |
 | `BOM-009` | `POST` | `/api/v1/business/policies` | Create new Policy version | BUSINESS_OPERATIONS_MANAGER | BWP-03 |
-| `BOM-010` | `GET` | `/api/v1/business/customers/{customerId}/discounts` | List Customer Discounts | BUSINESS_OPERATIONS_MANAGER | BWP-04 |
+| `BOM-010` | `GET` | `/api/v1/business/customers/{customerId}/discounts` | Own / Facility operational / BOM management Customer Discount list | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | BWP-04 / FWP-03 / MWP-01 |
 | `BOM-011` | `POST` | `/api/v1/business/customers/{customerId}/discounts` | Create Customer Discount | BUSINESS_OPERATIONS_MANAGER | BWP-04 |
 | `BOM-012` | `PATCH` | `/api/v1/business/discounts/{discountId}` | Update allowed Discount master fields | BUSINESS_OPERATIONS_MANAGER | BWP-04 |
-| `BOM-013` | `GET` | `/api/v1/business/extra-fee-types` | List ExtraFeeTypes | BUSINESS_OPERATIONS_MANAGER | BWP-05 |
+| `BOM-013` | `GET` | `/api/v1/business/extra-fee-types` | BOM management / Staff-Manager active operational ExtraFeeType list | FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | BWP-05 / FWP-07 |
 | `BOM-014` | `PATCH` | `/api/v1/business/extra-fee-types/{extraFeeTypeId}` | Update ExtraFeeType default amount/status | BUSINESS_OPERATIONS_MANAGER | BWP-05 |
 | `REP-001` | `GET` | `/api/v1/reports/facilities/{facilityId}/operations` | Facility operations report | FACILITY_MANAGER | MWP-06 |
 | `REP-002` | `GET` | `/api/v1/reports/facilities/{facilityId}/revenue` | Facility revenue report | FACILITY_MANAGER | MWP-06 |
@@ -2793,6 +2834,29 @@ For `RENTAL_FEE`, the configured `MonthlyPaymentDueDay` is the final non-overdue
 | `ADM-010` | `GET` | `/api/v1/admin/login-history` | Search LoginHistory | SYSTEM_ADMINISTRATOR | AWP-06 |
 | `ADM-011` | `GET` | `/api/v1/admin/audit-logs` | Search AuditLog | SYSTEM_ADMINISTRATOR | AWP-07 |
 | `ADM-012` | `POST` | `/api/v1/admin/employees/{employeeId}/resend-initial-credential` | Regenerate and resend initial password for INACTIVE Employee | SYSTEM_ADMINISTRATOR | AWP-03 |
+
+### 13.11.1 Shared Operational Read Authorization
+
+The role sets in section 13.11 are authoritative for each endpoint; a broad role in the actor matrix does not grant access to an unlisted endpoint. In particular, Staff cannot call RES-002, CON-001 or VIS-003; OPS-001 supplies the Staff work list. Manager and BOM can use those lists and their detail endpoints. SYSTEM_ADMINISTRATOR receives no business-read access through this revision.
+
+For the revised reads:
+
+| Read family | Customer scope | Staff/Manager scope | BOM scope |
+|---|---|---|---|
+| Reservation / Contract detail | Own resource | Assigned Facility; endpoint role required | All Facilities |
+| Reservation / Contract / Visit lists | Own resources | Manager assigned Facility; Staff not allowed | All Facilities |
+| Visit detail | Owned referenced Reservation/Contract | Facility of referenced Reservation/Contract | All Facilities |
+| Invoice list/detail | Owned referenced Reservation/Contract | Facility of referenced Reservation/Contract | All Facilities |
+| Payment detail | Owned linked Invoice resource | Facility of linked Invoice resource | All Facilities |
+| Contract billing/return summary | Own Contract | Contract in assigned Facility | All Facilities |
+| Customer Discounts (BOM-010) | Path Customer must be actor's Customer | Path Customer must have an existing Reservation or Contract in assigned Facility | All Customers |
+| ExtraFeeType catalogue (BOM-013) | Not allowed | ACTIVE-account Staff/Manager with valid Facility assignment; ACTIVE types only | Full management catalogue |
+
+Collection filtering MUST occur server-side before pagination/counting so neither rows nor totalItems leak another Customer/Facility. Any query filter may narrow the actor's authorized set, never widen it. Facility/Customer IDs in paths or queries are resource identifiers, not authorization evidence.
+
+Invoice Facility/ownership is resolved by InvoiceType: DEPOSIT -> Invoice.EntityId -> Reservation; RENTAL_FEE -> Invoice.EntityId -> Contract. Payment read resolves Payment.InvoiceId -> Invoice -> the same resource scope. A legacy unlinked Payment must not be granted Customer/Facility access by guessing an association; preservation/deployment handling remains governed by section 0.0.
+
+All reads require ACTIVE account and authoritative current role/assignment. Wrong Facility or endpoint role -> 403 FORBIDDEN; nonexistent detail resource -> 404 RESOURCE_NOT_FOUND. Customer ownership denial retains section 10.8's consistent security design. Employees do not inherit Customer create/cancel/reschedule/renew/payment commands from GET access. Immutable money/status remains server-owned. Listing Discount or ExtraFeeType rows does not grant their write endpoints.
 
 ## 13.12 Authentication API Contracts
 
@@ -3032,6 +3096,24 @@ BR-RES-01..05
 
 Procedure: `usp_CreateReservation`.
 
+### RES-003 — Customer / Operational Reservation Detail
+
+```text
+GET /api/v1/reservations/{reservationId}
+Roles: CUSTOMER, FACILITY_STAFF, FACILITY_MANAGER, BUSINESS_OPERATIONS_MANAGER
+Success: 200 ApiResponse<ReservationDetail>
+```
+
+- Customer may read only an owned Reservation under section 10.8.
+- Staff may read only a Reservation whose FacilityId equals the actor's authoritative Employee.FacilityId.
+- Manager uses the same assigned-Facility restriction; BOM may read system-wide. RES-002 is a server-filtered list for Customer/Manager/BOM only, using the same schema and the standard collection envelope.
+- Reuse the canonical ReservationDetail schema in section 13.10.4; lockedRentalPrice is the immutable Reservation snapshot, not current UnitType.RentalPrice.
+- reservationVisit contains the related RESERVATION Visit summary with visitId, visitType, visitDate and status; it is null when no such Visit exists. VIS-004 supplies canonical Visit detail for a known VisitId.
+- Before first-month receipt acknowledgment, Staff reads the locked amount from this API. FE must not derive the amount from catalogue pricing or a Discount.
+- ACTIVE account, cross-Facility 403 FORBIDDEN and nonexistent-resource 404 RESOURCE_NOT_FOUND follow sections 10.7..10.9. Existing Customer ownership handling remains unchanged.
+
+No new Contract/Reservation entity attribute or write permission is introduced.
+
 ### RES-004 — Confirm Reservation
 
 Request:
@@ -3086,6 +3168,12 @@ Success returns authoritative Reservation state.
 
 ## 13.15 Invoice / Payment API Contracts
 
+### BIL-001 / BIL-002 / PAY-003 — Authorized Invoice and Payment Reads
+
+Reuse canonical InvoiceDetail/PaymentDetail and standard list/detail envelopes. BIL-001 returns a server-filtered paginated Invoice collection; BIL-002/PAY-003 return the authorized detail. Roles are CUSTOMER, FACILITY_STAFF, FACILITY_MANAGER and BUSINESS_OPERATIONS_MANAGER. Apply the Invoice/Payment relationship resolution in section 13.11.1, including Deposit -> Reservation and Rental Fee -> Contract.
+
+Employee GET access can verify persisted payment/invoice state but cannot initiate PAY-001, submit a provider callback as a trusted actor, mutate money or manually mark PAID/SUCCESS. Neither this read nor CON-004 creates a first-month Invoice/Payment. Expose existing financial status/detail only, not gateway secrets or technical provider payloads.
+
 ### PAY-001 — Start MoMo Payment for Existing Invoice
 
 Request:
@@ -3139,6 +3227,34 @@ verify provider authenticity/reference
 ```
 
 ## 13.16 Contract / Visit API Contracts
+
+### CON-002 — Customer / Operational Contract Detail
+
+```text
+GET /api/v1/contracts/{contractId}
+Roles: CUSTOMER, FACILITY_STAFF, FACILITY_MANAGER, BUSINESS_OPERATIONS_MANAGER
+Success: 200 ApiResponse<ContractDetail>
+```
+
+Customer reads an owned Contract; Staff/Manager read a Contract in the actor's assigned Facility; BOM may read system-wide. CON-001 is a server-filtered list for Customer/Manager/BOM only, using the canonical ContractDetail schema and standard collection envelope. Apply authoritative ACTIVE-account and resource/Facility checks, not a client-supplied customerId or facilityId. Nonexistent resource -> 404 RESOURCE_NOT_FOUND; wrong Staff/Manager Facility -> 403 FORBIDDEN.
+
+Reuse section 13.10.6 unchanged: ContractDetail already has reservationId. To obtain the immutable first-month amount and associated RESERVATION Visit, follow that ID through RES-003; use VIS-004 for the required Visit detail. No lockedRentalPrice, Visit snapshot, paid flag or additional ReservationId property is added to the persisted Contract. OPS-004 supplies the contractId for reading the Contract after successful handover.
+
+### VIS-004 — Customer / Operational Visit Detail
+
+```text
+GET /api/v1/visits/{visitId}
+Roles: CUSTOMER, FACILITY_STAFF, FACILITY_MANAGER, BUSINESS_OPERATIONS_MANAGER
+Success: 200 ApiResponse<VisitDetail>
+```
+
+Reuse section 13.10.5. Customer reads an owned Visit; Staff/Manager read a Visit whose referenced Reservation (RESERVATION) or Contract (ACCESS/RETURN) belongs to the assigned Facility; BOM may read system-wide. VIS-003 is a server-filtered list for Customer/Manager/BOM only. Visit date/type/status and EntityId are authoritative server data. Reading a historical Visit does not permit check-in, rescheduling, cancellation or handover outside the existing command rules. Wrong Staff/Manager Facility -> 403 FORBIDDEN; nonexistent resource -> 404 RESOURCE_NOT_FOUND.
+
+### CON-004 / CON-005 — Authorized Billing and Return Summary Reads
+
+CUSTOMER reads the owned Contract summary; FACILITY_STAFF/FACILITY_MANAGER read within the assigned Facility; BUSINESS_OPERATIONS_MANAGER reads system-wide. Apply the same Contract scope as CON-002 to every nested Invoice, return Visit, Inspection, fee and settlement summary. GET access neither changes summary calculations nor grants renewal/return/inspection/payment commands.
+
+First-month rent is settled through Contract creation, not an unpaid missing Invoice; preserve the existing offline-first-month and subsequent-billing rules when producing billing/return summaries.
 
 ### CON-003 — Renew Contract
 
@@ -3251,8 +3367,14 @@ Response combines derived work items, not a persisted Task entity:
     {
       "workType": "RESERVATION_VISIT",
       "referenceId": "uuid",
+      "entityId": "uuid",
       "scheduledDate": "2026-11-03",
-      "status": "SCHEDULED"
+      "status": "SCHEDULED",
+      "customer": {
+        "customerId": "uuid",
+        "fullName": "Nguyen Van A",
+        "phoneNumber": "0900000000"
+      }
     }
   ],
   "pagination": {
@@ -3263,6 +3385,15 @@ Response combines derived work items, not a persisted Task entity:
   }
 }
 ```
+
+Visit work-item semantics:
+
+- For RESERVATION_VISIT, ACCESS_VISIT and RETURN_VISIT, referenceId is Visit.VisitId and entityId is Visit.EntityId. scheduledDate is Visit.VisitDate; status is Visit.Status.
+- RESERVATION_VISIT entityId is a ReservationId; ACCESS_VISIT/RETURN_VISIT entityId is a ContractId, according to BR-VIS-02. The response includes the related Customer's customerId, fullName and phoneNumber for reception identification and authorized BOM-010 navigation, derived from existing resource/profile/account data. Do not expose full profiles, credentials or unrelated Customer records.
+- The entire list and every nested Customer/resource field are derived only from resources in the authenticated Staff's assigned Facility. FE filters are not authorization.
+- For non-Visit work items, preserve their existing workType/referenceId meanings; Visit-specific entityId/customer properties are omitted. A generic referenceId is not always a VisitId.
+- A RESERVATION_VISIT opens VIS-004 by referenceId and RES-003 by entityId. ACCESS/RETURN items open VIS-004 and CON-002. No task/assignment entity or physical-unit reservation is created.
+- After successful Check-in or Handover, and after a state-conflict response, FE refreshes authoritative work-item/detail state. It must not fabricate CHECKED_IN/COMPLETED state from a click.
 
 ### OPS-002 — Check In Visit
 
@@ -3502,24 +3633,20 @@ Request:
 
 ```json
 {
-  "conditionNote": "Unit inspected.",
-  "storageUnitStatus": "AVAILABLE"
+  "conditionNote": "Unit inspected."
 }
 ```
 
-Allowed target operational state from inspection completion:
-
-```text
-AVAILABLE
-MAINTENANCE
-```
+Complete the authorized IN_PROGRESS Inspection and record its completion information; StorageUnit remains INSPECTION. This command does not accept storageUnitStatus, release rentable availability, terminate Contract or create settlement. No NextUnitStatus entity field or persisted pre-release choice is introduced. Unresolved Damage continues to block Finalize Return under BR-DMG-03.
 
 ### INS-008 — Finalize Return
 
 Request:
 
 ```json
-{}
+{
+  "storageUnitStatus": "AVAILABLE"
+}
 ```
 
 Response:
@@ -3529,6 +3656,7 @@ Response:
   "data": {
     "contractId": "uuid",
     "contractStatus": "COMPLETED",
+    "storageUnitStatus": "AVAILABLE",
     "settlement": {
       "depositSettlementId": "uuid",
       "totalDeduction": 350000.00,
@@ -3546,7 +3674,14 @@ Errors:
 RETURN_ALREADY_FINALIZED  -> 409
 INSPECTION_INVALID_STATUS -> 409
 DAMAGE_DECISION_PENDING   -> 409
+VALIDATION_ERROR          -> 400 for a missing/invalid storageUnitStatus
 ```
+
+storageUnitStatus is a required non-persisted command parameter with allowed values AVAILABLE or MAINTENANCE; it is moved from INS-007, not copied into Inspection/Contract as an intermediate field. Authorized Staff selects the final operational state at finalization. The response reports the actual committed Unit state, not an optimistic echo.
+
+The authoritative transaction requires the related completed Inspection, no pending Damage decision, the related Unit still INSPECTION and the valid active Contract/return linkage. It creates one DepositSettlement, sets Contract COMPLETED/TERMINATED according to return classification and changes Unit INSPECTION -> the requested AVAILABLE/MAINTENANCE atomically. Before commit, no new handover may use that Unit. A validation/settlement/concurrency failure rolls back all effects and leaves the Unit INSPECTION. UNIT-005 cannot bypass this return workflow; the pending Contract and incomplete settlement must not be bypassed by another status command.
+
+Retry preserves the canonical original settlement/Contract/Unit outcome or returns controlled RETURN_ALREADY_FINALIZED; a different target in a retried request must not mutate an already-finalized Unit.
 
 Safety rule:
 
@@ -3662,6 +3797,8 @@ Only legal transitions from the StorageUnit state matrix are accepted.
 
 V8 explicitly adds `AVAILABLE -> MAINTENANCE` for Facility Manager preventive maintenance. The unit MUST have no ACTIVE Contract and is excluded from rentable capacity while in MAINTENANCE.
 
+INSPECTION -> AVAILABLE/MAINTENANCE during return is not a Manager status shortcut: only INS-008 may perform that transition atomically with terminal Contract/settlement state under BR-RET-07. UNIT-005 must reject a request that would release a Unit before return finalization.
+
 ## 13.21 BOM API Contracts
 
 ### BOM-002 — Create Facility
@@ -3709,6 +3846,33 @@ Request:
 
 Response includes new `policyId`, incremented `version`, and `ACTIVE` status.
 
+### BOM-010 — Authorized Customer Discount Catalogue
+
+```text
+GET /api/v1/business/customers/{customerId}/discounts?page=1&pageSize=20
+Roles: CUSTOMER, FACILITY_STAFF, FACILITY_MANAGER, BUSINESS_OPERATIONS_MANAGER
+```
+
+Return the standard paginated collection. Each item contains existing read-only fields discountId, customerId, name, percentage, status, effectiveFrom and nullable effectiveTo; timestamps use UTC ISO-8601. These are existing Discount fields, not a redemption/eligibility entity.
+
+Customer must match the path CustomerId to the authenticated Customer. Staff/Manager must have a current Facility assignment and the path Customer must have an existing Reservation or Contract in that Facility. This association is verified server-side, including requests that replace the path CustomerId. BOM retains system-wide management read. A successful catalogue read grants no Discount mutation or cross-Facility resource access.
+
+The catalogue preserves actual ACTIVE/INACTIVE/effective values; reading a row is not proof it is eligible for a new Contract. The existing handover rules authoritatively validate optional DiscountId, Customer ownership, status and effective period. Captured Discounts on existing Contracts retain DD-14 semantics even if now INACTIVE. First-month offline rent is never discounted. FE must not hardcode Discount IDs or invent price reductions.
+
+Example item (illustrative data, not seed):
+
+```json
+{
+  "discountId": "uuid",
+  "customerId": "uuid",
+  "name": "LOYALTY_10",
+  "percentage": 10.0,
+  "status": "ACTIVE",
+  "effectiveFrom": "2026-10-02T00:00:00Z",
+  "effectiveTo": null
+}
+```
+
 ### BOM-011 — Create Customer Discount
 
 Request:
@@ -3742,6 +3906,28 @@ Issued Invoice snapshots are never retrospectively rewritten.
 
 A Discount referenced by any Contract MUST NOT have `customerId`, `percentage`, `effectiveFrom`, or `effectiveTo` mutated in place. `INACTIVE` prevents new Contract selection but does not invalidate existing Contract usage.
 
+### BOM-013 — Operational / Management ExtraFeeType Catalogue
+
+```text
+GET /api/v1/business/extra-fee-types?page=1&pageSize=20
+Roles: FACILITY_STAFF, FACILITY_MANAGER, BUSINESS_OPERATIONS_MANAGER
+```
+
+Return the standard paginated collection using existing ExtraFeeType fields extraFeeTypeId, name, defaultAmount and status. ACTIVE Staff/Manager with a valid assigned Facility receive ACTIVE types only for authorized operational fee recording. BOM retains the full management catalogue. ExtraFeeType is a global master, not a newly introduced Facility-owned table; actual Inspection/fee commands remain restricted to the actor's Facility.
+
+defaultAmount is the configured decimal amount, not a FE-invented constant. An empty catalogue remains empty; the read does not seed missing rows, choose deployment currency or bypass the Phase 0 seed restriction. INS-005 still validates active type/Inspection scope and snapshots the actual amount under existing rules. BOM-014 remains BOM-only.
+
+Example item (illustrative data, not approved deployment seed):
+
+```json
+{
+  "extraFeeTypeId": "uuid",
+  "name": "KEY_REPLACEMENT",
+  "defaultAmount": 100000.00,
+  "status": "ACTIVE"
+}
+```
+
 ### BOM-014 — Update ExtraFeeType
 
 ```json
@@ -3771,6 +3957,8 @@ Example response:
   }
 }
 ```
+
+For REP-001, usageRate is CALC-REP-01: 30 / (20 + 30 + 2 + 1) = 0.5660 rounded to four decimal places in this example. Include INSPECTION and MAINTENANCE in the physical-unit denominator; if the scoped Facility has no Unit, usageRate is 0. This does not change capacity eligibility.
 
 ### REP-003 — Business Overview
 
@@ -4181,6 +4369,8 @@ For the first month, Customer receives offline-payment instructions and Staff ac
 
 Staff sees the server-owned Reservation.LockedRentalPrice and must acknowledge full receipt before submitting OPS-004. The authorized request itself is the acknowledgment; no separately persisted first-month-paid flag is required. UI checks do not replace server authorization and lifecycle validation.
 
+Staff loads Visit/Reservation context through OPS-001 -> VIS-004/RES-003. After OPS-004 succeeds, use its contractId -> CON-002; ContractDetail.reservationId -> RES-003 supplies the immutable first-month amount and handover Visit without adding financial/Visit attributes to Contract. Staff must not call Customer-only list/write endpoints or synthesize missing operational data.
+
 ## 14.11 Loading / Empty / Error States
 
 Every Release 1 data screen MUST handle:
@@ -4501,6 +4691,7 @@ These values MUST NOT appear in AuditLog old/new snapshots either.
 | Renewal | current EndMonth + extension invariant | no duplicate ContractExtension |
 | Confirm Actual Return | return state + Inspection invariant | no duplicate Inspection |
 | Finalize Return | unique DepositSettlement per Contract | one terminal transition |
+| Return Unit release | terminal Contract/settlement + locked Unit state | same finalization outcome; retry cannot retarget a released Unit |
 | Notification retry | PENDING/SENT terminal semantics | SENT is not sent again by the retry job |
 
 Retry handlers MUST distinguish:
@@ -4820,13 +5011,35 @@ FUNCTION ClaimInspection(inspectionId, staffId):
     REQUIRE affectedRows == 1
 ```
 
+### 17.11.1 Complete Inspection
+
+```text
+FUNCTION CompleteInspection(inspectionId, conditionNote):
+
+    BEGIN AUTHORITATIVE DB TRANSACTION
+        REQUIRE authenticated ACTIVE same-Facility Staff
+        load claimed IN_PROGRESS Inspection / related Contract / Unit
+        validate existing Inspection completion prerequisites
+        Inspection.ConditionNote = conditionNote
+        Inspection.Status = COMPLETED
+        Inspection.CompletedAt = nowUtc
+        // Unit remains INSPECTION; Contract remains ACTIVE.
+        // No storageUnitStatus / NextUnitStatus is stored here.
+    COMMIT
+```
+
 ## 17.12 Finalize Return
 
 ```text
-FUNCTION FinalizeReturn(contractId):
+FUNCTION FinalizeReturn(contractId, storageUnitStatus):
 
     BEGIN AUTHORITATIVE DB TRANSACTION
 
+        REQUIRE authenticated ACTIVE same-Facility Staff
+        validate storageUnitStatus is AVAILABLE or MAINTENANCE
+        load related Contract / Inspection / Unit with transaction locks
+        REQUIRE correct Contract/Inspection/Unit return linkage
+        REQUIRE Contract ACTIVE and Unit INSPECTION
         REQUIRE Inspection COMPLETED
         REQUIRE return not already finalized
         REQUIRE no DamageRecord remains PENDING
@@ -4848,6 +5061,8 @@ FUNCTION FinalizeReturn(contractId):
 
         create one DepositSettlement(FINALIZED)
         Contract.Status = terminalStatus
+        StorageUnit.Status = storageUnitStatus
+        // Settlement, terminal Contract and Unit release commit together.
 
     COMMIT
 ```
@@ -5152,9 +5367,9 @@ EF Core InMemory is not sufficient evidence for those behaviors.
 | `DBT-11` | Renewal and Reservation compete for last future capacity | no overbooking |
 | `DBT-12` | Existing Contract after new Policy activation | old captured Policy remains |
 | `DBT-13` | Early Return inside waive window with unpaid current Invoice | waive rule applied; no LateFee |
-| `DBT-14` | Normal Return with Late + Extra + approved Damage | settlement formula correct |
-| `DBT-15` | Early Return with deductions | RefundAmount = 0 |
-| `DBT-16` | Repeat FinalizeReturn | no duplicate settlement/state corruption |
+| `DBT-14` | Normal Return with Late + Extra + approved Damage | settlement formula correct; Inspection completion keeps Unit INSPECTION; finalization atomically completes Contract and releases Unit |
+| `DBT-15` | Early Return with deductions | RefundAmount = 0; termination/settlement/Unit release atomic; failed finalization leaves Unit INSPECTION |
+| `DBT-16` | Repeat FinalizeReturn | no duplicate settlement/state corruption; retry cannot change previously committed Unit target |
 | `DBT-17` | UPDATE/DELETE append-only history | rejected |
 | `DBT-18` | Notification send failure | remains PENDING |
 | `DBT-19` | External recovery with Inspection.VisitId null | allowed when valid |
@@ -5176,6 +5391,7 @@ CON-DMG-*  Concurrent Damage approval/rejection decision
 CON-PAY-*  Duplicate MoMo callback
 CON-INV-*  Duplicate invoice generation
 CON-RET-*  Duplicate return finalization
+CON-RET-*  Handover cannot reuse a Unit before return finalization commits
 ```
 
 ## 19.6 Authentication / Authorization Critical Scenarios
@@ -5191,6 +5407,19 @@ Invalid JWT
 Wrong role
 Wrong Facility
 Wrong Customer ownership
+Same-Facility Staff can read different Customers' Reservation/Contract/Visit details
+Cross-Facility Staff detail/work-item access denied, including modified URL IDs
+Customer remains unable to read another Customer's operational details
+Inactive Staff or changed Facility assignment cannot use stale JWT scope
+OPS-001 Visit IDs/type mapping and minimal Customer identification match authoritative data
+Reservation locked rent remains unchanged after UnitType price changes
+Successful OPS-004 Contract can be read through CON-002 without initial Invoice/Payment
+Same-Facility Manager lists/details and BOM system-wide operational reads are authorized
+Wrong-Facility Manager and cross-Customer catalogue/detail requests are denied
+Collection filtering/counting precedes pagination and never leaks other Facilities
+Staff/Manager Invoice/Payment GET access cannot initiate MoMo or manually mark PAID
+Customer/Staff/Manager Discount reads preserve ownership/Facility and immutable captured semantics
+Staff/Manager ExtraFeeType reads expose ACTIVE deployment rows only; write roles unchanged
 Staff cannot approve/reject Damage
 Wrong-Facility Manager cannot decide Damage
 Employee initial password not returned/logged
@@ -5292,17 +5521,17 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 | `CWP-10` | Storage Return Visit | Triển / Giang | VIS-002..006, CON-005 | BR-RET-01..02 | UT-RET, API-RET, E2E-F06 | Yes |
 | `CWP-11` | Fee & Return Tracking | Triển / Giang | CON-004..005, BIL-* | BR-LATE-*; BR-SET-* | UT/API/E2E-F06 | Yes |
 | `CWP-12` | Customer Support | Triển / Giang | SUP-001..004 | BR-SUP-01 | UT-SUP, API-SUP, E2E-F07 | Yes |
-| `FWP-01` | Daily Work List | Triển / Long | OPS-001 | Derived Visits/Inspections/Tickets | DAL/API/SEC | Yes |
-| `FWP-02` | Reservation Check-in | Triển / Khoa | OPS-002 | BR-VIS-* | UT/API/E2E-F02 | Yes |
-| `FWP-03` | Offline-receipt acknowledgment & Handover Processing | Triển / Khoa | OPS-004 | BR-HO-01..03; BR-BIL-06; CALC-FIRST-01 | DBT-06/24, CON-HO, API-HO, E2E-F02 | Yes |
+| `FWP-01` | Daily Work List | Triển / Long | OPS-001; VIS-004/RES-003/CON-002 navigation | Derived Visits/Inspections/Tickets; same-Facility minimal operational read | DAL/API/SEC | Yes |
+| `FWP-02` | Reservation Check-in | Triển / Khoa | OPS-001, RES-003, VIS-004, OPS-002 | BR-VIS-*; same-Facility read | UT/API/SEC/E2E-F02 | Yes |
+| `FWP-03` | Offline-receipt acknowledgment & Handover Processing | Triển / Khoa | RES-003, VIS-004, BOM-010, OPS-004, CON-002 | BR-HO-01..03; BR-BIL-06; CALC-FIRST-01; immutable rental read | DBT-06/24, CON-HO, API-HO, SEC, E2E-F02 | Yes |
 | `FWP-04` | Access Visit Processing | Triển / Khoa | OPS-002..003 | BR-VIS-* | UT/API/E2E-F03 | Yes |
 | `FWP-05` | Return Confirmation | Triển / Giang | OPS-002, OPS-005 | BR-RET-01..02,06 | DBT-20, CON-RET, API-RET, E2E-F06 | Yes |
-| `FWP-06` | Return Inspection | Triển / Giang | INS-001..003,006..007 | BR-RET-03; BR-DMG-01 | DBT-10, CON-INS, API-INS, E2E-F06 | Yes |
-| `FWP-07` | Return Fee Recording | Triển / Giang | INS-004..005, INS-008, INS-010 | BR-DMG-01..03; BR-EXT-01; BR-SET-* | DBT-14..16, DBT-21..23, API-INS, E2E-F06 | Yes |
+| `FWP-06` | Return Inspection | Triển / Giang | INS-001..003,006..007 | BR-RET-03/07; BR-DMG-01; Unit remains INSPECTION | DBT-10/14, CON-INS, API-INS, E2E-F06 | Yes |
+| `FWP-07` | Return Fee Recording & Atomic Unit Release | Triển / Giang | INS-004..005, INS-008, INS-010, BOM-013; BIL-001..002, PAY-003, CON-004..005 reads | BR-DMG-01..03; BR-EXT-01; BR-SET-*; BR-RET-07 | DBT-14..16, DBT-21..23, CON-RET, API-INS, SEC, E2E-F06 | Yes |
 | `FWP-08` | Support Request Processing | Triển / Giang | SUP-002..003,006 | BR-SUP-01 | UT/API/E2E-F07 | Yes |
-| `MWP-01` | Handover Unit Selection | Mẫn / Khoa | UNIT-001,003 + OPS-004 | BR-HO-01 | API/SEC/E2E-F02 | Yes |
+| `MWP-01` | Handover Unit Selection | Mẫn / Khoa | UNIT-001,003; RES-002..003, VIS-003..004, BOM-010 reads; Staff OPS-004 | BR-HO-01; same-Facility operational read; no Manager handover-command grant | API/SEC/E2E-F02 | Yes |
 | `MWP-02` | Physical Unit Management | Mẫn / Long | UNIT-001..005 | StorageUnit state rules | UT/DAL/API/SEC | Yes |
-| `MWP-03` | Facility Operations Monitoring | Mẫn / Long | UNIT-001, REP-001..002 | CALC-REP-* | DAL/API/SEC | Yes |
+| `MWP-03` | Facility Operations Monitoring | Mẫn / Long | UNIT-001, REP-001..002; RES-002..003, CON-001..002/004..005, VIS-003..004, BIL-001..002, PAY-003 | CALC-REP-*; same-Facility reads | DAL/API/SEC | Yes |
 | `MWP-04` | Return, Inspection & Damage Decision | Mẫn / Giang | INS-001..002, INS-009..010, REP-001 | BR-RET-*; BR-DMG-02..03 | API/SEC/CON-DMG/E2E-F06 | Yes |
 | `MWP-05` | Support Staff Assignment | Mẫn / Giang | SUP-002..005 | BR-SUP-01 | UT/API/SEC/E2E-F07 | Yes |
 | `MWP-06` | Facility Reporting | Mẫn / Giang | REP-001..002 | CALC-REP-* | DAL/API/ACC | Yes |
@@ -5311,7 +5540,7 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 | `BWP-03` | Policy Version Management | Mẫn / Long | BOM-008..009 | BR-POL-01..02 | DBT-12, CON-POL, API | Yes |
 | `BWP-04` | Discount Management | Mẫn / Long | BOM-010..012 | BR-DIS-01..04 | DBT-07, API | Yes |
 | `BWP-05` | Extra Fee Management | Mẫn / Giang | BOM-013..014 | BR-EXT-01 | API/REG | Yes |
-| `BWP-06` | Multi-Facility Monitoring | Mẫn / Giang | BOM-001, REP-003 | CALC-REP-* | DAL/API/SEC | Yes |
+| `BWP-06` | Multi-Facility Monitoring | Mẫn / Giang | BOM-001, REP-003; RES-002..003, CON-001..002/004..005, VIS-003..004, BIL-001..002, PAY-003 | CALC-REP-*; authorized system-wide reads | DAL/API/SEC | Yes |
 | `BWP-07` | Business Reporting & Export | Mẫn / Giang | REP-003..004 | CALC-REP-* | DAL/API/ACC | Yes |
 | `AWP-01` | User Account Monitoring | Mẫn / Long | ADM-001..002 | BR-ACC-* | API/SEC | Yes |
 | `AWP-02` | Customer Account Status Management | Mẫn / Long | ADM-003..004 | BR-ACC-02 | UT/API/DBT | Yes |
@@ -5331,7 +5560,7 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 | `SSP-09` | Monthly Billing Management | System / Giang | billing jobs | BR-BIL-* | DBT-08, CON-INV, JOB | Yes |
 | `SSP-10` | Overdue & Late Fee Calculation | System / Giang | CON-004 + jobs | BR-BIL-05; BR-LATE-* | UT/JOB/DBT | Yes |
 | `SSP-11` | Renewal Processing | System / Khoa | CON-003 | BR-REN-* | DBT-11, CON-REN | Yes |
-| `SSP-12` | Return Processing | System / Giang | VIS-002, OPS-005, INS-008 | BR-RET-* | DBT-13..16,20; CON-RET | Yes |
+| `SSP-12` | Return Processing | System / Giang | VIS-002, OPS-005, INS-007, INS-008 | BR-RET-* including finalization-only Unit release | DBT-13..16,20; CON-RET | Yes |
 | `SSP-13` | Inspection Claim Control | System / Giang | INS-003 | BR-RET-03 | DBT-10, CON-INS | Yes |
 | `SSP-14` | Deposit Settlement Calculation | System / Giang | INS-008 | BR-SET-*; CALC-SET-* | DBT-14..16 | Yes |
 | `SSP-15` | Reporting Calculation | System / Giang | REP-001..004 | CALC-REP-* | UT/DAL/API | Yes |
@@ -6118,7 +6347,7 @@ Future Work is not automatically Release 1 scope.
 
 # 25. Final Locked Design Summary
 
-V10 FINAL consolidates the following implementation baseline, including the owner-approved offline first-month revision; V9 decisions not superseded by that revision remain in force:
+V10 FINAL consolidates the following implementation baseline, including the owner-approved offline-first-month and operational-consistency revisions; V9 decisions not explicitly superseded by those revisions remain in force:
 1. Authority order is `SRS V10 FINAL > Data Dictionary V2.1 > Scope V8`.
 2. This SRS is the FRMS Release 1 implementation source of truth.
 3. Five roles are fixed: CUSTOMER, FACILITY_STAFF, FACILITY_MANAGER, BUSINESS_OPERATIONS_MANAGER, SYSTEM_ADMINISTRATOR.
@@ -6220,6 +6449,15 @@ V10 FINAL consolidates the following implementation baseline, including the owne
 99. External-provider implementations belong to `Frms.Infrastructure` and implement interfaces owned by Business.
 100. Release 1 has no separate Worker project. Application-scheduled execution runs in `Frms.Api/BackgroundJobs` and calls Business services; SQL Server Agent may call authoritative stored procedures directly.
 101. `Frms.ArchitectureTests` is required to enforce the locked dependency boundaries.
+102. RES-003, CON-002 and VIS-004 allow Customer own detail, Staff/Manager same-Facility detail and BOM system-wide detail; no corresponding Staff list permission is granted.
+103. RES-002, CON-001 and VIS-003 are Customer-own, Manager-Facility and BOM-system lists; all filtering/counting precedes pagination.
+104. OPS-001 Visit work items expose authoritative VisitId/EntityId and minimal Customer identification; non-Visit reference IDs are not interpreted as Visit IDs.
+105. ContractDetail already contains ReservationId; operational locked-price/RESERVATION Visit reads follow RES-003/VIS-004 without new Contract attributes or duplicate fields.
+106. BOM-010 supports own Customer and authorized same-Facility operational Discount reads; BOM-013 supports active operational ExtraFeeType reads. Catalogue mutation roles are unchanged.
+107. BIL-001/002, PAY-003 and CON-004/005 support authorized operational verification/monitoring, not employee payment initiation or manual PAID/SUCCESS mutation.
+108. INS-007 completes Inspection but keeps Unit INSPECTION. Required storageUnitStatus moves to INS-008, whose transaction atomically finalizes settlement/Contract and releases Unit AVAILABLE/MAINTENANCE.
+109. usageRate = IN_USE / all StorageUnits in authorized report scope, including INSPECTION/MAINTENANCE; zero denominator -> 0. Rental capacity remains a separate calculation.
+
 # 26. Whole-System Acceptance Criteria
 
 
@@ -6249,6 +6487,8 @@ FRMS Release 1 is accepted only when all applicable conditions below are true.
 [ ] Critical Stored Procedures transactional
 [ ] Jobs safely retryable
 [ ] Return finalization cannot ignore PENDING DamageRecord
+[ ] Complete Inspection leaves Unit INSPECTION and does not persist an intermediate target-status field
+[ ] Finalize Return atomically commits settlement, terminal Contract and Unit release; failure/retry cannot release or retarget Unit independently
 ```
 
 ## 26.3 Architecture Acceptance
@@ -6282,6 +6522,11 @@ FRMS Release 1 is accepted only when all applicable conditions below are true.
 [ ] Protected endpoints enforce server-side authorization
 [ ] Retired first-month MoMo route/payment reference are absent from current API/FE contracts
 [ ] OPS-004 follows the approved offline DD-13 model without initial Invoice/Payment
+[ ] Staff detail read RES-003/CON-002/VIS-004 and OPS-001 Visit navigation match the approved operational contract
+[ ] ContractDetail remains unchanged; locked rent and handover Visit are read through its ReservationId
+[ ] Manager/BOM operational reads and BOM-010/BOM-013 catalogue reads match the role/Facility contracts
+[ ] INS-007 has no storageUnitStatus; INS-008 requires AVAILABLE/MAINTENANCE and reports committed Unit state
+[ ] usageRate includes every scoped Unit and returns 0 for an empty denominator
 ```
 
 ## 26.5 Security Acceptance
@@ -6295,6 +6540,9 @@ FRMS Release 1 is accepted only when all applicable conditions below are true.
 [ ] RBAC enforced
 [ ] Facility scope enforced
 [ ] Customer ownership enforced
+[ ] Staff same-Facility operational detail and work-item reads pass positive/cross-Facility tests
+[ ] Operational read access does not grant Customer mutation or expose unrelated profiles
+[ ] Manager/BOM and financial/catalogue GET scopes pass role, Facility, ownership and pagination-leak tests
 [ ] Unknown identifier does not fabricate LoginHistory.UserAccountId
 [ ] PasswordHash/token/secret not exposed/logged
 ```
@@ -6377,11 +6625,11 @@ Return:
 RETURN Visit
 -> ActualReturnDate
 -> Unit INSPECTION
--> Inspection
--> Damage / ExtraFee / LateFee
--> DepositSettlement
--> Contract COMPLETED or TERMINATED
--> Unit AVAILABLE or MAINTENANCE
+-> claim Inspection / record fees and Damage
+-> Inspection COMPLETED (Unit stays INSPECTION)
+-> resolve any pending Manager Damage decisions
+-> INS-008(storageUnitStatus = AVAILABLE or MAINTENANCE)
+-> atomic DepositSettlement + Contract COMPLETED or TERMINATED + Unit AVAILABLE or MAINTENANCE
 ```
 
 # Appendix B — Glossary
