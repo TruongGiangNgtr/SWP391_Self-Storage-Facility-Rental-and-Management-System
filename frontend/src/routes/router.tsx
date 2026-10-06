@@ -3,6 +3,8 @@ import { RequireAuth } from '../auth/RequireAuth'
 import { RequireRole } from '../auth/RequireRole'
 import { RootLayout } from '../layouts/RootLayout'
 import { CustomerLoginPage } from '../pages/CustomerLoginPage'
+import { CustomerPortalPage } from '../pages/CustomerPortalPage'
+import { CustomerReservationCreatePage } from '../pages/CustomerReservationCreatePage'
 import { CustomerRegisterPage } from '../pages/CustomerRegisterPage'
 import { EmployeeLoginPage } from '../pages/EmployeeLoginPage'
 import { ForbiddenPage } from '../pages/ForbiddenPage'
@@ -22,9 +24,10 @@ export function AppRouter() {
 
         <Route element={<RequireAuth />}>
           <Route element={<RequireRole allowedRoles={['CUSTOMER']} />}>
+            <Route path="customer" element={<CustomerPortalPage />} />
             <Route
-              path="customer"
-              element={<PortalPlaceholderPage title="Customer Portal" />}
+              path="customer/reservations/new"
+              element={<CustomerReservationCreatePage />}
             />
           </Route>
 

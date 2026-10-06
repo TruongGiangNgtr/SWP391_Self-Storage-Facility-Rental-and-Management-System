@@ -12,6 +12,11 @@ const ERROR_MESSAGES: Record<string, string> = {
   VALIDATION_ERROR: 'Thông tin gửi lên chưa hợp lệ. Vui lòng kiểm tra lại.',
   UNAUTHORIZED: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.',
   FORBIDDEN: 'Tài khoản không có quyền thực hiện thao tác này.',
+  NOT_FOUND: 'Không tìm thấy dữ liệu được yêu cầu.',
+  FACILITY_INACTIVE: 'Địa điểm này hiện không nhận Reservation mới.',
+  INVALID_MONTH_RANGE: 'Khoảng tháng thuê không hợp lệ.',
+  CAPACITY_NOT_AVAILABLE:
+    'Loại kho vừa hết sức chứa trong khoảng tháng đã chọn. Danh sách đã được cập nhật.',
 }
 
 export function presentApiError(error: unknown): ApiErrorPresentation {
