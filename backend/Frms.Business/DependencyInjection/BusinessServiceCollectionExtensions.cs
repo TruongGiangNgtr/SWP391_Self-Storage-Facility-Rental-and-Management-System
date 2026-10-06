@@ -15,6 +15,7 @@ public static class BusinessServiceCollectionExtensions
         services.AddScoped<IStorageUnitService, StorageUnitService>();
         services.AddScoped<IFacilityService, FacilityService>();
         services.AddScoped<IUnitTypeService, UnitTypeService>();
+        services.AddScoped<IPolicyService, PolicyService>();
         return services;
     }
 }
