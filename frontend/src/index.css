@@ -158,7 +158,8 @@ a {
   font-weight: 650;
 }
 
-.form-field input {
+.form-field input,
+.form-field select {
   min-height: 44px;
   padding: 0.7rem 0.8rem;
   border: 1px solid #bdcad9;
@@ -167,9 +168,17 @@ a {
   background: #fff;
 }
 
-.form-field input:focus {
+.form-field input:focus,
+.form-field select:focus {
   border-color: #1c5d99;
   outline: 3px solid rgb(28 93 153 / 15%);
+}
+
+.form-field input:disabled,
+.form-field select:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  background: #eef2f7;
 }
 
 .form-error {
@@ -202,6 +211,108 @@ a {
   padding: 2rem;
 }
 
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: #1c5d99;
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reservation-page {
+  width: min(820px, 100%);
+  margin: 0 auto;
+}
+
+.reservation-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 2rem;
+}
+
+.form-field-wide {
+  grid-column: 1 / -1;
+}
+
+.selection-summary,
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.selection-summary {
+  padding: 1rem;
+  border: 1px solid #c9d8e8;
+  border-radius: 12px;
+  background: #f7faff;
+}
+
+.selection-summary div,
+.summary-grid div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.selection-summary span,
+.summary-grid dt {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.summary-grid {
+  margin: 2rem 0;
+}
+
+.summary-grid div {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e4eaf1;
+}
+
+.summary-grid dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.notice {
+  padding: 0.85rem 1rem;
+  border: 1px solid #b9d6f2;
+  border-radius: 10px;
+  color: #174b75;
+  background: #eff7ff;
+}
+
+.reservation-result {
+  width: min(820px, 100%);
+  margin: 0 auto;
+}
+
+.result-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.status-pending {
+  color: #7c4a03;
+  background: #fff2cc;
+}
+
+.reservation-result .notice {
+  margin-bottom: 1.25rem;
+}
+
 @media (max-width: 640px) {
   .app-header {
     align-items: flex-start;
@@ -210,5 +321,16 @@ a {
 
   .page-container {
     padding: 1.5rem 0;
+  }
+
+  .reservation-form,
+  .selection-summary,
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .result-heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
