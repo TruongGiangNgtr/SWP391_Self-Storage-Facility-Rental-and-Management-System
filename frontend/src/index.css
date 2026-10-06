@@ -39,14 +39,17 @@ a {
 }
 
 .app-header {
+  background: #ffffff;
+  color: #111827;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  min-height: 64px;
-  padding: 0.75rem clamp(1rem, 4vw, 4rem);
-  color: #fff;
-  background: #173a63;
+
+  min-height: 72px;
+  padding: 0 56px;
+
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .brand {
@@ -57,23 +60,20 @@ a {
 
 .app-nav {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
+  gap: 20px;
 }
 
-.app-nav a,
-.link-button {
-  border: 0;
-  color: inherit;
-  background: transparent;
-  cursor: pointer;
+.app-nav a {
+  color: #111827;
   text-decoration: none;
+
+  font-size: 14px;
+  font-weight: 500;
 }
 
-.app-nav a:hover,
-.link-button:hover {
-  text-decoration: underline;
+.app-nav a:hover {
+  color: #2563eb;
 }
 
 .page-container {
@@ -1928,4 +1928,129 @@ a {
 
   font-size: 13px;
   font-weight: 800;
+}
+.bo-sidebar {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+}
+
+.bo-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 18px;
+}
+
+.bo-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  min-height: 44px;
+  padding: 0 14px;
+
+  color: #5f6f89;
+  text-decoration: none;
+
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.bo-nav-link svg {
+  flex-shrink: 0;
+  color: #9aabc3;
+}
+
+.bo-nav-link:hover {
+  background: #f4f7fb;
+  color: #315fdd;
+}
+
+.bo-nav-link-active {
+  background: #edf3ff;
+  color: #3f6ff5;
+  font-weight: 600;
+}
+
+.bo-nav-link-active svg {
+  color: #3f6ff5;
+}
+.bo-sidebar-actions {
+  margin-top: 14px;
+  padding-top: 14px;
+
+  border-top: 1px solid #edf0f5;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bo-sidebar-action {
+  width: 100%;
+  min-height: 44px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 0 14px;
+
+  border: 0;
+  border-radius: 12px;
+
+  background: transparent;
+  color: #5f6f89;
+
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+  text-align: left;
+}
+
+.bo-sidebar-action svg {
+  flex-shrink: 0;
+  color: #9aabc3;
+}
+
+.bo-sidebar-action:hover {
+  background: #f4f7fb;
+}
+
+.bo-sidebar-signout {
+  margin-top: 10px;
+  padding-top: 14px;
+
+  min-height: 58px;
+
+  border-top: 1px solid #edf0f5;
+  border-radius: 0;
+
+  color: #e03131;
+}
+
+.bo-sidebar-signout svg {
+  color: #e03131;
+}
+.bo-sidebar-signout:hover {
+  background: transparent;
+  color: #c92a2a;
+}
+.app-brand-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.app-brand-link:hover {
+  text-decoration: none;
 }

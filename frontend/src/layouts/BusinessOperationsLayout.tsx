@@ -1,4 +1,14 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import {
+  AtSign,
+  Building2,
+  ChartNoAxesCombined,
+  LogOut,
+  Percent,
+  ReceiptText,
+  Settings,
+  Tag,
+} from 'lucide-react'
 import { useAuth } from '../auth/auth.context'
 import { BrandLogo } from '../components/BrandLogo'
 interface BusinessOperationsLayoutProps {
@@ -31,15 +41,7 @@ export function BusinessOperationsLayout({
           </span>
         </div>
 
-        {user && (
-          <button
-            type="button"
-            className="bo-logout-button"
-            onClick={logout}
-          >
-            Sign Out
-          </button>
-        )}
+        
       </div>
     </header>
 
@@ -49,12 +51,13 @@ export function BusinessOperationsLayout({
           <div className="bo-profile-avatar">BO</div>
 
           <strong>Business Operations</strong>
-          <span>Manager Portal</span>
+
+          <span className="bo-profile-email">
+            {user?.email ?? 'Preview mode'}
+          </span>
         </div>
 
         <nav className="bo-nav">
-          
-
           <NavLink
             to={`${basePath}/facilities`}
             className={({ isActive }) =>
@@ -63,60 +66,91 @@ export function BusinessOperationsLayout({
                 : 'bo-nav-link'
             }
           >
-            Facilities
+            <Building2 size={19} />
+            <span>Facilities</span>
           </NavLink>
 
           <NavLink
             to={`${basePath}/unit-types`}
-            className="bo-nav-link"
+            className={({ isActive }) =>
+              isActive
+                ? 'bo-nav-link bo-nav-link-active'
+                : 'bo-nav-link'
+            }
           >
-            Unit Types &amp; Pricing
+            <Tag size={19} />
+            <span>Unit Types &amp; Pricing</span>
           </NavLink>
 
           <NavLink
             to={`${basePath}/policies`}
-            className="bo-nav-link"
+            className={({ isActive }) =>
+              isActive
+                ? 'bo-nav-link bo-nav-link-active'
+                : 'bo-nav-link'
+            }
           >
-            Policies
+            <AtSign size={19} />
+            <span>Policies</span>
           </NavLink>
 
           <NavLink
             to={`${basePath}/discounts`}
-            className="bo-nav-link"
+            className={({ isActive }) =>
+              isActive
+                ? 'bo-nav-link bo-nav-link-active'
+                : 'bo-nav-link'
+            }
           >
-            Discounts
+            <Percent size={19} />
+            <span>Discounts</span>
           </NavLink>
 
           <NavLink
             to={`${basePath}/extra-fees`}
-            className="bo-nav-link"
+            className={({ isActive }) =>
+              isActive
+                ? 'bo-nav-link bo-nav-link-active'
+                : 'bo-nav-link'
+            }
           >
-            Extra Fees
+            <ReceiptText size={19} />
+            <span>Extra Fees</span>
           </NavLink>
 
           <NavLink
             to={`${basePath}/reports`}
-            className="bo-nav-link"
+            className={({ isActive }) =>
+              isActive
+                ? 'bo-nav-link bo-nav-link-active'
+                : 'bo-nav-link'
+            }
           >
-            Reports
+            <ChartNoAxesCombined size={19} />
+            <span>Reports</span>
           </NavLink>
         </nav>
 
-        <div className="bo-sidebar-bottom">
-          <span className="bo-nav-link">
-            Account Settings
-          </span>
+        <div className="bo-sidebar-actions">
+          <button
+            type="button"
+            className="bo-sidebar-action"
+          >
+            <Settings size={19} />
+            <span>Account Settings</span>
+          </button>
 
           <button
             type="button"
-            className="bo-signout-link"
+            className="bo-sidebar-action bo-sidebar-signout"
             onClick={() => {
               if (user) {
                 logout()
               }
             }}
           >
-            Sign Out
+            <LogOut size={19} />
+            <span>Sign Out</span>
           </button>
         </div>
       </aside>
