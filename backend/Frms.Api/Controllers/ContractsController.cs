@@ -3,11 +3,15 @@ using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Frms.Business.Models.Commands;
+using Frms.Business.Services.Interfaces;
 
 namespace Frms.Api.Controllers;
 
 [Route("api/v1/contracts")]
-public sealed class ContractsController : ScaffoldControllerBase
+public sealed class ContractsController(
+    IRenewalService renewalService)
+    : ScaffoldControllerBase
 {
     /// <summary>CON-001: List own Contracts scaffold.</summary>
     [Authorize(Roles = RoleNames.Customer)]
@@ -24,14 +28,37 @@ public sealed class ContractsController : ScaffoldControllerBase
         Guid contractId,
         CancellationToken cancellationToken) => ScaffoldNotImplemented("CON-002");
 
-    /// <summary>CON-003: Renew an active Contract scaffold.</summary>
+    /// <summary>CON-003: Renew an active Contract.</summary>
     [Authorize(Roles = RoleNames.Customer)]
     [HttpPost("{contractId:guid}/renew")]
-    [ProducesResponseType(typeof(ApiResponse<RenewContractResponse>), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> RenewContract(
+    [ProducesResponseType(
+        typeof(ApiResponse<RenewContractResponse>),
+        StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<RenewContractResponse>>> RenewContract(
         Guid contractId,
         [FromBody] RenewContractRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("CON-003");
+        CancellationToken cancellationToken)
+    {
+        var result =
+            await renewalService.RenewAsync(
+                new RenewContractCommand(
+                    contractId,
+                    request.NewEndMonth),
+                cancellationToken);
+
+        var response =
+            new RenewContractResponse(
+                result.ContractId,
+                result.OldEndMonth.ToString("yyyy-MM"),
+                result.NewEndMonth.ToString("yyyy-MM"),
+                result.AppliedMonthlyPrice,
+                result.Status);
+
+        return Ok(
+            new ApiResponse<RenewContractResponse>(
+                response,
+                "Contract renewed."));
+    }
 
     /// <summary>CON-004: Contract billing and overdue summary scaffold.</summary>
     [Authorize(Roles = RoleNames.Customer)]
