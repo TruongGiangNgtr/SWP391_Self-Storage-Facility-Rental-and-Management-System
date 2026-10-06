@@ -592,9 +592,6 @@ a {
 .bo-sidebar {
   display: flex;
   flex-direction: column;
-  padding: 20px 14px;
-  border-right: 1px solid #e3e8f0;
-  background: #ffffff;
 }
 
 .bo-profile-card {
@@ -625,8 +622,9 @@ a {
 }
 
 .bo-nav {
-  display: grid;
-  gap: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .bo-nav-link {
@@ -1983,39 +1981,22 @@ a {
   color: #3f6ff5;
 }
 .bo-sidebar-actions {
-  margin-top: 14px;
-  padding-top: 14px;
-
-  border-top: 1px solid #edf0f5;
-
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #e7eaf0;
 }
 
 .bo-sidebar-action {
   width: 100%;
-  min-height: 44px;
-
   display: flex;
   align-items: center;
   gap: 12px;
-
-  padding: 0 14px;
-
+  padding: 10px 12px;
   border: 0;
-  border-radius: 12px;
-
   background: transparent;
-  color: #5f6f89;
-
-  font: inherit;
-  font-size: 14px;
-  font-weight: 500;
-
   cursor: pointer;
-  text-align: left;
 }
+
 
 .bo-sidebar-action svg {
   flex-shrink: 0;
@@ -2027,17 +2008,11 @@ a {
 }
 
 .bo-sidebar-signout {
-  margin-top: 10px;
-  padding-top: 14px;
-
-  min-height: 58px;
-
-  border-top: 1px solid #edf0f5;
-  border-radius: 0;
-
-  color: #e03131;
+  color: #ef4444;
 }
-
+.bo-sidebar .bo-sidebar-actions {
+  margin-top: 18px !important;
+}
 .bo-sidebar-signout svg {
   color: #e03131;
 }
