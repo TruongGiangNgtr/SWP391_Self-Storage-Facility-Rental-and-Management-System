@@ -1,5 +1,6 @@
 using Frms.Business.Exceptions;
 using Frms.Business.Models.Commands;
+using Frms.Business.Models.Results;
 using Frms.Business.Services.Interfaces;
 using Frms.DataAccess.Repositories.Interfaces;
 
@@ -41,5 +42,42 @@ internal sealed class StorageUnitService(
             command.UnitCode.Trim(),
             command.LocationInfo?.Trim(),
             cancellationToken);
+    }
+
+    public async Task<(IReadOnlyList<StorageUnitResult> Items, int TotalCount)> ListByFacilityAsync(
+        Guid facilityId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default) {
+        await facilityAuthorizationService.EnsureSameFacilityAsync(
+            facilityId,
+            cancellationToken);
+
+        if (!await repository.FacilityExistsAsync(
+                facilityId,
+                cancellationToken)) {
+            throw new BusinessException(
+                "FACILITY_NOT_FOUND",
+                "Facility was not found.",
+                404);
+        }
+
+        var (items, totalCount) = await repository.ListByFacilityAsync(
+            facilityId,
+            page,
+            pageSize,
+            cancellationToken);
+
+        var results = items
+            .Select(x => new StorageUnitResult(
+                x.StorageUnitId,
+                x.FacilityId,
+                x.UnitTypeId,
+                x.UnitCode,
+                x.LocationInfo,
+                x.Status))
+            .ToList();
+
+        return (results, totalCount);
     }
 }

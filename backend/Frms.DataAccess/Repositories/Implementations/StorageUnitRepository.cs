@@ -46,4 +46,25 @@ internal sealed class StorageUnitRepository(
 
         return storageUnit.StorageUnitId;
     }
+
+    public async Task<(IReadOnlyList<StorageUnit> Items, int TotalCount)>
+    ListByFacilityAsync(
+        Guid facilityId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        var query = dbContext.StorageUnits
+            .AsNoTracking()
+            .Where(x => x.FacilityId == facilityId);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderBy(x => x.UnitCode)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
 }
