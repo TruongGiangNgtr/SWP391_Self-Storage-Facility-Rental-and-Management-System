@@ -111,4 +111,19 @@ internal sealed class StorageUnitRepository(
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task UpdateStatusAsync(
+        Guid storageUnitId,
+        string status,
+        CancellationToken cancellationToken)
+    {
+        var entity = await dbContext.StorageUnits
+            .SingleAsync(
+                x => x.StorageUnitId == storageUnitId,
+                cancellationToken);
+
+        entity.Status = status;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

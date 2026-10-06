@@ -8,3 +8,6 @@ public sealed record CreateStorageUnitCommand(
 public sealed record UpdateStorageUnitCommand(
     Guid UnitTypeId,
     string? LocationInfo);
+
+public sealed record ChangeStorageUnitStatusCommand(
+    string Status);

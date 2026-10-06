@@ -21,4 +21,9 @@ public interface IStorageUnitService {
         Guid storageUnitId,
         UpdateStorageUnitCommand command,
         CancellationToken cancellationToken = default);
+
+    Task ChangeStatusAsync(
+        Guid storageUnitId,
+        ChangeStorageUnitStatusCommand command,
+        CancellationToken cancellationToken = default);
 }

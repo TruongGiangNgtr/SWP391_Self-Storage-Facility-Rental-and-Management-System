@@ -35,4 +35,9 @@ public interface IStorageUnitRepository {
         Guid unitTypeId,
         string? locationInfo,
         CancellationToken cancellationToken);
+
+    Task UpdateStatusAsync(
+        Guid storageUnitId,
+        string status,
+        CancellationToken cancellationToken);
 }

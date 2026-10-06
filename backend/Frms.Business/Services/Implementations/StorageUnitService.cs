@@ -151,4 +151,61 @@ internal sealed class StorageUnitService(
             command.LocationInfo?.Trim(),
             cancellationToken);
     }
+
+    public async Task ChangeStatusAsync(
+        Guid storageUnitId,
+        ChangeStorageUnitStatusCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var record = await repository.GetByIdAsync(
+            storageUnitId,
+            cancellationToken);
+
+        if (record is null)
+        {
+            throw new BusinessException(
+                "STORAGE_UNIT_NOT_FOUND",
+                "Storage unit was not found.",
+                404);
+        }
+
+        await facilityAuthorizationService.EnsureSameFacilityAsync(
+            record.FacilityId,
+            cancellationToken);
+
+        var targetStatus = command.Status.Trim().ToUpperInvariant();
+
+        var isValidTransition =
+            (record.Status == "AVAILABLE" && targetStatus == "IN_USE") ||
+            (record.Status == "AVAILABLE" && targetStatus == "MAINTENANCE") ||
+            (record.Status == "IN_USE" && targetStatus == "INSPECTION") ||
+            (record.Status == "INSPECTION" && targetStatus == "AVAILABLE") ||
+            (record.Status == "INSPECTION" && targetStatus == "MAINTENANCE") ||
+            (record.Status == "MAINTENANCE" && targetStatus == "AVAILABLE");
+
+        if (!isValidTransition)
+        {
+            throw new BusinessException(
+                "STORAGE_UNIT_INVALID_TRANSITION",
+                $"Storage unit cannot transition from {record.Status} to {targetStatus}.",
+                409);
+        }
+
+        if (record.Status == "AVAILABLE"
+            && targetStatus == "MAINTENANCE"
+            && await repository.HasActiveContractAsync(
+                storageUnitId,
+                cancellationToken))
+        {
+            throw new BusinessException(
+                "STORAGE_UNIT_ACTIVE_CONTRACT",
+                "Storage unit with an active contract cannot enter maintenance.",
+                409);
+        }
+
+        await repository.UpdateStatusAsync(
+            storageUnitId,
+            targetStatus,
+            cancellationToken);
+    }
 }
