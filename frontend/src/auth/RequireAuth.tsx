@@ -1,6 +1,8 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from './auth.context'
 
+const EMPLOYEE_PORTAL_PREFIXES = ['/staff', '/manager', '/business', '/admin']
+
 export function RequireAuth() {
   const { isAuthenticated, isInitializing } = useAuth()
   const location = useLocation()
@@ -10,7 +12,13 @@ export function RequireAuth() {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth/customer/login" replace state={{ from: location }} />
+    const loginPath = EMPLOYEE_PORTAL_PREFIXES.some((prefix) =>
+      location.pathname.startsWith(prefix),
+    )
+      ? '/auth/employee/login'
+      : '/auth/customer/login'
+
+    return <Navigate to={loginPath} replace state={{ from: location }} />
   }
 
   return <Outlet />

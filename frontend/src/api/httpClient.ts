@@ -18,13 +18,18 @@ export class ApiRequestError extends Error {
 }
 
 function getApiBaseUrl(): string {
-  const value = import.meta.env.VITE_API_BASE_URL?.trim()
-
-  if (!value) {
-    throw new Error('VITE_API_BASE_URL is not configured.')
-  }
+  const value = import.meta.env.VITE_API_BASE_URL?.trim() || '/api/v1'
 
   return value.replace(/\/$/, '')
+}
+
+function isApiErrorPayload(value: unknown): value is ApiErrorPayload {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const candidate = value as Partial<ApiErrorPayload>
+  return typeof candidate.code === 'string' && typeof candidate.message === 'string'
 }
 
 async function parseResponse(response: Response): Promise<unknown> {
@@ -63,12 +68,14 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const body = await parseResponse(response)
 
   if (!response.ok) {
-    const payload = (body ?? {
-      code: 'UNEXPECTED_ERROR',
-      message: 'An unexpected error occurred.',
-    }) as ApiErrorPayload
+    const payload = isApiErrorPayload(body)
+      ? body
+      : {
+          code: 'UNEXPECTED_ERROR',
+          message: 'An unexpected error occurred.',
+        }
 
-    if (response.status === 401) {
+    if (response.status === 401 && token) {
       authToken.clear()
       window.dispatchEvent(new Event('frms:unauthorized'))
     }
