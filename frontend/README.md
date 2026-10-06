@@ -13,13 +13,11 @@ Frontend chính thức của FRMS, xây dựng bằng React + TypeScript + Vite 
 Chạy từ repository root:
 
 ```powershell
-corepack enable
 pnpm install --frozen-lockfile
-Set-Location frontend
-Copy-Item .env.example .env.development
+Copy-Item frontend/.env.example frontend/.env.local
 ```
 
-Không commit file `.env.development`.
+Không commit file `.env.local`.
 
 ## Chạy Development
 
@@ -31,8 +29,15 @@ pnpm --dir frontend dev
 
 Mặc định Vite mở tại `http://localhost:5173`.
 
-Trong development, Vite chuyển tiếp request bắt đầu bằng `/api` sang ASP.NET
-Core tại `http://localhost:5164`. Hãy chạy backend bằng HTTP profile tương ứng.
+Trong development, Vite chuyển tiếp request bắt đầu bằng `/api` tới
+`VITE_API_PROXY_TARGET`, giữ nguyên đường dẫn và dùng `changeOrigin: true`.
+Mẫu `.env.example` dùng HTTP profile `http://localhost:5164` được khai báo trong
+`backend/Frms.Api/Properties/launchSettings.json`.
+
+Nếu dùng HTTPS profile `https://localhost:7235`, chạy backend với
+`--launch-profile https` và cập nhật target trong `.env.local`. Chỉ bật
+`VITE_API_PROXY_ALLOW_SELF_SIGNED=true` cho development certificate tự ký trên
+localhost; các target khác giữ xác minh chứng chỉ. Khởi động lại Vite sau khi đổi môi trường.
 
 ## Kiểm tra chất lượng
 
@@ -58,11 +63,13 @@ không duy trì một bộ cấu hình hoặc dependency Playwright riêng.
 
 ```text
 VITE_API_BASE_URL=/api/v1
+VITE_API_PROXY_TARGET=<URL từ launchSettings.json>
+VITE_API_PROXY_ALLOW_SELF_SIGNED=false
 ```
 
 Giá trị tương đối này đi qua Vite proxy khi phát triển. Khi triển khai, hạ tầng
-cần định tuyến `/api` tới backend hoặc cung cấp URL API và CORS phù hợp cho môi
-trường đó.
+cần định tuyến cùng-origin `/api` tới backend. Production build và Vite preview
+không dùng development proxy. HTTP client mặc định dùng `/api/v1` khi chưa đặt biến base URL.
 
 Không đặt JWT signing key, database password, MoMo secret hoặc bất kỳ secret nào
 trong biến `VITE_*`, vì các biến này được đóng gói vào mã chạy trên trình duyệt.

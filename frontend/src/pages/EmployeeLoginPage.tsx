@@ -1,31 +1,46 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ApiRequestError } from '../api/httpClient'
+import {
+  presentApiError,
+  presentValidationError,
+  type ApiErrorPresentation,
+} from '../api/apiErrorPresentation'
 import { useAuth } from '../auth/auth.context'
+import { getPasswordValidationMessage } from '../auth/passwordValidation'
 import { getPortalPath } from '../auth/portalPath'
+import { ApiErrorAlert } from '../components/ApiErrorAlert'
 
 export function EmployeeLoginPage() {
   const navigate = useNavigate()
   const { loginEmployee } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ApiErrorPresentation | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
+
+    const normalizedEmail = email.trim()
+    if (!normalizedEmail) {
+      setError(presentValidationError('Vui lòng nhập email.'))
+      return
+    }
+
+    const passwordError = getPasswordValidationMessage(password)
+    if (passwordError) {
+      setError(presentValidationError(passwordError))
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      const user = await loginEmployee({ email, password })
+      const user = await loginEmployee({ email: normalizedEmail, password })
       navigate(getPortalPath(user.role), { replace: true })
     } catch (caughtError) {
-      setError(
-        caughtError instanceof ApiRequestError
-          ? caughtError.message
-          : 'Không thể kết nối đến máy chủ.',
-      )
+      setError(presentApiError(caughtError))
     } finally {
       setIsSubmitting(false)
     }
@@ -43,6 +58,7 @@ export function EmployeeLoginPage() {
               id="employeeEmail"
               type="email"
               autoComplete="email"
+              maxLength={254}
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
@@ -61,7 +77,7 @@ export function EmployeeLoginPage() {
               onChange={(event) => setPassword(event.target.value)}
             />
           </div>
-          {error && <div className="form-error">{error}</div>}
+          <ApiErrorAlert error={error} />
           <button className="button" type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>

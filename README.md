@@ -38,44 +38,71 @@ tests/e2e/playwright             Phase 0 browser-shell smoke test
 
 ## Local setup
 
+Run these commands from the repository root (`C:\SWP391`). The solution and .NET tool manifest are in `backend/Frms.slnx` and `backend/dotnet-tools.json`.
+
 Restore dependencies:
 
 ```powershell
-dotnet tool restore
-dotnet restore Frms.slnx --disable-parallel
+dotnet tool restore --tool-manifest backend/dotnet-tools.json
+dotnet restore backend/Frms.slnx --disable-parallel
 pnpm install --frozen-lockfile
 ```
 
-Keep database and JWT secrets outside source control. For a local session, set the following environment variables (replace placeholders):
+Create the backend's ignored local file from its placeholder example, then edit the file with your own SQL Server settings. Do not overwrite an existing local file without saving your settings:
 
 ```powershell
-$env:ConnectionStrings__Frms = '<your-local-sql-server-connection-string>'
-$env:Jwt__SigningKey = '<at-least-32-byte-secret>'
+Copy-Item .\backend\Frms.Api\.env.example .\backend\Frms.Api\.env
+# Edit backend/Frms.Api/.env locally; never commit it.
+# The existing JWT configuration also requires a session-only signing key.
+$env:Jwt__SigningKey = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+dotnet run --project .\backend\Frms.Api
 ```
 
-Apply the baseline migration and run the API:
+From `C:\SWP391\backend`, the corresponding run command is `dotnet run --project .\Frms.Api`. The default launch profile selects Development. SQL Server must be running for database access and the `/health` connectivity probe; starting the API does not apply migrations or modify the database.
+
+In Development only, DotNetEnv reads `.env` from the API's `ContentRootPath`, independently of the terminal directory. `ConnectionStrings__FrmsDb` maps to `ConnectionStrings:FrmsDb`. Existing Windows/PowerShell environment variables and command-line configuration override the file. The file is optional: other .NET configuration sources remain available when it is absent. Loading it does not change process environment variables. Production and Testing do not load this local file.
+
+The existing `ConnectionStrings:Frms` name remains supported and takes precedence over the `FrmsDb` alias; configure only one name locally. A missing connection string produces a clear configuration error. The runtime `.env` loader is not used by the EF design-time factory, and the API never runs migrations automatically.
+
+`backend/Frms.Api/.env.example` and `appsettings.Example.json` contain placeholders only. `.env` is ignored by Git and excluded from build/publish items. Do not commit local settings, passwords, database files, or signing keys. `TrustServerCertificate=True` in the example is for local development, not a production TLS policy.
+
+In a separate frontend terminal at the repository root:
 
 ```powershell
-dotnet ef database update --project backend/Frms.DataAccess --startup-project backend/Frms.Api
-dotnet run --project backend/Frms.Api
+Copy-Item frontend/.env.example frontend/.env.local
+pnpm dev
 ```
 
-The design-time factory uses `FRMS_CONNECTION_STRING`, then `ConnectionStrings__Frms`; an unset connection falls back to `Frms_DesignTime`. Always configure the intended database explicitly. After a Release build, generate a reviewable idempotent deployment script with:
+The default launch profile uses `http://localhost:5164`, which is the sample `VITE_API_PROXY_TARGET`. The HTTPS profile uses `https://localhost:7235` (and HTTP 5164). To use it, start the API with `dotnet run --project backend/Frms.Api --launch-profile https` and set the target in the ignored `.env.local` to that HTTPS URL. Only for its self-signed ASP.NET Core development certificate, set `VITE_API_PROXY_ALLOW_SELF_SIGNED=true`; other targets keep certificate verification enabled. Restart Vite after changing the environment.
 
-```powershell
-dotnet tool run dotnet-ef migrations script --project backend/Frms.DataAccess --startup-project backend/Frms.Api --no-build --configuration Release --idempotent
-```
+The shared frontend API client calls relative `/api/v1` paths, for example `fetch("/api/v1/auth/me")`. Vite forwards all `/api` requests without rewriting the path and with `changeOrigin: true`. Production builds and `vite preview` do not use the dev proxy: configure the production web server to route same-origin `/api` requests to the API. Never place a SQL connection string or any secret in a `VITE_*` variable.
+
+The existing anonymous `/health` endpoint now probes the configured SQL Server through `FrmsDbContext`: HTTP 200 when reachable, HTTP 503 when unavailable, with no connection details in its response. This checks connectivity, not migration/schema completeness.
 
 The implemented Phase 0 API endpoints are `/api/v1/auth/customer/login`, `/api/v1/auth/employee/login`, `/api/v1/auth/me`, `/health`, and `/openapi/v1.json`. The remaining documented routes are 501 contract scaffolds. Login needs an account provisioned through an approved operational path; the real SQL integration fixture provisions disposable test accounts only when `FRMS_TEST_CONNECTION_STRING` is supplied.
 
-## Verification
+## Backend local configuration verification
+
+These checks do not require a SQL test database and do not run migrations:
+
+```powershell
+dotnet restore backend/Frms.slnx --disable-parallel
+dotnet build backend/Frms.slnx --no-restore --configuration Release
+dotnet test backend/tests/Frms.UnitTests/Frms.UnitTests.csproj --configuration Release
+dotnet test backend/tests/Frms.ApiTests/Frms.ApiTests.csproj --configuration Release
+dotnet test backend/tests/Frms.ArchitectureTests/Frms.ArchitectureTests.csproj --configuration Release
+```
+
+The existing SQL integration suite is a separate Phase 0 release gate, not a prerequisite for configuring or starting the local API. It is unchanged by the dotenv setup.
+
+## Full Phase 0 verification (separate release gates)
 
 ```powershell
 $env:FRMS_TEST_CONNECTION_STRING = '<connection-string-for-a-disposable-Frms_Test_*-database>'
-dotnet tool restore
-dotnet restore Frms.slnx --disable-parallel
-dotnet build Frms.slnx --no-restore --configuration Release
-dotnet test Frms.slnx --no-restore --configuration Release
+dotnet tool restore --tool-manifest backend/dotnet-tools.json
+dotnet restore backend/Frms.slnx --disable-parallel
+dotnet build backend/Frms.slnx --no-restore --configuration Release
+dotnet test backend/Frms.slnx --no-restore --configuration Release
 pnpm install --frozen-lockfile
 pnpm build:frontend
 pnpm test:postman
@@ -84,7 +111,24 @@ pnpm test:e2e
 git diff --check origin/main...HEAD
 ```
 
-There is no CI workflow in this checkout; run these gates locally from the repository root. The SQL integration tests require an actual SQL Server connection to a disposable database named `Frms_Test_*` and permission to create/migrate it. Supply the connection through the environment using the instance's approved authentication/TLS settings; do not put connection strings or credentials in committed files. SQL tests fail when this input is absent rather than skipping the gate. Schema fixtures roll back; authentication fixtures remain in the disposable test database. When `pnpm` is not on PATH, use Corepack to enable the repository-pinned version.
+There is no CI workflow in this checkout; run these gates locally from the repository root. The SQL integration tests require an actual SQL Server connection to a disposable database named `Frms_Test_*` and permission to create/migrate it. Supply the connection through the environment using the instance's approved authentication/TLS settings; do not put connection strings or credentials in committed files. SQL tests fail when this input is absent rather than skipping the gate. Schema fixtures roll back; authentication fixtures remain in the disposable test database.
+
+If `pnpm` is not on PATH, create Corepack shims only in a temporary directory and update the current terminal's PATH; Corepack uses the version pinned in `package.json`:
+
+```powershell
+$pnpmShimDir = Join-Path $env:TEMP 'frms-corepack-shims'
+New-Item -ItemType Directory -Path $pnpmShimDir -Force | Out-Null
+corepack enable --install-directory $pnpmShimDir
+$env:PATH = $pnpmShimDir + [IO.Path]::PathSeparator + $env:PATH
+```
+
+After building the frontend, run the configuration regression checks (Node.js 24, as used for validation):
+
+```powershell
+node --test backend/tests/frontend-configuration.test.mjs
+```
+
+These check relative API calls, the dev proxy and local certificate opt-in, actual path forwarding, and exclusion of backend configuration/local data files from the bundle and tracked configuration.
 
 After the Release build, start a temporary API in another terminal before `pnpm test:postman`. Provide the same disposable test connection in that terminal and generate a session-only signing key:
 

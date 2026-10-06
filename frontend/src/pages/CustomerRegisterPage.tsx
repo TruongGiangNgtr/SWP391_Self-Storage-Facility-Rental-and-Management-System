@@ -1,11 +1,15 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import {
+  presentApiError,
+  type ApiErrorPresentation,
+} from '../api/apiErrorPresentation'
 import { authApi } from '../api/authApi'
-import { ApiRequestError } from '../api/httpClient'
+import { ApiErrorAlert } from '../components/ApiErrorAlert'
 
 export function CustomerRegisterPage() {
   const navigate = useNavigate()
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ApiErrorPresentation | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -25,11 +29,7 @@ export function CustomerRegisterPage() {
       })
       navigate('/auth/customer/login', { replace: true })
     } catch (caughtError) {
-      setError(
-        caughtError instanceof ApiRequestError
-          ? caughtError.message
-          : 'Không thể kết nối đến máy chủ.',
-      )
+      setError(presentApiError(caughtError))
     } finally {
       setIsSubmitting(false)
     }
@@ -77,7 +77,7 @@ export function CustomerRegisterPage() {
             <label htmlFor="cccd">CCCD</label>
             <input id="cccd" name="cccd" />
           </div>
-          {error && <div className="form-error">{error}</div>}
+          <ApiErrorAlert error={error} />
           <button className="button" type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Đang đăng ký...' : 'Đăng ký'}
           </button>

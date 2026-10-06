@@ -11,7 +11,10 @@ test-results/
 *.user
 *.csproj.user
 *.tsbuildinfo
+/backend/Frms.Api/.env
 .env
 .env.*
 !.env.example
+
+appsettings.*.local.json
 *.bat

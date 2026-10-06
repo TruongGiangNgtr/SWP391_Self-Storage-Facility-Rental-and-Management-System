@@ -180,6 +180,20 @@ a {
   background: #fff1f1;
 }
 
+.form-error p {
+  margin: 0;
+}
+
+.form-error ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.form-error small {
+  display: block;
+  margin-top: 0.5rem;
+}
+
 .muted {
   color: #64748b;
 }
