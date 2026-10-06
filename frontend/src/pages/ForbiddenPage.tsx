@@ -4,10 +4,10 @@ export function ForbiddenPage() {
   return (
     <main className="page-container">
       <section className="panel">
-        <h1>403 — Không có quyền truy cập</h1>
-        <p>Tài khoản hiện tại không được phép mở khu vực này.</p>
+        <h1>403 — Access Denied</h1>
+        <p>Your account does not have access to this area.</p>
         <Link className="button" to="/">
-          Về trang chủ
+          Back to Home
         </Link>
       </section>
     </main>

@@ -4,9 +4,9 @@ export function NotFoundPage() {
   return (
     <main className="page-container">
       <section className="panel">
-        <h1>404 — Không tìm thấy trang</h1>
+        <h1>404 — Page Not Found</h1>
         <Link className="button" to="/">
-          Về trang chủ
+          Back to Home
         </Link>
       </section>
     </main>
