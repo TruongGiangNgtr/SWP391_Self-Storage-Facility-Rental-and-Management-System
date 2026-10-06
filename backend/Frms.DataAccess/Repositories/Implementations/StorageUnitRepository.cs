@@ -26,6 +26,17 @@ internal sealed class StorageUnitRepository(
                 x => x.UnitTypeId == unitTypeId,
                 cancellationToken);
 
+    public Task<bool> UnitCodeExistsAsync(
+        Guid facilityId,
+        string unitCode,
+        CancellationToken cancellationToken) =>
+        dbContext.StorageUnits
+            .AsNoTracking()
+            .AnyAsync(
+                x => x.FacilityId == facilityId
+                     && x.UnitCode == unitCode,
+                cancellationToken);
+
     public async Task<Guid> CreateAsync(
         Guid facilityId,
         Guid unitTypeId,
@@ -48,66 +59,58 @@ internal sealed class StorageUnitRepository(
         return storageUnit.StorageUnitId;
     }
 
-    public async Task<IReadOnlyList<StorageUnitRecord>> ListByFacilityAsync(
-        Guid facilityId,
-        CancellationToken cancellationToken)
-    {
-        return await dbContext.StorageUnits
+    public async Task<(IReadOnlyList<StorageUnit> Items, int TotalCount)> ListByFacilityAsync(
+            Guid facilityId,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken) {
+        var query = dbContext.StorageUnits
             .AsNoTracking()
-            .Where(x => x.FacilityId == facilityId)
+            .Where(x => x.FacilityId == facilityId);
+
+        var totalCount =
+            await query.CountAsync(cancellationToken);
+
+        var items = await query
             .OrderBy(x => x.UnitCode)
-            .Select(x => new StorageUnitRecord(
-                x.StorageUnitId,
-                x.FacilityId,
-                x.UnitTypeId,
-                x.UnitCode,
-                x.LocationInfo,
-                x.Status))
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
     }
 
-    public async Task<StorageUnitRecord?> GetByIdAsync(
+    public Task<StorageUnit?> FindByIdAsync(
         Guid storageUnitId,
-        CancellationToken cancellationToken)
-    {
-        return await dbContext.StorageUnits
+        CancellationToken cancellationToken) =>
+        dbContext.StorageUnits
             .AsNoTracking()
-            .Where(x => x.StorageUnitId == storageUnitId)
-            .Select(x => new StorageUnitRecord(
-                x.StorageUnitId,
-                x.FacilityId,
-                x.UnitTypeId,
-                x.UnitCode,
-                x.LocationInfo,
-                x.Status))
-            .SingleOrDefaultAsync(cancellationToken);
-    }
+            .SingleOrDefaultAsync(
+                x => x.StorageUnitId == storageUnitId,
+                cancellationToken);
 
     public Task<bool> HasActiveContractAsync(
         Guid storageUnitId,
-        CancellationToken cancellationToken)
-    {
-        return dbContext.Contracts
+        CancellationToken cancellationToken) =>
+        dbContext.Contracts
             .AsNoTracking()
             .AnyAsync(
                 x => x.StorageUnitId == storageUnitId
-                    && x.Status == "ACTIVE",
+                     && x.Status == "ACTIVE",
                 cancellationToken);
-    }
 
     public async Task UpdateAsync(
         Guid storageUnitId,
         Guid unitTypeId,
         string? locationInfo,
-        CancellationToken cancellationToken)
-    {
-        var entity = await dbContext.StorageUnits
+        CancellationToken cancellationToken) {
+        var storageUnit = await dbContext.StorageUnits
             .SingleAsync(
                 x => x.StorageUnitId == storageUnitId,
                 cancellationToken);
 
-        entity.UnitTypeId = unitTypeId;
-        entity.LocationInfo = locationInfo;
+        storageUnit.UnitTypeId = unitTypeId;
+        storageUnit.LocationInfo = locationInfo;
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -115,14 +118,13 @@ internal sealed class StorageUnitRepository(
     public async Task UpdateStatusAsync(
         Guid storageUnitId,
         string status,
-        CancellationToken cancellationToken)
-    {
-        var entity = await dbContext.StorageUnits
+        CancellationToken cancellationToken) {
+        var storageUnit = await dbContext.StorageUnits
             .SingleAsync(
                 x => x.StorageUnitId == storageUnitId,
                 cancellationToken);
 
-        entity.Status = status;
+        storageUnit.Status = status;
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
