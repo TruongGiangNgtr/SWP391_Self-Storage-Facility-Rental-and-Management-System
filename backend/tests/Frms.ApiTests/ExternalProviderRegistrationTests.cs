@@ -30,4 +30,23 @@ public sealed class ExternalProviderRegistrationTests
             });
         }
     }
+
+    [Test]
+    public async Task UnconfiguredPaymentGateway_CallbackFailsWithStableErrorCode()
+    {
+        await using var factory = new FrmsWebApplicationFactory();
+        using var scope = factory.Services.CreateScope();
+        var paymentGateway = scope.ServiceProvider.GetRequiredService<IPaymentGateway>();
+
+        var exception = Assert.ThrowsAsync<BusinessException>(async () =>
+            await paymentGateway.VerifyAndNormalizeCallbackAsync(
+                new PaymentGatewayCallbackRequest("{}"),
+                default));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(exception!.Code, Is.EqualTo("EXTERNAL_PROVIDER_NOT_CONFIGURED"));
+            Assert.That(exception.SuggestedStatusCode, Is.EqualTo(503));
+        });
+    }
 }

@@ -34,8 +34,6 @@ public sealed record CompleteHandoverRequest
 
     public required Guid StorageUnitId { get; init; }
 
-    public required Guid FirstMonthPaymentId { get; init; }
-
     public Guid? DiscountId { get; init; }
 }
 

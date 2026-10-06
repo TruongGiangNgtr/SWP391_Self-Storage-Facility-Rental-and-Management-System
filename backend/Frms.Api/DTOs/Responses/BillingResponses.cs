@@ -17,7 +17,7 @@ public sealed record InvoiceDetailResponse(
 /// <summary>Represents the canonical PaymentDetail schema.</summary>
 public sealed record PaymentDetailResponse(
     Guid PaymentId,
-    Guid? InvoiceId,
+    Guid InvoiceId,
     decimal Amount,
     string PaymentMethod,
     string? TransactionCode,
@@ -31,14 +31,5 @@ public sealed record InvoiceMomoPaymentResponse(
     Guid InvoiceId,
     decimal Amount,
     string PaymentMethod,
-    string Status,
-    string PaymentUrl);
-
-/// <summary>Represents a pending first-month pre-handover MoMo payment.</summary>
-public sealed record FirstMonthMomoPaymentResponse(
-    Guid PaymentId,
-    Guid? InvoiceId,
-    Guid ReservationId,
-    decimal Amount,
     string Status,
     string PaymentUrl);

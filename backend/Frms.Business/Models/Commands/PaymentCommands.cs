@@ -1,8 +1,8 @@
 namespace Frms.Business.Models.Commands;
 
 /// <summary>
-/// Starts a payment attempt (PAY-001 / PAY-002). The amount is never client-supplied;
-/// it is derived server-side from the Invoice or the Reservation.
+/// PAY-001: starts a Payment attempt for an existing Invoice. The amount is
+/// server-authoritative and is never supplied by the client.
 /// </summary>
 public sealed record StartPaymentCommand(
     string ReturnUrl);

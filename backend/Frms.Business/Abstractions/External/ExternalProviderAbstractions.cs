@@ -17,6 +17,14 @@ public interface IPaymentGateway
     Task<PaymentGatewaySession> CreatePaymentAsync(
         PaymentGatewayRequest request,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Verifies a raw provider callback and returns only authenticated,
+    /// provider-neutral payment data for PAY-004 processing.
+    /// </summary>
+    Task<PaymentGatewayCallbackResult> VerifyAndNormalizeCallbackAsync(
+        PaymentGatewayCallbackRequest request,
+        CancellationToken cancellationToken);
 }
 
 /// <summary>Configuration boundary for the optional, non-authoritative AI recommendation provider.</summary>

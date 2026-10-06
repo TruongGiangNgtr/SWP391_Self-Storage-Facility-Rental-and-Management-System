@@ -35,15 +35,6 @@ public sealed class BillingController : ScaffoldControllerBase
         [FromBody] StartInvoiceMomoPaymentRequest request,
         CancellationToken cancellationToken) => ScaffoldNotImplemented("PAY-001");
 
-    /// <summary>PAY-002: Start first-month pre-handover MoMo payment scaffold.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
-    [HttpPost("reservations/{reservationId:guid}/first-month-payments/momo")]
-    [ProducesResponseType(typeof(ApiResponse<FirstMonthMomoPaymentResponse>), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> StartFirstMonthMomoPayment(
-        Guid reservationId,
-        [FromBody] StartFirstMonthMomoPaymentRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("PAY-002");
-
     /// <summary>PAY-003: Get own Payment status scaffold.</summary>
     [Authorize(Roles = RoleNames.Customer)]
     [HttpGet("payments/{paymentId:guid}")]

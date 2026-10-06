@@ -3,21 +3,11 @@ using Frms.Business.Models.Results;
 
 namespace Frms.Business.Services.Interfaces;
 
-/// <summary>Business contract for MoMo Sandbox payment processing (EPS-01, PAY-001..004).</summary>
+/// <summary>Business contract for MoMo Sandbox payment processing (EPS-01, PAY-001, PAY-003 and PAY-004).</summary>
 public interface IPaymentService {
     /// <summary>PAY-001: starts a payment attempt for an existing Deposit/Rental Fee Invoice.</summary>
     Task<InvoicePaymentStartResult> StartInvoicePaymentAsync(
         Guid invoiceId,
-        StartPaymentCommand command,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// PAY-002: starts the first-month pre-handover payment for a Reservation.
-    /// Amount = Reservation.LockedRentalPrice, no Contract Discount, and Payment.InvoiceId is null
-    /// until Complete Handover links the first Rental Fee Invoice.
-    /// </summary>
-    Task<FirstMonthPaymentStartResult> StartFirstMonthPaymentAsync(
-        Guid reservationId,
         StartPaymentCommand command,
         CancellationToken cancellationToken = default);
 
