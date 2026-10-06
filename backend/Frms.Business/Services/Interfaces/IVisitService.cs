@@ -26,4 +26,9 @@ public interface IVisitService
     Task<Visit> CheckInAsync(
         Guid visitId,
         CancellationToken cancellationToken = default);
+
+    Task<Visit> CreateAccessAsync(
+        Guid contractId,
+        DateOnly visitDate,
+        CancellationToken cancellationToken = default);
 }

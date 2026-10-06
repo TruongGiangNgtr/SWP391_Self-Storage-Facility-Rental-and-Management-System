@@ -59,4 +59,23 @@ public interface IVisitRepository
         Guid visitId,
         Guid employeeId,
         CancellationToken cancellationToken);
+
+    Task<Contract?> GetOwnedContractAsync(
+        Guid customerId,
+        Guid contractId,
+        CancellationToken cancellationToken);
+
+    Task<Contract?> GetOwnedContractForVisitAsync(
+        Guid customerId,
+        Guid visitId,
+        CancellationToken cancellationToken);
+
+    Task<bool> HasPendingReturnVisitAsync(
+        Guid contractId,
+        CancellationToken cancellationToken);
+
+    Task<Visit> CreateAccessAsync(
+        Guid contractId,
+        DateOnly visitDate,
+        CancellationToken cancellationToken);
 }
