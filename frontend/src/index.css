@@ -2054,3 +2054,60 @@ a {
 .app-brand-link:hover {
   text-decoration: none;
 }
+/* =====================================
+   Policy Version Management (BWP-03)
+   Reuses Business Operations / Facility visual system.
+   ===================================== */
+
+.policy-table {
+  min-width: 1040px;
+}
+
+.policy-table td:first-child .facility-name-cell span {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.policy-modal {
+  width: min(720px, 100%);
+}
+
+.policy-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.policy-form-grid .facility-form-field:last-child {
+  grid-column: 1 / -1;
+}
+
+.policy-submit-error {
+  padding: 10px 12px;
+  border: 1px solid #f2c4c4;
+  border-radius: 8px;
+  color: #b93636;
+  background: #fff5f5;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.policy-detail-modal {
+  width: min(680px, 100%);
+}
+
+@media (max-width: 620px) {
+  .policy-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .policy-form-grid .facility-form-field:last-child {
+    grid-column: auto;
+  }
+}
+
+.policy-detail-modal .facility-detail-row > span {
+  background: transparent;
+}
