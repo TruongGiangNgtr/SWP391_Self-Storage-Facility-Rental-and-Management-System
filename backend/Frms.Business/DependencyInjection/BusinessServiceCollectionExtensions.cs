@@ -20,6 +20,7 @@ public static class BusinessServiceCollectionExtensions
         services.AddScoped<IReservationExpirationService,ReservationExpirationService>();
         services.AddScoped<IHandoverService, HandoverService>();
         services.AddScoped<IRenewalService, RenewalService>();
+        services.AddScoped<IContractService, ContractService>();
         return services;
     }
 }
