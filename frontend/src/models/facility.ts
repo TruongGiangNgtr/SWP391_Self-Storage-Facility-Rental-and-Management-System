@@ -17,3 +17,9 @@ export interface CreateFacilityRequest {
   contactInfo?: string | null
   description?: string | null
 }
+export interface UpdateFacilityRequest {
+  name: string
+  address: string
+  contactInfo?: string | null
+  description?: string | null
+}

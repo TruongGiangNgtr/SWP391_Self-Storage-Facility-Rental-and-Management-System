@@ -6,11 +6,13 @@ import {
 } from 'react'
 import { businessApi } from '../../../src/api/businessApi'
 import { ApiRequestError } from '../../../src/api/httpClient'
+
 import type {
   Facility,
   FacilityStatus,
 } from '../../../src/models/facility'
-import { mockFacilities } from '../facility-management/data/facilityMock'
+
+
 type FacilityStatusAction =
   | 'ACTIVATE'
   | 'DEACTIVATE'
@@ -69,11 +71,7 @@ export function FacilityManagementPage() {
       }
 
       if (error instanceof ApiRequestError) {
-        if (error.status === 501) {
-          setFacilities(mockFacilities)
-          setPageError(null)
-          return
-        }
+        
 
         if (error.status === 401) {
           setFacilities([])
@@ -236,7 +234,7 @@ const [editErrors, setEditErrors] =
       }))
     }
   }
-  function handleEditFacility(
+async function handleEditFacility(
     event: SyntheticEvent<HTMLFormElement>,
   ) {
     event.preventDefault()
@@ -265,25 +263,39 @@ const [editErrors, setEditErrors] =
       return
     }
 
-    setFacilities((current) =>
-      current.map((facility) =>
-        facility.facilityId ===
-        editingFacility.facilityId
-          ? {
-              ...facility,
-              name,
-              address,
-              contactInfo:
-                editForm.contactInfo.trim() || null,
-              description:
-                editForm.description.trim() || null,
-            }
-          : facility,
-      ),
-    )
+    try {
+      const response =
+        await businessApi.updateFacility(
+          editingFacility.facilityId,
+          {
+            name,
+            address,
+            contactInfo:
+              editForm.contactInfo.trim() || null,
+            description:
+              editForm.description.trim() || null,
+          },
+        )
 
-    setEditingFacility(null)
-    setEditErrors({})
+      setFacilities((current) =>
+        current.map((facility) =>
+          facility.facilityId ===
+          editingFacility.facilityId
+            ? response.data
+            : facility,
+        ),
+      )
+
+      setEditingFacility(null)
+      setEditErrors({})
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        window.alert(error.message)
+        return
+      }
+
+      window.alert('Unable to update facility.')
+    }
   }
   function closeEditModal() {
     setEditingFacility(null)
@@ -304,29 +316,45 @@ const [editErrors, setEditErrors] =
     setStatusActionFacility(null)
     setStatusAction(null)
   }
-  function confirmStatusChange() {
+  async function confirmStatusChange() {
     if (!statusActionFacility || !statusAction) {
       return
     }
 
-    const nextStatus: FacilityStatus =
-      statusAction === 'ACTIVATE'
-        ? 'ACTIVE'
-        : 'INACTIVE'
+    try {
+      const response =
+        statusAction === 'ACTIVATE'
+          ? await businessApi.activateFacility(
+              statusActionFacility.facilityId,
+            )
+          : await businessApi.deactivateFacility(
+              statusActionFacility.facilityId,
+            )
 
-    setFacilities((current) =>
-      current.map((facility) =>
-        facility.facilityId ===
-        statusActionFacility.facilityId
-          ? {
-              ...facility,
-              status: nextStatus,
-            }
-          : facility,
-      ),
-    )
+      setFacilities((current) =>
+        current.map((facility) =>
+          facility.facilityId ===
+          statusActionFacility.facilityId
+            ? response.data
+            : facility,
+        ),
+      )
 
-    closeStatusConfirmation()
+      closeStatusConfirmation()
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        window.alert(error.message)
+        return
+      }
+
+      window.alert(
+        `Unable to ${
+          statusAction === 'ACTIVATE'
+            ? 'activate'
+            : 'deactivate'
+        } facility.`,
+      )
+    }
   }
   const firstVisibleItem =
     filteredFacilities.length === 0
@@ -365,7 +393,7 @@ const [editErrors, setEditErrors] =
                 }))
             }
             }
-        function handleCreateFacility(
+        async function handleCreateFacility(
             event: SyntheticEvent<HTMLFormElement>,
             ) {
             event.preventDefault()
@@ -390,28 +418,40 @@ const [editErrors, setEditErrors] =
                 return
             }
 
-            const newFacility: Facility = {
-                facilityId: `facility-${Date.now()}`,
-                name,
-                address,
-                contactInfo:
-                createForm.contactInfo.trim() || null,
-                description:
-                createForm.description.trim() || null,
-                status: 'INACTIVE',
+            try {
+              const response =
+                await businessApi.createFacility({
+                  name,
+                  address,
+                  contactInfo:
+                    createForm.contactInfo.trim() || null,
+                  description:
+                    createForm.description.trim() || null,
+                })
+                
+
+              setFacilities((current) => [
+                response.data,
+                ...current,
+              ])
+
+              setSearchTerm('')
+              setStatusFilter('ALL')
+              setCurrentPage(1)
+
+              setCreateForm(emptyCreateFacilityForm)
+              setCreateErrors({})
+              setIsCreateOpen(false)
+            } catch (error) {
+              if (error instanceof ApiRequestError) {
+                window.alert(error.message)
+                return
+              }
+
+              window.alert('Unable to create facility.')
             }
 
-            setFacilities((current) => [
-                newFacility,
-                ...current,
-            ])
-
-            setSearchTerm('')
-            setStatusFilter('ALL')
-
-            setCreateForm(emptyCreateFacilityForm)
-            setCreateErrors({})
-            setIsCreateOpen(false)
+            
             }
 
   return (

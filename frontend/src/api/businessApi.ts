@@ -7,6 +7,7 @@ import { httpClient } from './httpClient'
 import type {
   CreateFacilityRequest,
   Facility,
+  UpdateFacilityRequest,
 } from '../models/facility'
 
 export const businessApi = {
@@ -27,6 +28,15 @@ export const businessApi = {
       request,
     )
   },
+  updateFacility(
+  facilityId: string,
+  request: UpdateFacilityRequest,
+): Promise<ApiResponse<Facility>> {
+  return httpClient.patch(
+    `/business/facilities/${facilityId}`,
+    request,
+  )
+},
 
   activateFacility(
     facilityId: string,

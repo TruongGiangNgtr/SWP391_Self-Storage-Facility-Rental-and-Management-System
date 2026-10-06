@@ -15,28 +15,7 @@ import { FacilityManagementPage } from '../features/facility-management/Facility
 export function AppRouter() {
   return (
     <Routes>
-      {/* TEMPORARY DEVELOPMENT ROUTE */}
-      <Route
-        path="dev/business"
-        element={
-          <BusinessOperationsLayout basePath="/dev/business" />
-        }
-      >
-        <Route
-          index
-          element={
-            <div className="facility-page">
-              <h1>Business Operations Overview</h1>
-            </div>
-          }
-        />
-
-        <Route
-          path="facilities"
-          element={<FacilityManagementPage />}
-        />
-      </Route>
-
+      
       {/* NORMAL APPLICATION */}
       <Route element={<RootLayout />}>
         <Route index element={<HomePage />} />
