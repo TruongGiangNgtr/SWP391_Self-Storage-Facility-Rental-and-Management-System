@@ -37,4 +37,48 @@ internal sealed class UnitTypeRepository(
         CancellationToken cancellationToken = default) {
         await dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<(
+    IReadOnlyList<UnitType> Items,
+    int TotalItems,
+    string? FacilityStatus)> GetFacilityPagedAsync(
+        Guid facilityId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default) {
+        var facilityStatus = await dbContext.Facilities
+            .AsNoTracking()
+            .Where(x => x.FacilityId == facilityId)
+            .Select(x => x.Status)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (facilityStatus is null) {
+            return (
+                Array.Empty<UnitType>(),
+                0,
+                null);
+        }
+
+        var query = dbContext.UnitTypes
+            .AsNoTracking()
+            .Where(unitType =>
+                dbContext.StorageUnits.Any(storageUnit =>
+                    storageUnit.FacilityId == facilityId &&
+                    storageUnit.UnitTypeId == unitType.UnitTypeId));
+
+        var totalItems = await query.CountAsync(
+            cancellationToken);
+
+        var items = await query
+            .OrderBy(x => x.Name)
+            .ThenBy(x => x.UnitTypeId)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (
+            items,
+            totalItems,
+            facilityStatus);
+    }
 }

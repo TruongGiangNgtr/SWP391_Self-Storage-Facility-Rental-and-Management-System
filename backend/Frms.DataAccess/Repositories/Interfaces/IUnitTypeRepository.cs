@@ -14,4 +14,13 @@ public interface IUnitTypeRepository {
 
     Task SaveChangesAsync(
         CancellationToken cancellationToken = default);
+
+    Task<(
+    IReadOnlyList<UnitType> Items,
+    int TotalItems,
+    string? FacilityStatus)> GetFacilityPagedAsync(
+        Guid facilityId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }

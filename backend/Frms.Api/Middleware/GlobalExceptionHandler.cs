@@ -10,7 +10,7 @@ internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log
     {
         var business = exception as BusinessException;
         var status = business?.SuggestedStatusCode ?? StatusCodes.Status500InternalServerError;
-        var code = business?.Code ?? "INTERNAL_ERROR";
+        var code = business?.Code ?? "INTERNAL_SERVER_ERROR";
         var message = business?.SafeMessage ?? "An unexpected error occurred.";
         if (business is null) logger.LogError(exception, "Unhandled exception for trace {TraceId}.", context.TraceIdentifier);
         else logger.LogWarning("Request failed with code {Code} for trace {TraceId}.", code, context.TraceIdentifier);
