@@ -88,13 +88,36 @@ public sealed class ReservationsController(
         Guid reservationId,
         CancellationToken cancellationToken) => ScaffoldNotImplemented("RES-003");
 
-    /// <summary>RES-004: Confirm Reservation scaffold.</summary>
+    /// <summary>RES-004: Confirm Reservation after successful Deposit payment.</summary>
     [HttpPost("{reservationId:guid}/confirm")]
-    [ProducesResponseType(typeof(ApiResponse<ConfirmReservationResponse>), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> ConfirmReservation(
+    [ProducesResponseType(
+        typeof(ApiResponse<ConfirmReservationResponse>),
+        StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<ConfirmReservationResponse>>> ConfirmReservation(
         Guid reservationId,
         [FromBody] ConfirmReservationRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("RES-004");
+        CancellationToken cancellationToken)
+    {
+        var result = await reservationService.ConfirmAsync(
+            new ConfirmReservationCommand(
+                reservationId,
+                request.ReservationVisitDate),
+            cancellationToken);
+
+        var response = new ConfirmReservationResponse(
+            result.ReservationId,
+            result.Status,
+            new ReservationVisitSummaryResponse(
+                result.ReservationVisit.VisitId,
+                result.ReservationVisit.VisitType,
+                result.ReservationVisit.VisitDate,
+                result.ReservationVisit.Status));
+
+        return Ok(
+            new ApiResponse<ConfirmReservationResponse>(
+                response,
+                "Reservation confirmed."));
+    }
 
     /// <summary>RES-005: Cancel eligible Reservation scaffold.</summary>
     [HttpPost("{reservationId:guid}/cancel")]

@@ -29,6 +29,7 @@ public static class DataAccessServiceCollectionExtensions
         services.AddScoped<IStorageUnitRepository, StorageUnitRepository>();
         services.AddScoped<IFacilityRepository, FacilityRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
+        services.AddScoped<IVisitRepository, VisitRepository>();
         return services;
     }
 }

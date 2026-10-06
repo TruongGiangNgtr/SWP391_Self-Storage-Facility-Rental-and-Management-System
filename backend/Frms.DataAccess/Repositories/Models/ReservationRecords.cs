@@ -18,3 +18,14 @@ public sealed record CreatedReservationRecord(
     string Status,
     DepositInvoiceRecord DepositInvoice,
     DateTime CreatedAt);
+
+public sealed record ReservationVisitRecord(
+    Guid VisitId,
+    string VisitType,
+    DateOnly VisitDate,
+    string Status);
+
+public sealed record ConfirmedReservationRecord(
+    Guid ReservationId,
+    string Status,
+    ReservationVisitRecord ReservationVisit);
