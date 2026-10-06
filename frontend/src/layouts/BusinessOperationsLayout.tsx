@@ -53,17 +53,7 @@ export function BusinessOperationsLayout({
         </div>
 
         <nav className="bo-nav">
-          <NavLink
-            to={basePath}
-            end
-            className={({ isActive }) =>
-              isActive
-                ? 'bo-nav-link bo-nav-link-active'
-                : 'bo-nav-link'
-            }
-          >
-            Overview
-          </NavLink>
+          
 
           <NavLink
             to={`${basePath}/facilities`}

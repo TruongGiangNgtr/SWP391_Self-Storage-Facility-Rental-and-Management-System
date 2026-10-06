@@ -89,11 +89,7 @@ export function AppRouter() {
               >
                 <Route
                   index
-                  element={
-                    <PortalPlaceholderPage
-                      title="Business Operations Portal"
-                    />
-                  }
+                  element={<Navigate to="facilities" replace />}
                 />
 
                 <Route
