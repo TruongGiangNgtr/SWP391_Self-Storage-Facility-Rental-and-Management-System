@@ -13,6 +13,10 @@ import type {
   UnitType,
   UpdateUnitTypePriceRequest,
 } from '../models/unitType'
+import type {
+  CreatePolicyVersionRequest,
+  Policy,
+} from '../models/policy'
 
 async function readAllPages<T>(
   readPage: (page: number) => Promise<ApiCollectionResponse<T>>,
@@ -98,6 +102,30 @@ export const businessApi = {
   ): Promise<ApiResponse<UnitType>> {
     return httpClient.patch(
       `/business/unit-types/${encodeURIComponent(unitTypeId)}/price`,
+      request,
+    )
+  },
+
+  listPolicies(
+    page = 1,
+    pageSize = 20,
+  ): Promise<ApiCollectionResponse<Policy>> {
+    return httpClient.get(
+      `/business/policies?page=${page}&pageSize=${pageSize}`,
+    )
+  },
+
+  listAllPolicies(): Promise<Policy[]> {
+    return readAllPages((page) =>
+      businessApi.listPolicies(page, 100),
+    )
+  },
+
+  createPolicyVersion(
+    request: CreatePolicyVersionRequest,
+  ): Promise<ApiResponse<Policy>> {
+    return httpClient.post(
+      '/business/policies',
       request,
     )
   },
