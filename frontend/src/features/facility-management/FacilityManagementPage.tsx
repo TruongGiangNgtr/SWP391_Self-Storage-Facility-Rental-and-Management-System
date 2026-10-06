@@ -1189,9 +1189,7 @@ async function handleEditFacility(
     >
       <div className="facility-modal-header">
         <div>
-          <span className="facility-eyebrow">
-            FACILITY MANAGEMENT
-          </span>
+         
 
           <h2 id="edit-facility-title">
             Edit Facility
