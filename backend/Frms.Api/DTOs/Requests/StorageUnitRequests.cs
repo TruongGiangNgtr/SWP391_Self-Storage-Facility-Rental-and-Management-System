@@ -27,3 +27,4 @@ public sealed record ChangeStorageUnitStatusRequest
     [Required]
     public required string Status { get; init; }
 }
+
