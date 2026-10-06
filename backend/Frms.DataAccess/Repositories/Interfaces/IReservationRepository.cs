@@ -15,4 +15,10 @@ public interface IReservationRepository
         DateOnly startMonth,
         DateOnly endMonth,
         CancellationToken cancellationToken);
+
+    Task<ConfirmedReservationRecord> ConfirmAsync(
+        Guid customerId,
+        Guid reservationId,
+        DateOnly reservationVisitDate,
+        CancellationToken cancellationToken);
 }
