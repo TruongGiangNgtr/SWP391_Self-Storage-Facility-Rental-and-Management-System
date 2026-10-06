@@ -10,6 +10,9 @@ public static class BackgroundJobRegistration
         services.AddHostedService<
             ExpirePendingReservationsJob>();
 
+        services.AddHostedService<
+            ReservationNoShowBackgroundService>();
+
         return services;
     }
 }
