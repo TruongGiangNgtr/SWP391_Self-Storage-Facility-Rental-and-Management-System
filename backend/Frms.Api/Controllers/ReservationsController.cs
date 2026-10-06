@@ -3,19 +3,75 @@ using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
+using Frms.Business.Models.Commands;
+using Frms.Business.Services.Interfaces;
 
 namespace Frms.Api.Controllers;
 
 [Authorize(Roles = RoleNames.Customer)]
 [Route("api/v1/reservations")]
-public sealed class ReservationsController : ScaffoldControllerBase
+public sealed class ReservationsController(
+    IReservationService reservationService)
+    : ScaffoldControllerBase
 {
-    /// <summary>RES-001: Create Reservation and Deposit Invoice scaffold.</summary>
+    /// <summary>RES-001: Create Reservation and Deposit Invoice.</summary>
     [HttpPost]
-    [ProducesResponseType(typeof(ApiResponse<ReservationDetailResponse>), StatusCodes.Status201Created)]
-    public ActionResult<ApiErrorResponse> CreateReservation(
+    [ProducesResponseType(
+        typeof(ApiResponse<ReservationDetailResponse>),
+        StatusCodes.Status201Created)]
+    public async Task<ActionResult<ApiResponse<ReservationDetailResponse>>> CreateReservation(
         [FromBody] CreateReservationRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("RES-001");
+        CancellationToken cancellationToken)
+    {
+        var startMonth = DateOnly.ParseExact(
+            $"{request.StartMonth}-01",
+            "yyyy-MM-dd",
+            CultureInfo.InvariantCulture);
+
+        var endMonth = DateOnly.ParseExact(
+            $"{request.EndMonth}-01",
+            "yyyy-MM-dd",
+            CultureInfo.InvariantCulture);
+
+        var result = await reservationService.CreateAsync(
+            new CreateReservationCommand(
+                request.FacilityId,
+                request.UnitTypeId,
+                startMonth,
+                endMonth),
+            cancellationToken);
+
+        var response = new ReservationDetailResponse(
+            result.ReservationId,
+            result.FacilityId,
+            result.UnitTypeId,
+            result.PolicyId,
+            result.StartMonth.ToString("yyyy-MM"),
+            result.EndMonth.ToString("yyyy-MM"),
+            result.LockedRentalPrice,
+            result.DepositAmount,
+            result.Status,
+            new DepositInvoiceSummaryResponse(
+                result.DepositInvoice.InvoiceId,
+                result.DepositInvoice.Status,
+                result.DepositInvoice.AmountDue,
+                new DateTimeOffset(
+                    DateTime.SpecifyKind(
+                        result.DepositInvoice.DueDate,
+                        DateTimeKind.Utc))),
+            null,
+            new DateTimeOffset(
+                DateTime.SpecifyKind(
+                    result.CreatedAt,
+                    DateTimeKind.Utc)));
+
+        return StatusCode(
+            StatusCodes.Status201Created,
+            new ApiResponse<ReservationDetailResponse>(
+                response,
+                "Reservation created."));
+    }
 
     /// <summary>RES-002: List own Reservations scaffold.</summary>
     [HttpGet]
