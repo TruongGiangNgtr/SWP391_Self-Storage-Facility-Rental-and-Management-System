@@ -112,16 +112,16 @@ internal sealed class AdminEmployeeRepository(
     }
 
     public async Task SetAccountStatusAsync(
-        Guid userAccountId,
-        string status,
-        CancellationToken cancellationToken = default) {
-        await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
-            EXEC dbo.usp_SetUserAccountStatus
-                @UserAccountId = {userAccountId},
-                @Status = {status}
-            """, cancellationToken);
-
-        dbContext.ChangeTracker.Clear();
+    Guid userAccountId,
+    string status,
+    CancellationToken cancellationToken) {
+        await dbContext.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+        EXEC dbo.usp_SetUserAccountStatus
+            @UserAccountId = {userAccountId},
+            @NewStatus = {status}
+        """,
+            cancellationToken);
     }
 
     private sealed record EmployeeRow(
