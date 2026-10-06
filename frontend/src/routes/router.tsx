@@ -13,6 +13,8 @@ import { InvoiceListPage } from '../pages/InvoiceListPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PaymentResultPage } from '../pages/PaymentResultPage'
 import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
+import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
+import { FacilityManagementPage } from '../features/facility-management/FacilityManagementPage'
 import { ReservationConfirmPage } from '../pages/ReservationConfirmPage'
 import { ReservationCreatePage } from '../pages/ReservationCreatePage'
 import { ReservationDetailPage } from '../pages/ReservationDetailPage'
@@ -37,8 +39,9 @@ export function AppRouter() {
         <Route path="auth/customer/register" element={<CustomerRegisterPage />} />
         <Route path="auth/employee/login" element={<EmployeeLoginPage />} />
         <Route path="forbidden" element={<ForbiddenPage />} />
-
+        
         <Route element={<RequireAuth />}>
+        {/* Các route thật ở đây */}
           <Route element={<RequireRole allowedRoles={['CUSTOMER']} />}>
             <Route path="customer" element={<CustomerPortalPage />} />
             <Route path="customer/storage-search" element={<StorageSearchPage />} />
@@ -74,13 +77,31 @@ export function AppRouter() {
           </Route>
 
           <Route
-            element={<RequireRole allowedRoles={['BUSINESS_OPERATIONS_MANAGER']} />}
-          >
-            <Route
-              path="business"
-              element={<PortalPlaceholderPage title="Business Operations Portal" />}
-            />
-          </Route>
+              element={
+                <RequireRole
+                  allowedRoles={['BUSINESS_OPERATIONS_MANAGER']}
+                />
+              }
+            >
+              <Route
+                path="business"
+                element={<BusinessOperationsLayout />}
+              >
+                <Route
+                  index
+                  element={
+                    <PortalPlaceholderPage
+                      title="Business Operations Portal"
+                    />
+                  }
+                />
+
+                <Route
+                  path="facilities"
+                  element={<FacilityManagementPage />}
+                />
+              </Route>
+            </Route>
 
           <Route element={<RequireRole allowedRoles={['SYSTEM_ADMINISTRATOR']} />}>
             <Route
