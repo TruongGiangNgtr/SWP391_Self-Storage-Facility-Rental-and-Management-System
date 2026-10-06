@@ -113,7 +113,7 @@ public sealed class VisitsController(
                 "Visit cancelled."));
     }
 
-    /// <summary>OPS-002: Check in a Reservation Visit.</summary>
+    /// <summary>OPS-002: Check in a Visit.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff)]
     [HttpPost("{visitId:guid}/check-in")]
     [ProducesResponseType(
@@ -123,9 +123,10 @@ public sealed class VisitsController(
         Guid visitId,
         CancellationToken cancellationToken)
     {
-        var visit = await visitService.CheckInAsync(
-            visitId,
-            cancellationToken);
+        var visit =
+            await visitService.CheckInAsync(
+                visitId,
+                cancellationToken);
 
         return Ok(
             new ApiResponse<VisitDetailResponse>(
@@ -133,12 +134,26 @@ public sealed class VisitsController(
                 "Visit checked in."));
     }
 
-    /// <summary>OPS-003: Check out an eligible non-handover Visit scaffold.</summary>
+    /// <summary>OPS-003: Check out an ACCESS Visit.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff)]
     [HttpPost("{visitId:guid}/check-out")]
-    public ActionResult<ApiErrorResponse> CheckOutVisit(
+    [ProducesResponseType(
+        typeof(ApiResponse<VisitDetailResponse>),
+        StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<VisitDetailResponse>>> CheckOutVisit(
         Guid visitId,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("OPS-003");
+        CancellationToken cancellationToken)
+    {
+        var visit =
+            await visitService.CheckOutAsync(
+                visitId,
+                cancellationToken);
+
+        return Ok(
+            new ApiResponse<VisitDetailResponse>(
+                ToResponse(visit),
+                "Visit checked out."));
+    }
 
     /// <summary>OPS-005: Confirm actual return and create Inspection scaffold.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff)]

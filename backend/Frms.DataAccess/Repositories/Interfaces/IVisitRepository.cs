@@ -78,4 +78,12 @@ public interface IVisitRepository
         Guid contractId,
         DateOnly visitDate,
         CancellationToken cancellationToken);
+
+    Task<Contract?> GetContractForVisitAsync(
+        Guid visitId,
+        CancellationToken cancellationToken);
+
+    Task<bool> TryCheckOutAccessAsync(
+        Guid visitId,
+        CancellationToken cancellationToken);
 }

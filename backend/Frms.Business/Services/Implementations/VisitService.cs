@@ -338,40 +338,68 @@ internal sealed class VisitService(
                 409);
         }
 
-        // FWP-02 owns RESERVATION check-in.
-        // ACCESS / RETURN check-in is extended by their owning features.
-        if (visit.VisitType != "RESERVATION")
+        if (visit.VisitType == "RESERVATION")
         {
-            throw new BusinessException(
-                "VISIT_ENTITY_MISMATCH",
-                "Visit is not a Reservation Visit.",
-                409);
-        }
+            var reservation =
+                await repository.GetReservationForVisitAsync(
+                    visitId,
+                    cancellationToken);
 
-        var reservation =
-            await repository.GetReservationForVisitAsync(
-                visitId,
+            if (reservation is null)
+            {
+                throw new BusinessException(
+                    "VISIT_ENTITY_MISMATCH",
+                    "Visit does not reference a valid Reservation.",
+                    409);
+            }
+
+            if (reservation.Status != "CONFIRMED")
+            {
+                throw new BusinessException(
+                    "VISIT_INVALID_STATUS",
+                    "Reservation is not in a valid state for check-in.",
+                    409);
+            }
+
+            await facilityAuthorizationService.EnsureSameFacilityAsync(
+                reservation.FacilityId,
                 cancellationToken);
-
-        if (reservation is null)
+        }
+        else if (visit.VisitType == "ACCESS")
         {
+            var contract =
+                await repository.GetContractForVisitAsync(
+                    visitId,
+                    cancellationToken);
+
+            if (contract is null)
+            {
+                throw new BusinessException(
+                    "VISIT_ENTITY_MISMATCH",
+                    "ACCESS Visit does not reference a valid Contract.",
+                    409);
+            }
+
+            if (contract.Status != "ACTIVE")
+            {
+                throw new BusinessException(
+                    "VISIT_INVALID_STATUS",
+                    "ACCESS Visit requires an active Contract.",
+                    409);
+            }
+
+            await facilityAuthorizationService.EnsureSameFacilityAsync(
+                contract.FacilityId,
+                cancellationToken);
+        }
+        else
+        {
+            // RETURN is owned by FWP-05.
             throw new BusinessException(
                 "VISIT_ENTITY_MISMATCH",
-                "Visit does not reference a valid Reservation.",
+                "Visit type is not supported by this operation.",
                 409);
         }
-
-        if (reservation.Status != "CONFIRMED")
-        {
-            throw new BusinessException(
-                "VISIT_INVALID_STATUS",
-                "Reservation is not in a valid state for check-in.",
-                409);
-        }
-
-        await facilityAuthorizationService.EnsureSameFacilityAsync(
-            reservation.FacilityId,
-            cancellationToken);
 
         try
         {
@@ -528,5 +556,107 @@ internal sealed class VisitService(
                 "ACCESS Visit date must be inside the Contract period.",
                 400);
         }
+    }
+
+    public async Task<Visit> CheckOutAsync(
+        Guid visitId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated)
+        {
+            throw new BusinessException(
+                "UNAUTHORIZED",
+                "Authentication is required.",
+                401);
+        }
+
+        var employee =
+            await repository.GetEmployeeByUserAccountIdAsync(
+                currentUser.UserAccountId,
+                cancellationToken);
+
+        if (employee is null ||
+            employee.FacilityId is null)
+        {
+            throw new BusinessException(
+                "FORBIDDEN",
+                "Facility Staff profile is not available.",
+                403);
+        }
+
+        var visit =
+            await repository.GetByIdAsync(
+                visitId,
+                cancellationToken);
+
+        if (visit is null)
+        {
+            throw new BusinessException(
+                "RESOURCE_NOT_FOUND",
+                "Visit was not found.",
+                404);
+        }
+
+        if (visit.VisitType != "ACCESS")
+        {
+            throw new BusinessException(
+                "VISIT_ENTITY_MISMATCH",
+                "Only an ACCESS Visit may use this check-out operation.",
+                409);
+        }
+
+        if (visit.Status != "CHECKED_IN")
+        {
+            throw new BusinessException(
+                "VISIT_INVALID_STATUS",
+                "Only a checked-in ACCESS Visit may be checked out.",
+                409);
+        }
+
+        var contract =
+            await repository.GetContractForVisitAsync(
+                visitId,
+                cancellationToken);
+
+        if (contract is null)
+        {
+            throw new BusinessException(
+                "VISIT_ENTITY_MISMATCH",
+                "ACCESS Visit does not reference a valid Contract.",
+                409);
+        }
+
+        if (contract.Status != "ACTIVE")
+        {
+            throw new BusinessException(
+                "VISIT_INVALID_STATUS",
+                "ACCESS Visit requires an active Contract.",
+                409);
+        }
+
+        await facilityAuthorizationService.EnsureSameFacilityAsync(
+            contract.FacilityId,
+            cancellationToken);
+
+        var succeeded =
+            await repository.TryCheckOutAccessAsync(
+                visitId,
+                cancellationToken);
+
+        if (!succeeded)
+        {
+            throw new BusinessException(
+                "VISIT_INVALID_STATUS",
+                "ACCESS Visit could not be checked out from its current state.",
+                409);
+        }
+
+        return await repository.GetByIdAsync(
+                visitId,
+                cancellationToken)
+            ?? throw new BusinessException(
+                "RESOURCE_NOT_FOUND",
+                "Visit was not found.",
+                404);
     }
 }
