@@ -32,4 +32,25 @@ internal sealed class UnitTypeService(
 
         return unitType;
     }
+
+    public Task<(
+    IReadOnlyList<UnitType> Items,
+    int TotalItems,
+    string? FacilityStatus)> GetFacilityPagedAsync(
+        Guid facilityId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    => unitTypeRepository.GetFacilityPagedAsync(
+        facilityId,
+        page,
+        pageSize,
+        cancellationToken);
+
+    public Task<UnitType?> GetByIdAsync(
+        Guid unitTypeId,
+        CancellationToken cancellationToken = default)
+        => unitTypeRepository.GetByIdAsync(
+            unitTypeId,
+            cancellationToken);
 }

@@ -6,6 +6,7 @@ using Frms.Business.Models.Results;
 using Frms.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Frms.Business.Models;
 
 namespace Frms.Api.Controllers;
 
