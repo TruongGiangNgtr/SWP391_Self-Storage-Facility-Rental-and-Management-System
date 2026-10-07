@@ -37,6 +37,7 @@ public static class DataAccessServiceCollectionExtensions
         services.AddScoped<IPolicyRepository, PolicyRepository>();
         services.AddScoped<IAdminUserRepository, AdminUserRepository>();
         services.AddScoped<IAdminEmployeeRepository, AdminEmployeeRepository>();
+        services.AddScoped<IDiscountRepository, DiscountRepository>();
         return services;
     }
 }
