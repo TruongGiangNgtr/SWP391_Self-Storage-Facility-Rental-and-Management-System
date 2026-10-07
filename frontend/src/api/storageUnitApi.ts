@@ -19,6 +19,21 @@ export interface StorageUnit {
   status: StorageUnitStatus
 }
 
+export interface CreateStorageUnitRequest {
+  unitTypeId: string
+  unitCode: string
+  locationInfo: string | null
+}
+
+export interface UpdateStorageUnitRequest {
+  unitTypeId: string
+  locationInfo: string | null
+}
+
+export interface UpdateStorageUnitStatusRequest {
+  status: StorageUnitStatus
+}
+
 async function readAllPages(
   facilityId: string,
 ): Promise<StorageUnit[]> {
@@ -60,6 +75,37 @@ export const storageUnitApi = {
     facilityId: string,
   ): Promise<StorageUnit[]> {
     return readAllPages(facilityId)
+  },
+
+
+  create(
+    facilityId: string,
+    request: CreateStorageUnitRequest,
+  ): Promise<ApiResponse<string>> {
+    return httpClient.post(
+      `/facilities/${encodeURIComponent(facilityId)}/storage-units`,
+      request,
+    )
+  },
+
+  update(
+    storageUnitId: string,
+    request: UpdateStorageUnitRequest,
+  ): Promise<ApiResponse<StorageUnit>> {
+    return httpClient.patch(
+      `/storage-units/${encodeURIComponent(storageUnitId)}`,
+      request,
+    )
+  },
+
+  updateStatus(
+    storageUnitId: string,
+    request: UpdateStorageUnitStatusRequest,
+  ): Promise<ApiResponse<StorageUnit>> {
+    return httpClient.post(
+      `/storage-units/${encodeURIComponent(storageUnitId)}/status`,
+      request,
+    )
   },
 
   get(
