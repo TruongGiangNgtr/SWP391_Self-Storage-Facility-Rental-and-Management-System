@@ -256,10 +256,7 @@ export function AppRouter() {
           element={<PolicyVersionManagementPage />}
         />
 
-        <Route
-          path="discounts"
-          element={<DiscountManagementPage />}
-        />
+        
       </Route>
     </Route>
   </Route>
