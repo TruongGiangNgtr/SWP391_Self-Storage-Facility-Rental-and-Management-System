@@ -1,8 +1,9 @@
-import { type FormEvent, useCallback, useEffect, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { presentApiError, presentValidationError } from '../api/apiErrorPresentation'
 import type { ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { visitApi } from '../api/visitApi'
+import { ApiRequestError } from '../api/httpClient'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { LoadingState } from '../components/PageStates'
 import { StatusBadge } from '../components/StatusBadge'
@@ -24,6 +25,7 @@ export function VisitDetailPage() {
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(false)
   const [error, setError] = useState<ApiErrorPresentation | null>(null)
+  const actionBusy = useRef(false)
 
   const loadVisit = useCallback(async () => {
     try {
@@ -66,11 +68,13 @@ export function VisitDetailPage() {
 
   async function handleReschedule(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (loading || actionBusy.current || visit?.status !== 'SCHEDULED') return
     if (!newVisitDate) {
       setError(presentValidationError('Please select a new visit date.'))
       return
     }
 
+    actionBusy.current = true
     setWorking(true)
     setError(null)
     try {
@@ -79,18 +83,25 @@ export function VisitDetailPage() {
       await loadVisit()
     } catch (requestError) {
       setError(presentApiError(requestError))
+      if (requestError instanceof ApiRequestError && requestError.status === 409) {
+        setMode(null)
+        await loadVisit()
+      }
     } finally {
+      actionBusy.current = false
       setWorking(false)
     }
   }
 
   async function handleCancel(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (loading || actionBusy.current || visit?.status !== 'SCHEDULED') return
     if (!cancelReason.trim()) {
       setError(presentValidationError('Please enter a reason for cancelling the visit.'))
       return
     }
 
+    actionBusy.current = true
     setWorking(true)
     setError(null)
     try {
@@ -100,7 +111,12 @@ export function VisitDetailPage() {
       await loadVisit()
     } catch (requestError) {
       setError(presentApiError(requestError))
+      if (requestError instanceof ApiRequestError && requestError.status === 409) {
+        setMode(null)
+        await loadVisit()
+      }
     } finally {
+      actionBusy.current = false
       setWorking(false)
     }
   }
@@ -126,6 +142,9 @@ export function VisitDetailPage() {
       </section>
 
       <ApiErrorAlert error={error} />
+      <button className="button button-secondary" type="button" disabled={loading || working} onClick={() => {
+        setLoading(true); setError(null); setMode(null); void loadVisit()
+      }}>Refresh Visit</button>
       {visit && (
         <section className="panel stack">
           <div className="card-heading-row">
@@ -137,29 +156,46 @@ export function VisitDetailPage() {
               <dt>Visit Date</dt>
               <dd>{visit.visitDate}</dd>
             </div>
-            <div>
+            {visit.visitType === 'RETURN' && <div>
               <dt>Actual Return Date</dt>
               <dd>{visit.actualReturnDate ?? 'Not Available'}</dd>
-            </div>
+            </div>}
             <div>
-              <dt>Assigned Employee</dt>
-              <dd>{visit.employeeId ?? 'Not Assigned'}</dd>
+              <dt>Handling Staff ID</dt>
+              <dd>{visit.employeeId ?? 'Not Recorded'}</dd>
             </div>
           </dl>
 
+          {visit.visitType === 'ACCESS' && <>
+            <p className="notice">{visit.status === 'SCHEDULED' ? 'Your access visit is scheduled. Staff will check you in and out at the facility.'
+              : visit.status === 'CHECKED_IN' ? 'You are checked in. Staff will check you out after your visit. This visit can no longer be rescheduled or cancelled.'
+              : visit.status === 'CHECKED_OUT' ? 'This access visit is complete. Your rental contract is managed separately.' : 'This access visit has been cancelled.'}</p>
+            <Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(visit.entityId)}`}>View Contract</Link>
+          </>}
+
           {visit.visitType === 'RESERVATION' && (
-            <Link className="button button-secondary" to={`/customer/reservations/${visit.entityId}`}>
-              View Reservation
-            </Link>
+            <>
+              {(visit.status === 'SCHEDULED' || visit.status === 'CHECKED_IN') && (
+                <div className="notice">
+                  {visit.status === 'CHECKED_IN'
+                    ? 'You are checked in. Staff will complete handover after receiving the first month offline and using the storage unit selected by the Manager.'
+                    : 'Bring identification and pay the first month offline at the facility. Review your reservation for the locked first-month rental amount.'}
+                </div>
+              )}
+              <Link className="button button-secondary" to={`/customer/reservations/${visit.entityId}`}>
+                View Reservation
+              </Link>
+            </>
           )}
 
           {visit.status === 'SCHEDULED' && mode === null && (
             <div className="action-row">
-              <button className="button" onClick={() => setMode('reschedule')} type="button">
+              <button className="button" disabled={loading || working} onClick={() => setMode('reschedule')} type="button">
                 Reschedule
               </button>
               <button
                 className="button button-danger"
+                disabled={loading || working}
                 onClick={() => setMode('cancel')}
                 type="button"
               >
@@ -170,7 +206,7 @@ export function VisitDetailPage() {
 
           {visit.status === 'SCHEDULED' && mode === 'reschedule' && (
             <form className="form-grid" onSubmit={handleReschedule}>
-              <CalendarDateField id="newVisitDate" label="New Visit Date" value={newVisitDate} disabled={working} onChange={setNewVisitDate} />
+              <CalendarDateField id="newVisitDate" label="New Visit Date" value={newVisitDate} disabled={loading || working} onChange={setNewVisitDate} />
               <small className="muted">The new date must follow the policy for this visit.</small>
               <div className="action-row">
                 <button className="button button-secondary" disabled={working} onClick={() => setMode(null)} type="button">
@@ -191,6 +227,7 @@ export function VisitDetailPage() {
                   id="visitCancelReason"
                   rows={3}
                   value={cancelReason}
+                  disabled={loading || working}
                   onChange={(event) => setCancelReason(event.target.value)}
                 />
               </div>

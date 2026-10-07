@@ -7,6 +7,7 @@ import { reservationApi } from '../api/reservationApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { LoadingState } from '../components/PageStates'
 import { StatusBadge } from '../components/StatusBadge'
+import { FirstMonthHandoverInfo } from '../components/FirstMonthHandoverInfo'
 import { paymentReturnState } from '../features/billing/paymentReturnState'
 import type { ReservationDetail } from '../features/reservations/reservation.types'
 import { formatMoney, formatMonthRange, formatUtcDateTime } from '../utils/formatters'
@@ -203,6 +204,10 @@ export function ReservationDetailPage() {
                 )}
             </div>
           </section>
+
+          {(reservation.status === 'CONFIRMED' || reservation.status === 'COMPLETED') && (
+            <FirstMonthHandoverInfo lockedRentalPrice={reservation.lockedRentalPrice} handoverCompleted={reservation.status === 'COMPLETED'} />
+          )}
 
           {reservation.reservationVisit && (
             <section className="panel stack">

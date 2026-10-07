@@ -128,4 +128,67 @@ internal sealed class StorageUnitRepository(
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    public Task<int> CountByFacilityAsync(
+        Guid facilityId,
+        Guid? unitTypeId,
+        string? status,
+        CancellationToken cancellationToken)
+    {
+        return BuildListQuery(
+                facilityId,
+                unitTypeId,
+                status)
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<StorageUnitRecord>> ListByFacilityPageAsync(
+        Guid facilityId,
+        Guid? unitTypeId,
+        string? status,
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        return await BuildListQuery(
+                facilityId,
+                unitTypeId,
+                status)
+            .OrderBy(x => x.UnitCode)
+            .ThenBy(x => x.StorageUnitId)
+            .Skip(skip)
+            .Take(take)
+            .Select(x => new StorageUnitRecord(
+                x.StorageUnitId,
+                x.FacilityId,
+                x.UnitTypeId,
+                x.UnitCode,
+                x.LocationInfo,
+                x.Status))
+            .ToListAsync(cancellationToken);
+    }
+
+    private IQueryable<StorageUnit> BuildListQuery(
+        Guid facilityId,
+        Guid? unitTypeId,
+        string? status)
+    {
+        var query = dbContext.StorageUnits
+            .AsNoTracking()
+            .Where(x => x.FacilityId == facilityId);
+
+        if (unitTypeId.HasValue)
+        {
+            query = query.Where(
+                x => x.UnitTypeId == unitTypeId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.Where(
+                x => x.Status == status);
+        }
+
+        return query;
+    }
 }
