@@ -1,5 +1,6 @@
 using Frms.Business.Models.Commands;
 using Frms.Business.Models.Results;
+using Frms.Business.Abstractions.External;
 
 namespace Frms.Business.Services.Interfaces;
 
@@ -11,16 +12,16 @@ public interface IPaymentService {
         StartPaymentCommand command,
         CancellationToken cancellationToken = default);
 
-    /// <summary>PAY-003: returns the authoritative status of the caller's own Payment.</summary>
+    /// <summary>PAY-003: authorized Customer-own, assigned-Facility or BOM read.</summary>
     Task<PaymentResult> GetByIdAsync(
         Guid paymentId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// PAY-004: applies a payment result already verified and normalized by the provider adapter.
-    /// Must be idempotent by gateway transaction/reference (BR-PAY-01).
+    /// PAY-004: verifies untrusted input through the gateway before applying a normalized result.
+    /// This is not a customer/employee command and does not define provider HTTP acknowledgement.
     /// </summary>
-    Task<PaymentResult> ApplyPaymentResultAsync(
-        ApplyPaymentResultCommand command,
+    Task<PaymentApplicationResult> ProcessCallbackAsync(
+        PaymentGatewayCallbackRequest request,
         CancellationToken cancellationToken = default);
 }

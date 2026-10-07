@@ -14,7 +14,7 @@ public interface IPaymentGateway
     /// A returned session is never proof of payment success; Payment state changes only
     /// through a verified and normalized payment result (PAY-004).
     /// </summary>
-    Task<PaymentGatewaySession> CreatePaymentAsync(
+    Task<PaymentGatewayCreationResult> CreatePaymentAsync(
         PaymentGatewayRequest request,
         CancellationToken cancellationToken);
 

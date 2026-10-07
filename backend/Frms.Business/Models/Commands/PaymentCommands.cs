@@ -4,8 +4,10 @@ namespace Frms.Business.Models.Commands;
 /// PAY-001: starts a Payment attempt for an existing Invoice. The amount is
 /// server-authoritative and is never supplied by the client.
 /// </summary>
-public sealed record StartPaymentCommand(
-    string ReturnUrl);
+public sealed record StartPaymentCommand(Guid IdempotencyKey, string ReturnUrl)
+{
+    public override string ToString() => nameof(StartPaymentCommand);
+}
 
 /// <summary>
 /// Normalized payment result produced by the payment provider adapter after it has
@@ -14,7 +16,9 @@ public sealed record StartPaymentCommand(
 /// <param name="PaymentId">Internal Payment identifier resolved from the provider reference.</param>
 /// <param name="TransactionCode">Gateway transaction/reference used for idempotency.</param>
 /// <param name="Status">Final outcome: <c>SUCCESS</c> or <c>FAILED</c> only.</param>
-public sealed record ApplyPaymentResultCommand(
+internal sealed record ApplyPaymentResultCommand(
     Guid PaymentId,
-    string TransactionCode,
-    string Status);
+    string? TransactionCode,
+    Abstractions.External.PaymentGatewayCallbackOutcome Status,
+    decimal? VerifiedAmount,
+    DateTimeOffset? VerifiedPaidAt);

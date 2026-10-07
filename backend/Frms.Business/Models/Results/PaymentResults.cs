@@ -11,11 +11,28 @@ public sealed record PaymentResult(
     DateTimeOffset? PaidAt,
     DateTimeOffset CreatedAt);
 
-/// <summary>Pending payment attempt started for an existing Deposit/Rental Fee Invoice (PAY-001).</summary>
+/// <summary>Application outcome, not a persisted Payment status or an HTTP contract.</summary>
+public enum PaymentStartOutcome { SessionAvailable, SessionUnavailable, Terminal, ReferenceConflict }
+
+/// <summary>An authorized attempt; only a usable PENDING session may expose its URL.</summary>
 public sealed record InvoicePaymentStartResult(
     Guid PaymentId,
     Guid InvoiceId,
     decimal Amount,
     string PaymentMethod,
     string Status,
-    string PaymentUrl);
+    string? PaymentUrl,
+    PaymentStartOutcome Outcome,
+    DateTimeOffset? PaymentUrlExpiresAt)
+{
+    public override string ToString() => $"InvoicePaymentStartResult {{ PaymentId = {PaymentId}, Status = {Status}, Outcome = {Outcome} }}";
+}
+
+public enum PaymentApplicationOutcome
+{
+    Applied, Duplicate, NotFound, InvalidResult, AmountMismatch, ReferenceConflict, TerminalConflict,
+    VerificationRejected, Unresolved
+}
+
+public sealed record PaymentApplicationResult(
+    PaymentApplicationOutcome Outcome, PaymentResult? Payment, string? Reason);
