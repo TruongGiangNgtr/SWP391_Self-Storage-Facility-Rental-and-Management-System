@@ -10,23 +10,121 @@ namespace Frms.Api.Controllers;
 
 [Route("api/v1/contracts")]
 public sealed class ContractsController(
-    IRenewalService renewalService)
+    IRenewalService renewalService,
+    IContractService contractService)
     : ScaffoldControllerBase
 {
-    /// <summary>CON-001: List own Contracts scaffold.</summary>
+    /// <summary>CON-001: List own Contracts.</summary>
     [Authorize(Roles = RoleNames.Customer)]
     [HttpGet]
-    public ActionResult<ApiErrorResponse> ListContracts(
+    [ProducesResponseType(
+        typeof(ContractListResponse),
+        StatusCodes.Status200OK)]
+    public async Task<ActionResult<ContractListResponse>> ListContracts(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default) => ScaffoldNotImplemented("CON-001");
+        CancellationToken cancellationToken = default)
+    {
+        var result =
+            await contractService.ListOwnAsync(
+                page,
+                pageSize,
+                cancellationToken);
 
-    /// <summary>CON-002: Get own Contract detail scaffold.</summary>
+        var response =
+            new ContractListResponse(
+                result.Items
+                    .Select(x => new ContractSummaryResponse(
+                        x.ContractId,
+                        x.FacilityId,
+                        x.StorageUnitId,
+                        x.UnitCode,
+                        x.UnitTypeId,
+                        x.UnitTypeName,
+                        x.UnitTypeMode,
+                        x.StartMonth.ToString("yyyy-MM"),
+                        x.EndMonth.ToString("yyyy-MM"),
+                        x.Status))
+                    .ToArray(),
+                new ContractPaginationResponse(
+                    result.Page,
+                    result.PageSize,
+                    result.TotalItems,
+                    result.TotalPages));
+
+        return Ok(response);
+    }
+
+    /// <summary>CON-002: Get own Contract detail.</summary>
     [Authorize(Roles = RoleNames.Customer)]
     [HttpGet("{contractId:guid}")]
-    public ActionResult<ApiErrorResponse> GetContract(
+    [ProducesResponseType(
+        typeof(ApiResponse<ContractDetailResponse>),
+        StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<ContractDetailResponse>>> GetContract(
         Guid contractId,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("CON-002");
+        CancellationToken cancellationToken)
+    {
+        var result =
+            await contractService.GetOwnAsync(
+                contractId,
+                cancellationToken);
+
+        var response =
+            new ContractDetailResponse(
+                result.ContractId,
+                result.ReservationId,
+                result.FacilityId,
+                result.PolicyId,
+                result.DiscountId,
+                result.StartMonth.ToString("yyyy-MM"),
+                result.EndMonth.ToString("yyyy-MM"),
+                result.Status,
+                new ContractStorageUnitResponse(
+                    result.StorageUnitId,
+                    result.UnitCode,
+                    result.LocationInfo,
+                    result.StorageUnitStatus,
+                    result.UnitTypeId,
+                    result.UnitTypeName,
+                    result.UnitTypeMode,
+                    result.UnitTypeSize),
+                result.Extensions
+                    .Select(x => new ContractExtensionResponse(
+                        x.ContractExtensionId,
+                        x.OldEndMonth.ToString("yyyy-MM"),
+                        x.NewEndMonth.ToString("yyyy-MM"),
+                        x.AppliedMonthlyPrice,
+                        new DateTimeOffset(
+                            DateTime.SpecifyKind(
+                                x.CreatedAt,
+                                DateTimeKind.Utc))))
+                    .ToArray(),
+                result.Visits
+                    .Select(x => new ContractVisitResponse(
+                        x.VisitId,
+                        x.VisitType,
+                        x.VisitDate,
+                        x.ActualReturnDate.HasValue
+                            ? DateOnly.FromDateTime(
+                                x.ActualReturnDate.Value)
+                            : null,
+                        x.Status,
+                        x.EmployeeId))
+                    .ToArray(),
+                result.RentalInvoices
+                    .Select(x => new ContractInvoiceStatusResponse(
+                        x.InvoiceId,
+                        x.BillingMonth?.ToString("yyyy-MM"),
+                        x.AmountDue,
+                        x.Status))
+                    .ToArray());
+
+        return Ok(
+            new ApiResponse<ContractDetailResponse>(
+                response,
+                "Contract retrieved."));
+    }
 
     /// <summary>CON-003: Renew an active Contract.</summary>
     [Authorize(Roles = RoleNames.Customer)]
