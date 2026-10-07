@@ -1,6 +1,5 @@
 namespace Frms.Api.Authorization;
 
-/// <summary>Contains the five role names locked by FRMS SRS V10.</summary>
 public static class RoleNames
 {
     public const string Customer = "CUSTOMER";

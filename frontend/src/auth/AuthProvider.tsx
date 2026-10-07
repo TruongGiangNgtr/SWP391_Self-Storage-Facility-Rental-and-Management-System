@@ -14,6 +14,8 @@ function mapCurrentAccount(
   account: Awaited<ReturnType<typeof authApi.getCurrentAccount>>['data'],
 ): AuthUser {
   return {
+    fullName: account.profile?.fullName,
+    email: account.email,
     userAccountId: account.userAccountId,
     role: account.role,
     status: account.status,

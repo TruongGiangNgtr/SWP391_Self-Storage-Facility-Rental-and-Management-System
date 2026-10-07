@@ -12,8 +12,12 @@ namespace Frms.Api.Controllers;
 public sealed class VisitsController(
     IVisitService visitService) : ScaffoldControllerBase
 {
-    /// <summary>VIS-003: List own Visits.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
+    /// <summary>VIS-003: List authorized Visits.</summary>
+    [Authorize(
+        Roles =
+            RoleNames.Customer + "," +
+            RoleNames.FacilityManager + "," +
+            RoleNames.BusinessOperationsManager)]
     [HttpGet]
     [ProducesResponseType(
         typeof(PaginatedResponse<VisitDetailResponse>),
@@ -21,9 +25,8 @@ public sealed class VisitsController(
     public async Task<IActionResult> ListVisits(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default)
-    {
-        var result = await visitService.ListOwnAsync(
+        CancellationToken cancellationToken = default) {
+        var result = await visitService.ListAccessibleAsync(
             page,
             pageSize,
             cancellationToken);
@@ -37,11 +40,9 @@ public sealed class VisitsController(
             : (int)Math.Ceiling(
                 result.TotalItems / (double)pageSize);
 
-        return Ok(new
-        {
+        return Ok(new {
             data,
-            pagination = new
-            {
+            pagination = new {
                 page,
                 pageSize,
                 totalItems = result.TotalItems,
@@ -50,17 +51,21 @@ public sealed class VisitsController(
         });
     }
 
-    /// <summary>VIS-004: Get own Visit detail.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
+    /// <summary>VIS-004: Authorized Visit detail.</summary>
+    [Authorize(
+        Roles =
+            RoleNames.Customer + "," +
+            RoleNames.FacilityStaff + "," +
+            RoleNames.FacilityManager + "," +
+            RoleNames.BusinessOperationsManager)]
     [HttpGet("{visitId:guid}")]
     [ProducesResponseType(
         typeof(ApiResponse<VisitDetailResponse>),
         StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<VisitDetailResponse>>> GetVisit(
         Guid visitId,
-        CancellationToken cancellationToken)
-    {
-        var visit = await visitService.GetOwnAsync(
+        CancellationToken cancellationToken) {
+        var visit = await visitService.GetByIdAsync(
             visitId,
             cancellationToken);
 

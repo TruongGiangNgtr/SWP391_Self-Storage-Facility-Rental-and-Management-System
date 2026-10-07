@@ -23,7 +23,7 @@ export function CustomerLoginPage() {
 
     const normalizedPhoneNumber = phoneNumber.trim()
     if (!normalizedPhoneNumber) {
-      setError(presentValidationError('Vui lòng nhập số điện thoại.'))
+      setError(presentValidationError('Please enter your phone number.'))
       return
     }
 
@@ -51,11 +51,11 @@ export function CustomerLoginPage() {
   return (
     <main className="page-container">
       <section className="auth-card">
-        <h1>Đăng nhập khách hàng</h1>
-        <p className="muted">Sử dụng số điện thoại và mật khẩu của bạn.</p>
+        <h1>Customer Sign In</h1>
+        <p className="muted">Sign in with your phone number and password.</p>
         <form className="form-grid" onSubmit={handleSubmit}>
           <div className="form-field">
-            <label htmlFor="phoneNumber">Số điện thoại</label>
+            <label htmlFor="phoneNumber">Phone Number</label>
             <input
               id="phoneNumber"
               autoComplete="tel"
@@ -67,7 +67,7 @@ export function CustomerLoginPage() {
             />
           </div>
           <div className="form-field">
-            <label htmlFor="customerPassword">Mật khẩu</label>
+            <label htmlFor="customerPassword">Password</label>
             <input
               id="customerPassword"
               type="password"
@@ -81,9 +81,9 @@ export function CustomerLoginPage() {
           </div>
           <ApiErrorAlert error={error} />
           <button className="button" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
+            {isSubmitting ? 'Signing in...' : 'Sign In'}
           </button>
-          <Link to="/auth/customer/register">Chưa có tài khoản? Đăng ký</Link>
+          <Link to="/auth/customer/register">New to FStoRent? Create an account</Link>
         </form>
       </section>
     </main>

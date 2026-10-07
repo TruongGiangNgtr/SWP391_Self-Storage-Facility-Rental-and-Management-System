@@ -15,7 +15,7 @@ export function ApiErrorAlert({ error }: { error: ApiErrorPresentation | null })
           ))}
         </ul>
       )}
-      {error.traceId && <small>Mã đối chiếu: {error.traceId}</small>}
+      {error.traceId && <small>Trace ID: {error.traceId}</small>}
     </div>
   )
 }

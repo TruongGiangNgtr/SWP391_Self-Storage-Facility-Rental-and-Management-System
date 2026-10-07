@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Frms.Business.Abstractions.Security;
+using Frms.Business.Exceptions;
 
 namespace Frms.Api.Authentication;
 
@@ -14,11 +15,11 @@ internal sealed class CurrentUserContext(
 
     public Guid UserAccountId {
         get {
-            var value = User?.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            var value = User?.FindFirstValue(
+                JwtRegisteredClaimNames.Sub);
 
             if (!Guid.TryParse(value, out var userAccountId)) {
-                throw new UnauthorizedAccessException(
-                    "Authenticated user account claim is missing.");
+                throw Unauthorized();
             }
 
             return userAccountId;
@@ -27,6 +28,11 @@ internal sealed class CurrentUserContext(
 
     public string Role =>
         User?.FindFirstValue(ClaimTypes.Role)
-        ?? throw new UnauthorizedAccessException(
-            "Authenticated user role claim is missing.");
+        ?? throw Unauthorized();
+
+    private static BusinessException Unauthorized()
+        => new(
+            "UNAUTHORIZED",
+            "Authentication is required.",
+            401);
 }

@@ -209,3 +209,62 @@ Feature -> Business rule/calculation -> API/job -> Service
 ```
 
 Use `README.md` for orientation and setup, `TECH_BASELINE.md` for locked technical decisions, Swagger for the executable API contract, and ADR/change records only for approved refinements that preserve SRS semantics. Do not duplicate a business rule differently across documents.
+
+## 14. Mandatory clarification and scope control
+
+- Never invent or silently infer a missing business requirement, technical decision, API contract, provider field, credential, environment value, or database rule.
+- If information is missing, ambiguous, contradictory, or insufficient to select one materially different implementation, stop before editing and ask the repository owner.
+- Implement only the approved plan or sub-plan named in the task. Stop when that scope is complete; do not continue into the next plan, adjacent feature, cleanup, or refactor.
+- Before editing, inspect the repository for existing code and abstractions, identify what already exists, list the intended files and reasons, and reuse compatible code instead of duplicating it.
+- Make the smallest complete change that satisfies the approved scope. Do not modify unrelated work.
+- For backend-owned tasks, the default writable scope is `backend/`; do not modify `frontend/` or another owner's area unless the task explicitly authorizes that exact change.
+- For frontend-owned tasks, the default writable scope is `frontend/`; do not modify `backend/` or another owner's area unless the task explicitly authorizes that exact change.
+- A cross-stack task may modify both `backend/` and `frontend/` only when the task explicitly defines both scopes. If ownership or scope is unclear, stop and ask the repository owner.
+
+## 15. Branch and Git safety
+
+- Before editing, run `git status`, `git status --short`, `git branch --show-current`, and `git fetch origin`.
+- Feature branches start from the latest `origin/main`. Use `be/<task-id>/<task-name>` for backend work and `fe/<task-id>/<task-name>` for frontend work unless the owner explicitly approves another branch.
+- A cross-stack task must use the branch name explicitly supplied by the owner; do not invent whether it belongs under `be/` or `fe/`.
+- Do not code directly on `main` or `master` unless the owner explicitly authorizes that exact repository-maintenance change.
+- If the target branch already exists, inspect it first. Do not delete, reset, rebase, replace, or recreate it without owner approval.
+- Do not use `git reset`, `git stash`, `git clean`, force push, merge, rebase, or create a pull request unless the owner explicitly requests that operation.
+- Preserve pre-existing working-tree changes. Do not restore, overwrite, stage, or commit another person's work.
+- Local commits are allowed only when the task authorizes them. Stage explicit paths; do not use `git add .` or `git add -A` for scoped work.
+
+## 16. Tests and protected repository areas
+
+- Existing tracked tests are valid repository source and must not be deleted, untracked, disabled, or weakened merely to make validation pass.
+- Agents may run existing tests and may create or modify temporary tests for local verification, but temporary test changes must be removed before commit.
+- Do not commit changes under any test directory, including `tests/`, `backend/tests/`, or frontend test directories, unless the owner explicitly overrides this rule for the current task.
+- Do not create or commit files under `docs/` unless the owner explicitly authorizes documentation work.
+- A task-specific restriction against test or documentation changes does not authorize deleting existing tracked tests or documentation.
+
+## 17. Forbidden tracked and committed files
+
+Never commit:
+
+- `.env` or any `.env.*` file, including example variants;
+- `.vs/`, `**/bin/`, `**/obj/`;
+- secrets, passwords, tokens, API keys, provider credentials, connection credentials, or real local configuration;
+- IDE-generated files, temporary files, test output, or build artifacts;
+- a `NuGet.Config` containing a password, token, API key, private-feed credential, or other secret.
+
+Before commit, inspect `git status`, `git diff`, `git diff --cached`, and run `git diff --check`. Confirm the staged diff contains only approved task files and no secret, generated file, unrelated or cross-owner change, documentation change, or test change prohibited by the task.
+
+If `.env*`, `.vs/`, `bin/`, or `obj/` is already tracked, remove it from Git tracking without deleting the local file and ensure an appropriate narrow ignore rule exists. Do not untrack legitimate source, tests, or documentation merely because the current task may not modify them.
+
+If a secret or credential may already exist in current HEAD or Git history:
+
+1. stop immediately;
+2. report the affected file without printing the secret value;
+3. state whether current HEAD and/or history may be affected;
+4. do not rewrite history, force push, or rotate credentials;
+5. wait for the owner to decide the remediation.
+
+## 18. Validation and handoff
+
+- Run the relevant restore, build, test, formatting/diff, and status checks required by the task and report the actual result of every command. Backend tasks validate the affected .NET solution/projects; frontend tasks validate the repository's configured package-manager scripts; cross-stack tasks validate both sides.
+- Do not fabricate successful validation when a dependency, service, database, credential, environment value, or tool is unavailable.
+- Do not change unrelated code or invent configuration merely to force validation to pass.
+- Final reports must identify the branch/base, status (`COMPLETE` or `BLOCKED`), files added/modified, code/components/contracts added, reused code, deliberately excluded scope, validation results, test handling, Git hygiene, commit SHA/message when applicable, final working-tree state, and unresolved blockers.

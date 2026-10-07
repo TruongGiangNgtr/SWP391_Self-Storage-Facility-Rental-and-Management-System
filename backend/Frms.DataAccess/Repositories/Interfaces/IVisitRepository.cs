@@ -60,30 +60,25 @@ public interface IVisitRepository
         Guid employeeId,
         CancellationToken cancellationToken);
 
-    Task<Contract?> GetOwnedContractAsync(
-        Guid customerId,
-        Guid contractId,
-        CancellationToken cancellationToken);
-
-    Task<Contract?> GetOwnedContractForVisitAsync(
-        Guid customerId,
-        Guid visitId,
-        CancellationToken cancellationToken);
-
-    Task<bool> HasPendingReturnVisitAsync(
-        Guid contractId,
-        CancellationToken cancellationToken);
-
-    Task<Visit> CreateAccessAsync(
-        Guid contractId,
-        DateOnly visitDate,
-        CancellationToken cancellationToken);
-
     Task<Contract?> GetContractForVisitAsync(
         Guid visitId,
         CancellationToken cancellationToken);
 
-    Task<bool> TryCheckOutAccessAsync(
-        Guid visitId,
+    Task<IReadOnlyList<Visit>> ListByFacilityAsync(
+        Guid facilityId,
+        int skip,
+        int take,
+        CancellationToken cancellationToken);
+
+    Task<int> CountByFacilityAsync(
+        Guid facilityId,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Visit>> ListAllAsync(
+        int skip,
+        int take,
+        CancellationToken cancellationToken);
+
+    Task<int> CountAllAsync(
         CancellationToken cancellationToken);
 }
