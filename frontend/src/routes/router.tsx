@@ -19,6 +19,7 @@ import { StaffContractPage } from '../pages/StaffContractPage'
 import { StaffAccessVisitPage } from '../pages/StaffAccessVisitPage'
 import { CustomerContractListPage } from '../pages/CustomerContractListPage'
 import { CustomerContractDetailPage } from '../pages/CustomerContractDetailPage'
+import { ContractRenewalPage } from '../pages/ContractRenewalPage'
 import { AccessVisitCreatePage } from '../pages/AccessVisitCreatePage'
 import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
 import { FacilityManagementPage } from '../features/facility-management/FacilityManagementPage'
@@ -79,6 +80,7 @@ export function AppRouter() {
 
         <Route path="customer/contracts" element={<CustomerContractListPage />} />
         <Route path="customer/contracts/:contractId" element={<CustomerContractDetailPage />} />
+        <Route path="customer/contracts/:contractId/renew" element={<ContractRenewalPage key={location.pathname} />} />
         <Route path="customer/contracts/:contractId/access-visits/new" element={<AccessVisitCreatePage />} />
 
         <Route
