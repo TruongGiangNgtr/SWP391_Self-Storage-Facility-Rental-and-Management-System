@@ -1,5 +1,6 @@
 using Frms.Business.Models.Commands;
 using Frms.Business.Models;
+using Frms.Business.Models.Results;
 
 namespace Frms.Business.Services.Interfaces;
 
@@ -9,29 +10,32 @@ public interface IStorageUnitService {
         CreateStorageUnitCommand command,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<StorageUnitListItem>> ListByFacilityAsync(
-        Guid facilityId,
-        CancellationToken cancellationToken = default);
+    Task<(IReadOnlyList<StorageUnitResult> Items, int TotalCount)>
+        ListByFacilityAsync(
+            Guid facilityId,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default);
 
-    Task<StorageUnitListItem?> GetByIdAsync(
+    Task<StorageUnitResult> GetByIdAsync(
         Guid storageUnitId,
         CancellationToken cancellationToken = default);
 
-    Task UpdateAsync(
+    Task<StorageUnitResult> UpdateAsync(
         Guid storageUnitId,
         UpdateStorageUnitCommand command,
         CancellationToken cancellationToken = default);
 
-    Task ChangeStatusAsync(
+    Task<StorageUnitResult> ChangeStatusAsync(
         Guid storageUnitId,
         ChangeStorageUnitStatusCommand command,
         CancellationToken cancellationToken = default);
 
-    Task<StorageUnitPageResult> ListByFacilityPageAsync(
-        Guid facilityId,
-        Guid? unitTypeId,
-        string? status,
-        int page,
-        int pageSize,
-        CancellationToken cancellationToken = default);
+    Task<(IReadOnlyList<StorageUnitResult> Items, int TotalCount)> ListByFacilityAsync(
+            Guid facilityId,
+            Guid? unitTypeId,
+            string? status,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default);
 }

@@ -8,8 +8,7 @@ public sealed class FacilityAuthorizationService(
     ICurrentUserContext currentUser,
     IAuthenticationService authenticationService)
     : IFacilityAuthorizationService {
-    public async Task EnsureSameFacilityAsync(
-        Guid targetFacilityId,
+    public async Task<Guid> GetAssignedFacilityIdAsync(
         CancellationToken cancellationToken = default) {
         if (!currentUser.IsAuthenticated) {
             throw new BusinessException(
@@ -18,14 +17,31 @@ public sealed class FacilityAuthorizationService(
                 401);
         }
 
-        var account = await authenticationService.GetCurrentAccountAsync(
-            currentUser.UserAccountId,
-            cancellationToken);
+        var account =
+            await authenticationService.GetCurrentAccountAsync(
+                currentUser.UserAccountId,
+                cancellationToken);
 
-        if (account.FacilityId is null ||
-            account.FacilityId.Value != targetFacilityId) {
+        if (account.FacilityId is null) {
             throw new BusinessException(
-                "FACILITY_ACCESS_DENIED",
+                "FORBIDDEN",
+                "You are not assigned to a facility.",
+                403);
+        }
+
+        return account.FacilityId.Value;
+    }
+
+    public async Task EnsureSameFacilityAsync(
+        Guid targetFacilityId,
+        CancellationToken cancellationToken = default) {
+        var assignedFacilityId =
+            await GetAssignedFacilityIdAsync(
+                cancellationToken);
+
+        if (assignedFacilityId != targetFacilityId) {
+            throw new BusinessException(
+                "FORBIDDEN",
                 "You are not authorized to access this facility.",
                 403);
         }

@@ -11,12 +11,10 @@ namespace Frms.DataAccess.Repositories.Implementations;
 
 internal sealed class HandoverRepository(
     FrmsDbContext dbContext)
-    : IHandoverRepository
-{
+    : IHandoverRepository {
     public Task<Reservation?> GetReservationAsync(
         Guid reservationId,
-        CancellationToken cancellationToken)
-    {
+        CancellationToken cancellationToken) {
         return dbContext.Reservations
             .AsNoTracking()
             .SingleOrDefaultAsync(
@@ -24,93 +22,66 @@ internal sealed class HandoverRepository(
                 cancellationToken);
     }
 
+    public Task<Employee?> GetEmployeeByUserAccountIdAsync(
+        Guid userAccountId,
+        CancellationToken cancellationToken) {
+        return dbContext.Employees
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                x => x.UserAccountId == userAccountId,
+                cancellationToken);
+    }
+
     public async Task<CompletedHandoverRecord> CompleteAsync(
         Guid reservationId,
         Guid visitId,
         Guid storageUnitId,
-        Guid firstMonthPaymentId,
+        Guid employeeId,
         Guid? discountId,
-        CancellationToken cancellationToken)
-    {
-        var connection = dbContext.Database.GetDbConnection();
+        CancellationToken cancellationToken) {
+        var connection =
+            dbContext.Database.GetDbConnection();
 
         var shouldCloseConnection =
             connection.State != ConnectionState.Open;
 
-        try
-        {
-            if (shouldCloseConnection)
-            {
-                await connection.OpenAsync(cancellationToken);
+        try {
+            if (shouldCloseConnection) {
+                await connection.OpenAsync(
+                    cancellationToken);
             }
 
-            await using var command = connection.CreateCommand();
+            await using var command =
+                connection.CreateCommand();
 
+            // MUST UPDATE SQL dbo.usp_CompleteHandover before use
+            // File located in '/update'
+            // usp_CompleteHandover mordified date 07/10/2026
             command.CommandText =
                 "dbo.usp_CompleteHandover";
 
             command.CommandType =
                 CommandType.StoredProcedure;
 
-            var reservationParameter =
-                command.CreateParameter();
+            AddGuidParameter(
+                command,
+                "@ReservationId",
+                reservationId);
 
-            reservationParameter.ParameterName =
-                "@ReservationId";
+            AddGuidParameter(
+                command,
+                "@VisitId",
+                visitId);
 
-            reservationParameter.DbType =
-                DbType.Guid;
+            AddGuidParameter(
+                command,
+                "@StorageUnitId",
+                storageUnitId);
 
-            reservationParameter.Value =
-                reservationId;
-
-            command.Parameters.Add(
-                reservationParameter);
-
-            var visitParameter =
-                command.CreateParameter();
-
-            visitParameter.ParameterName =
-                "@VisitId";
-
-            visitParameter.DbType =
-                DbType.Guid;
-
-            visitParameter.Value =
-                visitId;
-
-            command.Parameters.Add(
-                visitParameter);
-
-            var storageUnitParameter =
-                command.CreateParameter();
-
-            storageUnitParameter.ParameterName =
-                "@StorageUnitId";
-
-            storageUnitParameter.DbType =
-                DbType.Guid;
-
-            storageUnitParameter.Value =
-                storageUnitId;
-
-            command.Parameters.Add(
-                storageUnitParameter);
-
-            var paymentParameter =
-                command.CreateParameter();
-
-            paymentParameter.ParameterName =
-                "@PaymentId";
-
-            paymentParameter.DbType =
-                DbType.Guid;
-
-            paymentParameter.Value =
-                firstMonthPaymentId;
-
-            command.Parameters.Add(
-                paymentParameter);
+            AddGuidParameter(
+                command,
+                "@EmployeeId",
+                employeeId);
 
             var discountParameter =
                 command.CreateParameter();
@@ -132,12 +103,11 @@ internal sealed class HandoverRepository(
             await command.ExecuteNonQueryAsync(
                 cancellationToken);
         }
-        catch (SqlException ex)
-        {
-            var code = GetBusinessCode(ex.Message);
+        catch (SqlException ex) {
+            var code =
+                GetBusinessCode(ex.Message);
 
-            if (code is not null)
-            {
+            if (code is not null) {
                 throw new StoredProcedureBusinessException(
                     code,
                     code);
@@ -145,11 +115,9 @@ internal sealed class HandoverRepository(
 
             throw;
         }
-        finally
-        {
+        finally {
             if (shouldCloseConnection &&
-                connection.State == ConnectionState.Open)
-            {
+                connection.State == ConnectionState.Open) {
                 await connection.CloseAsync();
             }
         }
@@ -179,7 +147,8 @@ internal sealed class HandoverRepository(
             await dbContext.StorageUnits
                 .AsNoTracking()
                 .SingleAsync(
-                    x => x.StorageUnitId == storageUnitId,
+                    x => x.StorageUnitId ==
+                         contract.StorageUnitId,
                     cancellationToken);
 
         return new CompletedHandoverRecord(
@@ -194,16 +163,28 @@ internal sealed class HandoverRepository(
             storageUnit.Status);
     }
 
+    private static void AddGuidParameter(
+        System.Data.Common.DbCommand command,
+        string name,
+        Guid value) {
+        var parameter =
+            command.CreateParameter();
+
+        parameter.ParameterName = name;
+        parameter.DbType = DbType.Guid;
+        parameter.Value = value;
+
+        command.Parameters.Add(parameter);
+    }
+
     private static string? GetBusinessCode(
-        string message)
-    {
+        string message) {
         var knownCodes = new[]
         {
             "RESERVATION_INVALID_STATUS",
             "VISIT_INVALID_STATUS",
             "UNIT_NOT_AVAILABLE",
             "UNIT_FACILITY_TYPE_MISMATCH",
-            "FIRST_MONTH_PAYMENT_NOT_SUCCESS",
             "DISCOUNT_NOT_OWNED_BY_CUSTOMER",
             "DISCOUNT_NOT_VALID",
             "FORBIDDEN",

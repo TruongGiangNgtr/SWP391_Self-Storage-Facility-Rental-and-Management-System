@@ -27,6 +27,15 @@ public interface IVisitService
         Guid visitId,
         CancellationToken cancellationToken = default);
 
+    Task<Visit> GetByIdAsync(
+        Guid visitId,
+        CancellationToken cancellationToken = default);
+
+    Task<(IReadOnlyList<Visit> Items, int TotalItems)> ListAccessibleAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
     Task<Visit> CreateAccessAsync(
         Guid contractId,
         DateOnly visitDate,

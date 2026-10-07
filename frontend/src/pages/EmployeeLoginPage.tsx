@@ -24,7 +24,7 @@ export function EmployeeLoginPage() {
 
     const normalizedEmail = email.trim()
     if (!normalizedEmail) {
-      setError(presentValidationError('Vui lòng nhập email.'))
+      setError(presentValidationError('Please enter your email address.'))
       return
     }
 
@@ -49,8 +49,8 @@ export function EmployeeLoginPage() {
   return (
     <main className="page-container">
       <section className="auth-card">
-        <h1>Đăng nhập nhân viên</h1>
-        <p className="muted">Dành cho Staff, Manager, Business và Administrator.</p>
+        <h1>Employee Sign In</h1>
+        <p className="muted">For Staff, Manager, Business Operations and Administrator accounts.</p>
         <form className="form-grid" onSubmit={handleSubmit}>
           <div className="form-field">
             <label htmlFor="employeeEmail">Email</label>
@@ -65,7 +65,7 @@ export function EmployeeLoginPage() {
             />
           </div>
           <div className="form-field">
-            <label htmlFor="employeePassword">Mật khẩu</label>
+            <label htmlFor="employeePassword">Password</label>
             <input
               id="employeePassword"
               type="password"
@@ -79,7 +79,7 @@ export function EmployeeLoginPage() {
           </div>
           <ApiErrorAlert error={error} />
           <button className="button" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
+            {isSubmitting ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
       </section>
