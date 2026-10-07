@@ -15,12 +15,14 @@ import { PaymentResultPage } from '../pages/PaymentResultPage'
 import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
 import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
 import { FacilityManagerLayout } from '../layouts/FacilityManagerLayout'
+import { SystemAdministratorLayout } from '../layouts/SystemAdministratorLayout'
 import { FacilityManagementPage } from '../features/facility-management/FacilityManagementPage'
 import { UnitTypePricingPage } from '../features/unit-type-pricing/UnitTypePricingPage'
 import { PolicyVersionManagementPage } from '../features/policy-version-management/PolicyVersionManagementPage'
 import { HandoverUnitSelectionPage } from '../features/handover-unit-selection/HandoverUnitSelectionPage'
 import { PhysicalUnitManagementPage } from '../features/physical-unit-management/PhysicalUnitManagementPage'
 import ManagerSupportTicketsPage from '../features/manager-support/pages/ManagerSupportTicketsPage'
+import UserAccountMonitoringPage from '../features/admin-user-monitoring/UserAccountMonitoringPage'
 import { ReservationConfirmPage } from '../pages/ReservationConfirmPage'
 import { ReservationCreatePage } from '../pages/ReservationCreatePage'
 import { ReservationDetailPage } from '../pages/ReservationDetailPage'
@@ -270,12 +272,72 @@ export function AppRouter() {
     >
       <Route
         path="admin"
-        element={
-          <PortalPlaceholderPage
-            title="System Administrator Portal"
-          />
-        }
-      />
+        element={<SystemAdministratorLayout />}
+      >
+        <Route
+          index
+          element={<Navigate to="users" replace />}
+        />
+
+        <Route
+          path="users"
+          element={<UserAccountMonitoringPage />}
+        />
+
+        <Route
+          path="customer-status"
+          element={
+            <PortalPlaceholderPage
+              title="Customer Account Status"
+            />
+          }
+        />
+
+        <Route
+          path="employees"
+          element={
+            <PortalPlaceholderPage
+              title="Employee Account Management"
+            />
+          }
+        />
+
+        <Route
+          path="assignment"
+          element={
+            <PortalPlaceholderPage
+              title="Role & Facility Assignment"
+            />
+          }
+        />
+
+        <Route
+          path="access-management"
+          element={
+            <PortalPlaceholderPage
+              title="Access Management"
+            />
+          }
+        />
+
+        <Route
+          path="login-history"
+          element={
+            <PortalPlaceholderPage
+              title="Login History"
+            />
+          }
+        />
+
+        <Route
+          path="activity-logs"
+          element={
+            <PortalPlaceholderPage
+              title="Activity Logs"
+            />
+          }
+        />
+      </Route>
     </Route>
   </Route>
 
