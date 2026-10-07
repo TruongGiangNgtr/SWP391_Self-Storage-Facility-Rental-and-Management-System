@@ -1,5 +1,6 @@
 import type {
   CancelVisitRequest,
+  CreateAccessVisitRequest,
   RescheduleVisitRequest,
   VisitDetail,
 } from '../features/visits/visit.types'
@@ -13,6 +14,12 @@ import type {
 import { httpClient } from './httpClient'
 
 export const visitApi = {
+  createAccess(contractId: string, request: CreateAccessVisitRequest): Promise<ApiResponse<VisitDetail>> {
+    return httpClient.post(`/contracts/${encodeURIComponent(contractId)}/access-visits`, {
+      visitDate: request.visitDate,
+    })
+  },
+
   listStaffWorkItems({ date, page = 1, pageSize = 20 }: StaffWorkItemsRequest = {}): Promise<ApiCollectionResponse<StaffWorkItem>> {
     const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) })
     if (date) query.set('date', date)
@@ -21,6 +28,11 @@ export const visitApi = {
 
   checkIn(visitId: string): Promise<unknown> {
     return httpClient.post(`/visits/${encodeURIComponent(visitId)}/check-in`, {})
+  },
+
+  checkOut(visitId: string): Promise<unknown> {
+    // OPS-003 has no client-owned actor/status fields. Read VIS-004 after success.
+    return httpClient.post(`/visits/${encodeURIComponent(visitId)}/check-out`)
   },
 
   completeHandover(reservationId: string, request: CompleteHandoverRequest): Promise<ApiResponse<CompleteHandoverResult>> {

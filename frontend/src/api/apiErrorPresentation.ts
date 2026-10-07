@@ -22,6 +22,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   VISIT_DATE_OUT_OF_POLICY:
     'The visit date is outside the allowed reservation policy window.',
   RESERVATION_INVALID_STATUS: 'The current reservation status does not allow this action.',
+  CONTRACT_NOT_ACTIVE: 'This contract is no longer active. Refresh its details before continuing.',
+  RETURN_VISIT_PENDING: 'A return visit is pending for this contract. A new access visit cannot be scheduled.',
   VISIT_INVALID_STATUS: 'The current visit status does not allow this action.',
   VISIT_ENTITY_MISMATCH: 'This visit does not match the reservation. Refresh the work list.',
   UNIT_NOT_AVAILABLE: 'The Manager-selected storage unit is no longer available. Ask the Manager to select another unit.',
