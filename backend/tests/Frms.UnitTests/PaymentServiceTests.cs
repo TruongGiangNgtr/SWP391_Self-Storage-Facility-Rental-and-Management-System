@@ -52,6 +52,7 @@ public sealed class PaymentServiceTests
         Assert.That(error.SuggestedStatusCode, Is.EqualTo(status));
         Assert.That(h.Repo.Events, Is.Empty);
         Assert.That(h.Gateway.Creates, Is.Zero);
+        Assert.That(h.Gateway.ConfigurationChecks, Is.Zero);
     }
 
     [TestCase(true), TestCase(false)]
@@ -141,6 +142,7 @@ public sealed class PaymentServiceTests
         Assert.That(error!.Code, Is.EqualTo("INVOICE_NOT_PAYABLE"));
         Assert.That(h.Repo.Events, Is.EqualTo(new[] { "invoice", "key" }));
         Assert.That(h.Gateway.Creates, Is.Zero);
+        Assert.That(h.Gateway.ConfigurationChecks, Is.Zero);
     }
 
     [TestCase("PAID"), TestCase("CANCELLED")]
@@ -174,11 +176,13 @@ public sealed class PaymentServiceTests
     public async Task KnownExpiry_UsesExactUtcBoundary(int seconds)
     {
         h.Existing(SessionUrl, Now.AddSeconds(seconds));
+        h.Gateway.ConfigurationError = new InvalidOperationException("Configuration unavailable");
         if (seconds <= 0)
             Assert.That(Assert.ThrowsAsync<BusinessException>(() => h.Start())!.Code, Is.EqualTo("PAYMENT_SESSION_EXPIRED"));
         else
             Assert.That((await h.Start()).PaymentUrlExpiresAt, Is.EqualTo(Now.AddSeconds(1)));
         Assert.That(h.Gateway.Creates, Is.Zero);
+        Assert.That(h.Gateway.ConfigurationChecks, Is.Zero);
     }
 
     [TestCase(false), TestCase(true)]
@@ -193,6 +197,80 @@ public sealed class PaymentServiceTests
         Assert.That(result.PaymentUrl, Is.Null);
         Assert.That(h.Gateway.Creates, Is.Zero);
         Assert.That(h.Repo.Applied, Is.Null);
+        Assert.That(h.Gateway.ConfigurationChecks, Is.EqualTo(atomicRace ? 1 : 0));
+        Assert.That(h.Events, Is.EqualTo(atomicRace
+            ? new[] { "invoice", "key", "configure", "create" }
+            : new[] { "invoice", "key" }));
+    }
+
+    [Test]
+    public async Task ConfigurationFailure_LeavesKeyUnusedAndSameKeyRetryCreatesSession()
+    {
+        var error = new BusinessException("EXTERNAL_PROVIDER_NOT_CONFIGURED", "Payment gateway is not configured.", 503);
+        h.Gateway.ConfigurationError = error;
+        Assert.That(Assert.ThrowsAsync<BusinessException>(() => h.Start()), Is.SameAs(error));
+        Assert.That(h.Events, Is.EqualTo(new[] { "invoice", "key", "configure" }));
+        Assert.That(h.Repo.Events, Is.EqualTo(new[] { "invoice", "key" }));
+        Assert.That(h.Repo.Attempt, Is.Null);
+        Assert.That(h.Repo.ApplyCalls, Is.Zero);
+        Assert.That(h.Gateway.ConfigurationChecks, Is.EqualTo(1));
+        Assert.That(h.Gateway.Creates, Is.Zero);
+
+        h.Gateway.ConfigurationError = null;
+        var result = await h.Start();
+        Assert.That(h.Events, Is.EqualTo(new[]
+        { "invoice", "key", "configure", "invoice", "key", "configure", "create", "gateway-create", "save" }));
+        Assert.That(h.Repo.Attempt!.IdempotencyKey, Is.EqualTo(h.Key));
+        Assert.That(result.InvoiceId, Is.EqualTo(h.Repo.Invoice.InvoiceId));
+        Assert.That(result.PaymentId, Is.EqualTo(h.Repo.Attempt.Detail.PaymentId));
+        Assert.That(result.Status, Is.EqualTo("PENDING"));
+        Assert.That(result.Outcome, Is.EqualTo(PaymentStartOutcome.SessionAvailable));
+        Assert.That(result.PaymentUrl == SessionUrl, Is.True);
+        Assert.That(h.Gateway.ConfigurationChecks, Is.EqualTo(2));
+        Assert.That(h.Gateway.Creates, Is.EqualTo(1));
+        Assert.That(h.Repo.ApplyCalls, Is.Zero);
+    }
+
+    [Test]
+    public void CancellationDuringConfiguration_DoesNotCreateAttempt()
+    {
+        using var source = new CancellationTokenSource();
+        h.Gateway.Configure = ct =>
+        {
+            Assert.That(ct, Is.EqualTo(source.Token));
+            Assert.That(ct.IsCancellationRequested, Is.False);
+            source.Cancel();
+            return Task.FromCanceled(ct);
+        };
+        var error = Assert.CatchAsync<OperationCanceledException>(() => h.Service.StartInvoicePaymentAsync(
+            h.Repo.Invoice.InvoiceId, new(h.Key, "https://app.example.invalid/return"), source.Token));
+        Assert.That(error!.CancellationToken, Is.EqualTo(source.Token));
+        Assert.That(h.Events, Is.EqualTo(new[] { "invoice", "key", "configure" }));
+        Assert.That(h.Repo.Events, Is.EqualTo(new[] { "invoice", "key" }));
+        Assert.That(h.Repo.Attempt, Is.Null);
+        Assert.That(h.Repo.ApplyCalls, Is.Zero);
+        Assert.That(h.Gateway.ConfigurationChecks, Is.EqualTo(1));
+        Assert.That(h.Gateway.Creates, Is.Zero);
+    }
+
+    [TestCase("PENDING", true, PaymentStartOutcome.SessionAvailable)]
+    [TestCase("PENDING", false, PaymentStartOutcome.SessionUnavailable)]
+    [TestCase("SUCCESS", true, PaymentStartOutcome.Terminal)]
+    [TestCase("FAILED", true, PaymentStartOutcome.Terminal)]
+    public async Task ExistingAttempt_BypassesUnavailableConfiguration(string status, bool hasUrl, PaymentStartOutcome outcome)
+    {
+        h.Existing(hasUrl ? SessionUrl : null, status: status);
+        h.Gateway.ConfigurationError = new InvalidOperationException("Configuration unavailable");
+        var result = await h.Start();
+        Assert.That(result.PaymentId, Is.EqualTo(h.Repo.Detail.PaymentId));
+        Assert.That(result.Status, Is.EqualTo(status));
+        Assert.That(result.Outcome, Is.EqualTo(outcome));
+        if (outcome == PaymentStartOutcome.SessionAvailable) Assert.That(result.PaymentUrl == SessionUrl, Is.True);
+        else Assert.That(result.PaymentUrl, Is.Null);
+        Assert.That(h.Events, Is.EqualTo(new[] { "invoice", "key" }));
+        Assert.That(h.Gateway.ConfigurationChecks, Is.Zero);
+        Assert.That(h.Gateway.Creates, Is.Zero);
+        Assert.That(h.Repo.ApplyCalls, Is.Zero);
     }
 
     [TestCase(PaymentAttemptOutcome.IdempotencyConflict, "PAYMENT_IDEMPOTENCY_CONFLICT")]
@@ -201,11 +279,14 @@ public sealed class PaymentServiceTests
     public void ControlledRepositoryConflict_DoesNotDiscloseAttempt(PaymentAttemptOutcome outcome, string code)
     {
         h.Repo.LookupOverride = new(outcome, null);
+        h.Gateway.ConfigurationError = new InvalidOperationException("Configuration unavailable");
         var error = Assert.ThrowsAsync<BusinessException>(() => h.Start());
         Assert.That(error!.Code, Is.EqualTo(code));
         Assert.That(error.SuggestedStatusCode, Is.EqualTo(409));
         Assert.That(error.ToString(), Does.Not.Contain(h.Repo.Detail.PaymentId.ToString()).And.Not.Contain(h.Key.ToString()).And.Not.Contain(SessionUrl));
         Assert.That(h.Gateway.Creates, Is.Zero);
+        Assert.That(h.Gateway.ConfigurationChecks, Is.Zero);
+        Assert.That(h.Events, Is.EqualTo(new[] { "invoice", "key" }));
     }
 
     [Test]
@@ -267,6 +348,7 @@ public sealed class PaymentServiceTests
             Is.EqualTo("VALIDATION_ERROR"));
         Assert.That(h.Repo.Events, Is.EqualTo(new[] { "invoice" }));
         Assert.That(h.Gateway.Creates, Is.Zero);
+        Assert.That(h.Gateway.ConfigurationChecks, Is.Zero);
     }
 
     [Test]
@@ -459,14 +541,20 @@ public sealed class PaymentServiceTests
     }
     private sealed class Gateway(Guid paymentId, List<string> events, List<CancellationToken> tokens) : IPaymentGateway
     {
-        public int Creates, Verifies;
+        public int Creates, Verifies, ConfigurationChecks;
         public PaymentGatewayRequest? Request;
-        public Exception? CreateError, VerifyError;
+        public Exception? CreateError, VerifyError, ConfigurationError;
+        public Func<CancellationToken, Task>? Configure;
         public PaymentGatewayCreationResult Creation = new(PaymentGatewayCreationOutcome.SessionCreated, new(SessionUrl, "session-ref", null), null);
         public PaymentGatewayCallbackResult Verified = new(paymentId, 125.50m, "callback-ref", PaymentGatewayCallbackOutcome.Success, Now);
-        public Task EnsureConfiguredAsync(CancellationToken ct) { tokens.Add(ct); return Task.CompletedTask; }
+        public Task EnsureConfiguredAsync(CancellationToken ct)
+        {
+            ConfigurationChecks++; events.Add("configure"); tokens.Add(ct);
+            if (ConfigurationError is not null) return Task.FromException(ConfigurationError);
+            return Configure?.Invoke(ct) ?? Task.CompletedTask;
+        }
         public Task<PaymentGatewayCreationResult> CreatePaymentAsync(PaymentGatewayRequest request, CancellationToken ct)
-        { Creates++; tokens.Add(ct); Request = request; if (CreateError is not null) throw CreateError; return Task.FromResult(Creation); }
+        { Creates++; events.Add("gateway-create"); tokens.Add(ct); Request = request; if (CreateError is not null) throw CreateError; return Task.FromResult(Creation); }
         public Task<PaymentGatewayCallbackResult> VerifyAndNormalizeCallbackAsync(PaymentGatewayCallbackRequest request, CancellationToken ct)
         { Verifies++; events.Add("verify"); tokens.Add(ct); if (VerifyError is not null) throw VerifyError; return Task.FromResult(Verified); }
     }

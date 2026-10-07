@@ -38,13 +38,14 @@ public sealed class PaymentService(
                 && !(invoice.InvoiceType == "RENTAL_FEE" && invoice.BillingMonth > invoice.ContractStartMonth)))
             throw NotPayable();
 
+        // Known configuration errors must not consume a new idempotency key.
+        await gateway.EnsureConfiguredAsync(cancellationToken);
         var created = await repository.CreateOrGetAsync(
             invoiceId, command.IdempotencyKey, clock.UtcNow, cancellationToken);
         if (created.Outcome != PaymentAttemptOutcome.Created) return StartResult(created);
         var attempt = RequireAttempt(created);
 
         // CreateOrGet has committed. Only its Created winner may perform external session creation.
-        await gateway.EnsureConfiguredAsync(cancellationToken);
         var provider = await gateway.CreatePaymentAsync(
             new(attempt.Detail.PaymentId, attempt.Detail.Amount, command.ReturnUrl), cancellationToken);
         if (provider.Outcome == PaymentGatewayCreationOutcome.SessionCreated
