@@ -20,6 +20,7 @@ import { UnitTypePricingPage } from '../features/unit-type-pricing/UnitTypePrici
 import { PolicyVersionManagementPage } from '../features/policy-version-management/PolicyVersionManagementPage'
 import { HandoverUnitSelectionPage } from '../features/handover-unit-selection/HandoverUnitSelectionPage'
 import { PhysicalUnitManagementPage } from '../features/physical-unit-management/PhysicalUnitManagementPage'
+import ManagerSupportTicketsPage from '../features/manager-support/pages/ManagerSupportTicketsPage'
 import { ReservationConfirmPage } from '../pages/ReservationConfirmPage'
 import { ReservationCreatePage } from '../pages/ReservationCreatePage'
 import { ReservationDetailPage } from '../pages/ReservationDetailPage'
@@ -201,11 +202,7 @@ export function AppRouter() {
 
         <Route
           path="support-assignment"
-          element={
-            <PortalPlaceholderPage
-              title="Assign Support Staff"
-            />
-          }
+          element={<ManagerSupportTicketsPage />}
         />
 
         <Route
