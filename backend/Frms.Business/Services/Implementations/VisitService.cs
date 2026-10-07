@@ -4,13 +4,15 @@ using Frms.Business.Services.Interfaces;
 using Frms.DataAccess.Persistence.Entities;
 using Frms.DataAccess.Repositories.Interfaces;
 using Frms.DataAccess.StoredProcedures;
+using Frms.Business.Abstractions.Time;
 
 namespace Frms.Business.Services.Implementations;
 
 internal sealed class VisitService(
     IVisitRepository repository,
     ICurrentUserContext currentUser,
-    IFacilityAuthorizationService facilityAuthorizationService)
+    IFacilityAuthorizationService facilityAuthorizationService,
+    IClock clock)
     : IVisitService
 {
     public async Task<(IReadOnlyList<Visit> Items, int TotalItems)>
@@ -230,6 +232,45 @@ internal sealed class VisitService(
             }
         }
 
+        if (visit.VisitType == "ACCESS")
+        {
+            var contract =
+                await repository.GetOwnedContractForVisitAsync(
+                    customerId,
+                    visitId,
+                    cancellationToken);
+
+            if (contract is null)
+            {
+                throw new BusinessException(
+                    "VISIT_ENTITY_MISMATCH",
+                    "ACCESS Visit does not reference a valid Contract.",
+                    409);
+            }
+
+            if (contract.Status != "ACTIVE")
+            {
+                throw new BusinessException(
+                    "CONTRACT_NOT_ACTIVE",
+                    "ACCESS Visit requires an active Contract.",
+                    409);
+            }
+
+            ValidateAccessVisitDate(
+                contract,
+                visitDate);
+
+            if (await repository.HasPendingReturnVisitAsync(
+                    contract.ContractId,
+                    cancellationToken))
+            {
+                throw new BusinessException(
+                    "RETURN_VISIT_PENDING",
+                    "A pending RETURN Visit blocks ACCESS Visit rescheduling.",
+                    409);
+            }
+        }
+
         await repository.UpdateVisitDateAsync(
             visitId,
             visitDate,
@@ -375,40 +416,68 @@ internal sealed class VisitService(
                 409);
         }
 
-        // FWP-02 owns RESERVATION check-in.
-        // ACCESS / RETURN check-in is extended by their owning features.
-        if (visit.VisitType != "RESERVATION")
+        if (visit.VisitType == "RESERVATION")
         {
-            throw new BusinessException(
-                "VISIT_ENTITY_MISMATCH",
-                "Visit is not a Reservation Visit.",
-                409);
-        }
+            var reservation =
+                await repository.GetReservationForVisitAsync(
+                    visitId,
+                    cancellationToken);
 
-        var reservation =
-            await repository.GetReservationForVisitAsync(
-                visitId,
+            if (reservation is null)
+            {
+                throw new BusinessException(
+                    "VISIT_ENTITY_MISMATCH",
+                    "Visit does not reference a valid Reservation.",
+                    409);
+            }
+
+            if (reservation.Status != "CONFIRMED")
+            {
+                throw new BusinessException(
+                    "VISIT_INVALID_STATUS",
+                    "Reservation is not in a valid state for check-in.",
+                    409);
+            }
+
+            await facilityAuthorizationService.EnsureSameFacilityAsync(
+                reservation.FacilityId,
                 cancellationToken);
-
-        if (reservation is null)
+        }
+        else if (visit.VisitType == "ACCESS")
         {
+            var contract =
+                await repository.GetContractForVisitAsync(
+                    visitId,
+                    cancellationToken);
+
+            if (contract is null)
+            {
+                throw new BusinessException(
+                    "VISIT_ENTITY_MISMATCH",
+                    "ACCESS Visit does not reference a valid Contract.",
+                    409);
+            }
+
+            if (contract.Status != "ACTIVE")
+            {
+                throw new BusinessException(
+                    "VISIT_INVALID_STATUS",
+                    "ACCESS Visit requires an active Contract.",
+                    409);
+            }
+
+            await facilityAuthorizationService.EnsureSameFacilityAsync(
+                contract.FacilityId,
+                cancellationToken);
+        }
+        else
+        {
+            // RETURN is owned by FWP-05.
             throw new BusinessException(
                 "VISIT_ENTITY_MISMATCH",
-                "Visit does not reference a valid Reservation.",
+                "Visit type is not supported by this operation.",
                 409);
         }
-
-        if (reservation.Status != "CONFIRMED")
-        {
-            throw new BusinessException(
-                "VISIT_INVALID_STATUS",
-                "Reservation is not in a valid state for check-in.",
-                409);
-        }
-
-        await facilityAuthorizationService.EnsureSameFacilityAsync(
-            reservation.FacilityId,
-            cancellationToken);
 
         try
         {
