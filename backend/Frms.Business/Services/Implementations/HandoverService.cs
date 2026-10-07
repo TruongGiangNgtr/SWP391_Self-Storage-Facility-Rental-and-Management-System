@@ -1,3 +1,4 @@
+using Frms.Business.Abstractions.Security;
 using Frms.Business.Exceptions;
 using Frms.Business.Models.Commands;
 using Frms.Business.Services.Interfaces;
@@ -9,22 +10,33 @@ namespace Frms.Business.Services.Implementations;
 
 internal sealed class HandoverService(
     IHandoverRepository repository,
-    IFacilityAuthorizationService facilityAuthorizationService)
-    : IHandoverService
-{
+    IFacilityAuthorizationService facilityAuthorizationService,
+    ICurrentUserContext currentUser)
+    : IHandoverService {
     public async Task<CompletedHandoverRecord> CompleteAsync(
         CompleteHandoverCommand command,
-        CancellationToken cancellationToken = default)
-    {
+        CancellationToken cancellationToken = default) {
         if (command.ReservationId == Guid.Empty ||
             command.VisitId == Guid.Empty ||
-            command.StorageUnitId == Guid.Empty ||
-            command.FirstMonthPaymentId == Guid.Empty)
-        {
+            command.StorageUnitId == Guid.Empty) {
             throw new BusinessException(
                 "VALIDATION_ERROR",
-                "Reservation, Visit, StorageUnit and Payment identifiers are required.",
+                "Reservation, Visit and StorageUnit identifiers are required.",
                 400);
+        }
+
+        if (!currentUser.IsAuthenticated) {
+            throw new BusinessException(
+                "UNAUTHORIZED",
+                "Authentication is required.",
+                401);
+        }
+
+        if (currentUser.Role != "FACILITY_STAFF") {
+            throw new BusinessException(
+                "FORBIDDEN",
+                "Only Facility Staff may complete handover.",
+                403);
         }
 
         var reservation =
@@ -32,32 +44,47 @@ internal sealed class HandoverService(
                 command.ReservationId,
                 cancellationToken);
 
-        if (reservation is null)
-        {
+        if (reservation is null) {
             throw new BusinessException(
                 "RESOURCE_NOT_FOUND",
                 "Reservation was not found.",
                 404);
         }
 
+        var employee =
+            await repository.GetEmployeeByUserAccountIdAsync(
+                currentUser.UserAccountId,
+                cancellationToken);
+
+        if (employee?.FacilityId is null) {
+            throw new BusinessException(
+                "FORBIDDEN",
+                "Facility Staff profile is not available.",
+                403);
+        }
+
         await facilityAuthorizationService.EnsureSameFacilityAsync(
             reservation.FacilityId,
             cancellationToken);
 
-        try
-        {
+        if (employee.FacilityId.Value != reservation.FacilityId) {
+            throw new BusinessException(
+                "FORBIDDEN",
+                "Reservation belongs to another Facility.",
+                403);
+        }
+
+        try {
             return await repository.CompleteAsync(
                 command.ReservationId,
                 command.VisitId,
                 command.StorageUnitId,
-                command.FirstMonthPaymentId,
+                employee.EmployeeId,
                 command.DiscountId,
                 cancellationToken);
         }
-        catch (StoredProcedureBusinessException ex)
-        {
-            switch (ex.Code)
-            {
+        catch (StoredProcedureBusinessException ex) {
+            switch (ex.Code) {
                 case "RESERVATION_INVALID_STATUS":
                     throw new BusinessException(
                         ex.Code,
@@ -80,12 +107,6 @@ internal sealed class HandoverService(
                     throw new BusinessException(
                         ex.Code,
                         "The selected StorageUnit does not match the Reservation Facility and Unit Type.",
-                        409);
-
-                case "FIRST_MONTH_PAYMENT_NOT_SUCCESS":
-                    throw new BusinessException(
-                        ex.Code,
-                        "The first-month payment has not succeeded.",
                         409);
 
                 case "DISCOUNT_NOT_OWNED_BY_CUSTOMER":

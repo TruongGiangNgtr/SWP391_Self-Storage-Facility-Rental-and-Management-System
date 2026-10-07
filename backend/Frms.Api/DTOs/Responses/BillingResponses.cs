@@ -42,3 +42,12 @@ public sealed record FirstMonthMomoPaymentResponse(
     decimal Amount,
     string Status,
     string PaymentUrl);
+
+public sealed record DiscountResponse(
+    Guid DiscountId,
+    Guid CustomerId,
+    string Name,
+    decimal Percentage,
+    string Status,
+    DateTime EffectiveFrom,
+    DateTime? EffectiveTo);

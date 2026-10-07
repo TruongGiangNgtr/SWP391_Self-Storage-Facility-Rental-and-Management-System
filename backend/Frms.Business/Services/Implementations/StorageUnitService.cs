@@ -256,7 +256,7 @@ internal sealed class StorageUnitService(
 
         if (storageUnit is null) {
             throw new BusinessException(
-                "STORAGE_UNIT_NOT_FOUND",
+                "RESOURCE_NOT_FOUND",
                 "Storage unit was not found.",
                 404);
         }
@@ -302,30 +302,30 @@ internal sealed class StorageUnitService(
         }
     }
 
-    public async Task<StorageUnitPageResult> ListByFacilityPageAsync(
+    public async Task<
+    (IReadOnlyList<StorageUnitResult> Items, int TotalCount)> ListByFacilityAsync(
         Guid facilityId,
         Guid? unitTypeId,
         string? status,
         int page,
         int pageSize,
-        CancellationToken cancellationToken = default)
-    {
+        CancellationToken cancellationToken = default) {
+        ValidatePagination(page, pageSize);
+
         await facilityAuthorizationService.EnsureSameFacilityAsync(
             facilityId,
             cancellationToken);
 
-        if (page < 1 ||
-            pageSize < 1 ||
-            pageSize > 100)
-        {
+        if (!await repository.FacilityExistsAsync(
+                facilityId,
+                cancellationToken)) {
             throw new BusinessException(
-                "VALIDATION_ERROR",
-                "Page must be at least 1 and pageSize must be between 1 and 100.",
-                400);
+                "FACILITY_NOT_FOUND",
+                "Facility was not found.",
+                404);
         }
 
-        if (unitTypeId == Guid.Empty)
-        {
+        if (unitTypeId == Guid.Empty) {
             throw new BusinessException(
                 "VALIDATION_ERROR",
                 "unitTypeId is invalid.",
@@ -341,15 +341,14 @@ internal sealed class StorageUnitService(
             normalizedStatus != "AVAILABLE" &&
             normalizedStatus != "IN_USE" &&
             normalizedStatus != "INSPECTION" &&
-            normalizedStatus != "MAINTENANCE")
-        {
+            normalizedStatus != "MAINTENANCE") {
             throw new BusinessException(
                 "VALIDATION_ERROR",
                 "StorageUnit status is invalid.",
                 400);
         }
 
-        var totalItems =
+        var totalCount =
             await repository.CountByFacilityAsync(
                 facilityId,
                 unitTypeId,
@@ -366,17 +365,15 @@ internal sealed class StorageUnitService(
                 cancellationToken);
 
         var items = records
-            .Select(x => new StorageUnitListItem(
+            .Select(x => new StorageUnitResult(
                 x.StorageUnitId,
                 x.FacilityId,
                 x.UnitTypeId,
                 x.UnitCode,
                 x.LocationInfo,
                 x.Status))
-            .ToArray();
+            .ToList();
 
-        return new StorageUnitPageResult(
-            items,
-            totalItems);
+        return (items, totalCount);
     }
 }

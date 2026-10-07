@@ -22,22 +22,22 @@ public sealed class StaffOperationsController(
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default) => ScaffoldNotImplemented("OPS-001");
 
-    /// <summary>OPS-004: Atomic Complete Handover scaffold.</summary>
-    [HttpPost("{reservationId:guid}/complete-handover")]
+    /// <summary>OPS-004: Atomic Complete Handover.</summary>
+    [HttpPost("reservations/{reservationId:guid}/complete-handover")]
     [ProducesResponseType(
         typeof(ApiResponse<CompleteHandoverResponse>),
         StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<CompleteHandoverResponse>>> CompleteHandover(
-        Guid reservationId,
-        [FromBody] CompleteHandoverRequest request,
-        CancellationToken cancellationToken) {
+    public async Task<ActionResult<ApiResponse<CompleteHandoverResponse>>>
+        CompleteHandover(
+            Guid reservationId,
+            [FromBody] CompleteHandoverRequest request,
+            CancellationToken cancellationToken) {
         var result =
             await handoverService.CompleteAsync(
                 new CompleteHandoverCommand(
                     reservationId,
                     request.VisitId,
                     request.StorageUnitId,
-                    request.FirstMonthPaymentId,
                     request.DiscountId),
                 cancellationToken);
 

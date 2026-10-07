@@ -320,4 +320,62 @@ internal sealed class VisitRepository(
             select contract)
             .SingleOrDefaultAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<Visit>> ListByFacilityAsync(
+        Guid facilityId,
+        int skip,
+        int take,
+        CancellationToken cancellationToken) {
+        return await FacilityVisits(facilityId)
+            .AsNoTracking()
+            .OrderByDescending(x => x.VisitDate)
+            .ThenBy(x => x.VisitId)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<int> CountByFacilityAsync(
+        Guid facilityId,
+        CancellationToken cancellationToken) {
+        return FacilityVisits(facilityId)
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Visit>> ListAllAsync(
+        int skip,
+        int take,
+        CancellationToken cancellationToken) {
+        return await dbContext.Visits
+            .AsNoTracking()
+            .OrderByDescending(x => x.VisitDate)
+            .ThenBy(x => x.VisitId)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<int> CountAllAsync(
+        CancellationToken cancellationToken) {
+        return dbContext.Visits
+            .CountAsync(cancellationToken);
+    }
+
+    private IQueryable<Visit> FacilityVisits(Guid facilityId) {
+        return dbContext.Visits.Where(visit =>
+            (
+                visit.VisitType == "RESERVATION" &&
+                dbContext.Reservations.Any(reservation =>
+                    reservation.ReservationId == visit.EntityId &&
+                    reservation.FacilityId == facilityId)
+            )
+            ||
+            (
+                (visit.VisitType == "ACCESS" ||
+                 visit.VisitType == "RETURN") &&
+                dbContext.Contracts.Any(contract =>
+                    contract.ContractId == visit.EntityId &&
+                    contract.FacilityId == facilityId)
+            ));
+    }
 }
