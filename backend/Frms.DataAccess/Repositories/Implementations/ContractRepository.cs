@@ -31,43 +31,43 @@ internal sealed class ContractRepository(
                 cancellationToken);
     }
 
-    public async Task<IReadOnlyList<ContractSummaryRecord>> ListByCustomerAsync(
+    public Task<IReadOnlyList<ContractSummaryRecord>> ListByCustomerAsync(
         Guid customerId,
         int skip,
         int take,
         CancellationToken cancellationToken)
     {
-        return await (
-                from contract in dbContext.Contracts.AsNoTracking()
-                join unit in dbContext.StorageUnits.AsNoTracking()
-                    on contract.StorageUnitId equals unit.StorageUnitId
-                join unitType in dbContext.UnitTypes.AsNoTracking()
-                    on unit.UnitTypeId equals unitType.UnitTypeId
-                where contract.CustomerId == customerId
-                orderby contract.Status == "ACTIVE" descending,
-                    contract.EndMonth descending,
-                    contract.ContractId
-                select new ContractSummaryRecord(
-                    contract.ContractId,
-                    contract.FacilityId,
-                    contract.StorageUnitId,
-                    unit.UnitCode,
-                    unitType.UnitTypeId,
-                    unitType.Name,
-                    unitType.Mode,
-                    contract.StartMonth,
-                    contract.EndMonth,
-                    contract.Status))
-            .Skip(skip)
-            .Take(take)
-            .ToListAsync(cancellationToken);
+        return ListAsync(
+            customerId,
+            facilityId: null,
+            skip,
+            take,
+            cancellationToken);
     }
 
-    public async Task<ContractDetailRecord?> GetDetailAsync(
-        Guid customerId,
+    public Task<ContractDetailRecord?> GetDetailAsync(
+    Guid customerId,
+    Guid contractId,
+    CancellationToken cancellationToken) {
+        return GetDetailCoreAsync(
+            contractId,
+            customerId,
+            cancellationToken);
+    }
+
+    public Task<ContractDetailRecord?> GetDetailByIdAsync(
         Guid contractId,
-        CancellationToken cancellationToken)
-    {
+        CancellationToken cancellationToken) {
+        return GetDetailCoreAsync(
+            contractId,
+            customerId: null,
+            cancellationToken);
+    }
+
+    private async Task<ContractDetailRecord?> GetDetailCoreAsync(
+    Guid contractId,
+    Guid? customerId,
+    CancellationToken cancellationToken) {
         var contract = await (
                 from c in dbContext.Contracts.AsNoTracking()
                 join unit in dbContext.StorageUnits.AsNoTracking()
@@ -75,17 +75,16 @@ internal sealed class ContractRepository(
                 join unitType in dbContext.UnitTypes.AsNoTracking()
                     on unit.UnitTypeId equals unitType.UnitTypeId
                 where c.ContractId == contractId
-                      && c.CustomerId == customerId
-                select new
-                {
+                      && (!customerId.HasValue ||
+                          c.CustomerId == customerId.Value)
+                select new {
                     Contract = c,
                     Unit = unit,
                     UnitType = unitType
                 })
             .SingleOrDefaultAsync(cancellationToken);
 
-        if (contract is null)
-        {
+        if (contract is null) {
             return null;
         }
 
@@ -154,5 +153,93 @@ internal sealed class ContractRepository(
             extensions,
             visits,
             invoices);
+    }
+
+    public Task<int> CountByFacilityAsync(
+    Guid facilityId,
+    CancellationToken cancellationToken) {
+        return dbContext.Contracts
+            .AsNoTracking()
+            .CountAsync(
+                x => x.FacilityId == facilityId,
+                cancellationToken);
+    }
+
+    public Task<int> CountAllAsync(
+        CancellationToken cancellationToken) {
+        return dbContext.Contracts
+            .AsNoTracking()
+            .CountAsync(cancellationToken);
+    }
+
+    public Task<IReadOnlyList<ContractSummaryRecord>> ListByFacilityAsync(
+        Guid facilityId,
+        int skip,
+        int take,
+        CancellationToken cancellationToken) {
+        return ListAsync(
+            customerId: null,
+            facilityId,
+            skip,
+            take,
+            cancellationToken);
+    }
+
+    public Task<IReadOnlyList<ContractSummaryRecord>> ListAllAsync(
+        int skip,
+        int take,
+        CancellationToken cancellationToken) {
+        return ListAsync(
+            customerId: null,
+            facilityId: null,
+            skip,
+            take,
+            cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<ContractSummaryRecord>> ListAsync(
+        Guid? customerId,
+        Guid? facilityId,
+        int skip,
+        int take,
+        CancellationToken cancellationToken) {
+        var contracts =
+            dbContext.Contracts.AsNoTracking();
+
+        var scoped = contracts.AsQueryable();
+
+        if (customerId.HasValue) {
+            scoped = scoped.Where(
+                x => x.CustomerId == customerId.Value);
+        }
+
+        if (facilityId.HasValue) {
+            scoped = scoped.Where(
+                x => x.FacilityId == facilityId.Value);
+        }
+
+        return await (
+                from contract in scoped
+                join unit in dbContext.StorageUnits.AsNoTracking()
+                    on contract.StorageUnitId equals unit.StorageUnitId
+                join unitType in dbContext.UnitTypes.AsNoTracking()
+                    on unit.UnitTypeId equals unitType.UnitTypeId
+                orderby contract.Status == "ACTIVE" descending,
+                    contract.EndMonth descending,
+                    contract.ContractId
+                select new ContractSummaryRecord(
+                    contract.ContractId,
+                    contract.FacilityId,
+                    contract.StorageUnitId,
+                    unit.UnitCode,
+                    unitType.UnitTypeId,
+                    unitType.Name,
+                    unitType.Mode,
+                    contract.StartMonth,
+                    contract.EndMonth,
+                    contract.Status))
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
     }
 }

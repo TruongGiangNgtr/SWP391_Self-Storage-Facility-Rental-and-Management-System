@@ -15,7 +15,11 @@ public sealed class ContractsController(
     : ScaffoldControllerBase
 {
     /// <summary>CON-001: List own Contracts.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
+    [Authorize(
+    Roles =
+        RoleNames.Customer + "," +
+        RoleNames.FacilityManager + "," +
+        RoleNames.BusinessOperationsManager)]
     [HttpGet]
     [ProducesResponseType(
         typeof(ContractListResponse),
@@ -26,7 +30,7 @@ public sealed class ContractsController(
         CancellationToken cancellationToken = default)
     {
         var result =
-            await contractService.ListOwnAsync(
+            await contractService.ListAccessibleAsync(
                 page,
                 pageSize,
                 cancellationToken);
@@ -56,7 +60,12 @@ public sealed class ContractsController(
     }
 
     /// <summary>CON-002: Get own Contract detail.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
+    [Authorize(
+    Roles =
+        RoleNames.Customer + "," +
+        RoleNames.FacilityStaff + "," +
+        RoleNames.FacilityManager + "," +
+        RoleNames.BusinessOperationsManager)]
     [HttpGet("{contractId:guid}")]
     [ProducesResponseType(
         typeof(ApiResponse<ContractDetailResponse>),
@@ -66,7 +75,7 @@ public sealed class ContractsController(
         CancellationToken cancellationToken)
     {
         var result =
-            await contractService.GetOwnAsync(
+            await contractService.GetAccessibleAsync(
                 contractId,
                 cancellationToken);
 
@@ -171,15 +180,6 @@ public sealed class ContractsController(
     public ActionResult<ApiErrorResponse> GetReturnSummary(
         Guid contractId,
         CancellationToken cancellationToken) => ScaffoldNotImplemented("CON-005");
-
-    /// <summary>VIS-001: Create an ACCESS Visit scaffold.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
-    [HttpPost("{contractId:guid}/access-visits")]
-    [ProducesResponseType(typeof(ApiResponse<VisitDetailResponse>), StatusCodes.Status201Created)]
-    public ActionResult<ApiErrorResponse> CreateAccessVisit(
-        Guid contractId,
-        [FromBody] CreateAccessVisitRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("VIS-001");
 
     /// <summary>VIS-002: Create a RETURN Visit scaffold.</summary>
     [Authorize(Roles = RoleNames.Customer)]
