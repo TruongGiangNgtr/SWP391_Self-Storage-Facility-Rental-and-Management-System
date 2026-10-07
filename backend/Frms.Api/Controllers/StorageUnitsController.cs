@@ -24,12 +24,16 @@ public sealed class StorageUnitsController(
         ActionResult<PaginatedResponse<StorageUnitDetailResponse>>>
         ListStorageUnits(
             Guid facilityId,
+            [FromQuery] Guid? unitTypeId = null,
+            [FromQuery] string? status = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
             CancellationToken cancellationToken = default) {
         var (items, totalCount) =
             await storageUnitService.ListByFacilityAsync(
                 facilityId,
+                unitTypeId,
+                status,
                 page,
                 pageSize,
                 cancellationToken);
@@ -38,8 +42,10 @@ public sealed class StorageUnitsController(
             .Select(ToResponse)
             .ToList();
 
-        var totalPages = (int)Math.Ceiling(
-            totalCount / (double)pageSize);
+        var totalPages = totalCount == 0
+            ? 0
+            : (int)Math.Ceiling(
+                totalCount / (double)pageSize);
 
         return Ok(
             new PaginatedResponse<StorageUnitDetailResponse>(

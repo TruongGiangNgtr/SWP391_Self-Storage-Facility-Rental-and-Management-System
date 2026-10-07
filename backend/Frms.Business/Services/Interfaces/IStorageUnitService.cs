@@ -31,11 +31,11 @@ public interface IStorageUnitService {
         ChangeStorageUnitStatusCommand command,
         CancellationToken cancellationToken = default);
 
-    Task<StorageUnitPageResult> ListByFacilityPageAsync(
-        Guid facilityId,
-        Guid? unitTypeId,
-        string? status,
-        int page,
-        int pageSize,
-        CancellationToken cancellationToken = default);
+    Task<(IReadOnlyList<StorageUnitResult> Items, int TotalCount)> ListByFacilityAsync(
+            Guid facilityId,
+            Guid? unitTypeId,
+            string? status,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default);
 }
