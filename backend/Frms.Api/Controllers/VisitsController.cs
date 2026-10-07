@@ -50,17 +50,21 @@ public sealed class VisitsController(
         });
     }
 
-    /// <summary>VIS-004: Get own Visit detail.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
+    /// <summary>VIS-004: Authorized Visit detail.</summary>
+    [Authorize(
+        Roles =
+            RoleNames.Customer + "," +
+            RoleNames.FacilityStaff + "," +
+            RoleNames.FacilityManager + "," +
+            RoleNames.BusinessOperationsManager)]
     [HttpGet("{visitId:guid}")]
     [ProducesResponseType(
         typeof(ApiResponse<VisitDetailResponse>),
         StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<VisitDetailResponse>>> GetVisit(
         Guid visitId,
-        CancellationToken cancellationToken)
-    {
-        var visit = await visitService.GetOwnAsync(
+        CancellationToken cancellationToken) {
+        var visit = await visitService.GetByIdAsync(
             visitId,
             cancellationToken);
 

@@ -366,4 +366,110 @@ internal sealed class VisitService(
             }
         }
     }
+
+    public async Task<Visit> GetByIdAsync(
+        Guid visitId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated) {
+            throw new BusinessException(
+                "UNAUTHORIZED",
+                "Authentication is required.",
+                401);
+        }
+
+        switch (currentUser.Role) {
+            case "CUSTOMER":
+                return await GetOwnAsync(
+                    visitId,
+                    cancellationToken);
+
+            case "FACILITY_STAFF":
+            case "FACILITY_MANAGER": {
+                var visit = await GetRequiredByIdAsync(
+                    visitId,
+                    cancellationToken);
+
+                var facilityId = await ResolveVisitFacilityIdAsync(
+                    visit,
+                    cancellationToken);
+
+                await facilityAuthorizationService.EnsureSameFacilityAsync(
+                    facilityId,
+                    cancellationToken);
+
+                return visit;
+            }
+
+            case "BUSINESS_OPERATIONS_MANAGER":
+                return await GetRequiredByIdAsync(
+                    visitId,
+                    cancellationToken);
+
+            default:
+                throw new BusinessException(
+                    "FORBIDDEN",
+                    "You are not authorized to access this Visit.",
+                    403);
+        }
+    }
+
+    private async Task<Visit> GetRequiredByIdAsync(
+        Guid visitId,
+        CancellationToken cancellationToken)
+    {
+        return await repository.GetByIdAsync(
+                   visitId,
+                   cancellationToken)
+               ?? throw new BusinessException(
+                   "RESOURCE_NOT_FOUND",
+                   "Visit was not found.",
+                   404);
+    }
+
+    private async Task<Guid> ResolveVisitFacilityIdAsync(
+        Visit visit,
+        CancellationToken cancellationToken)
+    {
+        switch (visit.VisitType) {
+            case "RESERVATION": {
+                var reservation =
+                    await repository.GetReservationForVisitAsync(
+                        visit.VisitId,
+                        cancellationToken);
+
+                if (reservation is null) {
+                    throw new BusinessException(
+                        "RESOURCE_NOT_FOUND",
+                        "Referenced Reservation was not found.",
+                        404);
+                }
+
+                return reservation.FacilityId;
+            }
+
+            case "ACCESS":
+            case "RETURN": {
+                var contract =
+                    await repository.GetContractForVisitAsync(
+                        visit.VisitId,
+                        cancellationToken);
+
+                if (contract is null) {
+                    throw new BusinessException(
+                        "RESOURCE_NOT_FOUND",
+                        "Referenced Contract was not found.",
+                        404);
+                }
+
+                return contract.FacilityId;
+            }
+
+            default:
+                throw new BusinessException(
+                    "RESOURCE_NOT_FOUND",
+                    "Visit referenced resource was not found.",
+                    404);
+        }
+    }
 }

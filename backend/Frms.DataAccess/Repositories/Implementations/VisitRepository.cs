@@ -305,4 +305,19 @@ internal sealed class VisitRepository(
                 x => x.VisitId == visitId,
                 cancellationToken);
     }
+
+    public Task<Contract?> GetContractForVisitAsync(
+        Guid visitId,
+        CancellationToken cancellationToken)
+    {
+        return (
+            from visit in dbContext.Visits.AsNoTracking()
+            join contract in dbContext.Contracts.AsNoTracking()
+                on visit.EntityId equals contract.ContractId
+            where visit.VisitId == visitId
+                  && (visit.VisitType == "ACCESS"
+                      || visit.VisitType == "RETURN")
+            select contract)
+            .SingleOrDefaultAsync(cancellationToken);
+    }
 }

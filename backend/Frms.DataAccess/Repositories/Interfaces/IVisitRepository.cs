@@ -59,4 +59,8 @@ public interface IVisitRepository
         Guid visitId,
         Guid employeeId,
         CancellationToken cancellationToken);
+
+    Task<Contract?> GetContractForVisitAsync(
+        Guid visitId,
+        CancellationToken cancellationToken);
 }
