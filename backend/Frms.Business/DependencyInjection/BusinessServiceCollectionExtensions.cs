@@ -19,6 +19,10 @@ public static class BusinessServiceCollectionExtensions
         services.AddScoped<ICapacityService, CapacityService>();
         services.AddScoped<IReservationExpirationService,ReservationExpirationService>();
         services.AddScoped<IHandoverService, HandoverService>();
+        services.AddScoped<IUnitTypeService, UnitTypeService>();
+        services.AddScoped<IPolicyService, PolicyService>();
+        services.AddScoped<IAdminUserService, AdminUserService>();
+        services.AddScoped<IAdminEmployeeService, AdminEmployeeService>();
         return services;
     }
 }

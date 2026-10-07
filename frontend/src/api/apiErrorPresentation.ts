@@ -7,23 +7,45 @@ export interface ApiErrorPresentation {
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
-  AUTH_INVALID_CREDENTIALS: 'Thông tin đăng nhập không chính xác.',
-  ACCOUNT_INACTIVE: 'Tài khoản hiện không hoạt động. Vui lòng liên hệ hỗ trợ.',
-  VALIDATION_ERROR: 'Thông tin gửi lên chưa hợp lệ. Vui lòng kiểm tra lại.',
-  UNAUTHORIZED: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.',
-  FORBIDDEN: 'Tài khoản không có quyền thực hiện thao tác này.',
+  AUTH_INVALID_CREDENTIALS: 'Incorrect sign-in details.',
+  ACCOUNT_INACTIVE: 'Your account is inactive. Please contact support.',
+  VALIDATION_ERROR: 'Some information is invalid. Please check your input.',
+  UNAUTHORIZED: 'Your session is invalid or has expired.',
+  FORBIDDEN: 'You do not have permission to perform this action.',
+  ENDPOINT_NOT_IMPLEMENTED: 'This feature is not available yet. Please try again later.',
+  RESOURCE_NOT_FOUND: 'The requested resource was not found.',
+  FACILITY_INACTIVE: 'This facility is not accepting new reservations.',
+  INVALID_MONTH_RANGE: 'The rental month range is invalid.',
+  CAPACITY_NOT_AVAILABLE:
+    'The selected storage type no longer has capacity for the full rental period. Please search again.',
+  DEPOSIT_NOT_PAID: 'The deposit has not been recorded as paid.',
+  VISIT_DATE_OUT_OF_POLICY:
+    'The visit date is outside the allowed reservation policy window.',
+  RESERVATION_INVALID_STATUS: 'The current reservation status does not allow this action.',
+  CONTRACT_NOT_ACTIVE: 'This contract is no longer active. Refresh its details before continuing.',
+  RETURN_VISIT_PENDING: 'A return visit is pending for this contract. New access visits and contract renewal are blocked.',
+  RENEWAL_NOT_CONTIGUOUS: 'The extension must continue from the current end month. Refresh the contract and choose a later end month.',
+  RENEWAL_CAPACITY_NOT_AVAILABLE: 'Capacity is not available for every month of this extension. Choose a different end month and try again.',
+  VISIT_INVALID_STATUS: 'The current visit status does not allow this action.',
+  VISIT_ENTITY_MISMATCH: 'This visit does not match the reservation. Refresh the work list.',
+  UNIT_NOT_AVAILABLE: 'The Manager-selected storage unit is no longer available. Ask the Manager to select another unit.',
+  UNIT_FACILITY_TYPE_MISMATCH: 'The selected unit does not match the reservation facility or storage type.',
+  DISCOUNT_NOT_OWNED_BY_CUSTOMER: 'The selected discount does not belong to this customer.',
+  DISCOUNT_NOT_VALID: 'The selected discount is not valid for this contract. Refresh the discount list.',
+  EXTERNAL_PROVIDER_UNAVAILABLE:
+    'The external service is temporarily unavailable. Please try again later.',
 }
 
 export function presentApiError(error: unknown): ApiErrorPresentation {
   if (!(error instanceof ApiRequestError)) {
     return {
-      message: 'Không thể kết nối đến máy chủ. Vui lòng thử lại.',
+      message: 'Unable to connect to the server. Please try again.',
       details: [],
     }
   }
 
   return {
-    message: ERROR_MESSAGES[error.code] ?? 'Yêu cầu không thể hoàn tất. Vui lòng thử lại.',
+    message: ERROR_MESSAGES[error.code] ?? 'The request could not be completed. Please try again.',
     traceId: error.traceId,
     details: error.errors ? Object.values(error.errors).flat() : [],
   }
