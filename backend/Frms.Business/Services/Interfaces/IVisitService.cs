@@ -22,4 +22,8 @@ public interface IVisitService
         Guid visitId,
         string reason,
         CancellationToken cancellationToken = default);
+
+    Task<Visit> CheckInAsync(
+        Guid visitId,
+        CancellationToken cancellationToken = default);
 }

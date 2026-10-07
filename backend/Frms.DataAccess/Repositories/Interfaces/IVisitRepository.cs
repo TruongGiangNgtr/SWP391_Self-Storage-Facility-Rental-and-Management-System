@@ -42,4 +42,21 @@ public interface IVisitRepository
         Guid visitId,
         string reason,
         CancellationToken cancellationToken);
+
+    Task<Employee?> GetEmployeeByUserAccountIdAsync(
+        Guid userAccountId,
+        CancellationToken cancellationToken);
+
+    Task<Visit?> GetByIdAsync(
+        Guid visitId,
+        CancellationToken cancellationToken);
+
+    Task<Reservation?> GetReservationForVisitAsync(
+        Guid visitId,
+        CancellationToken cancellationToken);
+
+    Task<Visit> CheckInAsync(
+        Guid visitId,
+        Guid employeeId,
+        CancellationToken cancellationToken);
 }

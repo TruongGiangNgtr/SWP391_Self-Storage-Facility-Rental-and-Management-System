@@ -300,4 +300,82 @@ internal sealed class StorageUnitService(
                 400);
         }
     }
+
+    public async Task<StorageUnitPageResult> ListByFacilityPageAsync(
+        Guid facilityId,
+        Guid? unitTypeId,
+        string? status,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        await facilityAuthorizationService.EnsureSameFacilityAsync(
+            facilityId,
+            cancellationToken);
+
+        if (page < 1 ||
+            pageSize < 1 ||
+            pageSize > 100)
+        {
+            throw new BusinessException(
+                "VALIDATION_ERROR",
+                "Page must be at least 1 and pageSize must be between 1 and 100.",
+                400);
+        }
+
+        if (unitTypeId == Guid.Empty)
+        {
+            throw new BusinessException(
+                "VALIDATION_ERROR",
+                "unitTypeId is invalid.",
+                400);
+        }
+
+        var normalizedStatus =
+            string.IsNullOrWhiteSpace(status)
+                ? null
+                : status.Trim().ToUpperInvariant();
+
+        if (normalizedStatus is not null &&
+            normalizedStatus != "AVAILABLE" &&
+            normalizedStatus != "IN_USE" &&
+            normalizedStatus != "INSPECTION" &&
+            normalizedStatus != "MAINTENANCE")
+        {
+            throw new BusinessException(
+                "VALIDATION_ERROR",
+                "StorageUnit status is invalid.",
+                400);
+        }
+
+        var totalItems =
+            await repository.CountByFacilityAsync(
+                facilityId,
+                unitTypeId,
+                normalizedStatus,
+                cancellationToken);
+
+        var records =
+            await repository.ListByFacilityPageAsync(
+                facilityId,
+                unitTypeId,
+                normalizedStatus,
+                (page - 1) * pageSize,
+                pageSize,
+                cancellationToken);
+
+        var items = records
+            .Select(x => new StorageUnitListItem(
+                x.StorageUnitId,
+                x.FacilityId,
+                x.UnitTypeId,
+                x.UnitCode,
+                x.LocationInfo,
+                x.Status))
+            .ToArray();
+
+        return new StorageUnitPageResult(
+            items,
+            totalItems);
+    }
 }
