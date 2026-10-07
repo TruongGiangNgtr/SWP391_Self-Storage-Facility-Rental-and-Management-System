@@ -140,7 +140,7 @@ export function BusinessOperationsLayout({
               }
             }}
           >
-            <LogOut size={16} />
+            <LogOut size={1} />
             <span>Sign Out</span>
           </button>
         </div>
