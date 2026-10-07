@@ -11,26 +11,67 @@ namespace Frms.Api.Controllers;
 public sealed class CatalogController(
     ICapacityService capacityService,
     IUnitTypeService unitTypeService,
-    IFacilityAuthorizationService facilityAuthorizationService)
-    : ScaffoldControllerBase
-{
+    IFacilityAuthorizationService facilityAuthorizationService,
+    IFacilityCatalogService facilityCatalogService)
+    : ScaffoldControllerBase {
 
     /// <summary>CAT-001: Browse active Facilities scaffold.</summary>
+    /// <summary>CAT-001: Browse active Facilities.</summary>
     [Authorize(Roles = RoleNames.Customer)]
     [HttpGet("facilities")]
-    [ProducesResponseType(typeof(PaginatedResponse<FacilitySummaryResponse>), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> BrowseFacilities(
+    [ProducesResponseType(
+        typeof(PaginatedResponse<FacilitySummaryResponse>),
+        StatusCodes.Status200OK)]
+    public async Task<IActionResult> BrowseFacilities(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default) => ScaffoldNotImplemented("CAT-001");
+        CancellationToken cancellationToken = default) {
+        var result =
+            await facilityCatalogService.GetActiveFacilitiesAsync(
+                page,
+                pageSize,
+                cancellationToken);
 
-    /// <summary>CAT-002: Facility detail scaffold.</summary>
+        var data = result.Items
+            .Select(MapFacility)
+            .ToArray();
+
+        var totalPages =
+            result.TotalItems == 0
+                ? 0
+                : (int)Math.Ceiling(
+                    result.TotalItems /
+                    (double)result.PageSize);
+
+        return Ok(new {
+            data,
+            pagination = new {
+                page = result.Page,
+                pageSize = result.PageSize,
+                totalItems = result.TotalItems,
+                totalPages
+            }
+        });
+    }
+
+    /// <summary>CAT-002: Active Facility detail.</summary>
     [Authorize(Roles = RoleNames.Customer)]
     [HttpGet("facilities/{facilityId:guid}")]
-    [ProducesResponseType(typeof(ApiResponse<FacilitySummaryResponse>), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> GetFacility(
+    [ProducesResponseType(
+        typeof(ApiResponse<FacilitySummaryResponse>),
+        StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetFacility(
         Guid facilityId,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("CAT-002");
+        CancellationToken cancellationToken) {
+        var result =
+            await facilityCatalogService.GetActiveFacilityAsync(
+                facilityId,
+                cancellationToken);
+
+        return Ok(
+            new ApiResponse<FacilitySummaryResponse>(
+                MapFacility(result)));
+    }
 
     /// <summary>
     /// CAT-004: Unit Type detail.
@@ -42,6 +83,7 @@ public sealed class CatalogController(
             RoleNames.FacilityStaff + "," +
             RoleNames.FacilityManager)]
     [HttpGet("unit-types/{unitTypeId:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<UnitTypeSummary>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUnitType(
         Guid unitTypeId,
         CancellationToken cancellationToken = default) {
@@ -77,7 +119,12 @@ public sealed class CatalogController(
     /// with optional requested-period capacity.
     /// Capacity calculation is owned by SSP-02.
     /// </summary>
-    [HttpGet]
+    [Authorize(
+        Roles =
+            RoleNames.Customer + "," +
+            RoleNames.FacilityStaff + "," +
+            RoleNames.FacilityManager)]
+    [HttpGet("facilities/{facilityId:guid}/unit-types")]
     [ProducesResponseType(
         typeof(PaginatedResponse<UnitTypeAvailabilityResponse>),
         StatusCodes.Status200OK)]
@@ -145,4 +192,14 @@ public sealed class CatalogController(
             }
         });
     }
+
+    private static FacilitySummaryResponse MapFacility(
+        Frms.Business.Models.Results.FacilityCatalogResult facility)
+        => new(
+            facility.FacilityId,
+            facility.Name,
+            facility.Address,
+            facility.ContactInfo,
+            facility.Description,
+            facility.Status);
 }
