@@ -256,7 +256,7 @@ internal sealed class StorageUnitService(
 
         if (storageUnit is null) {
             throw new BusinessException(
-                "STORAGE_UNIT_NOT_FOUND",
+                "RESOURCE_NOT_FOUND",
                 "Storage unit was not found.",
                 404);
         }
