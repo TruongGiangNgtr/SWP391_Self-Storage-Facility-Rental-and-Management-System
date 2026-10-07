@@ -15,6 +15,203 @@ internal sealed class VisitService(
     IClock clock)
     : IVisitService
 {
+    public async Task<Visit> CheckOutAsync(
+    Guid visitId,
+    CancellationToken cancellationToken = default)
+{
+    if (!currentUser.IsAuthenticated)
+    {
+        throw new BusinessException(
+            "UNAUTHORIZED",
+            "Authentication is required.",
+            401);
+    }
+
+    var employee =
+        await repository.GetEmployeeByUserAccountIdAsync(
+            currentUser.UserAccountId,
+            cancellationToken);
+
+    if (employee?.FacilityId is null)
+    {
+        throw new BusinessException(
+            "FORBIDDEN",
+            "Facility Staff profile is not available.",
+            403);
+    }
+
+    var visit =
+        await repository.GetByIdAsync(
+            visitId,
+            cancellationToken);
+
+    if (visit is null)
+    {
+        throw new BusinessException(
+            "RESOURCE_NOT_FOUND",
+            "Visit was not found.",
+            404);
+    }
+
+    if (visit.VisitType != "ACCESS")
+    {
+        throw new BusinessException(
+            "VISIT_ENTITY_MISMATCH",
+            "Only an ACCESS Visit may be checked out through this operation.",
+            409);
+    }
+
+    if (visit.Status != "CHECKED_IN")
+    {
+        throw new BusinessException(
+            "VISIT_INVALID_STATUS",
+            "Only a checked-in ACCESS Visit may be checked out.",
+            409);
+    }
+
+    var contract =
+        await repository.GetContractForVisitAsync(
+            visitId,
+            cancellationToken);
+
+    if (contract is null)
+    {
+        throw new BusinessException(
+            "VISIT_ENTITY_MISMATCH",
+            "ACCESS Visit does not reference a valid Contract.",
+            409);
+    }
+
+    await facilityAuthorizationService.EnsureSameFacilityAsync(
+        contract.FacilityId,
+        cancellationToken);
+
+    try
+    {
+        return await repository.CheckOutAsync(
+            visitId,
+            cancellationToken);
+    }
+    catch (StoredProcedureBusinessException ex)
+        when (ex.Code == "VISIT_INVALID_STATUS")
+    {
+        throw new BusinessException(
+            "VISIT_INVALID_STATUS",
+            "Visit cannot be checked out from its current state.",
+            409);
+    }
+}
+    public async Task<Visit> CreateAccessAsync(
+        Guid contractId,
+        DateOnly visitDate,
+        CancellationToken cancellationToken = default) {
+        var customerId =
+            await GetCustomerIdAsync(cancellationToken);
+
+        var contract =
+            await repository.GetOwnedContractByIdAsync(
+                customerId,
+                contractId,
+                cancellationToken);
+
+        if (contract is null) {
+            throw new BusinessException(
+                "RESOURCE_NOT_FOUND",
+                "Contract was not found.",
+                404);
+        }
+
+        if (contract.Status != "ACTIVE") {
+            throw new BusinessException(
+                "CONTRACT_NOT_ACTIVE",
+                "ACCESS Visit requires an active Contract.",
+                409);
+        }
+
+        ValidateAccessVisitDate(
+            contract,
+            visitDate);
+
+        if (await repository.HasPendingReturnVisitAsync(
+                contractId,
+                cancellationToken)) {
+            throw new BusinessException(
+                "RETURN_VISIT_PENDING",
+                "A pending RETURN Visit blocks ACCESS Visit creation.",
+                409);
+        }
+
+        try {
+            return await repository.CreateAccessAsync(
+                contractId,
+                customerId,
+                visitDate,
+                cancellationToken);
+        }
+        catch (StoredProcedureBusinessException ex) {
+            switch (ex.Code) {
+                case "CONTRACT_NOT_ACTIVE_OR_NOT_OWNED":
+                    throw new BusinessException(
+                        "CONTRACT_NOT_ACTIVE",
+                        "ACCESS Visit requires an active Contract.",
+                        409);
+
+                case "RETURN_VISIT_PENDING":
+                    throw new BusinessException(
+                        ex.Code,
+                        "A pending RETURN Visit blocks ACCESS Visit creation.",
+                        409);
+
+                case "ACCESS_VISIT_DATE_OUTSIDE_CONTRACT":
+                    throw new BusinessException(
+                        ex.Code,
+                        "ACCESS Visit date must be within the Contract period.",
+                        400);
+
+                case "VISIT_DATE_IN_PAST":
+                    throw new BusinessException(
+                        ex.Code,
+                        "ACCESS Visit date cannot be in the past.",
+                        400);
+
+                default:
+                    throw;
+            }
+        }
+    }
+    private void ValidateAccessVisitDate(
+        Contract contract,
+        DateOnly visitDate) {
+        var startDate = new DateOnly(
+            contract.StartMonth.Year,
+            contract.StartMonth.Month,
+            1);
+
+        var endDate = new DateOnly(
+            contract.EndMonth.Year,
+            contract.EndMonth.Month,
+            DateTime.DaysInMonth(
+                contract.EndMonth.Year,
+                contract.EndMonth.Month));
+
+        if (visitDate < startDate || visitDate > endDate) {
+            throw new BusinessException(
+                "ACCESS_VISIT_DATE_OUTSIDE_CONTRACT",
+                "ACCESS Visit date must be within the Contract period.",
+                400);
+        }
+
+        var businessToday = DateOnly.FromDateTime(
+            clock.ToBusinessTime(clock.UtcNow).Date);
+
+        if (visitDate < businessToday) {
+            throw new BusinessException(
+                "VISIT_DATE_IN_PAST",
+                "ACCESS Visit date cannot be in the past.",
+                400);
+        }
+    }
+
     public async Task<(IReadOnlyList<Visit> Items, int TotalItems)>
     ListAccessibleAsync(
         int page,

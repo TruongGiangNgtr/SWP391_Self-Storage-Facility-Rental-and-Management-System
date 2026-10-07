@@ -35,4 +35,13 @@ public interface IVisitService
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
+
+    Task<Visit> CreateAccessAsync(
+        Guid contractId,
+        DateOnly visitDate,
+        CancellationToken cancellationToken = default);
+
+    Task<Visit> CheckOutAsync(
+        Guid visitId,
+        CancellationToken cancellationToken = default);
 }
