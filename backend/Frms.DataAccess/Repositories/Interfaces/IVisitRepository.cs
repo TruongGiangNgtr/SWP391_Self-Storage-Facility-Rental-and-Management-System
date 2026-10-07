@@ -81,4 +81,28 @@ public interface IVisitRepository
 
     Task<int> CountAllAsync(
         CancellationToken cancellationToken);
+
+    Task<Contract?> GetOwnedContractForVisitAsync(
+        Guid customerId,
+        Guid visitId,
+        CancellationToken cancellationToken);
+
+    Task<bool> HasPendingReturnVisitAsync(
+        Guid contractId,
+        CancellationToken cancellationToken);
+
+    Task<Contract?> GetOwnedContractByIdAsync(
+        Guid customerId,
+        Guid contractId,
+        CancellationToken cancellationToken);
+
+    Task<Visit> CreateAccessAsync(
+        Guid contractId,
+        Guid customerId,
+        DateOnly visitDate,
+        CancellationToken cancellationToken);
+
+    Task<Visit> CheckOutAsync(
+        Guid visitId,
+        CancellationToken cancellationToken);
 }
