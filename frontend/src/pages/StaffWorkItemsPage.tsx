@@ -7,6 +7,7 @@ import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState, PaginationControls } from '../components/PageStates'
 import { StatusBadge } from '../components/StatusBadge'
 import { isReservationWorkItem, type StaffWorkItem } from '../features/handover/handover.types'
+import { isAccessWorkItem } from '../features/visits/accessValidation'
 import { getCurrentBusinessDate } from '../utils/formatters'
 import '../styles/staff.css'
 
@@ -33,7 +34,7 @@ export function StaffWorkItemsPage() {
       <section className="page-heading">
         <p className="eyebrow">Facility Staff</p>
         <h1>Daily Work List</h1>
-        <p className="muted">Review arrivals at your facility. Open a reservation visit to check in the customer and process handover.</p>
+        <p className="muted">Review arrivals at your facility. Open reservation visits for handover or access visits for check-in and check-out.</p>
       </section>
       <section className="panel action-row" aria-label="Work list filters">
         <div className="form-field">
@@ -47,7 +48,7 @@ export function StaffWorkItemsPage() {
       <ApiErrorAlert error={error} />
       {loading ? <LoadingState label="Loading facility work items..." /> : error ? null : response && (
         <>
-          <p className="muted">{response.pagination.totalItems} work items for {date}. Access and return processing will be implemented in their respective flows.</p>
+          <p className="muted">{response.pagination.totalItems} work items for {date}. Return processing will be implemented in its respective flow.</p>
           {response.data.length === 0 ? <EmptyState message="No work items for this date." /> : (
             <div className="card-grid list-grid">
               {response.data.map((item) => (
@@ -56,7 +57,7 @@ export function StaffWorkItemsPage() {
                     <h2>{item.workType === 'RESERVATION_VISIT' ? 'Reservation Visit' : item.workType.replaceAll('_', ' ')}</h2>
                     <StatusBadge status={item.status} />
                   </div>
-                  {isReservationWorkItem(item) && <p><strong>{item.customer.fullName}</strong><br /><span className="muted">{item.customer.phoneNumber}</span></p>}
+                  {(isReservationWorkItem(item) || isAccessWorkItem(item)) && <p><strong>{item.customer.fullName}</strong><br /><span className="muted">{item.customer.phoneNumber}</span></p>}
                   <dl className="detail-list compact staff-work-detail">
                     <div><dt>Scheduled Date</dt><dd>{item.scheduledDate}</dd></div>
                     <div><dt>Reference ID</dt><dd>{item.referenceId}</dd></div>
@@ -65,7 +66,11 @@ export function StaffWorkItemsPage() {
                     <Link className="button button-secondary" to={`/staff/reservations/${encodeURIComponent(item.entityId)}/visits/${encodeURIComponent(item.referenceId)}?workPage=${page}`}>
                       {item.status === 'SCHEDULED' ? 'Open Check-in' : item.status === 'CHECKED_IN' ? 'Open Handover' : 'View Visit'}
                     </Link>
-                  ) : <p className="muted">{item.workType === 'RESERVATION_VISIT' ? 'The server has not supplied the reservation/customer context required to open this visit.' : 'Read-only in this flow.'}</p>}
+                  ) : isAccessWorkItem(item) ? (
+                    <Link className="button button-secondary" to={`/staff/contracts/${encodeURIComponent(item.entityId)}/access-visits/${encodeURIComponent(item.referenceId)}?workPage=${page}`}>
+                      {item.status === 'SCHEDULED' ? 'Open Access Check-in' : item.status === 'CHECKED_IN' ? 'Open Access Check-out' : 'View Access Visit'}
+                    </Link>
+                  ) : <p className="muted">{item.workType === 'RESERVATION_VISIT' ? 'The server has not supplied the reservation/customer context required to open this visit.' : item.workType === 'ACCESS_VISIT' ? 'The server has not supplied the contract/customer context required to open this access visit.' : 'Read-only in this flow.'}</p>}
                 </article>
               ))}
             </div>

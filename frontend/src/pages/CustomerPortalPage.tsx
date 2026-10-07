@@ -17,6 +17,11 @@ const PORTAL_ACTIONS = [
     to: '/customer/invoices',
   },
   {
+    title: 'My Contracts',
+    description: 'Review your contracts and schedule access visits for an active rental.',
+    to: '/customer/contracts',
+  },
+  {
     title: 'Visits',
     description: 'Review, reschedule or cancel eligible visits.',
     to: '/customer/visits',
