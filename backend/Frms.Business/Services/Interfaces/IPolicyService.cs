@@ -1,14 +1,14 @@
-using Frms.DataAccess.Persistence.Entities;
+using Frms.Business.Models.Results;
 
 namespace Frms.Business.Services.Interfaces;
 
 public interface IPolicyService {
-    Task<(IReadOnlyList<Policy> Items, int TotalItems)> GetPagedAsync(
+    Task<(IReadOnlyList<PolicyResult> Items, int TotalItems)> GetPagedAsync(
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
 
-    Task<Policy> CreateVersionAsync(
+    Task<PolicyResult> CreateVersionAsync(
         int depositTimeoutHours,
         int reservationVisitStartDay,
         int reservationVisitEndDay,

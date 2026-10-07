@@ -1,4 +1,5 @@
 using Frms.Business.Exceptions;
+using Frms.Business.Models;
 using Frms.Business.Models.Commands;
 using Frms.Business.Models.Results;
 using Frms.Business.Services.Interfaces;
@@ -255,7 +256,7 @@ internal sealed class StorageUnitService(
 
         if (storageUnit is null) {
             throw new BusinessException(
-                "STORAGE_UNIT_NOT_FOUND",
+                "RESOURCE_NOT_FOUND",
                 "Storage unit was not found.",
                 404);
         }
@@ -299,5 +300,80 @@ internal sealed class StorageUnitService(
                 "Page size must be between 1 and 100.",
                 400);
         }
+    }
+
+    public async Task<
+    (IReadOnlyList<StorageUnitResult> Items, int TotalCount)> ListByFacilityAsync(
+        Guid facilityId,
+        Guid? unitTypeId,
+        string? status,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default) {
+        ValidatePagination(page, pageSize);
+
+        await facilityAuthorizationService.EnsureSameFacilityAsync(
+            facilityId,
+            cancellationToken);
+
+        if (!await repository.FacilityExistsAsync(
+                facilityId,
+                cancellationToken)) {
+            throw new BusinessException(
+                "FACILITY_NOT_FOUND",
+                "Facility was not found.",
+                404);
+        }
+
+        if (unitTypeId == Guid.Empty) {
+            throw new BusinessException(
+                "VALIDATION_ERROR",
+                "unitTypeId is invalid.",
+                400);
+        }
+
+        var normalizedStatus =
+            string.IsNullOrWhiteSpace(status)
+                ? null
+                : status.Trim().ToUpperInvariant();
+
+        if (normalizedStatus is not null &&
+            normalizedStatus != "AVAILABLE" &&
+            normalizedStatus != "IN_USE" &&
+            normalizedStatus != "INSPECTION" &&
+            normalizedStatus != "MAINTENANCE") {
+            throw new BusinessException(
+                "VALIDATION_ERROR",
+                "StorageUnit status is invalid.",
+                400);
+        }
+
+        var totalCount =
+            await repository.CountByFacilityAsync(
+                facilityId,
+                unitTypeId,
+                normalizedStatus,
+                cancellationToken);
+
+        var records =
+            await repository.ListByFacilityPageAsync(
+                facilityId,
+                unitTypeId,
+                normalizedStatus,
+                (page - 1) * pageSize,
+                pageSize,
+                cancellationToken);
+
+        var items = records
+            .Select(x => new StorageUnitResult(
+                x.StorageUnitId,
+                x.FacilityId,
+                x.UnitTypeId,
+                x.UnitCode,
+                x.LocationInfo,
+                x.Status))
+            .ToList();
+
+        return (items, totalCount);
     }
 }

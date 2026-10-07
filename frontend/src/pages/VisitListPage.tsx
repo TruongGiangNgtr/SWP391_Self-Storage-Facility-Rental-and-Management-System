@@ -29,6 +29,7 @@ export function VisitListPage() {
   const [pagination, setPagination] = useState(EMPTY_PAGINATION)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<ApiErrorPresentation | null>(null)
+  const [retry, setRetry] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -55,7 +56,7 @@ export function VisitListPage() {
     return () => {
       active = false
     }
-  }, [page])
+  }, [page, retry])
 
   return (
     <main className="page-container flow-page">
@@ -64,6 +65,10 @@ export function VisitListPage() {
         <p className="eyebrow">Visits</p>
         <h1>My Visits</h1>
         <p className="muted">Review your facility visits and update eligible scheduled visits.</p>
+        <div className="action-row">
+          <Link className="button" to="/customer/contracts">Schedule Access Visit</Link>
+          <button className="button button-secondary" type="button" disabled={loading} onClick={() => { setLoading(true); setError(null); setRetry((value) => value + 1) }}>Refresh Visits</button>
+        </div>
       </section>
 
       <ApiErrorAlert error={error} />

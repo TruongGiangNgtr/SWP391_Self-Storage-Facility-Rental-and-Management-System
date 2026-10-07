@@ -6,7 +6,6 @@ import {
   LogOut,
   Percent,
   ReceiptText,
-  Settings,
   Tag,
 } from 'lucide-react'
 import { useAuth } from '../auth/auth.context'
@@ -134,14 +133,6 @@ export function BusinessOperationsLayout({
         <div className="bo-sidebar-actions">
           <button
             type="button"
-            className="bo-sidebar-action"
-          >
-            <Settings size={19} />
-            <span>Account Settings</span>
-          </button>
-
-          <button
-            type="button"
             className="bo-sidebar-action bo-sidebar-signout"
             onClick={() => {
               if (user) {
@@ -149,7 +140,7 @@ export function BusinessOperationsLayout({
               }
             }}
           >
-            <LogOut size={19} />
+            <LogOut size={16} />
             <span>Sign Out</span>
           </button>
         </div>
@@ -192,8 +183,7 @@ export function BusinessOperationsLayout({
 
         <div className="bo-footer__column">
           <strong>ACCOUNT</strong>
-          <span>My Account</span>
-          <span>System Settings</span>
+          
 
           <button
             type="button"

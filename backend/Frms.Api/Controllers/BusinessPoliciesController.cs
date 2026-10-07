@@ -1,7 +1,7 @@
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Services.Interfaces;
-using Frms.DataAccess.Persistence.Entities;
+using Frms.Business.Models.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -127,7 +127,7 @@ public sealed class BusinessPoliciesController(
     private static bool IsValidDay(int value)
         => value is >= 1 and <= 31;
 
-    private static PolicySummary Map(Policy policy)
+    private static PolicySummary Map(PolicyResult policy)
         => new(
             policy.PolicyId,
             policy.Version,

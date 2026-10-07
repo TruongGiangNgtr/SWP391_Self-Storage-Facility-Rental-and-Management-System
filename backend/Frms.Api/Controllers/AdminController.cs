@@ -15,7 +15,7 @@ public sealed class AdminController(
     /// <summary>
     /// ADM-001: List all Customer/Employee accounts.
     /// </summary>
-    [HttpGet]
+    [HttpGet("users")]
     public async Task<IActionResult> GetUsers(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
@@ -55,7 +55,7 @@ public sealed class AdminController(
     /// <summary>
     /// ADM-002: User/account profile detail.
     /// </summary>
-    [HttpGet("{userAccountId:guid}")]
+    [HttpGet("users/{userAccountId:guid}")]
     public async Task<IActionResult> GetUser(
         Guid userAccountId,
         CancellationToken cancellationToken = default) {
