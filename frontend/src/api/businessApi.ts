@@ -18,6 +18,11 @@ import type {
   CreatePolicyVersionRequest,
   Policy,
 } from '../models/policy'
+import type {
+  CreateCustomerDiscountRequest,
+  Discount,
+  UpdateDiscountRequest,
+} from '../models/discount'
 
 async function readAllPages<T>(
   readPage: (page: number) => Promise<ApiCollectionResponse<T>>,
