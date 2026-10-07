@@ -122,6 +122,8 @@ internal sealed class AdminEmployeeRepository(
             @NewStatus = {status}
         """,
             cancellationToken);
+
+        dbContext.ChangeTracker.Clear();
     }
 
     private sealed record EmployeeRow(
