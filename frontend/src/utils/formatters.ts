@@ -22,3 +22,11 @@ export function formatUtcDateTime(value: string): string {
 export function formatMonthRange(startMonth: string, endMonth: string): string {
   return `${startMonth} to ${endMonth}`
 }
+
+export function getCurrentBusinessDate(now = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(now)
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? ''
+  return `${part('year')}-${part('month')}-${part('day')}`
+}

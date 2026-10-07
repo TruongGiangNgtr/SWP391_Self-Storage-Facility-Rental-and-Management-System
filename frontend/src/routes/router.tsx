@@ -13,6 +13,9 @@ import { InvoiceListPage } from '../pages/InvoiceListPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PaymentResultPage } from '../pages/PaymentResultPage'
 import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
+import { StaffWorkItemsPage } from '../pages/StaffWorkItemsPage'
+import { StaffHandoverPage } from '../pages/StaffHandoverPage'
+import { StaffContractPage } from '../pages/StaffContractPage'
 import { ReservationConfirmPage } from '../pages/ReservationConfirmPage'
 import { ReservationCreatePage } from '../pages/ReservationCreatePage'
 import { ReservationDetailPage } from '../pages/ReservationDetailPage'
@@ -60,10 +63,9 @@ export function AppRouter() {
           </Route>
 
           <Route element={<RequireRole allowedRoles={['FACILITY_STAFF']} />}>
-            <Route
-              path="staff"
-              element={<PortalPlaceholderPage title="Facility Staff Portal" />}
-            />
+            <Route path="staff" element={<StaffWorkItemsPage />} />
+            <Route path="staff/reservations/:reservationId/visits/:visitId" element={<StaffHandoverPage />} />
+            <Route path="staff/contracts/:contractId" element={<StaffContractPage />} />
           </Route>
 
           <Route element={<RequireRole allowedRoles={['FACILITY_MANAGER']} />}>
