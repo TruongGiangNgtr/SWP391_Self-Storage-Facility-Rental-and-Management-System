@@ -13,6 +13,84 @@ internal sealed class VisitService(
     IFacilityAuthorizationService facilityAuthorizationService)
     : IVisitService
 {
+    public async Task<(IReadOnlyList<Visit> Items, int TotalItems)>
+    ListAccessibleAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default) {
+        if (page < 1 || pageSize < 1 || pageSize > 100) {
+            throw new BusinessException(
+                "VALIDATION_ERROR",
+                "Page must be at least 1 and pageSize must be between 1 and 100.",
+                400);
+        }
+
+        if (!currentUser.IsAuthenticated) {
+            throw new BusinessException(
+                "UNAUTHORIZED",
+                "Authentication is required.",
+                401);
+        }
+
+        var skip = (page - 1) * pageSize;
+
+        switch (currentUser.Role) {
+            case "CUSTOMER":
+                return await ListOwnAsync(
+                    page,
+                    pageSize,
+                    cancellationToken);
+
+            case "FACILITY_MANAGER": {
+                var employee =
+                    await repository.GetEmployeeByUserAccountIdAsync(
+                        currentUser.UserAccountId,
+                        cancellationToken);
+
+                if (employee?.FacilityId is null) {
+                    throw new BusinessException(
+                        "FORBIDDEN",
+                        "Facility Manager assignment is not available.",
+                        403);
+                }
+
+                var totalItems =
+                    await repository.CountByFacilityAsync(
+                        employee.FacilityId.Value,
+                        cancellationToken);
+
+                var items =
+                    await repository.ListByFacilityAsync(
+                        employee.FacilityId.Value,
+                        skip,
+                        pageSize,
+                        cancellationToken);
+
+                return (items, totalItems);
+            }
+
+            case "BUSINESS_OPERATIONS_MANAGER": {
+                var totalItems =
+                    await repository.CountAllAsync(
+                        cancellationToken);
+
+                var items =
+                    await repository.ListAllAsync(
+                        skip,
+                        pageSize,
+                        cancellationToken);
+
+                return (items, totalItems);
+            }
+
+            default:
+                throw new BusinessException(
+                    "FORBIDDEN",
+                    "You are not authorized to list Visits.",
+                    403);
+        }
+    }
+
     public async Task<(IReadOnlyList<Visit> Items, int TotalItems)> ListOwnAsync(
         int page,
         int pageSize,

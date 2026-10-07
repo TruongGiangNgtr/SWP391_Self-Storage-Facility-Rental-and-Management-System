@@ -23,7 +23,7 @@ public sealed class StaffOperationsController(
         CancellationToken cancellationToken = default) => ScaffoldNotImplemented("OPS-001");
 
     /// <summary>OPS-004: Atomic Complete Handover scaffold.</summary>
-    [HttpPost("{reservationId:guid}/complete-handover")]
+    [HttpPost("reservations/{reservationId:guid}/complete-handover")]
     [ProducesResponseType(
         typeof(ApiResponse<CompleteHandoverResponse>),
         StatusCodes.Status200OK)]

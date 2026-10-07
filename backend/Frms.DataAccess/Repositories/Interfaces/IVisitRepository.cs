@@ -63,4 +63,22 @@ public interface IVisitRepository
     Task<Contract?> GetContractForVisitAsync(
         Guid visitId,
         CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Visit>> ListByFacilityAsync(
+        Guid facilityId,
+        int skip,
+        int take,
+        CancellationToken cancellationToken);
+
+    Task<int> CountByFacilityAsync(
+        Guid facilityId,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Visit>> ListAllAsync(
+        int skip,
+        int take,
+        CancellationToken cancellationToken);
+
+    Task<int> CountAllAsync(
+        CancellationToken cancellationToken);
 }
