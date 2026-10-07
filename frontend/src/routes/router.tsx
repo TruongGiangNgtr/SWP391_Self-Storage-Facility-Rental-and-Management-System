@@ -14,9 +14,11 @@ import { NotFoundPage } from '../pages/NotFoundPage'
 import { PaymentResultPage } from '../pages/PaymentResultPage'
 import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
 import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
+import { FacilityManagerLayout } from '../layouts/FacilityManagerLayout'
 import { FacilityManagementPage } from '../features/facility-management/FacilityManagementPage'
 import { UnitTypePricingPage } from '../features/unit-type-pricing/UnitTypePricingPage'
 import { PolicyVersionManagementPage } from '../features/policy-version-management/PolicyVersionManagementPage'
+import { HandoverUnitSelectionPage } from '../features/handover-unit-selection/HandoverUnitSelectionPage'
 import { ReservationConfirmPage } from '../pages/ReservationConfirmPage'
 import { ReservationCreatePage } from '../pages/ReservationCreatePage'
 import { ReservationDetailPage } from '../pages/ReservationDetailPage'
@@ -156,12 +158,68 @@ export function AppRouter() {
     >
       <Route
         path="manager"
-        element={
-          <PortalPlaceholderPage
-            title="Facility Manager Portal"
-          />
-        }
-      />
+        element={<FacilityManagerLayout />}
+      >
+        <Route
+          index
+          element={
+            <Navigate
+              to="handover-unit-selection"
+              replace
+            />
+          }
+        />
+
+        <Route
+          path="handover-unit-selection"
+          element={<HandoverUnitSelectionPage />}
+        />
+
+        <Route
+          path="physical-units"
+          element={
+            <PortalPlaceholderPage
+              title="Manage Physical Unit"
+            />
+          }
+        />
+
+        <Route
+          path="operations"
+          element={
+            <PortalPlaceholderPage
+              title="Monitor Facility Operations"
+            />
+          }
+        />
+
+        <Route
+          path="returns-inspections"
+          element={
+            <PortalPlaceholderPage
+              title="Returns & Inspections"
+            />
+          }
+        />
+
+        <Route
+          path="support-assignment"
+          element={
+            <PortalPlaceholderPage
+              title="Assign Support Staff"
+            />
+          }
+        />
+
+        <Route
+          path="reports"
+          element={
+            <PortalPlaceholderPage
+              title="Facility Reports"
+            />
+          }
+        />
+      </Route>
     </Route>
   </Route>
 
