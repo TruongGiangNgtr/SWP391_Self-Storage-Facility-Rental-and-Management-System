@@ -9,7 +9,8 @@ namespace Frms.Business.Services.Implementations;
 
 internal sealed class VisitService(
     IVisitRepository repository,
-    ICurrentUserContext currentUser)
+    ICurrentUserContext currentUser,
+    IFacilityAuthorizationService facilityAuthorizationService)
     : IVisitService
 {
     public async Task<(IReadOnlyList<Visit> Items, int TotalItems)> ListOwnAsync(
@@ -247,5 +248,228 @@ internal sealed class VisitService(
                    "RESOURCE_NOT_FOUND",
                    "Visit was not found.",
                    404);
+    }
+
+    public async Task<Visit> CheckInAsync(
+        Guid visitId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated)
+        {
+            throw new BusinessException(
+                "UNAUTHORIZED",
+                "Authentication is required.",
+                401);
+        }
+
+        var employee =
+            await repository.GetEmployeeByUserAccountIdAsync(
+                currentUser.UserAccountId,
+                cancellationToken);
+
+        if (employee is null ||
+            employee.FacilityId is null)
+        {
+            throw new BusinessException(
+                "FORBIDDEN",
+                "Facility Staff profile is not available.",
+                403);
+        }
+
+        var visit =
+            await repository.GetByIdAsync(
+                visitId,
+                cancellationToken);
+
+        if (visit is null)
+        {
+            throw new BusinessException(
+                "RESOURCE_NOT_FOUND",
+                "Visit was not found.",
+                404);
+        }
+
+        if (visit.Status != "SCHEDULED")
+        {
+            throw new BusinessException(
+                "VISIT_INVALID_STATUS",
+                "Only a scheduled Visit may be checked in.",
+                409);
+        }
+
+        // FWP-02 owns RESERVATION check-in.
+        // ACCESS / RETURN check-in is extended by their owning features.
+        if (visit.VisitType != "RESERVATION")
+        {
+            throw new BusinessException(
+                "VISIT_ENTITY_MISMATCH",
+                "Visit is not a Reservation Visit.",
+                409);
+        }
+
+        var reservation =
+            await repository.GetReservationForVisitAsync(
+                visitId,
+                cancellationToken);
+
+        if (reservation is null)
+        {
+            throw new BusinessException(
+                "VISIT_ENTITY_MISMATCH",
+                "Visit does not reference a valid Reservation.",
+                409);
+        }
+
+        if (reservation.Status != "CONFIRMED")
+        {
+            throw new BusinessException(
+                "VISIT_INVALID_STATUS",
+                "Reservation is not in a valid state for check-in.",
+                409);
+        }
+
+        await facilityAuthorizationService.EnsureSameFacilityAsync(
+            reservation.FacilityId,
+            cancellationToken);
+
+        try
+        {
+            return await repository.CheckInAsync(
+                visitId,
+                employee.EmployeeId,
+                cancellationToken);
+        }
+        catch (StoredProcedureBusinessException ex)
+        {
+            switch (ex.Code)
+            {
+                case "VISIT_INVALID_STATUS":
+                    throw new BusinessException(
+                        ex.Code,
+                        "Visit cannot be checked in from its current state.",
+                        409);
+
+                case "VISIT_ENTITY_MISMATCH":
+                    throw new BusinessException(
+                        ex.Code,
+                        "Visit does not reference the expected business entity.",
+                        409);
+
+                case "FORBIDDEN":
+                    throw new BusinessException(
+                        ex.Code,
+                        "You are not authorized to handle this Visit.",
+                        403);
+
+                default:
+                    throw;
+            }
+        }
+    }
+
+    public async Task<Visit> GetByIdAsync(
+        Guid visitId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsAuthenticated) {
+            throw new BusinessException(
+                "UNAUTHORIZED",
+                "Authentication is required.",
+                401);
+        }
+
+        switch (currentUser.Role) {
+            case "CUSTOMER":
+                return await GetOwnAsync(
+                    visitId,
+                    cancellationToken);
+
+            case "FACILITY_STAFF":
+            case "FACILITY_MANAGER": {
+                var visit = await GetRequiredByIdAsync(
+                    visitId,
+                    cancellationToken);
+
+                var facilityId = await ResolveVisitFacilityIdAsync(
+                    visit,
+                    cancellationToken);
+
+                await facilityAuthorizationService.EnsureSameFacilityAsync(
+                    facilityId,
+                    cancellationToken);
+
+                return visit;
+            }
+
+            case "BUSINESS_OPERATIONS_MANAGER":
+                return await GetRequiredByIdAsync(
+                    visitId,
+                    cancellationToken);
+
+            default:
+                throw new BusinessException(
+                    "FORBIDDEN",
+                    "You are not authorized to access this Visit.",
+                    403);
+        }
+    }
+
+    private async Task<Visit> GetRequiredByIdAsync(
+        Guid visitId,
+        CancellationToken cancellationToken)
+    {
+        return await repository.GetByIdAsync(
+                   visitId,
+                   cancellationToken)
+               ?? throw new BusinessException(
+                   "RESOURCE_NOT_FOUND",
+                   "Visit was not found.",
+                   404);
+    }
+
+    private async Task<Guid> ResolveVisitFacilityIdAsync(
+        Visit visit,
+        CancellationToken cancellationToken)
+    {
+        switch (visit.VisitType) {
+            case "RESERVATION": {
+                var reservation =
+                    await repository.GetReservationForVisitAsync(
+                        visit.VisitId,
+                        cancellationToken);
+
+                if (reservation is null) {
+                    throw new BusinessException(
+                        "RESOURCE_NOT_FOUND",
+                        "Referenced Reservation was not found.",
+                        404);
+                }
+
+                return reservation.FacilityId;
+            }
+
+            case "ACCESS":
+            case "RETURN": {
+                var contract =
+                    await repository.GetContractForVisitAsync(
+                        visit.VisitId,
+                        cancellationToken);
+
+                if (contract is null) {
+                    throw new BusinessException(
+                        "RESOURCE_NOT_FOUND",
+                        "Referenced Contract was not found.",
+                        404);
+                }
+
+                return contract.FacilityId;
+            }
+
+            default:
+                throw new BusinessException(
+                    "RESOURCE_NOT_FOUND",
+                    "Visit referenced resource was not found.",
+                    404);
+        }
     }
 }
