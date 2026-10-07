@@ -13,6 +13,9 @@ import { InvoiceListPage } from '../pages/InvoiceListPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PaymentResultPage } from '../pages/PaymentResultPage'
 import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
+import { StaffWorkItemsPage } from '../pages/StaffWorkItemsPage'
+import { StaffHandoverPage } from '../pages/StaffHandoverPage'
+import { StaffContractPage } from '../pages/StaffContractPage'
 import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
 import { FacilityManagementPage } from '../features/facility-management/FacilityManagementPage'
 import { UnitTypePricingPage } from '../features/unit-type-pricing/UnitTypePricingPage'
@@ -126,6 +129,7 @@ export function AppRouter() {
   </Route>
 
   {/* FACILITY STAFF */}
+  <Route element={<RootLayout />}>
   <Route element={<RequireAuth />}>
     <Route
       element={
@@ -134,15 +138,11 @@ export function AppRouter() {
         />
       }
     >
-      <Route
-        path="staff"
-        element={
-          <PortalPlaceholderPage
-            title="Facility Staff Portal"
-          />
-        }
-      />
+      <Route path="staff" element={<StaffWorkItemsPage />} />
+      <Route path="staff/reservations/:reservationId/visits/:visitId" element={<StaffHandoverPage />} />
+      <Route path="staff/contracts/:contractId" element={<StaffContractPage />} />
     </Route>
+  </Route>
   </Route>
 
   {/* FACILITY MANAGER */}

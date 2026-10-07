@@ -148,9 +148,18 @@ export function VisitDetailPage() {
           </dl>
 
           {visit.visitType === 'RESERVATION' && (
-            <Link className="button button-secondary" to={`/customer/reservations/${visit.entityId}`}>
-              View Reservation
-            </Link>
+            <>
+              {(visit.status === 'SCHEDULED' || visit.status === 'CHECKED_IN') && (
+                <div className="notice">
+                  {visit.status === 'CHECKED_IN'
+                    ? 'You are checked in. Staff will complete handover after receiving the first month offline and using the storage unit selected by the Manager.'
+                    : 'Bring identification and pay the first month offline at the facility. Review your reservation for the locked first-month rental amount.'}
+                </div>
+              )}
+              <Link className="button button-secondary" to={`/customer/reservations/${visit.entityId}`}>
+                View Reservation
+              </Link>
+            </>
           )}
 
           {visit.status === 'SCHEDULED' && mode === null && (

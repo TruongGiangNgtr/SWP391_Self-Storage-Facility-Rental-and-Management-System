@@ -1,3 +1,4 @@
+import type { CustomerDiscount } from '../features/handover/discount.types'
 import type {
   ApiCollectionResponse,
   ApiResponse,
@@ -128,5 +129,9 @@ export const businessApi = {
       '/business/policies',
       request,
     )
+  },
+
+  listCustomerDiscounts(customerId: string, page = 1): Promise<ApiCollectionResponse<CustomerDiscount>> {
+    return httpClient.get(`/business/customers/${encodeURIComponent(customerId)}/discounts?page=${page}&pageSize=20`)
   },
 }
