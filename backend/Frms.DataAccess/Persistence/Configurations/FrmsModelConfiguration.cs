@@ -45,7 +45,32 @@ internal static class FrmsModelConfiguration
         m.Entity<Contract>(e => { e.ToTable("Contract", t => { t.HasCheckConstraint("CK_Contract_Status", "[Status] IN ('ACTIVE','COMPLETED','TERMINATED')"); t.HasCheckConstraint("CK_Contract_Months", "[EndMonth]>=[StartMonth]"); }); e.HasKey(x => x.ContractId); e.HasIndex(x => x.ReservationId).IsUnique(); e.HasIndex(x => x.StorageUnitId).IsUnique().HasFilter("[Status] = 'ACTIVE'"); e.HasOne<Reservation>().WithOne().HasForeignKey<Contract>(x => x.ReservationId).OnDelete(DeleteBehavior.Restrict); e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict); e.HasOne<Facility>().WithMany().HasForeignKey(x => x.FacilityId).OnDelete(DeleteBehavior.Restrict); e.HasOne<StorageUnit>().WithMany().HasForeignKey(x => x.StorageUnitId).OnDelete(DeleteBehavior.Restrict); e.HasOne<Policy>().WithMany().HasForeignKey(x => x.PolicyId).OnDelete(DeleteBehavior.Restrict); e.HasOne<Discount>().WithMany().HasForeignKey(x => x.DiscountId).OnDelete(DeleteBehavior.Restrict); Code(e.Property(x => x.Status)).HasDefaultValue("ACTIVE"); });
         m.Entity<ContractExtension>(e => { e.ToTable("ContractExtension", t => { t.HasCheckConstraint("CK_ContractExtension_Months", "[NewEndMonth]>[OldEndMonth]"); t.HasCheckConstraint("CK_ContractExtension_Price", "[AppliedMonthlyPrice]>=0"); }); e.HasKey(x => x.ContractExtensionId); e.HasOne<Contract>().WithMany().HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.Restrict); Amount(e.Property(x => x.AppliedMonthlyPrice)); Utc(e.Property(x => x.CreatedAt)).HasDefaultValueSql("SYSUTCDATETIME()"); });
         m.Entity<Invoice>(e => { e.ToTable("Invoice", t => { t.HasCheckConstraint("CK_Invoice_Type", "[InvoiceType] IN ('DEPOSIT','RENTAL_FEE')"); t.HasCheckConstraint("CK_Invoice_Status", "[Status] IN ('UNPAID','PAID','OVERDUE','CANCELLED')"); t.HasCheckConstraint("CK_Invoice_Amounts", "[BaseAmount]>=0 AND [DiscountAmount]>=0 AND [AmountDue]>=0"); t.HasCheckConstraint("CK_Invoice_BillingMonth", "([InvoiceType]='DEPOSIT' AND [BillingMonth] IS NULL) OR ([InvoiceType]='RENTAL_FEE' AND [BillingMonth] IS NOT NULL)"); }); e.HasKey(x => x.InvoiceId); e.HasOne<Discount>().WithMany().HasForeignKey(x => x.DiscountId).OnDelete(DeleteBehavior.Restrict); Code(e.Property(x => x.InvoiceType)); Code(e.Property(x => x.Status)).HasDefaultValue("UNPAID"); Amount(e.Property(x => x.BaseAmount)); Amount(e.Property(x => x.DiscountAmount)).HasDefaultValue(0m); Amount(e.Property(x => x.AmountDue)); Utc(e.Property(x => x.DueDate)); Utc(e.Property(x => x.CreatedAt)).HasDefaultValueSql("SYSUTCDATETIME()"); e.HasIndex(x => x.EntityId).IsUnique().HasFilter("[InvoiceType] = 'DEPOSIT'"); e.HasIndex(x => new { x.EntityId, x.BillingMonth }).IsUnique().HasFilter("[InvoiceType] = 'RENTAL_FEE'"); });
-        m.Entity<Payment>(e => { e.ToTable("Payment", t => { t.HasCheckConstraint("CK_Payment_Method", "[PaymentMethod]='MOMO'"); t.HasCheckConstraint("CK_Payment_Status", "[Status] IN ('PENDING','SUCCESS','FAILED')"); t.HasCheckConstraint("CK_Payment_Amount", "[Amount]>0"); t.HasCheckConstraint("CK_Payment_PaidAt", "([Status]='SUCCESS' AND [PaidAt] IS NOT NULL) OR ([Status]<>'SUCCESS' AND [PaidAt] IS NULL)"); }); e.HasKey(x => x.PaymentId); e.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict); Amount(e.Property(x => x.Amount)); Code(e.Property(x => x.PaymentMethod)); Code(e.Property(x => x.Status)).HasDefaultValue("PENDING"); e.Property(x => x.TransactionCode).HasColumnType("varchar(150)"); e.HasIndex(x => x.TransactionCode).IsUnique().HasFilter("[TransactionCode] IS NOT NULL"); Utc(e.Property(x => x.PaidAt)); Utc(e.Property(x => x.CreatedAt)).HasDefaultValueSql("SYSUTCDATETIME()"); });
+        m.Entity<Payment>(e =>
+        {
+            e.ToTable("Payment", t =>
+            {
+                t.HasCheckConstraint("CK_Payment_Method", "[PaymentMethod]='MOMO'");
+                t.HasCheckConstraint("CK_Payment_Status", "[Status] IN ('PENDING','SUCCESS','FAILED')");
+                t.HasCheckConstraint("CK_Payment_Amount", "[Amount]>0");
+                t.HasCheckConstraint("CK_Payment_PaidAt", "([Status]='SUCCESS' AND [PaidAt] IS NOT NULL) OR ([Status]<>'SUCCESS' AND [PaidAt] IS NULL)");
+                t.HasCheckConstraint("CK_Payment_UrlExpiry", "[PaymentUrlExpiresAt] IS NULL OR [PaymentUrl] IS NOT NULL");
+            });
+            e.HasKey(x => x.PaymentId);
+            e.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
+            e.Property(x => x.IdempotencyKey).ValueGeneratedNever();
+            e.HasIndex(x => x.IdempotencyKey).IsUnique();
+            e.HasIndex(x => new { x.InvoiceId, x.Status, x.CreatedAt });
+            Amount(e.Property(x => x.Amount));
+            Code(e.Property(x => x.PaymentMethod));
+            Code(e.Property(x => x.Status)).HasDefaultValue("PENDING");
+            e.Property(x => x.TransactionCode).HasColumnType("varchar(150)");
+            e.HasIndex(x => x.TransactionCode).IsUnique().HasFilter("[TransactionCode] IS NOT NULL");
+            // SRS 0.0.2 / Data Dictionary 4.13 specify nvarchar(2048).
+            e.Property(x => x.PaymentUrl).HasMaxLength(2048);
+            Utc(e.Property(x => x.PaymentUrlExpiresAt));
+            Utc(e.Property(x => x.PaidAt));
+            Utc(e.Property(x => x.CreatedAt)).HasDefaultValueSql("SYSUTCDATETIME()");
+        });
         m.Entity<LateFee>(e => { e.ToTable("LateFee", t => { t.HasCheckConstraint("CK_LateFee_Days", "[OverdueDays]>=1"); t.HasCheckConstraint("CK_LateFee_Amount", "[Amount]>=0"); }); e.HasKey(x => x.LateFeeId); e.HasOne<Invoice>().WithOne().HasForeignKey<LateFee>(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict); Amount(e.Property(x => x.Amount)); Utc(e.Property(x => x.CalculatedAt)); });
     }
 

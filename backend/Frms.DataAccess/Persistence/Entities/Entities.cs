@@ -12,7 +12,20 @@ public sealed class Visit { public Guid VisitId { get; set; } public Guid Entity
 public sealed class Contract { public Guid ContractId { get; set; } public Guid ReservationId { get; set; } public Guid CustomerId { get; set; } public Guid FacilityId { get; set; } public Guid StorageUnitId { get; set; } public Guid PolicyId { get; set; } public Guid? DiscountId { get; set; } public DateOnly StartMonth { get; set; } public DateOnly EndMonth { get; set; } public required string Status { get; set; } }
 public sealed class ContractExtension { public Guid ContractExtensionId { get; set; } public Guid ContractId { get; set; } public DateOnly OldEndMonth { get; set; } public DateOnly NewEndMonth { get; set; } public decimal AppliedMonthlyPrice { get; set; } public DateTime CreatedAt { get; set; } }
 public sealed class Invoice { public Guid InvoiceId { get; set; } public Guid EntityId { get; set; } public required string InvoiceType { get; set; } public DateOnly? BillingMonth { get; set; } public decimal BaseAmount { get; set; } public Guid? DiscountId { get; set; } public decimal DiscountAmount { get; set; } public decimal AmountDue { get; set; } public DateTime DueDate { get; set; } public required string Status { get; set; } public DateTime CreatedAt { get; set; } }
-public sealed class Payment { public Guid PaymentId { get; set; } public Guid? InvoiceId { get; set; } public decimal Amount { get; set; } public required string PaymentMethod { get; set; } public string? TransactionCode { get; set; } public required string Status { get; set; } public DateTime? PaidAt { get; set; } public DateTime CreatedAt { get; set; } }
+public sealed class Payment
+{
+    public Guid PaymentId { get; set; }
+    public Guid InvoiceId { get; set; }
+    public Guid IdempotencyKey { get; set; }
+    public decimal Amount { get; set; }
+    public required string PaymentMethod { get; set; }
+    public string? TransactionCode { get; set; }
+    public string? PaymentUrl { get; set; }
+    public DateTime? PaymentUrlExpiresAt { get; set; }
+    public required string Status { get; set; }
+    public DateTime? PaidAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
 public sealed class LateFee { public Guid LateFeeId { get; set; } public Guid InvoiceId { get; set; } public int OverdueDays { get; set; } public decimal Amount { get; set; } public DateTime CalculatedAt { get; set; } }
 public sealed class Discount { public Guid DiscountId { get; set; } public Guid CustomerId { get; set; } public required string Name { get; set; } public decimal Percentage { get; set; } public required string Status { get; set; } public DateTime EffectiveFrom { get; set; } public DateTime? EffectiveTo { get; set; } }
 public sealed class Policy { public Guid PolicyId { get; set; } public int Version { get; set; } public required string Status { get; set; } public DateTime EffectiveFrom { get; set; } public DateTime? EffectiveTo { get; set; } public int DepositTimeoutHours { get; set; } public int ReservationVisitStartDay { get; set; } public int ReservationVisitEndDay { get; set; } public int MonthlyPaymentDueDay { get; set; } public int OverdueStartDay { get; set; } public int LateFeeDivisorDays { get; set; } public int EarlyReturnWaiveFeeUntilDay { get; set; } public DateTime CreatedAt { get; set; } }
