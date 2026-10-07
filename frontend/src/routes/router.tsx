@@ -13,6 +13,14 @@ import { InvoiceListPage } from '../pages/InvoiceListPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PaymentResultPage } from '../pages/PaymentResultPage'
 import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
+import { CustomerContractListPage } from '../pages/CustomerContractListPage'
+import { CustomerContractDetailPage } from '../pages/CustomerContractDetailPage'
+import { ContractRenewalPage } from '../pages/ContractRenewalPage'
+import { AccessVisitCreatePage } from '../pages/AccessVisitCreatePage'
+import { StaffWorkItemsPage } from '../pages/StaffWorkItemsPage'
+import { StaffHandoverPage } from '../pages/StaffHandoverPage'
+import { StaffContractPage } from '../pages/StaffContractPage'
+import { StaffAccessVisitPage } from '../pages/StaffAccessVisitPage'
 import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
 import { FacilityManagerLayout } from '../layouts/FacilityManagerLayout'
 import { SystemAdministratorLayout } from '../layouts/SystemAdministratorLayout'
@@ -77,6 +85,11 @@ export function AppRouter() {
           element={<CustomerPortalPage />}
         />
 
+        <Route path="customer/contracts" element={<CustomerContractListPage />} />
+        <Route path="customer/contracts/:contractId" element={<CustomerContractDetailPage />} />
+        <Route path="customer/contracts/:contractId/renew" element={<ContractRenewalPage key={location.pathname} />} />
+        <Route path="customer/contracts/:contractId/access-visits/new" element={<AccessVisitCreatePage />} />
+
         <Route
           path="customer/storage-search"
           element={<StorageSearchPage />}
@@ -133,6 +146,7 @@ export function AppRouter() {
   </Route>
 
   {/* FACILITY STAFF */}
+  <Route element={<RootLayout />}>
   <Route element={<RequireAuth />}>
     <Route
       element={
@@ -141,15 +155,12 @@ export function AppRouter() {
         />
       }
     >
-      <Route
-        path="staff"
-        element={
-          <PortalPlaceholderPage
-            title="Facility Staff Portal"
-          />
-        }
-      />
+      <Route path="staff" element={<StaffWorkItemsPage />} />
+      <Route path="staff/reservations/:reservationId/visits/:visitId" element={<StaffHandoverPage />} />
+      <Route path="staff/contracts/:contractId" element={<StaffContractPage />} />
+      <Route path="staff/contracts/:contractId/access-visits/:visitId" element={<StaffAccessVisitPage key={`${location.pathname}${location.search}`} />} />
     </Route>
+  </Route>
   </Route>
 
   {/* FACILITY MANAGER */}
