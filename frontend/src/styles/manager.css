@@ -2,20 +2,96 @@
    Kept outside index.css so Manager-specific UI remains isolated. */
 
 .manager-shell {
+  display: flex;
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
-  gap: 18px;
-  padding: 8px;
+  flex-direction: column;
   color: #172033;
   background: #f5f7fb;
 }
 
+.manager-header {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 24px;
+  border-bottom: 1px solid #e3e8f0;
+  background: #ffffff;
+}
+
+.manager-brand,
+.manager-header-user {
+  display: flex;
+  align-items: center;
+}
+
+.manager-brand {
+  gap: 10px;
+}
+
+.manager-portal-badge {
+  padding: 3px 7px;
+  border-radius: 4px;
+  color: #356df3;
+  background: #edf3ff;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.manager-header-user {
+  gap: 10px;
+}
+
+.manager-header-avatar {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #356df3;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.manager-header-user-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.manager-header-user-text strong {
+  max-width: 220px;
+  overflow: hidden;
+  color: #172033;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manager-header-user-text span {
+  max-width: 220px;
+  margin-top: 2px;
+  overflow: hidden;
+  color: #6b778c;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manager-body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: 18px;
+  padding: 8px;
+}
+
 .manager-sidebar {
-  position: sticky;
-  top: 8px;
   align-self: start;
-  min-height: calc(100vh - 16px);
   display: flex;
   flex-direction: column;
   padding: 18px;
@@ -119,8 +195,8 @@
 }
 
 .manager-sidebar-actions {
-  margin-top: auto;
-  padding-top: 18px;
+  margin-top: 10px;
+  padding-top: 10px;
   border-top: 1px solid #eef1f5;
 }
 
@@ -142,12 +218,120 @@
 }
 
 .manager-signout:hover {
+  color: #c92a2a;
   background: #fff5f5;
 }
 
 .manager-main {
   min-width: 0;
   padding: 24px 22px 48px 4px;
+}
+
+.manager-footer {
+  position: relative;
+  z-index: 1;
+  padding: 34px 42px 18px;
+  color: #aeb7ca;
+  background: #091123;
+}
+
+.manager-footer-main {
+  display: grid;
+  max-width: 1500px;
+  margin: 0 auto;
+  grid-template-columns: minmax(280px, 1.8fr) repeat(3, minmax(130px, 1fr));
+  gap: 50px;
+}
+
+.manager-footer-brand p {
+  max-width: 340px;
+  margin: 16px 0 12px;
+  color: #8994aa;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.manager-footer-trust {
+  display: inline-flex;
+  padding: 5px 9px;
+  border: 1px solid rgb(108 132 255 / 20%);
+  border-radius: 999px;
+  color: #8496e9;
+  font-size: 9px;
+}
+
+.manager-footer-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.manager-footer-column strong {
+  margin-bottom: 4px;
+  color: #ffffff;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.manager-footer-column span {
+  color: #8994aa;
+  font-size: 10px;
+}
+
+.manager-footer-link {
+  color: #8994aa;
+  font-size: 10px;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.manager-footer-link:hover {
+  color: #dbe4ff;
+}
+
+.manager-footer-logout {
+  margin-top: 2px;
+  padding: 0;
+  border: 0;
+  color: #ff8b8b;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  text-align: left;
+}
+
+.manager-footer-logout:hover {
+  color: #ffb0b0;
+  text-decoration: underline;
+}
+
+.manager-footer-bottom-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.manager-footer-bottom-link:hover {
+  color: #aeb7ca;
+}
+
+.manager-footer-bottom {
+  display: flex;
+  max-width: 1500px;
+  margin: 28px auto 0;
+  padding-top: 16px;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid rgb(255 255 255 / 7%);
+  color: #68738a;
+  font-size: 9px;
+}
+
+.manager-footer-bottom > div {
+  display: flex;
+  gap: 20px;
 }
 
 .handover-page {
@@ -585,28 +769,44 @@
   line-height: 1.55;
 }
 
+
 @media (max-width: 1020px) {
-  .manager-shell {
+  .manager-body {
     grid-template-columns: 210px minmax(0, 1fr);
   }
 
   .handover-grid {
     grid-template-columns: 1fr;
   }
+
+  .manager-footer-main {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 760px) {
-  .manager-shell {
+  .manager-header {
+    min-height: auto;
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 14px 16px;
+  }
+
+  .manager-header-user-text strong,
+  .manager-header-user-text span {
+    max-width: 260px;
+  }
+
+  .manager-body {
     display: block;
     padding: 0;
   }
 
   .manager-sidebar {
-    position: static;
-    min-height: 0;
     margin: 0;
     border-width: 0 0 1px;
     border-radius: 0;
+    box-shadow: none;
   }
 
   .manager-profile {
@@ -633,7 +833,7 @@
   }
 
   .manager-sidebar-actions {
-    margin-top: 14px;
+    margin-top: 10px;
   }
 
   .manager-main {
@@ -665,6 +865,25 @@
   .handover-copy-button,
   .handover-clear-button {
     width: 100%;
+  }
+
+  .manager-footer {
+    padding: 28px 20px 16px;
+  }
+
+  .manager-footer-main {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .manager-footer-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .manager-footer-bottom > div {
+    flex-wrap: wrap;
+    gap: 10px 18px;
   }
 }
 
