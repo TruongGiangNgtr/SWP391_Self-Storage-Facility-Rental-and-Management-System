@@ -16,6 +16,10 @@ import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
 import { StaffWorkItemsPage } from '../pages/StaffWorkItemsPage'
 import { StaffHandoverPage } from '../pages/StaffHandoverPage'
 import { StaffContractPage } from '../pages/StaffContractPage'
+import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
+import { FacilityManagementPage } from '../features/facility-management/FacilityManagementPage'
+import { UnitTypePricingPage } from '../features/unit-type-pricing/UnitTypePricingPage'
+import { PolicyVersionManagementPage } from '../features/policy-version-management/PolicyVersionManagementPage'
 import { ReservationConfirmPage } from '../pages/ReservationConfirmPage'
 import { ReservationCreatePage } from '../pages/ReservationCreatePage'
 import { ReservationDetailPage } from '../pages/ReservationDetailPage'
@@ -34,68 +38,200 @@ export function AppRouter() {
   return (
     <>
     <Routes location={backgroundLocation ?? location}>
-      <Route element={<RootLayout />}>
-        <Route index element={<HomePage />} />
-        <Route path="auth/customer/login" element={<CustomerLoginPage />} />
-        <Route path="auth/customer/register" element={<CustomerRegisterPage />} />
-        <Route path="auth/employee/login" element={<EmployeeLoginPage />} />
-        <Route path="forbidden" element={<ForbiddenPage />} />
+  {/* ROOT LAYOUT + CUSTOMER */}
+  <Route element={<RootLayout />}>
+    <Route index element={<HomePage />} />
 
-        <Route element={<RequireAuth />}>
-          <Route element={<RequireRole allowedRoles={['CUSTOMER']} />}>
-            <Route path="customer" element={<CustomerPortalPage />} />
-            <Route path="customer/storage-search" element={<StorageSearchPage />} />
-            <Route path="customer/reservations/new" element={<ReservationCreatePage />} />
-            <Route path="customer/reservations" element={<ReservationListPage />} />
-            <Route
-              path="customer/reservations/:reservationId"
-              element={<ReservationDetailPage />}
-            />
-            <Route
-              path="customer/reservations/:reservationId/confirm"
-              element={<ReservationConfirmPage />}
-            />
-            <Route path="customer/invoices" element={<InvoiceListPage />} />
-            <Route path="customer/invoices/:invoiceId" element={<InvoiceDetailPage />} />
-            <Route path="customer/payments/result" element={<PaymentResultPage />} />
-            <Route path="customer/visits" element={<VisitListPage />} />
-            <Route path="customer/visits/:visitId" element={<VisitDetailPage />} />
-          </Route>
+    <Route
+      path="auth/customer/login"
+      element={<CustomerLoginPage />}
+    />
 
-          <Route element={<RequireRole allowedRoles={['FACILITY_STAFF']} />}>
-            <Route path="staff" element={<StaffWorkItemsPage />} />
-            <Route path="staff/reservations/:reservationId/visits/:visitId" element={<StaffHandoverPage />} />
-            <Route path="staff/contracts/:contractId" element={<StaffContractPage />} />
-          </Route>
+    <Route
+      path="auth/customer/register"
+      element={<CustomerRegisterPage />}
+    />
 
-          <Route element={<RequireRole allowedRoles={['FACILITY_MANAGER']} />}>
-            <Route
-              path="manager"
-              element={<PortalPlaceholderPage title="Facility Manager Portal" />}
-            />
-          </Route>
+    <Route
+      path="auth/employee/login"
+      element={<EmployeeLoginPage />}
+    />
 
-          <Route
-            element={<RequireRole allowedRoles={['BUSINESS_OPERATIONS_MANAGER']} />}
-          >
-            <Route
-              path="business"
-              element={<PortalPlaceholderPage title="Business Operations Portal" />}
-            />
-          </Route>
+    <Route
+      path="forbidden"
+      element={<ForbiddenPage />}
+    />
 
-          <Route element={<RequireRole allowedRoles={['SYSTEM_ADMINISTRATOR']} />}>
-            <Route
-              path="admin"
-              element={<PortalPlaceholderPage title="System Administrator Portal" />}
-            />
-          </Route>
-        </Route>
+    <Route element={<RequireAuth />}>
+      <Route
+        element={
+          <RequireRole allowedRoles={['CUSTOMER']} />
+        }
+      >
+        <Route
+          path="customer"
+          element={<CustomerPortalPage />}
+        />
 
-        <Route path="404" element={<NotFoundPage />} />
-        <Route path="*" element={<Navigate to="/404" replace />} />
+        <Route
+          path="customer/storage-search"
+          element={<StorageSearchPage />}
+        />
+
+        <Route
+          path="customer/reservations/new"
+          element={<ReservationCreatePage />}
+        />
+
+        <Route
+          path="customer/reservations"
+          element={<ReservationListPage />}
+        />
+
+        <Route
+          path="customer/reservations/:reservationId"
+          element={<ReservationDetailPage />}
+        />
+
+        <Route
+          path="customer/reservations/:reservationId/confirm"
+          element={<ReservationConfirmPage />}
+        />
+
+        <Route
+          path="customer/invoices"
+          element={<InvoiceListPage />}
+        />
+
+        <Route
+          path="customer/invoices/:invoiceId"
+          element={<InvoiceDetailPage />}
+        />
+
+        <Route
+          path="customer/payments/result"
+          element={<PaymentResultPage />}
+        />
+
+        <Route
+          path="customer/visits"
+          element={<VisitListPage />}
+        />
+
+        <Route
+          path="customer/visits/:visitId"
+          element={<VisitDetailPage />}
+        />
       </Route>
-    </Routes>
+    </Route>
+
+    <Route path="404" element={<NotFoundPage />} />
+  </Route>
+
+  {/* FACILITY STAFF */}
+  <Route element={<RootLayout />}>
+  <Route element={<RequireAuth />}>
+    <Route
+      element={
+        <RequireRole
+          allowedRoles={['FACILITY_STAFF']}
+        />
+      }
+    >
+      <Route path="staff" element={<StaffWorkItemsPage />} />
+      <Route path="staff/reservations/:reservationId/visits/:visitId" element={<StaffHandoverPage />} />
+      <Route path="staff/contracts/:contractId" element={<StaffContractPage />} />
+    </Route>
+  </Route>
+  </Route>
+
+  {/* FACILITY MANAGER */}
+  <Route element={<RequireAuth />}>
+    <Route
+      element={
+        <RequireRole
+          allowedRoles={['FACILITY_MANAGER']}
+        />
+      }
+    >
+      <Route
+        path="manager"
+        element={
+          <PortalPlaceholderPage
+            title="Facility Manager Portal"
+          />
+        }
+      />
+    </Route>
+  </Route>
+
+  {/* BUSINESS OPERATIONS MANAGER */}
+  <Route element={<RequireAuth />}>
+    <Route
+      element={
+        <RequireRole
+          allowedRoles={[
+            'BUSINESS_OPERATIONS_MANAGER',
+          ]}
+        />
+      }
+    >
+      <Route
+        path="business"
+        element={<BusinessOperationsLayout />}
+      >
+        <Route
+          index
+          element={
+            <Navigate to="facilities" replace />
+          }
+        />
+
+        <Route
+          path="facilities"
+          element={<FacilityManagementPage />}
+        />
+
+        <Route
+          path="unit-types"
+          element={<UnitTypePricingPage />}
+        />
+
+        <Route
+          path="policies"
+          element={<PolicyVersionManagementPage />}
+        />
+      </Route>
+    </Route>
+  </Route>
+
+  {/* SYSTEM ADMINISTRATOR */}
+  <Route element={<RequireAuth />}>
+    <Route
+      element={
+        <RequireRole
+          allowedRoles={[
+            'SYSTEM_ADMINISTRATOR',
+          ]}
+        />
+      }
+    >
+      <Route
+        path="admin"
+        element={
+          <PortalPlaceholderPage
+            title="System Administrator Portal"
+          />
+        }
+      />
+    </Route>
+  </Route>
+
+  <Route
+    path="*"
+    element={<Navigate to="/404" replace />}
+  />
+</Routes>
     {backgroundLocation && (
       <Routes>
         <Route element={<RequireAuth />}>
