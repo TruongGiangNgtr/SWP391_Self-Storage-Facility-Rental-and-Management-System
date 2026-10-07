@@ -1,11 +1,12 @@
+using System.Globalization;
+using Frms.Api.Authorization;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
 using Frms.Business.Models.Commands;
 using Frms.Business.Services.Interfaces;
 using Frms.DataAccess.Repositories.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Frms.Api.Controllers;
 
@@ -80,8 +81,11 @@ public sealed class ReservationsController(
     /// </summary>
     [HttpGet]
     [Authorize(
-        Roles =
-            "CUSTOMER,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER")]
+    Roles =
+        RoleNames.Customer + "," +
+        RoleNames.FacilityStaff + "," +
+        RoleNames.FacilityManager + "," +
+        RoleNames.BusinessOperationsManager)]
     [ProducesResponseType(
         typeof(PaginatedResponse<ReservationDetailResponse>),
         StatusCodes.Status200OK)]
