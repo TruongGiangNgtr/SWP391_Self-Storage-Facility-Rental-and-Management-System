@@ -4,6 +4,10 @@ import type {
   AdminUserListQuery,
 } from '../models/adminUser'
 import type {
+  CreateAdminEmployeeRequest,
+  UpdateAdminEmployeeRequest,
+} from '../models/adminEmployee'
+import type {
   ApiCollectionResponse,
   ApiResponse,
 } from './api.types'
@@ -33,6 +37,54 @@ export function getAdminUser(
 ): Promise<ApiResponse<AdminUserAccount>> {
   return httpClient.get(
     `/admin/users/${encodeURIComponent(userAccountId)}`,
+  )
+}
+
+/** AWP-03 / ADM-005 */
+export function createAdminEmployee(
+  request: CreateAdminEmployeeRequest,
+): Promise<ApiResponse<AdminUserAccount>> {
+  return httpClient.post('/admin/employees', request)
+}
+
+/** AWP-03 / ADM-006 */
+export function updateAdminEmployee(
+  employeeId: string,
+  request: UpdateAdminEmployeeRequest,
+): Promise<ApiResponse<AdminUserAccount>> {
+  return httpClient.patch(
+    `/admin/employees/${encodeURIComponent(employeeId)}`,
+    request,
+  )
+}
+
+/** AWP-03 / ADM-007 */
+export function activateAdminEmployee(
+  employeeId: string,
+): Promise<ApiResponse<AdminUserAccount>> {
+  return httpClient.post(
+    `/admin/employees/${encodeURIComponent(employeeId)}/activate`,
+    {},
+  )
+}
+
+/** AWP-03 / ADM-008 */
+export function deactivateAdminEmployee(
+  employeeId: string,
+): Promise<ApiResponse<AdminUserAccount>> {
+  return httpClient.post(
+    `/admin/employees/${encodeURIComponent(employeeId)}/deactivate`,
+    {},
+  )
+}
+
+/** AWP-03 / ADM-012 */
+export function resendAdminEmployeeInitialCredential(
+  employeeId: string,
+): Promise<ApiResponse<AdminUserAccount>> {
+  return httpClient.post(
+    `/admin/employees/${encodeURIComponent(employeeId)}/resend-initial-credential`,
+    {},
   )
 }
 

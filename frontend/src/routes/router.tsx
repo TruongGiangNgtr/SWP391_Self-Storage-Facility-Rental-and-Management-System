@@ -23,6 +23,7 @@ import { HandoverUnitSelectionPage } from '../features/handover-unit-selection/H
 import { PhysicalUnitManagementPage } from '../features/physical-unit-management/PhysicalUnitManagementPage'
 import ManagerSupportTicketsPage from '../features/manager-support/pages/ManagerSupportTicketsPage'
 import UserAccountMonitoringPage from '../features/admin-user-monitoring/UserAccountMonitoringPage'
+import EmployeeAccountManagementPage from '../features/admin-employee-management/EmployeeAccountManagementPage'
 import { ReservationConfirmPage } from '../pages/ReservationConfirmPage'
 import { ReservationCreatePage } from '../pages/ReservationCreatePage'
 import { ReservationDetailPage } from '../pages/ReservationDetailPage'
@@ -255,8 +256,6 @@ export function AppRouter() {
           path="policies"
           element={<PolicyVersionManagementPage />}
         />
-
-        
       </Route>
     </Route>
   </Route>
@@ -297,11 +296,7 @@ export function AppRouter() {
 
         <Route
           path="employees"
-          element={
-            <PortalPlaceholderPage
-              title="Employee Account Management"
-            />
-          }
+          element={<EmployeeAccountManagementPage />}
         />
 
         <Route
