@@ -11,47 +11,32 @@ namespace Frms.Business.Services.Implementations;
 internal sealed class ReservationService(
     IReservationRepository repository,
     ICurrentUserContext currentUser)
-    : IReservationService
-{
+    : IReservationService {
+    private const string CustomerRole = "CUSTOMER";
+    private const string FacilityStaffRole = "FACILITY_STAFF";
+    private const string FacilityManagerRole = "FACILITY_MANAGER";
+    private const string BusinessOperationsManagerRole =
+        "BUSINESS_OPERATIONS_MANAGER";
+
     public async Task<CreatedReservationRecord> CreateAsync(
         CreateReservationCommand command,
-        CancellationToken cancellationToken = default)
-    {
-        if (!currentUser.IsAuthenticated)
-        {
-            throw new BusinessException(
-                "UNAUTHORIZED",
-                "Authentication is required.",
-                401);
-        }
+        CancellationToken cancellationToken = default) {
+        EnsureAuthenticated();
 
         var customerId =
-            await repository.GetCustomerIdByUserAccountIdAsync(
-                currentUser.UserAccountId,
-                cancellationToken);
+            await GetRequiredCustomerIdAsync(cancellationToken);
 
-        if (customerId is null)
-        {
-            throw new BusinessException(
-                "RESOURCE_NOT_FOUND",
-                "Customer profile was not found.",
-                404);
-        }
-
-        try
-        {
+        try {
             return await repository.CreateAsync(
-                customerId.Value,
+                customerId,
                 command.FacilityId,
                 command.UnitTypeId,
                 command.StartMonth,
                 command.EndMonth,
                 cancellationToken);
         }
-        catch (StoredProcedureBusinessException ex)
-        {
-            switch (ex.Code)
-            {
+        catch (StoredProcedureBusinessException ex) {
+            switch (ex.Code) {
                 case "INVALID_MONTH_RANGE":
                     throw new BusinessException(
                         ex.Code,
@@ -88,43 +73,121 @@ internal sealed class ReservationService(
         }
     }
 
-    public async Task<ConfirmedReservationRecord> ConfirmAsync(
-        ConfirmReservationCommand command,
-        CancellationToken cancellationToken = default)
-    {
-        if (!currentUser.IsAuthenticated)
-        {
-            throw new BusinessException(
-                "UNAUTHORIZED",
-                "Authentication is required.",
-                401);
+    public async Task<PagedReservationRecord> ListAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default) {
+        EnsureAuthenticated();
+        ValidatePagination(page, pageSize);
+
+        switch (currentUser.Role) {
+            case CustomerRole: {
+                var customerId =
+                    await GetRequiredCustomerIdAsync(
+                        cancellationToken);
+
+                return await repository.ListByCustomerAsync(
+                    customerId,
+                    page,
+                    pageSize,
+                    cancellationToken);
+            }
+
+            case FacilityManagerRole: {
+                var facilityId =
+                    await GetRequiredEmployeeFacilityIdAsync(
+                        cancellationToken);
+
+                return await repository.ListByFacilityAsync(
+                    facilityId,
+                    page,
+                    pageSize,
+                    cancellationToken);
+            }
+
+            case BusinessOperationsManagerRole:
+                return await repository.ListAllAsync(
+                    page,
+                    pageSize,
+                    cancellationToken);
+
+            default:
+                throw Forbidden();
         }
+    }
 
-        var customerId =
-            await repository.GetCustomerIdByUserAccountIdAsync(
-                currentUser.UserAccountId,
-                cancellationToken);
+    public async Task<ReservationDetailRecord> GetByIdAsync(
+        Guid reservationId,
+        CancellationToken cancellationToken = default) {
+        EnsureAuthenticated();
 
-        if (customerId is null)
-        {
+        var reservation = await repository.GetByIdAsync(
+            reservationId,
+            cancellationToken);
+
+        if (reservation is null) {
             throw new BusinessException(
                 "RESOURCE_NOT_FOUND",
-                "Customer profile was not found.",
+                "Reservation was not found.",
                 404);
         }
 
-        try
-        {
+        switch (currentUser.Role) {
+            case CustomerRole: {
+                var customerId =
+                    await GetRequiredCustomerIdAsync(
+                        cancellationToken);
+
+                if (reservation.CustomerId != customerId) {
+                    throw new BusinessException(
+                        "RESOURCE_NOT_FOUND",
+                        "Reservation was not found.",
+                        404);
+                }
+
+                break;
+            }
+
+            case FacilityStaffRole:
+            case FacilityManagerRole: {
+                var facilityId =
+                    await GetRequiredEmployeeFacilityIdAsync(
+                        cancellationToken);
+
+                if (reservation.FacilityId != facilityId) {
+                    throw Forbidden();
+                }
+
+                break;
+            }
+
+            case BusinessOperationsManagerRole:
+                break;
+
+            default:
+                throw Forbidden();
+        }
+
+        return reservation;
+    }
+
+    public async Task<ConfirmedReservationRecord> ConfirmAsync(
+        ConfirmReservationCommand command,
+        CancellationToken cancellationToken = default) {
+        EnsureAuthenticated();
+
+        var customerId =
+            await GetRequiredCustomerIdAsync(cancellationToken);
+
+        try {
             return await repository.ConfirmAsync(
-                customerId.Value,
+                customerId,
                 command.ReservationId,
                 command.ReservationVisitDate,
                 cancellationToken);
         }
-        catch (StoredProcedureBusinessException ex)
-        {
-            switch (ex.Code)
-            {
+        catch (StoredProcedureBusinessException ex) {
+            switch (ex.Code) {
                 case "RESOURCE_NOT_FOUND":
                     throw new BusinessException(
                         ex.Code,
@@ -154,4 +217,63 @@ internal sealed class ReservationService(
             }
         }
     }
+
+    private void EnsureAuthenticated() {
+        if (!currentUser.IsAuthenticated) {
+            throw new BusinessException(
+                "UNAUTHORIZED",
+                "Authentication is required.",
+                401);
+        }
+    }
+
+    private static void ValidatePagination(
+        int page,
+        int pageSize) {
+        if (page < 1 ||
+            pageSize < 1 ||
+            pageSize > 100) {
+            throw new BusinessException(
+                "VALIDATION_ERROR",
+                "page must be >= 1 and pageSize must be between 1 and 100.",
+                400);
+        }
+    }
+
+    private async Task<Guid> GetRequiredCustomerIdAsync(
+        CancellationToken cancellationToken) {
+        var customerId =
+            await repository.GetCustomerIdByUserAccountIdAsync(
+                currentUser.UserAccountId,
+                cancellationToken);
+
+        if (customerId is null) {
+            throw new BusinessException(
+                "RESOURCE_NOT_FOUND",
+                "Customer profile was not found.",
+                404);
+        }
+
+        return customerId.Value;
+    }
+
+    private async Task<Guid> GetRequiredEmployeeFacilityIdAsync(
+        CancellationToken cancellationToken) {
+        var facilityId =
+            await repository.GetEmployeeFacilityIdByUserAccountIdAsync(
+                currentUser.UserAccountId,
+                cancellationToken);
+
+        if (facilityId is null) {
+            throw Forbidden();
+        }
+
+        return facilityId.Value;
+    }
+
+    private static BusinessException Forbidden()
+        => new(
+            "FORBIDDEN",
+            "Access is forbidden.",
+            403);
 }
