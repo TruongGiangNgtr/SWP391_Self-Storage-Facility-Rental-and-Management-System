@@ -1,4 +1,8 @@
 import type {
+  AdminAuditLogEntry,
+  AdminAuditLogQuery,
+} from '../models/adminAuditLog'
+import type {
   AdminApiErrorShape,
   AdminCustomerStatusResult,
   AdminUserAccount,
@@ -80,6 +84,24 @@ export function listAdminLoginHistory(
   if (query.toUtc) params.set('toUtc', query.toUtc)
 
   return httpClient.get(`/admin/login-history?${params.toString()}`)
+}
+
+/** AWP-07 / ADM-011 */
+export function listAdminAuditLogs(
+  query: AdminAuditLogQuery = {},
+): Promise<ApiCollectionResponse<AdminAuditLogEntry>> {
+  const params = new URLSearchParams()
+  params.set('page', String(query.page ?? 1))
+  params.set('pageSize', String(query.pageSize ?? 20))
+
+  if (query.userAccountId) params.set('userAccountId', query.userAccountId)
+  if (query.entityType) params.set('entityType', query.entityType)
+  if (query.entityId) params.set('entityId', query.entityId)
+  if (query.action) params.set('action', query.action)
+  if (query.fromUtc) params.set('fromUtc', query.fromUtc)
+  if (query.toUtc) params.set('toUtc', query.toUtc)
+
+  return httpClient.get(`/admin/audit-logs?${params.toString()}`)
 }
 
 /** AWP-03 / ADM-005 */
