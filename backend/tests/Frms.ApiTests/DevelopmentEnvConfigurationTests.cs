@@ -10,7 +10,9 @@ public sealed class DevelopmentEnvConfigurationTests
 {
     private string directory = null!;
     private string? previousEnvironmentValue;
+    private string? previousVnPayTmnCode;
     private const string EnvironmentKey = "ConnectionStrings__FrmsDb";
+    private const string VnPayTmnCodeEnvironmentKey = "Payment__VnPay__TmnCode";
 
     [SetUp]
     public void SetUp()
@@ -18,13 +20,16 @@ public sealed class DevelopmentEnvConfigurationTests
         directory = Path.Combine(Path.GetTempPath(), "frms-dotenv-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
         previousEnvironmentValue = Environment.GetEnvironmentVariable(EnvironmentKey);
+        previousVnPayTmnCode = Environment.GetEnvironmentVariable(VnPayTmnCodeEnvironmentKey);
         Environment.SetEnvironmentVariable(EnvironmentKey, null);
+        Environment.SetEnvironmentVariable(VnPayTmnCodeEnvironmentKey, null);
     }
 
     [TearDown]
     public void TearDown()
     {
         Environment.SetEnvironmentVariable(EnvironmentKey, previousEnvironmentValue);
+        Environment.SetEnvironmentVariable(VnPayTmnCodeEnvironmentKey, previousVnPayTmnCode);
         Directory.Delete(directory, recursive: true);
     }
 
@@ -67,11 +72,16 @@ public sealed class DevelopmentEnvConfigurationTests
     [TestCase("Testing")]
     public void API_CONFIG_004_OtherEnvironmentsIgnoreLocalFile(string environmentName)
     {
-        File.WriteAllText(Path.Combine(directory, ".env"), "ConnectionStrings__FrmsDb=from-file\n");
+        File.WriteAllText(Path.Combine(directory, ".env"),
+            "ConnectionStrings__FrmsDb=from-file\nPayment__VnPay__TmnCode=fake-file-terminal\n");
         using var configuration = CreateConfiguration();
         configuration.AddDevelopmentEnvFile(CreateEnvironment(environmentName));
 
-        Assert.That(configuration.GetConnectionString("FrmsDb"), Is.EqualTo("from-settings"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(configuration.GetConnectionString("FrmsDb"), Is.EqualTo("from-settings"));
+            Assert.That(configuration["Payment:VnPay:TmnCode"], Is.EqualTo("fake-settings-terminal"));
+        });
     }
 
     [Test]
@@ -99,10 +109,46 @@ public sealed class DevelopmentEnvConfigurationTests
         });
     }
 
+    [Test]
+    public void API_CONFIG_007_DevelopmentMapsVnPayKeyWithoutChangingProcessEnvironment()
+    {
+        File.WriteAllText(Path.Combine(directory, ".env"),
+            "Payment__VnPay__TmnCode=fake-file-terminal\n");
+        using var configuration = CreateConfiguration();
+        configuration.AddDevelopmentEnvFile(CreateEnvironment(Environments.Development));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(configuration["Payment:VnPay:TmnCode"], Is.EqualTo("fake-file-terminal"));
+            Assert.That(Environment.GetEnvironmentVariable(VnPayTmnCodeEnvironmentKey), Is.Null);
+        });
+    }
+
+    [Test]
+    public void API_CONFIG_008_ProcessEnvironmentOverridesVnPayLocalFile()
+    {
+        File.WriteAllText(Path.Combine(directory, ".env"),
+            "Payment__VnPay__TmnCode=fake-file-terminal\n");
+        Environment.SetEnvironmentVariable(VnPayTmnCodeEnvironmentKey, "fake-process-terminal");
+        using var configuration = CreateConfiguration();
+        configuration.AddDevelopmentEnvFile(CreateEnvironment(Environments.Development));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(configuration["Payment:VnPay:TmnCode"], Is.EqualTo("fake-process-terminal"));
+            Assert.That(Environment.GetEnvironmentVariable(VnPayTmnCodeEnvironmentKey),
+                Is.EqualTo("fake-process-terminal"));
+        });
+    }
+
     private static ConfigurationManager CreateConfiguration()
     {
         var configuration = new ConfigurationManager();
-        configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:FrmsDb"] = "from-settings" });
+        configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ConnectionStrings:FrmsDb"] = "from-settings",
+            ["Payment:VnPay:TmnCode"] = "fake-settings-terminal"
+        });
         configuration.AddEnvironmentVariables();
         return configuration;
     }

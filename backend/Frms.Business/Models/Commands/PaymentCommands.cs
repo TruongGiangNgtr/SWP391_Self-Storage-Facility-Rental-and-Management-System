@@ -4,7 +4,10 @@ namespace Frms.Business.Models.Commands;
 /// PAY-001: starts a Payment attempt for an existing Invoice. The amount is
 /// server-authoritative and is never supplied by the client.
 /// </summary>
-public sealed record StartPaymentCommand(Guid IdempotencyKey, string ReturnUrl)
+public sealed record StartPaymentCommand(
+    Guid IdempotencyKey,
+    [property: System.Text.Json.Serialization.JsonIgnore] string ReturnUrl,
+    string ClientIpAddress)
 {
     public override string ToString() => nameof(StartPaymentCommand);
 }

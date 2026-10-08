@@ -4,7 +4,7 @@ using Frms.Business.Abstractions.External;
 
 namespace Frms.Business.Services.Interfaces;
 
-/// <summary>Business contract for MoMo Sandbox payment processing (EPS-01, PAY-001, PAY-003 and PAY-004).</summary>
+/// <summary>Business contract for VNPay Sandbox payment processing (EPS-01, PAY-001, PAY-003 and PAY-004).</summary>
 public interface IPaymentService {
     /// <summary>PAY-001: starts a payment attempt for an existing Deposit/Rental Fee Invoice.</summary>
     Task<InvoicePaymentStartResult> StartInvoicePaymentAsync(

@@ -26,26 +26,4 @@ public sealed class BillingController : ScaffoldControllerBase
         Guid invoiceId,
         CancellationToken cancellationToken) => ScaffoldNotImplemented("BIL-002");
 
-    /// <summary>PAY-001: Start MoMo payment for an existing Invoice scaffold.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
-    [HttpPost("invoices/{invoiceId:guid}/payments/momo")]
-    [ProducesResponseType(typeof(ApiResponse<InvoiceMomoPaymentResponse>), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> StartInvoiceMomoPayment(
-        Guid invoiceId,
-        [FromBody] StartInvoiceMomoPaymentRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("PAY-001");
-
-    /// <summary>PAY-003: Get own Payment status scaffold.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
-    [HttpGet("payments/{paymentId:guid}")]
-    [ProducesResponseType(typeof(ApiResponse<PaymentDetailResponse>), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> GetPayment(
-        Guid paymentId,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("PAY-003");
-
-    /// <summary>PAY-004: Provider-defined MoMo callback scaffold; wire payload is intentionally unspecified.</summary>
-    [AllowAnonymous]
-    [HttpPost("payments/momo/callback")]
-    public ActionResult<ApiErrorResponse> MomoCallback(CancellationToken cancellationToken) =>
-        ScaffoldNotImplemented("PAY-004");
 }

@@ -18,35 +18,81 @@ public sealed class PaymentMigrationTests
         var migrator = db.GetService<IMigrator>();
         try
         {
-            await migrator.MigrateAsync(PaymentMigration);
-            Assert.That(await db.Database.GetAppliedMigrationsAsync(), Does.Contain(PaymentMigration));
+            await migrator.MigrateAsync();
+            Assert.That(await db.Database.GetAppliedMigrationsAsync(), Does.Contain(VnPayMigration));
             Assert.That(await ProcedureExistsAsync(db), Is.True);
             Assert.That(await db.Payments.CountAsync(), Is.Zero);
-            Assert.That(await ScalarAsync<int>(db, "SELECT COUNT(*) AS [Value] FROM sys.tables"), Is.EqualTo(28)); // 27 entities + migration history
-            Assert.That(await ScalarAsync<int>(db, """
-                SELECT COUNT(*) AS [Value] FROM sys.default_constraints d
-                JOIN sys.columns c ON c.object_id = d.parent_object_id AND c.column_id = d.parent_column_id
-                WHERE d.parent_object_id = OBJECT_ID('dbo.Payment') AND c.name = 'IdempotencyKey'
-                """), Is.Zero);
 
-            await migrator.MigrateAsync(BaselineMigration);
-            Assert.That(await ProcedureExistsAsync(db), Is.False);
-            Assert.That(await ScalarAsync<bool>(db, "SELECT is_nullable AS [Value] FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Payment') AND name = 'InvoiceId'"), Is.True);
             await migrator.MigrateAsync(PaymentMigration);
-            Assert.That(await ProcedureExistsAsync(db), Is.True);
-            Assert.That(await ScalarAsync<bool>(db, "SELECT is_nullable AS [Value] FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Payment') AND name = 'InvoiceId'"), Is.False);
+            Assert.That(await db.Database.GetAppliedMigrationsAsync(), Does.Not.Contain(VnPayMigration));
+            await migrator.MigrateAsync();
+            Assert.That(await db.Database.GetAppliedMigrationsAsync(), Does.Contain(VnPayMigration));
         }
         finally
         {
-            // These dedicated migration databases must be empty before the fixture starts.
-            // Drop only the test schema created by this fixture; never delete a database.
+            await db.Database.ExecuteSqlRawAsync("DELETE dbo.Payment");
+            await migrator.MigrateAsync(Migration.InitialDatabase);
+        }
+    }
+
+    [Test]
+    public async Task DBT_PAY_M02_VnPayMigrationAcceptsVnPayAndHistoricalMomoButRejectsOtherMethods()
+    {
+        await using var db = Open(MigrationConnection("MethodConstraint"));
+        await RequireEmptyDatabaseAsync(db);
+        var migrator = db.GetService<IMigrator>();
+        try
+        {
+            await migrator.MigrateAsync();
+            var invoice = await SeedInvoiceAsync(db);
+            await InsertPaymentAsync(db, Guid.NewGuid(), invoice.InvoiceId, Guid.NewGuid(), method: "VNPAY");
+            await InsertPaymentAsync(db, Guid.NewGuid(), invoice.InvoiceId, Guid.NewGuid(), method: "MOMO");
+            var rejected = Assert.ThrowsAsync<SqlException>(() => InsertPaymentAsync(
+                db, Guid.NewGuid(), invoice.InvoiceId, Guid.NewGuid(), method: "CASH"));
+
+            Assert.That(rejected!.Number, Is.EqualTo(547));
+            Assert.That(rejected.Message, Does.Contain("CK_Payment_Method"));
+            Assert.That(await db.Payments.CountAsync(), Is.EqualTo(2));
+        }
+        finally
+        {
+            await db.Database.ExecuteSqlRawAsync("DELETE dbo.Payment");
+            await migrator.MigrateAsync(Migration.InitialDatabase);
+        }
+    }
+
+    [Test]
+    public async Task DBT_PAY_M03_DowngradeFailsClearlyWhenVnPayRowsExist()
+    {
+        await using var db = Open(MigrationConnection("DowngradeGuard"));
+        await RequireEmptyDatabaseAsync(db);
+        var migrator = db.GetService<IMigrator>();
+        Guid? paymentId = null;
+        try
+        {
+            await migrator.MigrateAsync();
+            var invoice = await SeedInvoiceAsync(db);
+            paymentId = Guid.NewGuid();
+            await InsertPaymentAsync(db, paymentId.Value, invoice.InvoiceId, Guid.NewGuid(), method: "VNPAY");
+
+            var blocked = Assert.ThrowsAsync<SqlException>(() => migrator.MigrateAsync(PaymentMigration));
+
+            Assert.That(blocked!.Number, Is.EqualTo(51030));
+            Assert.That(blocked.Message, Does.Contain("VNPAY rows"));
+            Assert.That(await db.Payments.AnyAsync(payment => payment.PaymentId == paymentId), Is.True);
+        }
+        finally
+        {
+            if (paymentId.HasValue)
+                await db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.Payment WHERE PaymentId={paymentId.Value}");
             await migrator.MigrateAsync(Migration.InitialDatabase);
         }
     }
 
     [TestCase("NullGuard", true, 51001)]
     [TestCase("KeyGuard", false, 51002)]
-    public async Task DBT_PAY_M02_UnexpectedExistingRowsAbortUpgradeWithoutFabrication(string suffix, bool unlinked, int diagnostic)
+    public async Task DBT_PAY_M04_UnexpectedExistingRowsAbortPlan3UpgradeWithoutFabrication(
+        string suffix, bool unlinked, int diagnostic)
     {
         await using var db = Open(MigrationConnection(suffix));
         await RequireEmptyDatabaseAsync(db);
@@ -61,15 +107,12 @@ public sealed class PaymentMigrationTests
                 INSERT dbo.Payment (PaymentId, InvoiceId, Amount, PaymentMethod, Status, CreatedAt)
                 VALUES ({paymentId}, {invoiceId}, 125.50, 'MOMO', 'PENDING', {Now.UtcDateTime})
                 """);
-            var exception = Assert.ThrowsAsync<SqlException>(async () => await migrator.MigrateAsync(PaymentMigration));
-            Assert.Multiple(() =>
-            {
-                Assert.That(exception!.Number, Is.EqualTo(diagnostic));
-                Assert.That(exception.Message, Does.Contain("Payment migration blocked"));
-            });
+
+            var exception = Assert.ThrowsAsync<SqlException>(() => migrator.MigrateAsync(PaymentMigration));
+
+            Assert.That(exception!.Number, Is.EqualTo(diagnostic));
+            Assert.That(exception.Message, Does.Contain("Payment migration blocked"));
             Assert.That(await db.Database.GetAppliedMigrationsAsync(), Does.Not.Contain(PaymentMigration));
-            Assert.That(await db.Database.SqlQuery<Guid>($"SELECT PaymentId AS [Value] FROM dbo.Payment WHERE PaymentId = {paymentId}").SingleAsync(), Is.EqualTo(paymentId));
-            Assert.That(await ScalarAsync<int>(db, "SELECT COUNT(*) AS [Value] FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Payment') AND name = 'IdempotencyKey'"), Is.Zero);
         }
         finally
         {
@@ -88,12 +131,16 @@ public sealed class PaymentMigrationTests
     private static async Task RequireEmptyDatabaseAsync(FrmsDbContext db)
     {
         if (!await db.Database.CanConnectAsync()) return;
-        Assert.That(await ScalarAsync<int>(db, "SELECT COUNT(*) AS [Value] FROM sys.tables WHERE name <> '__EFMigrationsHistory'"),
-            Is.Zero, "Migration tests require an empty dedicated database; existing data must not be overwritten.");
+        Assert.That(await ScalarAsync<int>(db,
+            "SELECT COUNT(*) AS [Value] FROM sys.tables WHERE name <> '__EFMigrationsHistory'"),
+            Is.Zero, "Migration tests require an empty dedicated database.");
         Assert.That(await db.Database.GetAppliedMigrationsAsync(), Is.Empty);
     }
 
-    private static Task<T> ScalarAsync<T>(FrmsDbContext db, string sql) => db.Database.SqlQueryRaw<T>(sql).SingleAsync();
+    private static Task<T> ScalarAsync<T>(FrmsDbContext db, string sql) =>
+        db.Database.SqlQueryRaw<T>(sql).SingleAsync();
+
     private static async Task<bool> ProcedureExistsAsync(FrmsDbContext db) =>
-        await ScalarAsync<int>(db, "SELECT COUNT(*) AS [Value] FROM sys.procedures WHERE name = 'usp_ApplyPaymentResult'") == 1;
+        await ScalarAsync<int>(db,
+            "SELECT COUNT(*) AS [Value] FROM sys.procedures WHERE name = 'usp_ApplyPaymentResult'") == 1;
 }

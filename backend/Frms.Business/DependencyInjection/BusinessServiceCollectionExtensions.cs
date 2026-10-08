@@ -11,6 +11,7 @@ public static class BusinessServiceCollectionExtensions
     {
         services.AddSingleton<IClock, SystemClock>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IFacilityAuthorizationService, FacilityAuthorizationService>();
         services.AddScoped<IStorageUnitService, StorageUnitService>();
         services.AddScoped<IFacilityService, FacilityService>();

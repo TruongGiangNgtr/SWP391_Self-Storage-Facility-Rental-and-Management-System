@@ -88,7 +88,7 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
                 }
 
                 var invoice = await GetInvoiceAsync(invoiceId, cancellationToken);
-                if (invoice is null || invoice.AmountDue <= 0 || invoice.Status is not ("UNPAID" or "OVERDUE")
+                if (invoice is null || invoice.Status is not ("UNPAID" or "OVERDUE")
                     || (invoice.InvoiceType != "DEPOSIT"
                         && !(invoice.InvoiceType == "RENTAL_FEE" && invoice.BillingMonth > invoice.ContractStartMonth)))
                 {
@@ -96,12 +96,19 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
                     return new(PaymentAttemptOutcome.InvoiceNotPayable, null);
                 }
 
-                // The only amount source is the locked Invoice, never a caller-supplied value.
-                await database.Database.ExecuteSqlInterpolatedAsync($"""
+                if (invoice.AmountDue <= 0m)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    return new(PaymentAttemptOutcome.AmountUnsupported, null);
+                }
+                await ExecuteAsync("""
                     INSERT INTO dbo.Payment (PaymentId, InvoiceId, IdempotencyKey, Amount, PaymentMethod, Status, CreatedAt)
-                    SELECT {paymentId}, InvoiceId, {idempotencyKey}, AmountDue, 'MOMO', 'PENDING', {now.UtcDateTime}
-                    FROM dbo.Invoice WHERE InvoiceId = {invoiceId}
-                    """, cancellationToken);
+                    SELECT @Id, InvoiceId, @Key, AmountDue, 'VNPAY', 'PENDING', @Now
+                    FROM dbo.Invoice WHERE InvoiceId = @Invoice
+                    """, [Parameter("@Id", SqlDbType.UniqueIdentifier, paymentId),
+                        Parameter("@Invoice", SqlDbType.UniqueIdentifier, invoiceId),
+                        Parameter("@Key", SqlDbType.UniqueIdentifier, idempotencyKey),
+                        Parameter("@Now", SqlDbType.DateTime2, now.UtcDateTime)], cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
             }
             catch (SqlException exception) when (exception.Number is 2601 or 2627)
@@ -184,8 +191,7 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
              Parameter("@Status", SqlDbType.VarChar, result.Status == PaymentFinalStatus.Success ? "SUCCESS" : "FAILED", 50),
              Parameter("@TransactionCode", SqlDbType.VarChar, result.TransactionCode, 150), amount,
              Parameter("@VerifiedPaidAtUtc", SqlDbType.DateTime2, result.VerifiedPaidAt?.UtcDateTime),
-             Parameter("@Source", SqlDbType.VarChar, result.Source == PaymentResultSource.VerifiedCallback
-                ? "VERIFIED_CALLBACK" : "DEFINITIVE_PRE_SESSION_FAILURE", 50), outcome, reason],
+             Parameter("@Source", SqlDbType.VarChar, "VERIFIED_CALLBACK", 50), outcome, reason],
             cancellationToken, CommandType.StoredProcedure);
         var applied = Enum.Parse<PaymentApplyOutcome>((string)outcome.Value, ignoreCase: false);
         return new(applied, await GetByIdAsync(result.PaymentId, cancellationToken), reason.Value as string);

@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Frms.Business\Frms.Business.csproj" />
+    <ProjectReference Include="..\..\Frms.Infrastructure\Frms.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Frms.DataAccess\Frms.DataAccess.csproj" />
   </ItemGroup>
 

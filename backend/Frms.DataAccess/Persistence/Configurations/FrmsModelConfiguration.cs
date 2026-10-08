@@ -49,7 +49,7 @@ internal static class FrmsModelConfiguration
         {
             e.ToTable("Payment", t =>
             {
-                t.HasCheckConstraint("CK_Payment_Method", "[PaymentMethod]='MOMO'");
+                t.HasCheckConstraint("CK_Payment_Method", "[PaymentMethod] IN ('MOMO','VNPAY')");
                 t.HasCheckConstraint("CK_Payment_Status", "[Status] IN ('PENDING','SUCCESS','FAILED')");
                 t.HasCheckConstraint("CK_Payment_Amount", "[Amount]>0");
                 t.HasCheckConstraint("CK_Payment_PaidAt", "([Status]='SUCCESS' AND [PaidAt] IS NOT NULL) OR ([Status]<>'SUCCESS' AND [PaidAt] IS NULL)");

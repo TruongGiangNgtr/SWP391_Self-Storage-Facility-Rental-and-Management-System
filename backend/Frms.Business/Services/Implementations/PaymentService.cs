@@ -30,45 +30,66 @@ public sealed class PaymentService(
 
         var existing = await repository.GetByIdempotencyKeyAsync(
             invoiceId, command.IdempotencyKey, clock.UtcNow, cancellationToken);
-        if (existing.Outcome != PaymentAttemptOutcome.NotFound) return StartResult(existing);
+        if (existing.Outcome != PaymentAttemptOutcome.NotFound)
+            return StartResult(existing);
 
         // Eligibility applies to a new attempt only. The repository rechecks under its Invoice lock.
-        if (invoice.Status is not ("UNPAID" or "OVERDUE") || invoice.AmountDue <= 0
-            || (invoice.InvoiceType != "DEPOSIT"
-                && !(invoice.InvoiceType == "RENTAL_FEE" && invoice.BillingMonth > invoice.ContractStartMonth)))
+        if (!Payable(invoice))
             throw NotPayable();
+        if (invoice.AmountDue <= 0m) throw UnsupportedAmount();
 
         // Known configuration errors must not consume a new idempotency key.
         await gateway.EnsureConfiguredAsync(cancellationToken);
+        gateway.ValidatePaymentRequest(new(invoice.AmountDue, command.ReturnUrl, command.ClientIpAddress));
         var created = await repository.CreateOrGetAsync(
             invoiceId, command.IdempotencyKey, clock.UtcNow, cancellationToken);
-        if (created.Outcome != PaymentAttemptOutcome.Created) return StartResult(created);
-        var attempt = RequireAttempt(created);
+        if (created.Outcome != PaymentAttemptOutcome.Created)
+            return StartResult(created);
+        return await CreateSessionAsync(created, invoice.InvoiceId, command, cancellationToken);
+    }
 
-        // CreateOrGet has committed. Only its Created winner may perform external session creation.
-        var provider = await gateway.CreatePaymentAsync(
-            new(attempt.Detail.PaymentId, attempt.Detail.Amount, command.ReturnUrl), cancellationToken);
+    private async Task<InvoicePaymentStartResult> CreateSessionAsync(PaymentAttemptResult result,
+        Guid invoiceId, StartPaymentCommand command, CancellationToken cancellationToken)
+    {
+        var attempt = RequireAttempt(result);
+        var request = new PaymentGatewayRequest(attempt.Detail.PaymentId, attempt.Detail.Amount,
+            command.ReturnUrl, command.ClientIpAddress, attempt.Detail.CreatedAt);
+
+        PaymentGatewayCreationResult provider;
+        try
+        {
+            provider = await gateway.CreatePaymentAsync(request, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception)
+        {
+            return await ReloadAttemptAsync(invoiceId, command.IdempotencyKey, cancellationToken);
+        }
+
         if (provider.Outcome == PaymentGatewayCreationOutcome.SessionCreated
             && provider.Session is { } session && ValidSession(session))
         {
-            var saved = await repository.SaveSessionAsync(attempt.Detail.PaymentId,
-                new(session.TransactionCode, session.PaymentUrl, session.ExpiresAt?.ToUniversalTime()),
-                clock.UtcNow, cancellationToken);
-            if (saved.Outcome != PaymentAttemptOutcome.ReferenceConflict) return StartResult(saved);
-            // The conflicting reference's Payment is never read or returned.
+            PaymentAttemptResult saved;
+            try
+            {
+                saved = await repository.SaveSessionAsync(attempt.Detail.PaymentId,
+                    new(session.TransactionCode, session.PaymentUrl, session.ExpiresAt?.ToUniversalTime()),
+                    clock.UtcNow, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+            catch (Exception)
+            {
+                return await ReloadAttemptAsync(invoiceId, command.IdempotencyKey, cancellationToken);
+            }
+            if (saved.Outcome != PaymentAttemptOutcome.ReferenceConflict)
+            {
+                var response = StartResult(saved);
+                return response with { NewlyInitiated = response.Outcome == PaymentStartOutcome.SessionAvailable };
+            }
             var current = await ReloadAttemptAsync(invoiceId, command.IdempotencyKey, cancellationToken);
             return current.Outcome == PaymentStartOutcome.Terminal ? current
                 : current with { Outcome = PaymentStartOutcome.ReferenceConflict, PaymentUrl = null, PaymentUrlExpiresAt = null };
         }
-
-        if (provider.Outcome == PaymentGatewayCreationOutcome.DefinitiveRejection
-            && provider.Session is null && ValidOptionalReference(provider.TransactionCode))
-        {
-            await repository.ApplyResultAsync(new(attempt.Detail.PaymentId, PaymentFinalStatus.Failed,
-                provider.TransactionCode, null, null, PaymentResultSource.DefinitivePreSessionFailure), cancellationToken);
-        }
-        // Unknown/malformed outcomes never prove failure. Exceptions (including cancellation and
-        // save failures) propagate without a fabricated FAILED write; recovery belongs to Plan 5.
         return await ReloadAttemptAsync(invoiceId, command.IdempotencyKey, cancellationToken);
     }
 
@@ -94,7 +115,7 @@ public sealed class PaymentService(
         PaymentGatewayCallbackRequest request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (string.IsNullOrWhiteSpace(request.RawBody)) return InvalidResult();
+        if (string.IsNullOrWhiteSpace(request.RawPayload)) return InvalidResult();
         // No actor role or caller-supplied verification flag authorizes a result write.
         var verified = await gateway.VerifyAndNormalizeCallbackAsync(request, cancellationToken);
         if (verified.Status == PaymentGatewayCallbackOutcome.Unverified)
@@ -169,6 +190,7 @@ public sealed class PaymentService(
         PaymentAttemptOutcome.IdempotencyConflict => throw new BusinessException(
             PaymentErrorCodes.IdempotencyConflict, "The idempotency key cannot be used for this Invoice.", 409),
         PaymentAttemptOutcome.InvoiceNotPayable => throw NotPayable(),
+        PaymentAttemptOutcome.AmountUnsupported => throw UnsupportedAmount(),
         PaymentAttemptOutcome.SessionExpired => throw Expired(),
         PaymentAttemptOutcome.NotFound => throw NotFound(),
         PaymentAttemptOutcome.Created or PaymentAttemptOutcome.Existing => result.Attempt
@@ -190,5 +212,9 @@ public sealed class PaymentService(
     private static BusinessException NotFound() => new("RESOURCE_NOT_FOUND", "The requested resource was not found.", 404);
     private static BusinessException NotPayable() => new(PaymentErrorCodes.InvoiceNotPayable, "The Invoice is not payable.", 409);
     private static BusinessException Expired() => new(PaymentErrorCodes.SessionExpired, "The payment session has expired.", 409);
+    private static BusinessException UnsupportedAmount() => new(PaymentErrorCodes.AmountUnsupported, "The Invoice amount is not supported for payment initiation.", 409);
+    private static bool Payable(PaymentInvoiceRecord invoice) => invoice.Status is "UNPAID" or "OVERDUE"
+        && (invoice.InvoiceType == "DEPOSIT"
+            || (invoice.InvoiceType == "RENTAL_FEE" && invoice.BillingMonth > invoice.ContractStartMonth));
     private static PaymentApplicationResult InvalidResult() => new(PaymentApplicationOutcome.InvalidResult, null, null);
 }

@@ -10,7 +10,13 @@ public interface IPaymentGateway
     Task EnsureConfiguredAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Creates a provider payment session for an already persisted internal Payment attempt.
+    /// Validates provider request constraints before an idempotency key is consumed.
+    /// This is a pure local check and never creates a provider session.
+    /// </summary>
+    void ValidatePaymentRequest(PaymentGatewayPreflight request);
+
+    /// <summary>
+    /// Creates the provider redirect URL for an already persisted internal Payment attempt.
     /// A returned session is never proof of payment success; Payment state changes only
     /// through a verified and normalized payment result (PAY-004).
     /// </summary>

@@ -20,6 +20,7 @@ public sealed class Payment
     public decimal Amount { get; set; }
     public required string PaymentMethod { get; set; }
     public string? TransactionCode { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore]
     public string? PaymentUrl { get; set; }
     public DateTime? PaymentUrlExpiresAt { get; set; }
     public required string Status { get; set; }

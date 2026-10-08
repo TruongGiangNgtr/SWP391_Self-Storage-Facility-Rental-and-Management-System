@@ -35,14 +35,12 @@ public sealed partial class PaymentPersistenceTests
         Assert.That(await InvoiceStatusAsync(attempt), Is.EqualTo("PAID"));
     }
 
-    [TestCase(false)]
-    [TestCase(true)]
-    public async Task DBT_PAY_007_DefinitiveFailureLeavesInvoiceUnchangedAndNullPaidAt(bool beforeSession)
+    [Test]
+    public async Task DBT_PAY_007_VerifiedFailureLeavesInvoiceUnchangedAndNullPaidAt()
     {
         var attempt = await CreateAsync();
         var input = new NormalizedPaymentResult(attempt.Detail.PaymentId, PaymentFinalStatus.Failed,
-            beforeSession ? null : Guid.NewGuid().ToString("N"), null, null,
-            beforeSession ? PaymentResultSource.DefinitivePreSessionFailure : PaymentResultSource.VerifiedCallback);
+            Guid.NewGuid().ToString("N"), null, null, PaymentResultSource.VerifiedCallback);
         var first = await repository.ApplyResultAsync(input, default);
         var repeated = await repository.ApplyResultAsync(input, default);
         Assert.Multiple(() =>
@@ -63,7 +61,7 @@ public sealed partial class PaymentPersistenceTests
     }
 
     [TestCase("126.50")]
-    [TestCase("125.5001")]
+    [TestCase("12500.0001")]
     [TestCase("-125.50")]
     public async Task DBT_PAY_008_MismatchDoesNotMutateMoneyAndDeduplicatesSafeDiagnostic(string amount)
     {
@@ -219,7 +217,7 @@ public sealed partial class PaymentPersistenceTests
         Assert.That(audits[0].NewValue, Does.Contain("LATE_SUCCESS_ON_CANCELLED_INVOICE"));
         var serialized = JsonSerializer.Serialize(audits);
         Assert.That(serialized, Does.Not.Contain(url).And.Not.Contain("signature").And.Not.Contain("secret")
-            .And.Not.Contain("RawBody").And.Not.Contain("token").And.Not.Contain("PaymentUrl"));
+            .And.Not.Contain("RawPayload").And.Not.Contain("token").And.Not.Contain("PaymentUrl"));
         Assert.That(db.Model.GetEntityTypes().Select(row => row.ClrType.Name), Has.None.Contains("Refund"));
     }
 
@@ -273,7 +271,6 @@ public sealed partial class PaymentPersistenceTests
         {
             input with { VerifiedAmount = null }, input with { VerifiedPaidAt = null },
             input with { TransactionCode = null }, input with { TransactionCode = " " },
-            input with { Source = PaymentResultSource.DefinitivePreSessionFailure },
             input with { Source = (PaymentResultSource)99 }
         })
         {

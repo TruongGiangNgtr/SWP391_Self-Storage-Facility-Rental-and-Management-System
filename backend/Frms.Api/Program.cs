@@ -26,12 +26,30 @@ builder.Services.Configure<ApiBehaviorOptions>(options => options.InvalidModelSt
     var errors = context.ModelState.Where(pair => pair.Value?.Errors.Count > 0).ToDictionary(pair => ToCamelCase(pair.Key), pair => pair.Value!.Errors.Select(error => error.ErrorMessage).ToArray());
     return new BadRequestObjectResult(new ApiErrorResponse("VALIDATION_ERROR", "Request validation failed.", context.HttpContext.TraceIdentifier, errors));
 });
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options => options.AddOperationTransformer((operation, context, _) =>
+{
+    Frms.Api.OpenApi.PaymentOpenApi.Configure(operation, context.Description.RelativePath);
+    return Task.CompletedTask;
+}));
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
-builder.Services.AddOptions<BCryptOptions>().Bind(builder.Configuration.GetSection(BCryptOptions.SectionName)).Validate(options => options.WorkFactor is >= 4 and <= 31).ValidateOnStart();
-builder.Services.AddOptions<JwtOptions>().Bind(builder.Configuration.GetSection(JwtOptions.SectionName)).Validate(options => !string.IsNullOrWhiteSpace(options.Issuer)).Validate(options => !string.IsNullOrWhiteSpace(options.Audience)).Validate(options => Encoding.UTF8.GetByteCount(options.SigningKey ?? string.Empty) >= 32).Validate(options => options.LifetimeMinutes > 0).ValidateOnStart();
+builder.Services.AddOptions<BCryptOptions>()
+    .Bind(builder.Configuration.GetSection(BCryptOptions.SectionName))
+    .Validate(options => options.WorkFactor is >= 4 and <= 31,
+        "BCrypt:WorkFactor must be between 4 and 31.")
+    .ValidateOnStart();
+builder.Services.AddOptions<JwtOptions>()
+    .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
+    .Validate(options => !string.IsNullOrWhiteSpace(options.Issuer),
+        "Jwt:Issuer is required.")
+    .Validate(options => !string.IsNullOrWhiteSpace(options.Audience),
+        "Jwt:Audience is required.")
+    .Validate(options => Encoding.UTF8.GetByteCount(options.SigningKey ?? string.Empty) >= 32,
+        "Jwt:SigningKey must contain at least 32 UTF-8 bytes.")
+    .Validate(options => options.LifetimeMinutes > 0,
+        "Jwt:LifetimeMinutes must be greater than zero.")
+    .ValidateOnStart();
 
 var jwt = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? throw new InvalidOperationException("JWT configuration is required.");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
@@ -65,11 +83,12 @@ builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 
 builder.Services.AddBusiness();
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddFrmsBackgroundJobs();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => {
+    options.OperationFilter<Frms.Api.OpenApi.PaymentOpenApi>();
     options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme {
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Frms.DataAccess.Repositories.Models;
 
 /// <summary>Server-owned Invoice values and scope; actor authorization belongs to Business.</summary>
@@ -22,8 +24,8 @@ public sealed record PaymentDetailRecord(
 
 /// <summary>Internal PAY-001 session data, released by Business only after ownership validation.</summary>
 public sealed record PaymentAttemptRecord(
-    PaymentDetailRecord Detail, Guid IdempotencyKey, string? PaymentUrl,
-    DateTimeOffset? PaymentUrlExpiresAt)
+    PaymentDetailRecord Detail, [property: JsonIgnore] Guid IdempotencyKey,
+    [property: JsonIgnore] string? PaymentUrl, DateTimeOffset? PaymentUrlExpiresAt)
 {
     // Provider redirect URLs can carry sensitive session data.
     public override string ToString() => $"PaymentAttempt {{ PaymentId = {Detail.PaymentId} }}";
@@ -31,19 +33,19 @@ public sealed record PaymentAttemptRecord(
 
 public enum PaymentAttemptOutcome
 {
-    Created, Existing, NotFound, InvoiceNotPayable, IdempotencyConflict, SessionExpired, ReferenceConflict
+    Created, Existing, NotFound, InvoiceNotPayable, IdempotencyConflict, SessionExpired, ReferenceConflict, AmountUnsupported
 }
 
 /// <summary>A conflict never exposes the attempt held by another Invoice.</summary>
 public sealed record PaymentAttemptResult(PaymentAttemptOutcome Outcome, PaymentAttemptRecord? Attempt);
 
-public sealed record PaymentSessionRecord(string? TransactionCode, string PaymentUrl, DateTimeOffset? ExpiresAt)
+public sealed record PaymentSessionRecord(string? TransactionCode, [property: JsonIgnore] string PaymentUrl, DateTimeOffset? ExpiresAt)
 {
     public override string ToString() => nameof(PaymentSessionRecord);
 }
 
 /// <summary>Only definitive verified outcomes enter the authoritative write path.</summary>
-public enum PaymentResultSource { VerifiedCallback, DefinitivePreSessionFailure }
+public enum PaymentResultSource { VerifiedCallback }
 
 public enum PaymentFinalStatus { Success, Failed }
 

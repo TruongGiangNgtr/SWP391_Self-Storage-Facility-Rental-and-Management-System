@@ -25,11 +25,19 @@ public sealed record PaymentDetailResponse(
     DateTimeOffset? PaidAt,
     DateTimeOffset CreatedAt);
 
-/// <summary>Represents a pending MoMo payment for an existing Invoice.</summary>
-public sealed record InvoiceMomoPaymentResponse(
+/// <summary>Represents a VNPay payment attempt for an existing Invoice.</summary>
+public sealed record InvoiceVnPayPaymentResponse(
     Guid PaymentId,
     Guid InvoiceId,
     decimal Amount,
     string PaymentMethod,
     string Status,
-    string PaymentUrl);
+    string? PaymentUrl)
+{
+    public override string ToString() => $"InvoiceVnPayPaymentResponse {{ PaymentId = {PaymentId}, Status = {Status} }}";
+}
+
+/// <summary>Provider acknowledgement returned by PAY-004.</summary>
+public sealed record VnPayIpnResponse(
+    [property: System.Text.Json.Serialization.JsonPropertyName("RspCode")] string ResponseCode,
+    [property: System.Text.Json.Serialization.JsonPropertyName("Message")] string Message);

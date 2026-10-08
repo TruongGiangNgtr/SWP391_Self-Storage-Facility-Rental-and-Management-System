@@ -7,8 +7,10 @@ namespace Frms.IntegrationTests;
 
 internal static class PaymentSqlTestSupport
 {
+    internal static string Prepare(Guid id, decimal amount) => System.Text.Json.JsonSerializer.Serialize(new { id, amount });
     internal const string BaselineMigration = "20261004191200_PhaseZeroBaselineConstraints";
     internal const string PaymentMigration = "20261007045825_PaymentProcessing";
+    internal const string VnPayMigration = "20261007170917_VnPayPaymentGateway";
     internal static readonly DateTimeOffset Now = new(2026, 10, 7, 10, 0, 0, TimeSpan.Zero);
     internal static readonly DateTimeOffset ProviderTime = new(2026, 10, 7, 17, 2, 3, 456, TimeSpan.FromHours(7));
 
@@ -30,7 +32,7 @@ internal static class PaymentSqlTestSupport
     }
 
     internal static async Task<Invoice> SeedInvoiceAsync(FrmsDbContext db, string type = "DEPOSIT",
-        string status = "UNPAID", decimal amount = 125.50m, bool firstMonth = false)
+        string status = "UNPAID", decimal amount = 12500m, bool firstMonth = false)
     {
         var accountId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
@@ -43,10 +45,10 @@ internal static class PaymentSqlTestSupport
                 PasswordHash = "unused-payment-fixture", Status = "ACTIVE", CreatedAt = Now.UtcDateTime },
             new Customer { CustomerId = customerId, UserAccountId = accountId, FullName = "Payment fixture" },
             new Facility { FacilityId = facilityId, Name = "Payment fixture", Address = "Test", Status = "ACTIVE" },
-            new UnitType { UnitTypeId = unitTypeId, Name = "Payment fixture", Mode = "PUBLIC", Size = "Test", RentalPrice = 125.50m },
+            new UnitType { UnitTypeId = unitTypeId, Name = "Payment fixture", Mode = "PUBLIC", Size = "Test", RentalPrice = 12500m },
             new Reservation { ReservationId = reservationId, CustomerId = customerId, FacilityId = facilityId,
                 UnitTypeId = unitTypeId, PolicyId = SeedIds.InitialPolicy, StartMonth = new(2026, 10, 1),
-                EndMonth = new(2026, 12, 1), LockedRentalPrice = 125.50m, DepositAmount = 125.50m,
+                EndMonth = new(2026, 12, 1), LockedRentalPrice = 12500m, DepositAmount = 12500m,
                 Status = "PENDING_DEPOSIT", CreatedAt = Now.UtcDateTime });
         var entityId = reservationId;
         if (type == "RENTAL_FEE")
@@ -69,8 +71,8 @@ internal static class PaymentSqlTestSupport
     }
 
     internal static Task<int> InsertPaymentAsync(FrmsDbContext db, Guid id, Guid? invoiceId, Guid? key,
-        string? reference = null, string status = "PENDING", decimal amount = 125.50m,
-        DateTime? paidAt = null, string method = "MOMO") => db.Database.ExecuteSqlInterpolatedAsync($"""
+        string? reference = null, string status = "PENDING", decimal amount = 12500m,
+        DateTime? paidAt = null, string method = "VNPAY") => db.Database.ExecuteSqlInterpolatedAsync($"""
             INSERT dbo.Payment (PaymentId, InvoiceId, IdempotencyKey, Amount, PaymentMethod, TransactionCode, Status, PaidAt, CreatedAt)
             VALUES ({id}, {invoiceId}, {key}, {amount}, {method}, {reference}, {status}, {paidAt}, {Now.UtcDateTime})
             """);

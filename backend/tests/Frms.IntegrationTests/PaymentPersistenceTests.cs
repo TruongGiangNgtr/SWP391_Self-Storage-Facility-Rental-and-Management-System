@@ -146,7 +146,7 @@ public sealed partial class PaymentPersistenceTests
     {
         var invoice = await SeedInvoiceAsync(db, type, status, amount, firstMonth);
         var result = await repository.CreateOrGetAsync(invoice.InvoiceId, Guid.NewGuid(), Now, default);
-        Assert.That(result.Outcome, Is.EqualTo(PaymentAttemptOutcome.InvoiceNotPayable));
+        Assert.That(result.Outcome, Is.EqualTo(amount == 0 ? PaymentAttemptOutcome.AmountUnsupported : PaymentAttemptOutcome.InvoiceNotPayable));
         Assert.That(await db.Payments.AnyAsync(row => row.InvoiceId == invoice.InvoiceId), Is.False);
     }
 

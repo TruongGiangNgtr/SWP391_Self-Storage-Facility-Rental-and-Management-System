@@ -11,22 +11,27 @@ The HTTP path is API → Business → repository → SQL Server. Infrastructure 
 
 ## Configure and run
 
-From the repository root (`C:\SWP391`), copy the placeholder example to the ignored backend file and edit its connection settings locally. Preserve an existing local file before copying:
+From the repository root (`C:\SWP391`), create the ignored `backend/Frms.Api/.env` file locally and add the approved `ConnectionStrings__FrmsDb`, `Jwt__SigningKey`, and `Payment__VnPay__*` values from the SRS. Preserve an existing local file and never commit it:
 
 ```powershell
-Copy-Item .\backend\Frms.Api\.env.example .\backend\Frms.Api\.env
-# Edit the local .env; never commit it.
-$env:Jwt__SigningKey = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
 dotnet run --project .\backend\Frms.Api
 ```
 
-From `C:\SWP391\backend`, use `dotnet run --project .\Frms.Api` in the terminal with the session-only JWT key. The default launch profile selects Development.
+From `C:\SWP391\backend`, use `dotnet run --project .\Frms.Api`. The default launch profile selects Development. Because Development reads the local `.env` file automatically, you do not need to set the same `$env:...` values again whenever a new terminal is opened. Restart the backend after changing `.env`.
 
 In Development only, DotNetEnv loads `.env` from the API's `ContentRootPath`, independently of the working directory. `ConnectionStrings__FrmsDb` maps to `ConnectionStrings:FrmsDb`. Windows/PowerShell environment variables and command-line configuration have higher priority than the file; the loader does not modify process environment variables. A missing file is allowed, and existing configuration sources remain available. Production, Staging and Testing ignore the file.
 
 The existing `ConnectionStrings:Frms` name remains supported and takes precedence over the `FrmsDb` alias; set only one name locally. Missing connection settings fail clearly. This runtime loader does not configure EF design-time tools, run migrations, create a test database or change tables. SQL Server must be running for database access, but startup itself does not validate the schema.
 
-`Frms.Api/.env.example` contains placeholders only. The real `.env` is ignored by Git and excluded from build/publish items. `appsettings.Example.json` remains a placeholder reference, not an automatically loaded settings file. Never commit connection credentials, database files, local settings or JWT keys. `TrustServerCertificate=True` in the local example is not a production TLS policy.
+The real `.env` is ignored by Git and excluded from build/publish items. Repository policy forbids tracking `.env` variants, including example files. Never commit connection credentials, database files, local settings, JWT keys or VNPay `HashSecret`. Never print `HashSecret` in application or test logs. `TrustServerCertificate=True` is for approved local test configuration only, not a production TLS policy.
+
+For VNPay Sandbox IPN testing, keep the backend running at `http://localhost:5164` and start ngrok in another terminal:
+
+```powershell
+ngrok http 5164
+```
+
+The approved public IPN URL uses `https://lying-ladder-showroom.ngrok-free.dev`. If ngrok assigns a different hostname, update both `Payment__VnPay__IpnUrl` in the ignored local `.env` and the IPN configuration registered with VNPay Sandbox before testing.
 
 The existing `/health` endpoint probes SQL Server through the registered `FrmsDbContext`. It returns 200 when reachable and 503 when unavailable, without exposing connection details. A healthy probe does not verify migration/schema completeness.
 
@@ -55,4 +60,4 @@ dotnet test backend/tests/Frms.ApiTests/Frms.ApiTests.csproj --configuration Rel
 dotnet test backend/tests/Frms.ArchitectureTests/Frms.ArchitectureTests.csproj --configuration Release
 ```
 
-No migration or SQL integration test is required for this configuration task. The existing real SQL integration suite remains a separate release gate; its implementation is unchanged. See the root README and `docs/PHASE0_FOUNDATION.md` for broader Phase 0 validation and migration/redeploy reasoning.
+Payment migration, persistence and concurrency changes require the real SQL integration gate with `FRMS_TEST_CONNECTION_STRING` pointing only to an approved disposable `Frms_Test_*` database.

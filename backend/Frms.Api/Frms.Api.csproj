@@ -27,6 +27,7 @@
   <ItemGroup>
     <Content Remove=".env" />
     <None Remove=".env" />
+    <None Update=".env.example" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
 </Project>
