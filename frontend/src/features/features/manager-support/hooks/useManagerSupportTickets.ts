@@ -4,7 +4,7 @@ import {
   getSupportTicket,
   listSupportTickets,
   normalizeApiError,
-} from "../../../api/supportTicketApi";
+} from "../../../../api/supportTicketApi";
 import type {
   ApiErrorShape,
   PaginationMeta,

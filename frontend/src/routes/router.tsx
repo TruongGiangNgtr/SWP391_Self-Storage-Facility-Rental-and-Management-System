@@ -5,6 +5,10 @@ import { RootLayout } from '../layouts/RootLayout'
 import { CustomerLoginPage } from '../pages/CustomerLoginPage'
 import { CustomerRegisterPage } from '../pages/CustomerRegisterPage'
 import { CustomerPortalPage } from '../pages/CustomerPortalPage'
+import { CustomerContractListPage } from '../pages/CustomerContractListPage'
+import { CustomerContractDetailPage } from '../pages/CustomerContractDetailPage'
+import { ContractRenewalPage } from '../pages/ContractRenewalPage'
+import { AccessVisitCreatePage } from '../pages/AccessVisitCreatePage'
 import { EmployeeLoginPage } from '../pages/EmployeeLoginPage'
 import { ForbiddenPage } from '../pages/ForbiddenPage'
 import { HomePage } from '../pages/HomePage'
@@ -132,6 +136,26 @@ export function AppRouter() {
         <Route
           path="customer/visits"
           element={<VisitListPage />}
+        />
+
+        <Route
+          path="customer/contracts"
+          element={<CustomerContractListPage />}
+        />
+
+        <Route
+          path="customer/contracts/:contractId"
+          element={<CustomerContractDetailPage />}
+        />
+
+        <Route
+          path="customer/contracts/:contractId/renew"
+          element={<ContractRenewalPage key={location.pathname} />}
+        />
+
+        <Route
+          path="customer/contracts/:contractId/access-visits/new"
+          element={<AccessVisitCreatePage />}
         />
 
         <Route
