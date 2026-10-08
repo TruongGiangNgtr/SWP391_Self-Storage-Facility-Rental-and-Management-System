@@ -1,0 +1,18 @@
+.awp05-rule-note { display:flex; align-items:flex-start; gap:11px; padding:15px 16px; border:1px solid #dbe5ff; border-radius:13px; color:#3557cc; background:#f5f8ff; }
+.awp05-rule-note div { display:grid; gap:4px; }
+.awp05-rule-note span { color:#526174; font-size:12px; line-height:1.55; }
+.awp05-matrix-card,.awp05-assignment-card { overflow:hidden; border:1px solid #e2e8f0; border-radius:14px; background:#fff; box-shadow:0 8px 24px rgb(15 23 42 / 5%); }
+.awp05-matrix-card > header,.awp05-assignment-card > header { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; padding:16px 18px; border-bottom:1px solid #e2e8f0; }
+.awp05-matrix-card h2,.awp05-assignment-card h2 { margin:4px 0 0; color:#172033; font-size:19px; }
+.awp05-assignment-card header p:not(.awp01-eyebrow) { margin:5px 0 0; color:#64748b; font-size:12px; }
+.awp05-fixed-chip { padding:5px 9px; border:1px solid #dbe5ff; border-radius:999px; color:#3557cc; background:#f2f6ff; font-size:11px; font-weight:800; }
+.awp05-matrix,.awp05-assignments { width:100%; min-width:1050px; border-collapse:collapse; }
+.awp05-assignments { min-width:900px; }
+.awp05-matrix th,.awp05-matrix td,.awp05-assignments th,.awp05-assignments td { padding:12px 14px; border-bottom:1px solid #e2e8f0; text-align:left; vertical-align:top; font-size:12px; line-height:1.45; }
+.awp05-matrix th,.awp05-assignments th { color:#64748b; background:#f8fafc; font-size:11px; font-weight:800; text-transform:uppercase; }
+.awp05-matrix td:first-child { width:220px; color:#26364e; }
+.awp05-notice { display:flex; align-items:center; gap:10px; padding:12px 14px; border:1px solid; border-radius:11px; font-size:12px; }
+.awp05-notice span { flex:1; }
+.awp05-notice button { border:0; color:inherit; background:transparent; cursor:pointer; }
+.awp05-notice--success { color:#166534; border-color:#bbf7d0; background:#f0fdf4; }
+.awp05-notice--error { color:#991b1b; border-color:#fecaca; background:#fff7f7; }

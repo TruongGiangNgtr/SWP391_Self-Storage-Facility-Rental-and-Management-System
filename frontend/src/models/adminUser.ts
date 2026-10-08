@@ -21,6 +21,13 @@ export interface AdminUserAccount {
   profile: AdminUserProfile | null
 }
 
+
+export interface AdminCustomerStatusResult {
+  customerId: string
+  userAccountId: string
+  status: UserAccountStatus
+}
+
 export interface AdminUserListQuery {
   page?: number
   pageSize?: number

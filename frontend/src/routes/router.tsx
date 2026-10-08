@@ -13,14 +13,6 @@ import { InvoiceListPage } from '../pages/InvoiceListPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PaymentResultPage } from '../pages/PaymentResultPage'
 import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
-import { CustomerContractListPage } from '../pages/CustomerContractListPage'
-import { CustomerContractDetailPage } from '../pages/CustomerContractDetailPage'
-import { ContractRenewalPage } from '../pages/ContractRenewalPage'
-import { AccessVisitCreatePage } from '../pages/AccessVisitCreatePage'
-import { StaffWorkItemsPage } from '../pages/StaffWorkItemsPage'
-import { StaffHandoverPage } from '../pages/StaffHandoverPage'
-import { StaffContractPage } from '../pages/StaffContractPage'
-import { StaffAccessVisitPage } from '../pages/StaffAccessVisitPage'
 import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
 import { FacilityManagerLayout } from '../layouts/FacilityManagerLayout'
 import { SystemAdministratorLayout } from '../layouts/SystemAdministratorLayout'
@@ -33,6 +25,9 @@ import ManagerSupportTicketsPage from '../features/manager-support/pages/Manager
 import UserAccountMonitoringPage from '../features/admin-user-monitoring/UserAccountMonitoringPage'
 import EmployeeAccountManagementPage from '../features/admin-employee-management/EmployeeAccountManagementPage'
 import RoleFacilityAssignmentPage from '../features/admin-role-facility-assignment/RoleFacilityAssignmentPage'
+import CustomerAccountStatusPage from '../features/admin-customer-status/CustomerAccountStatusPage'
+import AccessManagementPage from '../features/admin-access-management/AccessManagementPage'
+import LoginHistoryPage from '../features/admin-login-history/LoginHistoryPage'
 import { ReservationConfirmPage } from '../pages/ReservationConfirmPage'
 import { ReservationCreatePage } from '../pages/ReservationCreatePage'
 import { ReservationDetailPage } from '../pages/ReservationDetailPage'
@@ -85,11 +80,6 @@ export function AppRouter() {
           path="customer"
           element={<CustomerPortalPage />}
         />
-
-        <Route path="customer/contracts" element={<CustomerContractListPage />} />
-        <Route path="customer/contracts/:contractId" element={<CustomerContractDetailPage />} />
-        <Route path="customer/contracts/:contractId/renew" element={<ContractRenewalPage key={location.pathname} />} />
-        <Route path="customer/contracts/:contractId/access-visits/new" element={<AccessVisitCreatePage />} />
 
         <Route
           path="customer/storage-search"
@@ -147,7 +137,6 @@ export function AppRouter() {
   </Route>
 
   {/* FACILITY STAFF */}
-  <Route element={<RootLayout />}>
   <Route element={<RequireAuth />}>
     <Route
       element={
@@ -156,12 +145,15 @@ export function AppRouter() {
         />
       }
     >
-      <Route path="staff" element={<StaffWorkItemsPage />} />
-      <Route path="staff/reservations/:reservationId/visits/:visitId" element={<StaffHandoverPage />} />
-      <Route path="staff/contracts/:contractId" element={<StaffContractPage />} />
-      <Route path="staff/contracts/:contractId/access-visits/:visitId" element={<StaffAccessVisitPage key={`${location.pathname}${location.search}`} />} />
+      <Route
+        path="staff"
+        element={
+          <PortalPlaceholderPage
+            title="Facility Staff Portal"
+          />
+        }
+      />
     </Route>
-  </Route>
   </Route>
 
   {/* FACILITY MANAGER */}
@@ -299,11 +291,7 @@ export function AppRouter() {
 
         <Route
           path="customer-status"
-          element={
-            <PortalPlaceholderPage
-              title="Customer Account Status"
-            />
-          }
+          element={<CustomerAccountStatusPage />}
         />
 
         <Route
@@ -318,20 +306,12 @@ export function AppRouter() {
 
         <Route
           path="access-management"
-          element={
-            <PortalPlaceholderPage
-              title="Access Management"
-            />
-          }
+          element={<AccessManagementPage />}
         />
 
         <Route
           path="login-history"
-          element={
-            <PortalPlaceholderPage
-              title="Login History"
-            />
-          }
+          element={<LoginHistoryPage />}
         />
 
         <Route

@@ -1,8 +1,13 @@
 import type {
   AdminApiErrorShape,
+  AdminCustomerStatusResult,
   AdminUserAccount,
   AdminUserListQuery,
 } from '../models/adminUser'
+import type {
+  AdminLoginHistoryEntry,
+  AdminLoginHistoryQuery,
+} from '../models/adminLoginHistory'
 import type {
   AssignAdminEmployeeRequest,
   CreateAdminEmployeeRequest,
@@ -39,6 +44,42 @@ export function getAdminUser(
   return httpClient.get(
     `/admin/users/${encodeURIComponent(userAccountId)}`,
   )
+}
+
+/** AWP-02 / ADM-003 */
+export function activateAdminCustomer(
+  customerId: string,
+): Promise<ApiResponse<AdminCustomerStatusResult>> {
+  return httpClient.post(
+    `/admin/customers/${encodeURIComponent(customerId)}/activate`,
+    {},
+  )
+}
+
+/** AWP-02 / ADM-004 */
+export function deactivateAdminCustomer(
+  customerId: string,
+): Promise<ApiResponse<AdminCustomerStatusResult>> {
+  return httpClient.post(
+    `/admin/customers/${encodeURIComponent(customerId)}/deactivate`,
+    {},
+  )
+}
+
+/** AWP-06 / ADM-010 */
+export function listAdminLoginHistory(
+  query: AdminLoginHistoryQuery = {},
+): Promise<ApiCollectionResponse<AdminLoginHistoryEntry>> {
+  const params = new URLSearchParams()
+  params.set('page', String(query.page ?? 1))
+  params.set('pageSize', String(query.pageSize ?? 20))
+
+  if (query.userAccountId) params.set('userAccountId', query.userAccountId)
+  if (query.status) params.set('status', query.status)
+  if (query.fromUtc) params.set('fromUtc', query.fromUtc)
+  if (query.toUtc) params.set('toUtc', query.toUtc)
+
+  return httpClient.get(`/admin/login-history?${params.toString()}`)
 }
 
 /** AWP-03 / ADM-005 */
