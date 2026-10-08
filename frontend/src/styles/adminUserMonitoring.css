@@ -483,3 +483,18 @@
     gap: 4px;
   }
 }
+
+.awp01-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.awp01-row-actions a.awp01-link-button {
+  text-decoration: none;
+}
+
+.awp01-row-actions a.awp01-link-button:hover {
+  text-decoration: underline;
+}
