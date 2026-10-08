@@ -46,6 +46,16 @@ export async function assignSupportTicketStaff(
   );
 }
 
+export async function completeSupportTicket(
+  ticketId: string,
+  resultNote: string,
+): Promise<void> {
+  await httpClient.post<unknown>(
+    `/support-tickets/${encodeURIComponent(ticketId)}/complete`,
+    { resultNote },
+  );
+}
+
 export function normalizeApiError(error: unknown): ApiErrorShape {
   if (error instanceof ApiRequestError) {
     return {

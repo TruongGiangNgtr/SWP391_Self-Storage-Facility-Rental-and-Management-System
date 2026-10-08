@@ -1,21 +1,103 @@
-import { useEffect, useState } from 'react'
+import { CalendarDays, RefreshCw, Search } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { ApiCollectionResponse } from '../api/api.types'
 import { presentApiError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { visitApi } from '../api/visitApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
-import { EmptyState, LoadingState, PaginationControls } from '../components/PageStates'
 import { StatusBadge } from '../components/StatusBadge'
 import { isReservationWorkItem, type StaffWorkItem } from '../features/handover/handover.types'
 import { isAccessWorkItem } from '../features/visits/accessValidation'
 import { getCurrentBusinessDate } from '../utils/formatters'
 import '../styles/staff.css'
 
-export function StaffWorkItemsPage() {
+export type StaffQueueMode = 'daily' | 'reservation-check-in' | 'handover' | 'access'
+
+interface StaffWorkItemsPageProps {
+  mode?: StaffQueueMode
+}
+
+const PAGE_COPY: Record<StaffQueueMode, { feature: string; title: string; description: string }> = {
+  daily: {
+    feature: 'FWP-01',
+    title: 'Daily Work List',
+    description: 'Facility-scoped work derived from Visits, Inspections and assigned Support Tickets. Open the authoritative resource before acting.',
+  },
+  'reservation-check-in': {
+    feature: 'FWP-02',
+    title: 'Reservation Check-in',
+    description: 'Reservation visits awaiting Staff check-in. The server remains authoritative for visit date, Facility scope and lifecycle state.',
+  },
+  handover: {
+    feature: 'FWP-03',
+    title: 'Handover Processing',
+    description: 'Checked-in reservation visits ready for the offline first-month receipt acknowledgement and atomic Complete Handover.',
+  },
+  access: {
+    feature: 'FWP-04',
+    title: 'Access Visit Processing',
+    description: 'Process ACCESS visits without changing Contract ownership, rental period or StorageUnit assignment.',
+  },
+}
+
+function matchesMode(item: StaffWorkItem, mode: StaffQueueMode) {
+  if (mode === 'daily') return true
+  if (mode === 'reservation-check-in') return item.workType === 'RESERVATION_VISIT' && item.status === 'SCHEDULED'
+  if (mode === 'handover') return item.workType === 'RESERVATION_VISIT' && item.status === 'CHECKED_IN'
+  return item.workType === 'ACCESS_VISIT'
+}
+
+function readableWorkType(workType: string) {
+  return workType.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (value) => value.toUpperCase())
+}
+
+function workItemLink(item: StaffWorkItem, page: number) {
+  if (isReservationWorkItem(item)) {
+    return `/staff/reservations/${encodeURIComponent(item.entityId)}/visits/${encodeURIComponent(item.referenceId)}?workPage=${page}`
+  }
+  if (isAccessWorkItem(item)) {
+    return `/staff/contracts/${encodeURIComponent(item.entityId)}/access-visits/${encodeURIComponent(item.referenceId)}?workPage=${page}`
+  }
+  if (item.workType === 'RETURN_VISIT' && item.entityId) {
+    return `/staff/returns?tab=confirmation&visitId=${encodeURIComponent(item.referenceId)}&contractId=${encodeURIComponent(item.entityId)}&date=${encodeURIComponent(item.scheduledDate)}`
+  }
+  if (item.workType.toUpperCase().includes('INSPECTION')) {
+    return `/staff/returns?tab=inspection&inspectionId=${encodeURIComponent(item.referenceId)}`
+  }
+  if (item.workType.toUpperCase().includes('SUPPORT')) {
+    return `/staff/support?ticketId=${encodeURIComponent(item.referenceId)}`
+  }
+  return null
+}
+
+function actionLabel(item: StaffWorkItem) {
+  if (item.workType === 'RESERVATION_VISIT') {
+    if (item.status === 'SCHEDULED') return 'Open Check-in'
+    if (item.status === 'CHECKED_IN') return 'Open Handover'
+    return 'View Visit'
+  }
+  if (item.workType === 'ACCESS_VISIT') {
+    if (item.status === 'SCHEDULED') return 'Open Access Check-in'
+    if (item.status === 'CHECKED_IN') return 'Open Access Check-out'
+    return 'View Access Visit'
+  }
+  if (item.workType === 'RETURN_VISIT') return 'Open Handle Returns'
+  if (item.workType.toUpperCase().includes('INSPECTION')) return 'Open Inspection'
+  if (item.workType.toUpperCase().includes('SUPPORT')) return 'Open Support Ticket'
+  return 'Open Work Item'
+}
+
+export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) {
+  const copy = PAGE_COPY[mode]
   const [date, setDate] = useState(getCurrentBusinessDate)
   const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
   const [retry, setRetry] = useState(0)
-  const [snapshot, setSnapshot] = useState<{ key: string; response: ApiCollectionResponse<StaffWorkItem> | null; error: ApiErrorPresentation | null } | null>(null)
+  const [snapshot, setSnapshot] = useState<{
+    key: string
+    response: ApiCollectionResponse<StaffWorkItem> | null
+    error: ApiErrorPresentation | null
+  } | null>(null)
   const key = `${date}:${page}:${retry}`
   const loading = snapshot?.key !== key
   const response = loading ? null : snapshot.response
@@ -24,60 +106,154 @@ export function StaffWorkItemsPage() {
   useEffect(() => {
     let active = true
     visitApi.listStaffWorkItems({ date, page })
-      .then((response) => { if (active) setSnapshot({ key, response, error: null }) })
-      .catch((caughtError: unknown) => { if (active) setSnapshot({ key, response: null, error: presentApiError(caughtError) }) })
+      .then((nextResponse) => {
+        if (active) setSnapshot({ key, response: nextResponse, error: null })
+      })
+      .catch((caughtError: unknown) => {
+        if (active) setSnapshot({ key, response: null, error: presentApiError(caughtError) })
+      })
     return () => { active = false }
   }, [date, page, key])
 
+  const visibleItems = useMemo(() => {
+    const needle = search.trim().toLowerCase()
+    return (response?.data ?? []).filter((item) => {
+      if (!matchesMode(item, mode)) return false
+      if (!needle) return true
+      return [
+        item.workType,
+        item.referenceId,
+        item.entityId ?? '',
+        item.status,
+        item.customer?.fullName ?? '',
+        item.customer?.phoneNumber ?? '',
+      ].some((value) => value.toLowerCase().includes(needle))
+    })
+  }, [mode, response?.data, search])
+
   return (
-    <main className="page-container flow-page staff-flow">
-      <section className="page-heading">
-        <p className="eyebrow">Facility Staff</p>
-        <h1>Daily Work List</h1>
-        <p className="muted">Review arrivals at your facility. Open reservation visits for handover or access visits for check-in and check-out.</p>
-      </section>
-      <section className="panel action-row" aria-label="Work list filters">
-        <div className="form-field">
-          <label htmlFor="workDate">Visit Date (GMT+7)</label>
-          <input id="workDate" type="date" value={date} onChange={(event) => {
-            if (event.target.value) { setDate(event.target.value); setPage(1) }
-          }} />
+    <div className="fwp-page" data-testid={`${copy.feature.toLowerCase()}-page`}>
+      <header className="fwp-page-header">
+        <div>
+          <p className="fwp-eyebrow">Facility Staff · {copy.feature}</p>
+          <h1>{copy.title}</h1>
+          <p>{copy.description}</p>
         </div>
-        <button className="button button-secondary" type="button" disabled={loading} onClick={() => setRetry((value) => value + 1)}>Refresh Work List</button>
+        <button className="fwp-button fwp-button-secondary" type="button" disabled={loading} onClick={() => setRetry((value) => value + 1)}>
+          <RefreshCw size={16} />
+          Refresh
+        </button>
+      </header>
+
+      <section className="fwp-summary" aria-label="Work list summary">
+        <div className="fwp-summary-card">
+          <span>Server total</span>
+          <strong>{response?.pagination.totalItems ?? '—'}</strong>
+        </div>
+        <div className="fwp-summary-card">
+          <span>Current API page</span>
+          <strong>{response?.pagination.page ?? page}</strong>
+        </div>
+        <div className="fwp-summary-card">
+          <span>Matching rows</span>
+          <strong>{loading ? '—' : visibleItems.length}</strong>
+        </div>
       </section>
+
+      <section className="fwp-toolbar" aria-label="Work-list filters">
+        <label>
+          <span>Business date (GMT+7)</span>
+          <div className="fwp-input-with-icon">
+            <CalendarDays size={16} aria-hidden="true" />
+            <input
+              type="date"
+              value={date}
+              onChange={(event) => {
+                if (event.target.value) {
+                  setDate(event.target.value)
+                  setPage(1)
+                }
+              }}
+            />
+          </div>
+        </label>
+        <label className="fwp-toolbar-search">
+          <span>Search current page</span>
+          <div className="fwp-input-with-icon">
+            <Search size={16} aria-hidden="true" />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Customer, phone, Visit/Contract ID…" />
+          </div>
+        </label>
+        <p className="fwp-toolbar-note">Date and pagination are server-authoritative. The queue/search view only narrows rows already returned on this API page.</p>
+      </section>
+
       <ApiErrorAlert error={error} />
-      {loading ? <LoadingState label="Loading facility work items..." /> : error ? null : response && (
-        <>
-          <p className="muted">{response.pagination.totalItems} work items for {date}. Return processing will be implemented in its respective flow.</p>
-          {response.data.length === 0 ? <EmptyState message="No work items for this date." /> : (
-            <div className="card-grid list-grid">
-              {response.data.map((item) => (
-                <article className="summary-card" key={`${item.workType}-${item.referenceId}`}>
-                  <div className="card-heading-row">
-                    <h2>{item.workType === 'RESERVATION_VISIT' ? 'Reservation Visit' : item.workType.replaceAll('_', ' ')}</h2>
-                    <StatusBadge status={item.status} />
-                  </div>
-                  {(isReservationWorkItem(item) || isAccessWorkItem(item)) && <p><strong>{item.customer.fullName}</strong><br /><span className="muted">{item.customer.phoneNumber}</span></p>}
-                  <dl className="detail-list compact staff-work-detail">
-                    <div><dt>Scheduled Date</dt><dd>{item.scheduledDate}</dd></div>
-                    <div><dt>Reference ID</dt><dd>{item.referenceId}</dd></div>
-                  </dl>
-                  {isReservationWorkItem(item) ? (
-                    <Link className="button button-secondary" to={`/staff/reservations/${encodeURIComponent(item.entityId)}/visits/${encodeURIComponent(item.referenceId)}?workPage=${page}`}>
-                      {item.status === 'SCHEDULED' ? 'Open Check-in' : item.status === 'CHECKED_IN' ? 'Open Handover' : 'View Visit'}
-                    </Link>
-                  ) : isAccessWorkItem(item) ? (
-                    <Link className="button button-secondary" to={`/staff/contracts/${encodeURIComponent(item.entityId)}/access-visits/${encodeURIComponent(item.referenceId)}?workPage=${page}`}>
-                      {item.status === 'SCHEDULED' ? 'Open Access Check-in' : item.status === 'CHECKED_IN' ? 'Open Access Check-out' : 'View Access Visit'}
-                    </Link>
-                  ) : <p className="muted">{item.workType === 'RESERVATION_VISIT' ? 'The server has not supplied the reservation/customer context required to open this visit.' : item.workType === 'ACCESS_VISIT' ? 'The server has not supplied the contract/customer context required to open this access visit.' : 'Read-only in this flow.'}</p>}
-                </article>
-              ))}
-            </div>
-          )}
-          <PaginationControls pagination={response.pagination} disabled={loading} onPageChange={setPage} />
-        </>
+
+      {loading && (
+        <div className="fwp-state-grid" aria-label="Loading work items">
+          {Array.from({ length: 5 }).map((_, index) => <div className="fwp-skeleton" key={index} />)}
+        </div>
       )}
-    </main>
+
+      {!loading && !error && visibleItems.length === 0 && (
+        <div className="fwp-state-card">
+          <strong>No matching work items</strong>
+          <p>No rows on this API page match the selected Facility Staff queue and current-page search.</p>
+        </div>
+      )}
+
+      {!loading && !error && visibleItems.length > 0 && (
+        <section className="fwp-table-card" aria-label={`${copy.title} table`}>
+          <div className="fwp-table-wrap">
+            <table className="fwp-table">
+              <thead>
+                <tr>
+                  <th>Work item</th>
+                  <th>Customer</th>
+                  <th>Scheduled</th>
+                  <th>Status</th>
+                  <th>Reference</th>
+                  <th aria-label="Actions" />
+                </tr>
+              </thead>
+              <tbody>
+                {visibleItems.map((item) => {
+                  const link = workItemLink(item, response?.pagination.page ?? page)
+                  return (
+                    <tr key={`${item.workType}-${item.referenceId}`}>
+                      <td><strong>{readableWorkType(item.workType)}</strong></td>
+                      <td>
+                        {item.customer ? (
+                          <div className="fwp-customer-cell">
+                            <strong>{item.customer.fullName}</strong>
+                            <span>{item.customer.phoneNumber}</span>
+                          </div>
+                        ) : <span className="fwp-muted">Derived work item</span>}
+                      </td>
+                      <td>{item.scheduledDate}</td>
+                      <td><StatusBadge status={item.status} /></td>
+                      <td><code>{item.referenceId}</code></td>
+                      <td>
+                        {link ? <Link className="fwp-link-button" to={link}>{actionLabel(item)}</Link> : <span className="fwp-muted">Read only</span>}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {response && response.pagination.totalPages > 1 && (
+            <footer className="fwp-pagination">
+              <span>Page {response.pagination.page} of {response.pagination.totalPages} · {response.pagination.totalItems} total work items</span>
+              <div>
+                <button className="fwp-button fwp-button-secondary" type="button" disabled={loading || response.pagination.page <= 1} onClick={() => setPage(response.pagination.page - 1)}>Previous</button>
+                <button className="fwp-button fwp-button-secondary" type="button" disabled={loading || response.pagination.page >= response.pagination.totalPages} onClick={() => setPage(response.pagination.page + 1)}>Next</button>
+              </div>
+            </footer>
+          )}
+        </section>
+      )}
+    </div>
   )
 }
