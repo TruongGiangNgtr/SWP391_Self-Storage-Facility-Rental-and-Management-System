@@ -32,6 +32,7 @@ import { PhysicalUnitManagementPage } from '../features/physical-unit-management
 import ManagerSupportTicketsPage from '../features/manager-support/pages/ManagerSupportTicketsPage'
 import UserAccountMonitoringPage from '../features/admin-user-monitoring/UserAccountMonitoringPage'
 import EmployeeAccountManagementPage from '../features/admin-employee-management/EmployeeAccountManagementPage'
+import RoleFacilityAssignmentPage from '../features/admin-role-facility-assignment/RoleFacilityAssignmentPage'
 import { ReservationConfirmPage } from '../pages/ReservationConfirmPage'
 import { ReservationCreatePage } from '../pages/ReservationCreatePage'
 import { ReservationDetailPage } from '../pages/ReservationDetailPage'
@@ -312,11 +313,7 @@ export function AppRouter() {
 
         <Route
           path="assignment"
-          element={
-            <PortalPlaceholderPage
-              title="Role & Facility Assignment"
-            />
-          }
+          element={<RoleFacilityAssignmentPage />}
         />
 
         <Route

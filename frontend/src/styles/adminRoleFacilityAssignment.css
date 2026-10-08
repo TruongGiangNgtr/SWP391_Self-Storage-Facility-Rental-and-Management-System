@@ -1,0 +1,100 @@
+.awp04-page {
+  position: relative;
+}
+
+.awp04-rule-strip {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 13px 15px;
+  border: 1px solid #dbe5ff;
+  border-radius: 12px;
+  color: #304eaa;
+  background: #f6f8ff;
+  font-size: 12px;
+}
+
+.awp04-rule-strip > div {
+  display: grid;
+  gap: 3px;
+}
+
+.awp04-rule-strip span {
+  color: #526174;
+  line-height: 1.5;
+}
+
+.awp04-table {
+  min-width: 1080px;
+}
+
+.awp04-table tbody tr {
+  cursor: default;
+}
+
+.awp04-assign-button {
+  white-space: nowrap;
+}
+
+.awp04-assignment-modal {
+  width: min(590px, 100%);
+}
+
+.awp04-assignment-person {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+  background: #f8fafc;
+}
+
+.awp04-assignment-person__icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: #3557cc;
+  background: #eaf0ff;
+}
+
+.awp04-assignment-person > div {
+  display: grid;
+  gap: 2px;
+}
+
+.awp04-assignment-person span:not(.awp04-assignment-person__icon) {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.awp04-current-assignment {
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.awp04-current-assignment > span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.awp04-current-assignment > strong {
+  color: #25324a;
+  font-size: 12px;
+}
+
+.awp04-current-assignment > code {
+  overflow-wrap: anywhere;
+  color: #526174;
+  font-size: 11px;
+}
