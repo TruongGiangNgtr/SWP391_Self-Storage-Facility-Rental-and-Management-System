@@ -16,6 +16,7 @@ import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
 import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
 import { FacilityManagerLayout } from '../layouts/FacilityManagerLayout'
 import { SystemAdministratorLayout } from '../layouts/SystemAdministratorLayout'
+import { FacilityStaffLayout } from '../layouts/FacilityStaffLayout'
 import { FacilityManagementPage } from '../features/facility-management/FacilityManagementPage'
 import { UnitTypePricingPage } from '../features/unit-type-pricing/UnitTypePricingPage'
 import { PolicyVersionManagementPage } from '../features/policy-version-management/PolicyVersionManagementPage'
@@ -36,6 +37,12 @@ import { ReservationListPage } from '../pages/ReservationListPage'
 import { StorageSearchPage } from '../pages/StorageSearchPage'
 import { VisitDetailPage } from '../pages/VisitDetailPage'
 import { VisitListPage } from '../pages/VisitListPage'
+import { StaffWorkItemsPage } from '../pages/StaffWorkItemsPage'
+import { StaffHandoverPage } from '../pages/StaffHandoverPage'
+import { StaffAccessVisitPage } from '../pages/StaffAccessVisitPage'
+import { StaffContractPage } from '../pages/StaffContractPage'
+import { StaffReturnsPage } from '../pages/StaffReturnsPage'
+import { StaffSupportPage } from '../pages/StaffSupportPage'
 
 export function AppRouter() {
   const location = useLocation()
@@ -146,14 +153,18 @@ export function AppRouter() {
         />
       }
     >
-      <Route
-        path="staff"
-        element={
-          <PortalPlaceholderPage
-            title="Facility Staff Portal"
-          />
-        }
-      />
+      <Route path="staff" element={<FacilityStaffLayout />}>
+        <Route index element={<Navigate to="work-list" replace />} />
+        <Route path="work-list" element={<StaffWorkItemsPage mode="daily" />} />
+        <Route path="reservation-check-in" element={<StaffWorkItemsPage mode="reservation-check-in" />} />
+        <Route path="handover-processing" element={<StaffWorkItemsPage mode="handover" />} />
+        <Route path="access-visits" element={<StaffWorkItemsPage mode="access" />} />
+        <Route path="returns" element={<StaffReturnsPage />} />
+        <Route path="support" element={<StaffSupportPage />} />
+        <Route path="reservations/:reservationId/visits/:visitId" element={<StaffHandoverPage />} />
+        <Route path="contracts/:contractId/access-visits/:visitId" element={<StaffAccessVisitPage />} />
+        <Route path="contracts/:contractId" element={<StaffContractPage />} />
+      </Route>
     </Route>
   </Route>
 

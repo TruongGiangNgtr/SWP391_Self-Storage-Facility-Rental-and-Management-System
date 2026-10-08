@@ -32,6 +32,12 @@ const ERROR_MESSAGES: Record<string, string> = {
   UNIT_FACILITY_TYPE_MISMATCH: 'The selected unit does not match the reservation facility or storage type.',
   DISCOUNT_NOT_OWNED_BY_CUSTOMER: 'The selected discount does not belong to this customer.',
   DISCOUNT_NOT_VALID: 'The selected discount is not valid for this contract. Refresh the discount list.',
+  INSPECTION_ALREADY_CLAIMED: 'This Inspection has already been claimed by another Staff member. Refresh the Inspection list.',
+  INSPECTION_INVALID_STATUS: 'The current Inspection status does not allow this action. Refresh the Inspection detail.',
+  DAMAGE_DECISION_PENDING: 'One or more Damage records are still awaiting Facility Manager decision. Finalize Return is blocked.',
+  DAMAGE_INVALID_STATUS: 'This Damage record can no longer be changed.',
+  RETURN_ALREADY_FINALIZED: 'This return has already been finalized. Refresh the authoritative return state.',
+  SUPPORT_TICKET_INVALID_STATUS: 'The current Support Ticket status does not allow this action. Refresh the ticket detail.',
   EXTERNAL_PROVIDER_UNAVAILABLE:
     'The external service is temporarily unavailable. Please try again later.',
 }

@@ -1,4 +1,5 @@
 import type { CustomerDiscount } from '../features/handover/discount.types'
+import type { ExtraFeeTypeDetail } from '../features/return-management/return.types'
 import type {
   ApiCollectionResponse,
   ApiResponse,
@@ -138,5 +139,9 @@ export const businessApi = {
 
   listCustomerDiscounts(customerId: string, page = 1): Promise<ApiCollectionResponse<CustomerDiscount>> {
     return httpClient.get(`/business/customers/${encodeURIComponent(customerId)}/discounts?page=${page}&pageSize=20`)
+  },
+
+  listExtraFeeTypes(page = 1, pageSize = 20): Promise<ApiCollectionResponse<ExtraFeeTypeDetail>> {
+    return httpClient.get(`/business/extra-fee-types?page=${page}&pageSize=${pageSize}`)
   },
 }

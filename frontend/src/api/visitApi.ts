@@ -11,6 +11,7 @@ import type {
   StaffWorkItem,
   StaffWorkItemsRequest,
 } from '../features/handover/handover.types'
+import type { ConfirmActualReturnResult } from '../features/return-management/return.types'
 import { httpClient } from './httpClient'
 
 export const visitApi = {
@@ -33,6 +34,10 @@ export const visitApi = {
   checkOut(visitId: string): Promise<unknown> {
     // OPS-003 has no client-owned actor/status fields. Read VIS-004 after success.
     return httpClient.post(`/visits/${encodeURIComponent(visitId)}/check-out`)
+  },
+
+  confirmReturn(visitId: string, actualReturnDate: string): Promise<ApiResponse<ConfirmActualReturnResult>> {
+    return httpClient.post(`/visits/${encodeURIComponent(visitId)}/confirm-return`, { actualReturnDate })
   },
 
   completeHandover(reservationId: string, request: CompleteHandoverRequest): Promise<ApiResponse<CompleteHandoverResult>> {

@@ -98,6 +98,13 @@ export const httpClient = {
     })
   },
 
+  postForm<T>(path: string, body: FormData): Promise<T> {
+    return request<T>(path, {
+      method: 'POST',
+      body,
+    })
+  },
+
   patch<T>(path: string, body: unknown): Promise<T> {
     return request<T>(path, {
       method: 'PATCH',
