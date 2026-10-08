@@ -25,8 +25,8 @@ public sealed class PaymentService(
         if (actor.Role != "CUSTOMER") throw Forbidden();
         var invoice = await repository.GetInvoiceAsync(invoiceId, cancellationToken) ?? throw NotFound();
         if (!Owns(actor, invoice.CustomerId, invoice.CustomerUserAccountId)) throw Forbidden();
-        if (command.IdempotencyKey == Guid.Empty || !IsHttpUrl(command.ReturnUrl))
-            throw new BusinessException("VALIDATION_ERROR", "A UUID idempotency key and valid return URL are required.", 400);
+        if (command.IdempotencyKey == Guid.Empty)
+            throw new BusinessException("VALIDATION_ERROR", "A UUID idempotency key is required.", 400);
 
         var existing = await repository.GetByIdempotencyKeyAsync(
             invoiceId, command.IdempotencyKey, clock.UtcNow, cancellationToken);
@@ -36,7 +36,7 @@ public sealed class PaymentService(
         // Eligibility applies to a new attempt only. The repository rechecks under its Invoice lock.
         if (!Payable(invoice))
             throw NotPayable();
-        if (invoice.AmountDue <= 0m) throw UnsupportedAmount();
+        if (invoice.AmountDue <= 0m || decimal.Truncate(invoice.AmountDue) != invoice.AmountDue) throw UnsupportedAmount();
 
         // Known configuration errors must not consume a new idempotency key.
         await gateway.EnsureConfiguredAsync(cancellationToken);
@@ -53,7 +53,7 @@ public sealed class PaymentService(
     {
         var attempt = RequireAttempt(result);
         var request = new PaymentGatewayRequest(attempt.Detail.PaymentId, attempt.Detail.Amount,
-            command.ReturnUrl, command.ClientIpAddress, attempt.Detail.CreatedAt);
+            command.ReturnUrl, command.ClientIpAddress, attempt.Detail.CreatedAt, attempt.ProviderOrderCode);
 
         PaymentGatewayCreationResult provider;
         try
@@ -122,7 +122,13 @@ public sealed class PaymentService(
             return new(PaymentApplicationOutcome.VerificationRejected, null, null);
         if (verified.Status is PaymentGatewayCallbackOutcome.Unknown or PaymentGatewayCallbackOutcome.Pending)
             return new(PaymentApplicationOutcome.Unresolved, null, null);
-        return await ApplyPaymentResultAsync(new(verified.PaymentId, verified.TransactionCode,
+        if (verified.ProviderOrderCode is not { } orderCode) return InvalidResult();
+        var payment = await repository.GetByProviderOrderCodeAsync(orderCode, cancellationToken);
+        if (payment is null) return new(PaymentApplicationOutcome.NotFound, null, null);
+        if (payment.PaymentMethod != "PAYOS") return InvalidResult();
+        if (verified.Amount != payment.Amount)
+            return new(PaymentApplicationOutcome.AmountMismatch, null, null);
+        return await ApplyPaymentResultAsync(new(payment.PaymentId, verified.TransactionCode,
             verified.Status, verified.Amount, verified.PaidAt), cancellationToken);
     }
 
@@ -138,7 +144,8 @@ public sealed class PaymentService(
             return InvalidResult();
 
         var success = command.Status == PaymentGatewayCallbackOutcome.Success;
-        // Do not pre-compare/round the amount: the SQL path must retain mismatch diagnostics.
+        // Do not round verified amounts. The SQL path independently enforces equality
+        // even after the webhook boundary's no-write mismatch check.
         var result = await repository.ApplyResultAsync(new(command.PaymentId,
             success ? PaymentFinalStatus.Success : PaymentFinalStatus.Failed,
             command.TransactionCode, command.VerifiedAmount,

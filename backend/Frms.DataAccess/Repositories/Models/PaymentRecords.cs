@@ -25,7 +25,7 @@ public sealed record PaymentDetailRecord(
 /// <summary>Internal PAY-001 session data, released by Business only after ownership validation.</summary>
 public sealed record PaymentAttemptRecord(
     PaymentDetailRecord Detail, [property: JsonIgnore] Guid IdempotencyKey,
-    [property: JsonIgnore] string? PaymentUrl, DateTimeOffset? PaymentUrlExpiresAt)
+    [property: JsonIgnore] string? PaymentUrl, DateTimeOffset? PaymentUrlExpiresAt, long? ProviderOrderCode = null)
 {
     // Provider redirect URLs can carry sensitive session data.
     public override string ToString() => $"PaymentAttempt {{ PaymentId = {Detail.PaymentId} }}";

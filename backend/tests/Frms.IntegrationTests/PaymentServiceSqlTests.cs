@@ -19,8 +19,8 @@ namespace Frms.IntegrationTests;
 [TestFixture, NonParallelizable, Category("PaymentServiceSql")]
 public sealed class PaymentServiceSqlTests
 {
-    private const string ReturnUrl = "https://app.example.invalid/payment/vnpay-return";
-    private const string SessionUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?fixture=private";
+    private const string ReturnUrl = "http://localhost:5173/customer/payments/result";
+    private const string SessionUrl = "https://pay.payos.vn/web/fixture";
     private ServiceProvider provider = null!;
 
     [OneTimeSetUp]
@@ -38,7 +38,7 @@ public sealed class PaymentServiceSqlTests
     public void TearDownDatabase() => provider.Dispose();
 
     [Test]
-    public async Task CON_PAY_ServiceConcurrentSameKey_CreatesOneRowAndOneVnPayRedirect()
+    public async Task CON_PAY_ServiceConcurrentSameKey_CreatesOneRowAndOnePayOsRedirect()
     {
         var (invoice, accountId) = await Seed();
         var key = Guid.NewGuid();
@@ -62,20 +62,20 @@ public sealed class PaymentServiceSqlTests
     }
 
     [Test]
-    public async Task INT_PAY_CallbackAmountMismatchLeavesPaymentAndInvoicePendingWithSafeAudit()
+    public async Task INT_PAY_CallbackAmountMismatchLeavesPaymentAndInvoicePendingWithoutDatabaseWrites()
     {
         var (invoice, accountId) = await Seed();
         var gateway = new ControlledGateway();
         using var service = OpenService(accountId, gateway);
         var attempt = await service.Service.StartInvoicePaymentAsync(invoice.InvoiceId, Command(Guid.NewGuid()));
         gateway.Verified = new(attempt.PaymentId, invoice.AmountDue + 1m, "900001",
-            PaymentGatewayCallbackOutcome.Success, ProviderTime);
+            PaymentGatewayCallbackOutcome.Success, ProviderTime, await OrderCode(attempt.PaymentId));
 
         var result = await service.Service.ProcessCallbackAsync(new("?signed=fixture"));
 
         await using var db = Open();
         var stored = await db.Payments.SingleAsync(payment => payment.PaymentId == attempt.PaymentId);
-        var audit = await db.AuditLogs.SingleAsync(row => row.EntityId == attempt.PaymentId);
+        var auditCount = await db.AuditLogs.CountAsync(row => row.EntityId == attempt.PaymentId);
         var invoiceStatus = await db.Invoices.Where(row => row.InvoiceId == invoice.InvoiceId)
             .Select(row => row.Status).SingleAsync();
         Assert.Multiple(() =>
@@ -84,8 +84,7 @@ public sealed class PaymentServiceSqlTests
             Assert.That(stored.Status, Is.EqualTo("PENDING"));
             Assert.That(stored.PaidAt, Is.Null);
             Assert.That(invoiceStatus, Is.EqualTo("UNPAID"));
-            Assert.That(audit.NewValue, Does.Contain("PAYMENT_AMOUNT_MISMATCH")
-                .And.Not.Contain("signed=fixture").And.Not.Contain(SessionUrl));
+            Assert.That(auditCount, Is.Zero);
         });
     }
 
@@ -97,7 +96,7 @@ public sealed class PaymentServiceSqlTests
         using var service = OpenService(accountId, gateway);
         var attempt = await service.Service.StartInvoicePaymentAsync(invoice.InvoiceId, Command(Guid.NewGuid()));
         gateway.Verified = new(attempt.PaymentId, invoice.AmountDue, ProviderReference(attempt.PaymentId),
-            PaymentGatewayCallbackOutcome.Success, ProviderTime);
+            PaymentGatewayCallbackOutcome.Success, ProviderTime, await OrderCode(attempt.PaymentId));
 
         var first = await service.Service.ProcessCallbackAsync(new("?signed=fixture"));
         var duplicate = await service.Service.ProcessCallbackAsync(new("?signed=fixture"));
@@ -131,7 +130,7 @@ public sealed class PaymentServiceSqlTests
                 $"UPDATE dbo.Reservation SET Status='CANCELLED' WHERE ReservationId={invoice.EntityId}");
         }
         gateway.Verified = new(attempt.PaymentId, invoice.AmountDue, ProviderReference(attempt.PaymentId),
-            PaymentGatewayCallbackOutcome.Success, ProviderTime);
+            PaymentGatewayCallbackOutcome.Success, ProviderTime, await OrderCode(attempt.PaymentId));
 
         var result = await service.Service.ProcessCallbackAsync(new("?signed=fixture"));
 
@@ -158,6 +157,12 @@ public sealed class PaymentServiceSqlTests
         var invoice = await SeedInvoiceAsync(db);
         var scope = await new PaymentRepository(db).GetInvoiceAsync(invoice.InvoiceId, default);
         return (invoice, scope!.CustomerUserAccountId);
+    }
+
+    private static async Task<long> OrderCode(Guid id)
+    {
+        await using var db = Open();
+        return (await db.Payments.Where(p => p.PaymentId == id).Select(p => p.ProviderOrderCode).SingleAsync())!.Value;
     }
 
     private static StartPaymentCommand Command(Guid key) =>

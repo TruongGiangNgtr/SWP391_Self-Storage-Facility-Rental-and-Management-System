@@ -1,8 +1,7 @@
 import type {
   InvoiceDetail,
-  InvoiceMomoPaymentResponse,
+  InvoicePayOsPaymentResponse,
   PaymentDetail,
-  StartMomoPaymentRequest,
 } from '../features/billing/billing.types'
 import type { ApiCollectionResponse, ApiResponse } from './api.types'
 import { httpClient } from './httpClient'
@@ -16,13 +15,14 @@ export const billingApi = {
     return httpClient.get(`/invoices/${encodeURIComponent(invoiceId)}`)
   },
 
-  startMomoPayment(
+  startPayOsPayment(
     invoiceId: string,
-    request: StartMomoPaymentRequest,
-  ): Promise<ApiResponse<InvoiceMomoPaymentResponse>> {
+    idempotencyKey: string,
+  ): Promise<ApiResponse<InvoicePayOsPaymentResponse>> {
     return httpClient.post(
-      `/invoices/${encodeURIComponent(invoiceId)}/payments/momo`,
-      request,
+      `/invoices/${encodeURIComponent(invoiceId)}/payments/payos`,
+      undefined,
+      { 'Idempotency-Key': idempotencyKey },
     )
   },
 

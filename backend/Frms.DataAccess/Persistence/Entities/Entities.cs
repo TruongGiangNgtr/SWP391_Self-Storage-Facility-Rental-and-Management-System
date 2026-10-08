@@ -11,12 +11,13 @@ public sealed class Reservation { public Guid ReservationId { get; set; } public
 public sealed class Visit { public Guid VisitId { get; set; } public Guid EntityId { get; set; } public Guid? EmployeeId { get; set; } public required string VisitType { get; set; } public DateOnly VisitDate { get; set; } public DateTime? ActualReturnDate { get; set; } public required string Status { get; set; } }
 public sealed class Contract { public Guid ContractId { get; set; } public Guid ReservationId { get; set; } public Guid CustomerId { get; set; } public Guid FacilityId { get; set; } public Guid StorageUnitId { get; set; } public Guid PolicyId { get; set; } public Guid? DiscountId { get; set; } public DateOnly StartMonth { get; set; } public DateOnly EndMonth { get; set; } public required string Status { get; set; } }
 public sealed class ContractExtension { public Guid ContractExtensionId { get; set; } public Guid ContractId { get; set; } public DateOnly OldEndMonth { get; set; } public DateOnly NewEndMonth { get; set; } public decimal AppliedMonthlyPrice { get; set; } public DateTime CreatedAt { get; set; } }
-public sealed class Invoice { public Guid InvoiceId { get; set; } public Guid EntityId { get; set; } public required string InvoiceType { get; set; } public DateOnly? BillingMonth { get; set; } public decimal BaseAmount { get; set; } public Guid? DiscountId { get; set; } public decimal DiscountAmount { get; set; } public decimal AmountDue { get; set; } public DateTime DueDate { get; set; } public required string Status { get; set; } public DateTime CreatedAt { get; set; } }
+public sealed class Invoice { public Guid InvoiceId { get; set; } public Guid EntityId { get; set; } public required string InvoiceType { get; set; } public DateOnly? BillingMonth { get; set; } public decimal BaseAmount { get; set; } public Guid? DiscountId { get; set; } public decimal DiscountAmount { get; set; } public decimal AmountDue { get; set; } public DateTime DueDate { get; set; } public required string Status { get; set; } public DateTime? PaidAt { get; set; } public DateTime CreatedAt { get; set; } }
 public sealed class Payment
 {
     public Guid PaymentId { get; set; }
     public Guid InvoiceId { get; set; }
     public Guid IdempotencyKey { get; set; }
+    public long? ProviderOrderCode { get; set; }
     public decimal Amount { get; set; }
     public required string PaymentMethod { get; set; }
     public string? TransactionCode { get; set; }

@@ -32,6 +32,13 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
     public Task<PaymentInvoiceRecord?> GetInvoiceAsync(Guid invoiceId, CancellationToken cancellationToken) =>
         InvoiceQuery.SingleOrDefaultAsync(row => row.InvoiceId == invoiceId, cancellationToken);
 
+    public async Task<PaymentDetailRecord?> GetByProviderOrderCodeAsync(long providerOrderCode, CancellationToken cancellationToken)
+    {
+        var id = await database.Payments.AsNoTracking().Where(p => p.ProviderOrderCode == providerOrderCode)
+            .Select(p => (Guid?)p.PaymentId).SingleOrDefaultAsync(cancellationToken);
+        return id.HasValue ? await GetByIdAsync(id.Value, cancellationToken) : null;
+    }
+
     public async Task<PaymentDetailRecord?> GetByIdAsync(Guid paymentId, CancellationToken cancellationToken)
     {
         // Select only detail columns: session data must not flow through PAY-003 reads.
@@ -96,14 +103,14 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
                     return new(PaymentAttemptOutcome.InvoiceNotPayable, null);
                 }
 
-                if (invoice.AmountDue <= 0m)
+                if (invoice.AmountDue <= 0m || decimal.Truncate(invoice.AmountDue) != invoice.AmountDue)
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return new(PaymentAttemptOutcome.AmountUnsupported, null);
                 }
                 await ExecuteAsync("""
-                    INSERT INTO dbo.Payment (PaymentId, InvoiceId, IdempotencyKey, Amount, PaymentMethod, Status, CreatedAt)
-                    SELECT @Id, InvoiceId, @Key, AmountDue, 'VNPAY', 'PENDING', @Now
+                    INSERT INTO dbo.Payment (PaymentId, InvoiceId, IdempotencyKey, ProviderOrderCode, Amount, PaymentMethod, Status, CreatedAt)
+                    SELECT @Id, InvoiceId, @Key, NEXT VALUE FOR dbo.ProviderOrderCodeSequence, AmountDue, 'PAYOS', 'PENDING', @Now
                     FROM dbo.Invoice WHERE InvoiceId = @Invoice
                     """, [Parameter("@Id", SqlDbType.UniqueIdentifier, paymentId),
                         Parameter("@Invoice", SqlDbType.UniqueIdentifier, invoiceId),
@@ -205,7 +212,7 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
         if (detail is null) return new(PaymentAttemptOutcome.NotFound, null);
         var expiry = Utc(payment.PaymentUrlExpiresAt);
         if (detail.Status == "PENDING" && expiry <= now) outcome = PaymentAttemptOutcome.SessionExpired;
-        return new(outcome, new PaymentAttemptRecord(detail, payment.IdempotencyKey, payment.PaymentUrl, expiry));
+        return new(outcome, new PaymentAttemptRecord(detail, payment.IdempotencyKey, payment.PaymentUrl, expiry, payment.ProviderOrderCode));
     }
 
     private async Task ExecuteAsync(string sql, SqlParameter[] parameters, CancellationToken cancellationToken,

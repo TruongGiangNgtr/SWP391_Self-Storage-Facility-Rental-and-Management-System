@@ -27,7 +27,7 @@ public sealed class PaymentEndpointTests
     private static readonly Guid Account = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
     private static readonly Guid Customer = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
     private static readonly Guid Facility = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
-    private const string Session = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?private=fixture";
+    private const string Session = "https://pay.payos.vn/web/fixture";
     private Repository repository = null!;
     private Gateway gateway = null!;
     private Auth auth = null!;
@@ -77,7 +77,7 @@ public sealed class PaymentEndpointTests
     }
 
     [Test]
-    public async Task PAY001_NewVnPaySessionReturns201_ThenSameKeyReturns200()
+    public async Task PAY001_NewPayOsSessionReturns201_ThenSameKeyReturns200()
     {
         using var first = await Start();
         using var second = await Start();
@@ -88,7 +88,7 @@ public sealed class PaymentEndpointTests
         {
             Assert.That(first.StatusCode, Is.EqualTo(HttpStatusCode.Created));
             Assert.That(second.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(firstJson.RootElement.GetProperty("data").GetProperty("paymentMethod").GetString(), Is.EqualTo("VNPAY"));
+            Assert.That(firstJson.RootElement.GetProperty("data").GetProperty("paymentMethod").GetString(), Is.EqualTo("PAYOS"));
             Assert.That(firstJson.RootElement.GetProperty("data").GetProperty("amount").GetDecimal(), Is.EqualTo(12500m));
             Assert.That(secondJson.RootElement.GetProperty("data").GetProperty("paymentId").GetGuid(),
                 Is.EqualTo(firstJson.RootElement.GetProperty("data").GetProperty("paymentId").GetGuid()));
@@ -126,17 +126,20 @@ public sealed class PaymentEndpointTests
         Assert.That(body, Does.Not.Contain("paymentUrl").And.Not.Contain("idempotencyKey").And.Not.Contain(Session));
     }
 
-    [TestCase(PaymentApplicationOutcome.Applied, "00")]
-    [TestCase(PaymentApplicationOutcome.Duplicate, "02")]
-    [TestCase(PaymentApplicationOutcome.TerminalConflict, "02")]
-    [TestCase(PaymentApplicationOutcome.NotFound, "01")]
-    [TestCase(PaymentApplicationOutcome.AmountMismatch, "04")]
-    [TestCase(PaymentApplicationOutcome.VerificationRejected, "97")]
-    [TestCase(PaymentApplicationOutcome.Unresolved, "99")]
-    public async Task PAY004_AnonymousGetReturnsProviderAcknowledgement(
-        PaymentApplicationOutcome outcome, string expectedCode)
+    [TestCase(PaymentApplicationOutcome.Applied, 200, "ACKNOWLEDGED")]
+    [TestCase(PaymentApplicationOutcome.Duplicate, 200, "ACKNOWLEDGED")]
+    [TestCase(PaymentApplicationOutcome.TerminalConflict, 200, "ACKNOWLEDGED")]
+    [TestCase(PaymentApplicationOutcome.NotFound, 200, "IGNORED_UNKNOWN_ORDER")]
+    [TestCase(PaymentApplicationOutcome.AmountMismatch, 409, "AMOUNT_MISMATCH")]
+    [TestCase(PaymentApplicationOutcome.ReferenceConflict, 409, "REFERENCE_CONFLICT")]
+    [TestCase(PaymentApplicationOutcome.VerificationRejected, 400, "PAYMENT_CALLBACK_INVALID")]
+    [TestCase(PaymentApplicationOutcome.Unresolved, 400, "PAYMENT_CALLBACK_INVALID")]
+    public async Task PAY004_AnonymousPostReturnsControlledAcknowledgement(
+        PaymentApplicationOutcome outcome, int status, string expectedCode)
     {
         client.DefaultRequestHeaders.Remove("X-Test-Role");
+        repository.Existing(key, "PENDING", null);
+        repository.LookupUnknown = outcome == PaymentApplicationOutcome.NotFound;
         repository.ApplyOutcome = outcome;
         gateway.CallbackOutcome = outcome switch
         {
@@ -144,36 +147,78 @@ public sealed class PaymentEndpointTests
             PaymentApplicationOutcome.Unresolved => PaymentGatewayCallbackOutcome.Unknown,
             _ => PaymentGatewayCallbackOutcome.Success
         };
-
-        using var response = await client.GetAsync("/api/v1/payments/vnpay/ipn?vnp_SecureHash=fixture");
-        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        Assert.That(json.RootElement.GetProperty("RspCode").GetString(), Is.EqualTo(expectedCode));
-        Assert.That(json.RootElement.TryGetProperty("Message", out _), Is.True);
+        using var response = await client.PostAsJsonAsync("/api/v1/payments/payos/webhook", new { signature = "fixture", data = new { orderCode = 1000 } });
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That((int)response.StatusCode, Is.EqualTo(status));
+            Assert.That(body, Does.Contain(expectedCode));
+            Assert.That(gateway.Verifies, Is.EqualTo(1));
+            if (outcome is PaymentApplicationOutcome.NotFound or PaymentApplicationOutcome.VerificationRejected or PaymentApplicationOutcome.Unresolved)
+                Assert.That(repository.Applies, Is.Zero);
+            else Assert.That(repository.Applies, Is.EqualTo(1));
+            if (status >= 400) Assert.That(body, Does.Contain("traceId"));
+        });
     }
 
     [Test]
-    public async Task PAY004_PersistenceFailureReturnsRetryable99WithoutLeakingException()
+    public async Task PAY004_PersistenceFailureIsRetryableWithoutLeakingException()
     {
         client.DefaultRequestHeaders.Remove("X-Test-Role");
+        repository.Existing(key, "PENDING", null);
         repository.FailApply = true;
-
-        using var response = await client.GetAsync("/api/v1/payments/vnpay/ipn?vnp_SecureHash=fixture");
+        using var response = await client.PostAsJsonAsync("/api/v1/payments/payos/webhook", new { data = new { orderCode = 1000 } });
         var body = await response.Content.ReadAsStringAsync();
-
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        Assert.That(body, Does.Contain("\"RspCode\":\"99\"").And.Not.Contain("private-diagnostic"));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.ServiceUnavailable));
+        Assert.That(body, Does.Contain("PAYMENT_CALLBACK_UNAVAILABLE").And.Contain("traceId").And.Not.Contain("private-diagnostic"));
     }
 
     [Test]
-    public async Task OpenApi_ExposesVnPayPostAndAnonymousGetIpnOnly()
+    public async Task PAY004_OversizedJsonIsRejectedBeforeServiceVerificationOrMutation()
+    {
+        client.DefaultRequestHeaders.Remove("X-Test-Role");
+        using var response = await client.PostAsJsonAsync("/api/v1/payments/payos/webhook", new { data = new { extra = new string('x', 65_536) } });
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.That((int)response.StatusCode, Is.EqualTo(413));
+        Assert.That(body, Does.Contain("PAYMENT_CALLBACK_TOO_LARGE").And.Contain("traceId"));
+        Assert.That(gateway.Verifies, Is.Zero);
+        Assert.That(repository.Applies, Is.Zero);
+    }
+
+    [TestCase("FACILITY_STAFF")]
+    [TestCase("FACILITY_MANAGER")]
+    [TestCase("BUSINESS_OPERATIONS_MANAGER")]
+    [TestCase("SYSTEM_ADMINISTRATOR")]
+    public async Task PAY001_EmployeesCannotInitiate(string role)
+    {
+        SetRole(role);
+        using var response = await Start();
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+        Assert.That(repository.Creates, Is.Zero);
+        Assert.That(gateway.Creates, Is.Zero);
+    }
+
+    [TestCase("/api/v1/payments/vnpay/ipn", "GET")]
+    [TestCase("/api/v1/payments/momo/callback", "POST")]
+    [TestCase("/api/v1/invoices/11111111-1111-1111-1111-111111111111/payments/vnpay", "POST")]
+    [TestCase("/api/v1/invoices/11111111-1111-1111-1111-111111111111/payments/momo", "POST")]
+    [TestCase("/api/v1/payments/payos/return", "POST")]
+    [TestCase("/api/v1/payments/payos/cancel", "POST")]
+    public async Task RemovedAndBrowserMutationRoutesAreInactive(string route, string method)
+    {
+        using var response = await client.SendAsync(new HttpRequestMessage(new HttpMethod(method), route));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        Assert.That(repository.Applies, Is.Zero);
+    }
+
+    [Test]
+    public async Task OpenApi_ExposesPayOsPostAndAnonymousPostWebhookOnly()
     {
         using var response = await client.GetAsync("/openapi/v1.json");
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         var paths = document.RootElement.GetProperty("paths");
-        var start = paths.GetProperty("/api/v1/invoices/{invoiceId}/payments/vnpay").GetProperty("post");
-        var ipn = paths.GetProperty("/api/v1/payments/vnpay/ipn").GetProperty("get");
+        var start = paths.GetProperty("/api/v1/invoices/{invoiceId}/payments/payos").GetProperty("post");
+        var ipn = paths.GetProperty("/api/v1/payments/payos/webhook").GetProperty("post");
 
         Assert.Multiple(() =>
         {
@@ -181,7 +226,8 @@ public sealed class PaymentEndpointTests
             Assert.That(start.GetProperty("parameters").EnumerateArray().Any(parameter =>
                 parameter.GetProperty("name").GetString() == "Idempotency-Key"
                 && parameter.GetProperty("required").GetBoolean()), Is.True);
-            Assert.That(ipn.TryGetProperty("requestBody", out _), Is.False);
+            Assert.That(ipn.TryGetProperty("requestBody", out _), Is.True);
+            Assert.That(paths.TryGetProperty("/api/v1/payments/vnpay/ipn", out _), Is.False);
             Assert.That(!ipn.TryGetProperty("security", out var security) || security.GetArrayLength() == 0, Is.True);
             Assert.That(paths.TryGetProperty("/api/v1/payments/momo/callback", out _), Is.False);
         });
@@ -189,7 +235,7 @@ public sealed class PaymentEndpointTests
 
     private Task<HttpResponseMessage> Start(string? header = "valid")
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/invoices/{invoice}/payments/vnpay")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/invoices/{invoice}/payments/payos")
         {
             Content = JsonContent.Create(new { returnUrl = "https://app.example.invalid/payment/vnpay-return", amount = 1 })
         };
@@ -240,6 +286,7 @@ public sealed class PaymentEndpointTests
     private sealed class Gateway : IPaymentGateway
     {
         public int Creates;
+        public int Verifies;
         public PaymentGatewayCallbackOutcome CallbackOutcome = PaymentGatewayCallbackOutcome.Success;
         public Task EnsureConfiguredAsync(CancellationToken token) => Task.CompletedTask;
         public void ValidatePaymentRequest(PaymentGatewayPreflight request) { }
@@ -250,9 +297,11 @@ public sealed class PaymentEndpointTests
                 new PaymentGatewaySession(Session, null, Now.AddMinutes(15)), null));
         }
         public Task<PaymentGatewayCallbackResult> VerifyAndNormalizeCallbackAsync(
-            PaymentGatewayCallbackRequest request, CancellationToken token) => Task.FromResult(
-                new PaymentGatewayCallbackResult(Guid.NewGuid(), 12500m, "123456789",
-                    CallbackOutcome, Now));
+            PaymentGatewayCallbackRequest request, CancellationToken token)
+        {
+            Verifies++;
+            return Task.FromResult(new PaymentGatewayCallbackResult(Guid.Empty, 12500m, "TF900001", CallbackOutcome, Now, 1000));
+        }
     }
 
     private sealed class Repository(Guid invoice) : IPaymentRepository
@@ -260,10 +309,12 @@ public sealed class PaymentEndpointTests
         public PaymentAttemptRecord? Attempt;
         public int Creates;
         public bool FailApply;
+        public bool LookupUnknown;
+        public int Applies;
         public PaymentApplicationOutcome ApplyOutcome = PaymentApplicationOutcome.Applied;
 
         public void Existing(Guid idempotencyKey, string status, string? url) => Attempt = new(
-            new PaymentDetailRecord(Guid.NewGuid(), invoice, 12500m, "VNPAY", null, status, null, Now,
+            new PaymentDetailRecord(Guid.NewGuid(), invoice, 12500m, "PAYOS", null, status, null, Now,
                 Customer, Account, Facility), idempotencyKey, url, null);
 
         public Task<PaymentInvoiceRecord?> GetInvoiceAsync(Guid id, CancellationToken token) =>
@@ -280,6 +331,9 @@ public sealed class PaymentEndpointTests
 
         public Task<PaymentDetailRecord?> GetByIdAsync(Guid id, CancellationToken token) =>
             Task.FromResult<PaymentDetailRecord?>(Attempt?.Detail);
+
+        public Task<PaymentDetailRecord?> GetByProviderOrderCodeAsync(long code, CancellationToken token) =>
+            Task.FromResult<PaymentDetailRecord?>(LookupUnknown ? null : Attempt?.Detail);
 
         public Task<PaymentAttemptResult> GetByIdempotencyKeyAsync(
             Guid id, Guid idempotencyKey, DateTimeOffset now, CancellationToken token) => Task.FromResult(
@@ -306,6 +360,7 @@ public sealed class PaymentEndpointTests
 
         public Task<PaymentApplyResult> ApplyResultAsync(NormalizedPaymentResult result, CancellationToken token)
         {
+            Applies++;
             if (FailApply) throw new IOException("private-diagnostic");
             var repositoryOutcome = ApplyOutcome switch
             {

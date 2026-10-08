@@ -33,6 +33,7 @@ public sealed partial class PaymentPersistenceTests
             Assert.That(JsonDocument.Parse(audits[0].NewValue!).RootElement.GetProperty("Status").GetString(), Is.EqualTo("SUCCESS"));
         });
         Assert.That(await InvoiceStatusAsync(attempt), Is.EqualTo("PAID"));
+        Assert.That(await InvoicePaidAtAsync(attempt), Is.EqualTo(ProviderTime.UtcDateTime));
     }
 
     [Test]
@@ -52,6 +53,7 @@ public sealed partial class PaymentPersistenceTests
             Assert.That(repeated.Outcome, Is.EqualTo(PaymentApplyOutcome.Duplicate));
         });
         Assert.That(await InvoiceStatusAsync(attempt), Is.EqualTo("UNPAID"));
+        Assert.That(await InvoicePaidAtAsync(attempt), Is.Null);
         Assert.That(await AuditsAsync(attempt.Detail.PaymentId), Has.Count.EqualTo(1));
         var retry = await repository.CreateOrGetAsync(attempt.Detail.InvoiceId, attempt.IdempotencyKey, Now, default);
         Assert.That(retry.Attempt!.Detail.Status, Is.EqualTo("FAILED"));
@@ -82,6 +84,7 @@ public sealed partial class PaymentPersistenceTests
         var audits = await AuditsAsync(attempt.Detail.PaymentId);
         Assert.That(audits, Has.Count.EqualTo(1));
         Assert.That(audits[0].NewValue, Does.Contain("PAYMENT_AMOUNT_MISMATCH"));
+        Assert.That(await InvoicePaidAtAsync(attempt), Is.Null);
     }
 
     [Test]
@@ -101,6 +104,7 @@ public sealed partial class PaymentPersistenceTests
         Assert.That(await InvoiceStatusAsync(attempt), Is.EqualTo("PAID"));
         var retry = await repository.CreateOrGetAsync(attempt.Detail.InvoiceId, attempt.IdempotencyKey, Now.AddYears(1), default);
         Assert.That(retry.Attempt!.Detail.Status, Is.EqualTo("SUCCESS"));
+        Assert.That(await InvoicePaidAtAsync(attempt), Is.EqualTo(ProviderTime.UtcDateTime));
     }
 
     [Test]
@@ -115,6 +119,7 @@ public sealed partial class PaymentPersistenceTests
             Assert.That(results.Count(result => result.Outcome == PaymentApplyOutcome.Duplicate), Is.EqualTo(7));
             Assert.That(results.Select(result => result.Payment!.Status), Is.All.EqualTo("SUCCESS"));
         });
+        Assert.That(await InvoicePaidAtAsync(attempt), Is.EqualTo(ProviderTime.UtcDateTime));
         Assert.That(await AuditsAsync(attempt.Detail.PaymentId), Has.Count.EqualTo(1));
         Assert.That(await InvoiceStatusAsync(attempt), Is.EqualTo("PAID"));
     }
@@ -136,6 +141,7 @@ public sealed partial class PaymentPersistenceTests
         });
         Assert.That(await AuditsAsync(second.Detail.PaymentId), Is.Empty);
         Assert.That(await InvoiceStatusAsync(second), Is.EqualTo("UNPAID"));
+        Assert.That(await InvoicePaidAtAsync(second), Is.Null);
     }
 
     [TestCase(true)]
@@ -153,6 +159,7 @@ public sealed partial class PaymentPersistenceTests
             Assert.That(conflict.Payment, Is.EqualTo(first.Payment));
         });
         Assert.That(await InvoiceStatusAsync(attempt), Is.EqualTo(successFirst ? "PAID" : "UNPAID"));
+        Assert.That(await InvoicePaidAtAsync(attempt), Is.EqualTo(successFirst ? ProviderTime.UtcDateTime : (DateTime?)null));
         Assert.That(await AuditsAsync(attempt.Detail.PaymentId), Has.Count.EqualTo(1));
     }
 
@@ -178,6 +185,8 @@ public sealed partial class PaymentPersistenceTests
             .SumAsync(row => row.AmountDue), Is.EqualTo(first.Detail.Amount));
         Assert.That(await db.Payments.Where(row => row.InvoiceId == first.Detail.InvoiceId && row.Status == "SUCCESS")
             .CountAsync(), Is.EqualTo(2));
+        Assert.That(await InvoicePaidAtAsync(first), Is.EqualTo(ProviderTime.UtcDateTime),
+            "The second legitimate success must not replace the Invoice's first verified payment time.");
     }
 
     [TestCase("DEPOSIT")]
@@ -205,6 +214,7 @@ public sealed partial class PaymentPersistenceTests
             Assert.That(duplicate.Outcome, Is.EqualTo(PaymentApplyOutcome.Duplicate));
         });
         Assert.That(await InvoiceStatusAsync(attempt), Is.EqualTo("CANCELLED"));
+        Assert.That(await InvoicePaidAtAsync(attempt), Is.Null);
         Assert.That(await db.Reservations.Where(row => row.ReservationId == reservationId).Select(row => row.Status).SingleAsync(), Is.EqualTo("CANCELLED"));
         if (beforeContract is not null)
         {
@@ -254,6 +264,7 @@ public sealed partial class PaymentPersistenceTests
             Assert.That(exception!.Number, Is.EqualTo(51090));
             Assert.That((await repository.GetByIdAsync(id, default))!.Status, Is.EqualTo("PENDING"));
             Assert.That(await InvoiceStatusAsync(attempt), Is.EqualTo("UNPAID"));
+            Assert.That(await InvoicePaidAtAsync(attempt), Is.Null);
             Assert.That(await AuditsAsync(id), Is.Empty);
         }
         finally
@@ -301,6 +312,34 @@ public sealed partial class PaymentPersistenceTests
         Assert.That(conflict.Attempt, Is.Null);
         Assert.That((await repository.GetByIdempotencyKeyAsync(second.Detail.InvoiceId, second.IdempotencyKey, Now, default)).Attempt!.PaymentUrl, Is.Null);
     }
+
+    [TestCase("PAID", true)]
+    [TestCase("PAID", false)]
+    [TestCase("CANCELLED", true)]
+    [TestCase("CANCELLED", false)]
+    public async Task DBT_PAY_016_SuccessPreservesExistingInvoiceStatusAndTimestamp(string status, bool hasTimestamp)
+    {
+        var attempt = await CreateAsync();
+        DateTime? original = hasTimestamp ? ProviderTime.AddDays(-1).UtcDateTime : null;
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE dbo.Invoice SET Status={status}, PaidAt={original} WHERE InvoiceId={attempt.Detail.InvoiceId}
+            """);
+
+        var result = await repository.ApplyResultAsync(Success(attempt), default);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Outcome, Is.EqualTo(PaymentApplyOutcome.Applied));
+            Assert.That(result.Payment!.Status, Is.EqualTo("SUCCESS"));
+            Assert.That(result.Payment.PaidAt, Is.EqualTo(ProviderTime.ToUniversalTime()));
+        });
+        Assert.That(await InvoiceStatusAsync(attempt), Is.EqualTo(status));
+        Assert.That(await InvoicePaidAtAsync(attempt), Is.EqualTo(original));
+        Assert.That(await AuditsAsync(attempt.Detail.PaymentId), Has.Count.EqualTo(1));
+    }
+
+    private Task<DateTime?> InvoicePaidAtAsync(PaymentAttemptRecord attempt) => db.Invoices.AsNoTracking()
+        .Where(row => row.InvoiceId == attempt.Detail.InvoiceId).Select(row => row.PaidAt).SingleAsync();
 
     private static NormalizedPaymentResult Success(PaymentAttemptRecord attempt) => new(
         attempt.Detail.PaymentId, PaymentFinalStatus.Success, Guid.NewGuid().ToString("N"),

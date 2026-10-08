@@ -20,6 +20,7 @@ public sealed class PaymentMigrationTests
         {
             await migrator.MigrateAsync();
             Assert.That(await db.Database.GetAppliedMigrationsAsync(), Does.Contain(VnPayMigration));
+            Assert.That(await db.Database.GetAppliedMigrationsAsync(), Does.Contain(InvoiceTimestampMigration));
             Assert.That(await ProcedureExistsAsync(db), Is.True);
             Assert.That(await db.Payments.CountAsync(), Is.Zero);
 
@@ -116,6 +117,70 @@ public sealed class PaymentMigrationTests
         }
         finally
         {
+            await migrator.MigrateAsync(Migration.InitialDatabase);
+        }
+    }
+
+    [Test]
+    public async Task DBT_PAY_M05_InvoiceTimestampMigrationPreservesHistoricalRowsWithoutFabricatingTime()
+    {
+        await using var db = Open(MigrationConnection("InvoiceTimestampHistory"));
+        await RequireEmptyDatabaseAsync(db);
+        var migrator = db.GetService<IMigrator>();
+        try
+        {
+            await migrator.MigrateAsync(VnPayMigration);
+            var invoice = await SeedInvoiceAsync(db, status: "PAID");
+
+            await migrator.MigrateAsync();
+
+            var historical = await db.Invoices.AsNoTracking().SingleAsync(row => row.InvoiceId == invoice.InvoiceId);
+            Assert.Multiple(() =>
+            {
+                Assert.That(historical.Status, Is.EqualTo("PAID"));
+                Assert.That(historical.AmountDue, Is.EqualTo(invoice.AmountDue));
+                Assert.That(historical.PaidAt, Is.Null);
+            });
+            await migrator.MigrateAsync(VnPayMigration);
+            Assert.That(await ScalarAsync<int>(db,
+                "SELECT CASE WHEN COL_LENGTH('dbo.Invoice', 'PaidAt') IS NULL THEN 0 ELSE 1 END AS [Value]"), Is.Zero);
+            Assert.That(await ProcedureExistsAsync(db), Is.True);
+            await migrator.MigrateAsync();
+            Assert.That(await db.Invoices.Where(row => row.InvoiceId == invoice.InvoiceId).Select(row => row.PaidAt).SingleAsync(), Is.Null);
+        }
+        finally
+        {
+            await migrator.MigrateAsync(Migration.InitialDatabase);
+        }
+    }
+
+    [Test]
+    public async Task DBT_PAY_M06_InvoiceTimestampEvidenceBlocksDowngradeWithoutChangingDataOrProcedure()
+    {
+        await using var db = Open(MigrationConnection("InvoiceTimestampGuard"));
+        await RequireEmptyDatabaseAsync(db);
+        var migrator = db.GetService<IMigrator>();
+        try
+        {
+            await migrator.MigrateAsync();
+            var invoice = await SeedInvoiceAsync(db, status: "PAID");
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.Invoice SET PaidAt={ProviderTime.UtcDateTime} WHERE InvoiceId={invoice.InvoiceId}");
+
+            var blocked = Assert.ThrowsAsync<SqlException>(() => migrator.MigrateAsync(VnPayMigration));
+
+            Assert.That(blocked!.Number, Is.EqualTo(51031));
+            Assert.That(await db.Database.GetAppliedMigrationsAsync(), Does.Contain(InvoiceTimestampMigration));
+            var stored = await db.Invoices.AsNoTracking().SingleAsync(row => row.InvoiceId == invoice.InvoiceId);
+            Assert.That(stored.Status, Is.EqualTo("PAID"));
+            Assert.That(stored.PaidAt, Is.EqualTo(ProviderTime.UtcDateTime));
+            Assert.That(await ScalarAsync<string>(db,
+                "SELECT OBJECT_DEFINITION(OBJECT_ID('dbo.usp_ApplyPaymentResult')) AS [Value]"),
+                Does.Contain("UPDATE dbo.Invoice SET Status = 'PAID', PaidAt = @VerifiedPaidAtUtc"));
+        }
+        finally
+        {
+            // Dedicated disposable database: remove fixture evidence before exercising rollback.
+            await db.Database.ExecuteSqlRawAsync("DELETE dbo.Invoice");
             await migrator.MigrateAsync(Migration.InitialDatabase);
         }
     }

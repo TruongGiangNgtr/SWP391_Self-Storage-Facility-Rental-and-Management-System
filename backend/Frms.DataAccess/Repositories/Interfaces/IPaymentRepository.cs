@@ -6,6 +6,7 @@ public interface IPaymentRepository
 {
     Task<PaymentInvoiceRecord?> GetInvoiceAsync(Guid invoiceId, CancellationToken cancellationToken);
     Task<PaymentDetailRecord?> GetByIdAsync(Guid paymentId, CancellationToken cancellationToken);
+    Task<PaymentDetailRecord?> GetByProviderOrderCodeAsync(long providerOrderCode, CancellationToken cancellationToken);
 
     // Scope to the requested Invoice before returning any session/key information.
     Task<PaymentAttemptResult> GetByIdempotencyKeyAsync(

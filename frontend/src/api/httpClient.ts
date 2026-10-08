@@ -91,9 +91,10 @@ export const httpClient = {
     return request<T>(path)
   },
 
-  post<T>(path: string, body?: unknown): Promise<T> {
+  post<T>(path: string, body?: unknown, headers?: HeadersInit): Promise<T> {
     return request<T>(path, {
       method: 'POST',
+      headers,
       body: body === undefined ? undefined : JSON.stringify(body),
     })
   },

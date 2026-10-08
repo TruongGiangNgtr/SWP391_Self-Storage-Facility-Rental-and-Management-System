@@ -19,24 +19,20 @@ export interface InvoiceDetail {
 
 export interface PaymentDetail {
   paymentId: string
-  invoiceId: string | null
+  invoiceId: string
   amount: number
-  paymentMethod: 'MOMO'
+  paymentMethod: 'PAYOS' | 'MOMO' | 'VNPAY'
   transactionCode: string | null
   status: PaymentStatus
   paidAt: string | null
   createdAt: string
 }
 
-export interface InvoiceMomoPaymentResponse {
+export interface InvoicePayOsPaymentResponse {
   paymentId: string
   invoiceId: string
   amount: number
-  paymentMethod: 'MOMO'
-  status: 'PENDING'
-  paymentUrl: string
-}
-
-export interface StartMomoPaymentRequest {
-  returnUrl: string
+  paymentMethod: 'PAYOS' | 'MOMO' | 'VNPAY'
+  status: PaymentStatus
+  paymentUrl: string | null
 }

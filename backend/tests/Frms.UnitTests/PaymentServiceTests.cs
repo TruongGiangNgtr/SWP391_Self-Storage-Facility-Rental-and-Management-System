@@ -15,8 +15,8 @@ namespace Frms.UnitTests;
 public sealed class PaymentServiceTests
 {
     private static readonly DateTimeOffset Now = new(2026, 10, 7, 10, 0, 0, TimeSpan.Zero);
-    private const string ReturnUrl = "https://app.example.invalid/payment/vnpay-return";
-    private const string SessionUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?private=fixture";
+    private const string ReturnUrl = "http://localhost:5173/customer/payments/result";
+    private const string SessionUrl = "https://pay.payos.vn/web/fixture";
     private Harness h = null!;
 
     [SetUp]
@@ -32,8 +32,9 @@ public sealed class PaymentServiceTests
             Assert.That(h.Events, Is.EqualTo(new[]
                 { "invoice", "key", "configure", "validate", "create", "gateway-create", "save" }));
             Assert.That(h.Gateway.Request!.Amount, Is.EqualTo(h.Repo.Detail.Amount));
+            Assert.That(h.Gateway.Request.ProviderOrderCode, Is.EqualTo(1000));
             Assert.That(h.Gateway.Request.ClientIpAddress, Is.EqualTo("203.0.113.10"));
-            Assert.That(result.PaymentMethod, Is.EqualTo("VNPAY"));
+            Assert.That(result.PaymentMethod, Is.EqualTo("PAYOS"));
             Assert.That(result.PaymentUrl, Is.EqualTo(SessionUrl));
             Assert.That(result.NewlyInitiated, Is.True);
             Assert.That(h.Repo.ApplyCalls, Is.Zero);
@@ -183,8 +184,8 @@ public sealed class PaymentServiceTests
     public async Task Callback_SuccessIsNormalizedAndWrittenOnceInUtc()
     {
         var providerTime = new DateTimeOffset(2026, 10, 7, 17, 2, 3, TimeSpan.FromHours(7));
-        h.Gateway.Verified = new(h.Repo.Detail.PaymentId, 12500m, "123456789",
-            PaymentGatewayCallbackOutcome.Success, providerTime);
+        h.Gateway.Verified = new(Guid.Empty, 12500m, "123456789",
+            PaymentGatewayCallbackOutcome.Success, providerTime, 1000);
 
         var result = await h.Service.ProcessCallbackAsync(new("?signed=payload"));
 
@@ -239,6 +240,55 @@ public sealed class PaymentServiceTests
         Assert.That(result.PaymentId, Is.EqualTo(h.Repo.Detail.PaymentId));
         Assert.That(typeof(PaymentResult).GetProperties().Select(p => p.Name), Is.EquivalentTo(new[]
             { "PaymentId", "InvoiceId", "Amount", "PaymentMethod", "TransactionCode", "Status", "PaidAt", "CreatedAt" }));
+    }
+
+    [Test]
+    public void UT_PAYOS_FractionalInvoiceRejectedBeforeConfigurationOrCreation()
+    {
+        h.Repo.Invoice = h.Repo.Invoice with { AmountDue = 12500.50m };
+        var error = Assert.ThrowsAsync<BusinessException>(() => h.Start());
+        Assert.That(error!.Code, Is.EqualTo("PAYMENT_AMOUNT_UNSUPPORTED"));
+        Assert.That(h.Gateway.ConfigurationChecks, Is.Zero);
+        Assert.That(h.Repo.CreateCalls, Is.Zero);
+        Assert.That(h.Gateway.Creates, Is.Zero);
+    }
+
+    [TestCase(123)]
+    [TestCase(999999)]
+    public async Task UT_PAYOS_VerifiedSampleOrUnknownOrderCannotWrite(long code)
+    {
+        h.Gateway.Verified = h.Gateway.Verified with { ProviderOrderCode = code };
+        var result = await h.Service.ProcessCallbackAsync(new("fixture-json"));
+        Assert.That(result.Outcome, Is.EqualTo(PaymentApplicationOutcome.NotFound));
+        Assert.That(h.Repo.ApplyCalls, Is.Zero);
+        Assert.That(h.Events, Is.EqualTo(new[] { "verify", "order" }));
+    }
+
+    [Test]
+    public async Task UT_PAYOS_CallbackCannotApplyToLegacyMethodOrMismatchingAmount()
+    {
+        h.Repo.Detail = h.Repo.Detail with { PaymentMethod = "VNPAY" };
+        var legacy = await h.Service.ProcessCallbackAsync(new("fixture-json"));
+        Assert.That(legacy.Outcome, Is.EqualTo(PaymentApplicationOutcome.InvalidResult));
+        Assert.That(h.Repo.ApplyCalls, Is.Zero);
+        h.Repo.Detail = h.Repo.Detail with { PaymentMethod = "PAYOS" };
+        h.Gateway.Verified = h.Gateway.Verified with { Amount = 12501 };
+        var mismatch = await h.Service.ProcessCallbackAsync(new("fixture-json"));
+        Assert.That(mismatch.Outcome, Is.EqualTo(PaymentApplicationOutcome.AmountMismatch));
+        Assert.That(h.Repo.ApplyCalls, Is.Zero);
+    }
+
+    [Test]
+    public void UT_PAYOS_ExistingExpiredSessionPreservesConflictWhenConfigurationUnavailable()
+    {
+        h.Existing("PENDING", SessionUrl);
+        h.Repo.Attempt = h.Repo.Attempt! with { PaymentUrlExpiresAt = Now.AddSeconds(-1) };
+        h.Gateway.ConfigurationError = new InvalidOperationException("unavailable");
+        var error = Assert.ThrowsAsync<BusinessException>(() => h.Start());
+        Assert.That(error!.Code, Is.EqualTo("PAYMENT_SESSION_EXPIRED"));
+        Assert.That(h.Gateway.ConfigurationChecks, Is.Zero);
+        Assert.That(h.Repo.CreateCalls, Is.Zero);
+        Assert.That(h.Gateway.Creates, Is.Zero);
     }
 
     [Test]
@@ -331,7 +381,7 @@ public sealed class PaymentServiceTests
         public Func<CancellationToken, Task>? Configure;
         public PaymentGatewayRequest? Request;
         public PaymentGatewayCallbackResult Verified = new(paymentId, 12500m, "123456789",
-            PaymentGatewayCallbackOutcome.Success, Now);
+            PaymentGatewayCallbackOutcome.Success, Now, 1000);
 
         public Task EnsureConfiguredAsync(CancellationToken token)
         {
@@ -369,7 +419,7 @@ public sealed class PaymentServiceTests
     private sealed class Repo(PaymentInvoiceRecord invoice, Guid expectedKey, List<string> events) : IPaymentRepository
     {
         public PaymentInvoiceRecord Invoice = invoice;
-        public PaymentDetailRecord Detail = new(Guid.NewGuid(), invoice.InvoiceId, invoice.AmountDue, "VNPAY",
+        public PaymentDetailRecord Detail = new(Guid.NewGuid(), invoice.InvoiceId, invoice.AmountDue, "PAYOS",
             null, "PENDING", null, Now, invoice.CustomerId, invoice.CustomerUserAccountId, invoice.FacilityId);
         public PaymentAttemptRecord? Attempt;
         public PaymentAttemptOutcome CreateOutcome = PaymentAttemptOutcome.Created;
@@ -387,6 +437,12 @@ public sealed class PaymentServiceTests
         public Task<PaymentDetailRecord?> GetByIdAsync(Guid paymentId, CancellationToken token) =>
             Task.FromResult<PaymentDetailRecord?>(Detail);
 
+        public Task<PaymentDetailRecord?> GetByProviderOrderCodeAsync(long code, CancellationToken token)
+        {
+            events.Add("order");
+            return Task.FromResult<PaymentDetailRecord?>(code == 1000 ? Detail : null);
+        }
+
         public Task<PaymentAttemptResult> GetByIdempotencyKeyAsync(
             Guid invoiceId, Guid key, DateTimeOffset now, CancellationToken token)
         {
@@ -402,7 +458,7 @@ public sealed class PaymentServiceTests
         {
             CreateCalls++;
             events.Add("create");
-            Attempt = new PaymentAttemptRecord(Detail, key, null, null);
+            Attempt = new PaymentAttemptRecord(Detail, key, null, null, 1000);
             return Task.FromResult(new PaymentAttemptResult(CreateOutcome, Attempt));
         }
 

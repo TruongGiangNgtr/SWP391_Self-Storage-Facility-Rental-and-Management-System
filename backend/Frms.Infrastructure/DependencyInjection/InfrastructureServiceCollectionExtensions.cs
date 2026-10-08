@@ -11,11 +11,11 @@ public static class InfrastructureServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddOptions<VnPayOptions>()
-            .Bind(configuration.GetSection(VnPayOptions.SectionName));
-        services.AddSingleton<IValidateOptions<VnPayOptions>, VnPayOptionsValidator>();
+        services.AddOptions<PayOsOptions>()
+            .Bind(configuration.GetSection(PayOsOptions.SectionName));
+        services.AddSingleton<IValidateOptions<PayOsOptions>, PayOsOptionsValidator>();
 
-        services.AddSingleton<IPaymentGateway, VnPayPaymentGateway>();
+        services.AddHttpClient<IPaymentGateway, PayOsPaymentGateway>().RemoveAllLoggers();
         services.AddSingleton<IAiRecommendationProvider, UnconfiguredAiRecommendationProvider>();
         services.AddSingleton<IEmailService, UnconfiguredEmailService>();
         services.AddSingleton<INotificationSender, UnconfiguredNotificationSender>();

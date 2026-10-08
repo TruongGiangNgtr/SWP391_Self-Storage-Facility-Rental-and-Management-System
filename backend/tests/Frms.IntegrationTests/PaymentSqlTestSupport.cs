@@ -11,6 +11,7 @@ internal static class PaymentSqlTestSupport
     internal const string BaselineMigration = "20261004191200_PhaseZeroBaselineConstraints";
     internal const string PaymentMigration = "20261007045825_PaymentProcessing";
     internal const string VnPayMigration = "20261007170917_VnPayPaymentGateway";
+    internal const string InvoiceTimestampMigration = "20261008094647_InvoicePaymentTimestamp";
     internal static readonly DateTimeOffset Now = new(2026, 10, 7, 10, 0, 0, TimeSpan.Zero);
     internal static readonly DateTimeOffset ProviderTime = new(2026, 10, 7, 17, 2, 3, 456, TimeSpan.FromHours(7));
 
@@ -64,8 +65,14 @@ internal static class PaymentSqlTestSupport
         var invoice = new Invoice { InvoiceId = Guid.NewGuid(), EntityId = entityId, InvoiceType = type,
             BillingMonth = type == "DEPOSIT" ? null : new DateOnly(2026, firstMonth ? 10 : 11, 1),
             BaseAmount = amount, AmountDue = amount, DueDate = Now.UtcDateTime, CreatedAt = Now.UtcDateTime, Status = status };
-        db.Add(invoice);
         await db.SaveChangesAsync();
+        // Migration tests also seed the pre-timestamp schema. Use only its shared columns.
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT dbo.Invoice (InvoiceId, EntityId, InvoiceType, BillingMonth, BaseAmount,
+                DiscountAmount, AmountDue, DueDate, Status, CreatedAt)
+            VALUES ({invoice.InvoiceId}, {invoice.EntityId}, {invoice.InvoiceType}, {invoice.BillingMonth},
+                {invoice.BaseAmount}, 0, {invoice.AmountDue}, {invoice.DueDate}, {invoice.Status}, {invoice.CreatedAt})
+            """);
         db.ChangeTracker.Clear();
         return invoice;
     }

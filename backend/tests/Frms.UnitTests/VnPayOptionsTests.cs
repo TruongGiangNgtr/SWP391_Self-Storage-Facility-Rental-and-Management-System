@@ -159,7 +159,9 @@ public sealed class VnPayOptionsTests
             .Build();
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddInfrastructure(configuration);
+        // Historical compatibility fixture only: no VNPay registration remains in production.
+        services.AddOptions<VnPayOptions>().Bind(configuration.GetSection(VnPayOptions.SectionName));
+        services.AddSingleton<IValidateOptions<VnPayOptions>, VnPayOptionsValidator>();
         return services.BuildServiceProvider();
     }
 

@@ -1,12 +1,14 @@
 # FRMS Data Dictionary — Version 2.1 (SRS V10 Aligned)
 
+> REV-2026-10-09-PAYOS aligns Payment with the governing SRS. Only code/mock tests are authorized; no sandbox/staging, live calls, links, registration or transfers. Live acceptance is pending. Description FRMS; transactionDateTime UTC+7 -> UTC; verified unknown/sample webhook HTTP200 without mutation. First month remains offline, PAY-002 retired; every current Payment is Invoice-backed. Downgrade must protect PAYOS/code evidence.
+
 **Project:** Self-Storage Facility Rental and Management System (FRMS)
 **Document:** Data Dictionary / Lifecycle / Database Automation Specification
 **Version:** 2.1
 **Date:** 2026-10-04
-**Baseline:** `02-FRMS_SRS_V10.md` (highest authority) + Data Dictionary V2 database baseline + aligned Scope.
+**Baseline:** `FRMS_SRS_V10.md` (highest authority), including REV-2026-10-07-FM-OFFLINE and REV-2026-10-09-PAYOS.
 **Authority:** `SRS V10 FINAL > Data Dictionary V2.1 > aligned Scope > implementation detail`.
-**Revision scope:** Authority/version alignment plus the owner-approved 2026-10-05 Phase 0 seed clarification in SRS §6.1.1/§9.13; database entities, lifecycle rules, stored procedures, triggers, jobs and constraints are unchanged.
+**Revision scope:** Phase 0 seed clarification plus Payment-related alignment with the approved offline-first-month and payOS code/mock revision. Unrelated domain requirements are unchanged.
 
 ---
 
@@ -32,7 +34,7 @@ The system uses exactly five roles:
 
 The core design is month-based. Reservation holds capacity by `Facility + UnitType + month range`; a concrete Storage Unit is selected only at handover. Contract renewal extends the same Contract contiguously and is recorded by append-only `ContractExtension` rows. Return is represented by `RETURN Visit + Inspection + Contract/StorageUnit state`, not by a separate ReturnProcess entity.
 
-Payment integration in the core demo is limited to Deposit and Rental Fee through MoMo Sandbox. Late Fee, Extra Fee, Damage-related amounts, Deposit Deduction, RefundAmount and AdditionalAmountDue are recorded by the system, while actual refund/collection/compensation settlement is outside the core system.
+Payment integration uses payOS for Deposit and Rental Fee invoices strictly after Contract.StartMonth. payOS has no separate sandbox/staging; this phase authorizes code/mock tests only, not production calls. First-month rent is received offline and acknowledged by Staff at handover; no first-month Invoice or Payment is created. Historical MOMO/VNPAY rows are legacy evidence, not active gateways. Late Fee, Extra Fee, Damage-related amounts, Deposit Deduction, RefundAmount and AdditionalAmountDue are recorded by the system, while actual refund/collection/compensation settlement is outside the core system.
 
 ---
 
@@ -59,7 +61,7 @@ This document integrates the confirmed ERD baseline with all explicit SRS V9 FIN
 | O15 | `FacilityAssignment`, `Booking`, `ReturnProcess`, `Renewal`, `Refund`, `DamageFee`, `DailyTask`, `Report`, `DiscountRedemption`, separate `Maintenance`, and separate `MonthlyRentalFee` are not tables. | Their behavior/data is represented by existing entities or derived queries. |
 | O16 | `UserAccount.PhoneNumber` is UNIQUE in addition to UNIQUE Email. | Customer login identifier is PhoneNumber; SRS V9 explicit data override. |
 | O17 | `Contract.PolicyId = Reservation.PolicyId` at Complete Handover. | Contract must inherit the Reservation-captured Policy; it must not capture the currently active Policy at handover. |
-| O18 | First RENTAL_FEE Invoice/Payment never uses Contract Discount. | First month equals `Reservation.LockedRentalPrice`; `DiscountId = NULL`, `DiscountAmount = 0`. Contract Discount starts with the next Rental Fee invoice. |
+| O18 | First-month rent is received offline without Contract Discount or an Invoice/Payment. | Amount equals `Reservation.LockedRentalPrice`; Contract creation records Staff acknowledgment. Captured Contract Discount may apply to invoices strictly after Contract.StartMonth. |
 | O19 | New Facility starts `INACTIVE`; new StorageUnit starts `AVAILABLE`. | SRS V9 resolves both initial-status decisions. |
 | O20 | StorageUnit allows preventive-maintenance transition `AVAILABLE -> MAINTENANCE`. | No separate Maintenance entity/workflow is introduced. |
 | O21 | SupportTicket Category is a fixed Release 1 enum and includes `OTHER`. | SRS V9 locks the catalogue. |
@@ -300,26 +302,33 @@ No status. UPDATE/DELETE should be blocked.
 | `AmountDue` | DECIMAL | No | CHECK >= 0 | Final amount due. |
 | `DueDate` | DATE/DATETIME | No |  | Due date/deadline. |
 | `Status` | ENUM/VARCHAR | No | CHECK | `UNPAID`, `PAID`, `OVERDUE`, `CANCELLED`. |
+| `PaidAt` | DATETIME | Yes | UTC timestamp | Verified provider time on first UNPAID/OVERDUE -> PAID transition; retain on duplicate, later successful attempt or cancellation. Historical missing evidence stays null. |
 | `CreatedAt` | DATETIME | No |  | Creation timestamp. |
 
-Rules: Deposit cannot use Discount. The first RENTAL_FEE Invoice created during handover also does not use Contract Discount: `BaseAmount = AmountDue = Reservation.LockedRentalPrice`, `DiscountId = NULL`, `DiscountAmount = 0`. From the next Rental Fee invoice onward, the Contract-selected Discount is applied and each invoice snapshots `DiscountId`/`DiscountAmount`.
+Rules: Deposit cannot use Discount. Handover creates no first-month Invoice/Payment; first-month offline rent equals `Reservation.LockedRentalPrice` without Discount. RENTAL_FEE requires `BillingMonth > Contract.StartMonth`; eligible later invoices snapshot the captured Contract Discount. Preserve historical invoices without recreating or double-counting first-month charges.
 
 ### 4.13 `Payment`
 
-**Purpose:** Payment attempt/result, currently MoMo Sandbox.
+**Purpose:** Invoice-backed Payment attempt/result through payOS. Only code/mock tests are currently authorized; existing MOMO/VNPAY rows remain legacy history.
 
 | Attribute | Type | Null | Key / Constraint | Description |
 |---|---|---:|---|---|
 | `PaymentId` | UUID | No | PK | Payment identifier. |
-| `InvoiceId` | UUID | Yes* | FK -> Invoice | Usually links Invoice; nullable only for the pre-handover first-month payment until Complete Handover creates/links the invoice. |
+| `InvoiceId` | UUID | No for current-model rows | FK -> Invoice | Every new Payment references an existing eligible Invoice. No first-month Payment. |
 | `Amount` | DECIMAL | No | CHECK > 0 | Payment amount. |
-| `PaymentMethod` | VARCHAR/ENUM | No |  | V1: `MOMO`. |
-| `TransactionCode` | VARCHAR | Yes | UNIQUE recommended | Gateway transaction/reference. |
+| `PaymentMethod` | VARCHAR/ENUM | No | CHECK | New attempts: `PAYOS`; preserve historical `MOMO` and `VNPAY` only as legacy. |
+| `TransactionCode` | VARCHAR | Yes | Filtered UNIQUE when non-null | Successful payOS webhook `reference`; not paymentLinkId or orderCode. Legacy gateway references are preserved. |
 | `Status` | ENUM/VARCHAR | No | CHECK | `PENDING`, `SUCCESS`, `FAILED`. |
-| `PaidAt` | DATETIME | Yes |  | Success time. |
-| `CreatedAt` | DATETIME | No |  | Creation time. |
+| `PaidAt` | DATETIME | Yes, conditional | Required only for SUCCESS | Verified provider success time normalized to UTC. |
+| `CreatedAt` | DATETIME | No |  | Creation time in UTC. |
+| `ProviderOrderCode` | BIGINT | Yes | Filtered UNIQUE when non-null | Server sequence dbo.ProviderOrderCodeSequence starts 1000, increment 1, NO CYCLE; allocated atomically for PAYOS attempts. Legacy MOMO/VNPAY rows remain null. |
+| `IdempotencyKey` | UNIQUEIDENTIFIER | No | Globally UNIQUE | UUID identifying one deliberate Customer payment action; HTTP retries reuse the stored attempt. |
+| `PaymentUrl` | NVARCHAR(2048) | Yes | Bounded session value | Persist the checkoutUrl for the same authorized attempt; never expose through PAY-003 or logs. |
+| `PaymentUrlExpiresAt` | DATETIME | Yes | UTC timestamp | Provider response expiry or explicitly requested server expiry, persisted UTC; an expired attempt requires a new action/key. |
 
-`*` V1 implementation rule: if `InvoiceId` is null for first-month pre-handover payment, `usp_CompleteHandover` must receive/validate the successful Payment and link it to the created first-month Invoice atomically.
+The superseded pre-handover null-InvoiceId model is not used for new payments. If unexpected historical null rows exist, preserve them pending the migration/deployment review required by SRS §0.0/§9.6; never fabricate Invoice links or delete historical evidence.
+
+PAY-001 is `POST /api/v1/invoices/{invoiceId}/payments/payos` for Deposit or Rental Fee after the first month. PAY-002 remains retired. PAY-003 is the authorized Payment-detail read. PAY-004 is signature-verified payOS `POST /api/v1/payments/payos/webhook`; browser return/cancel never change financial state. `usp_ApplyPaymentResult` applies normalized verified webhook results atomically and idempotently.
 
 ### 4.14 `LateFee`
 
@@ -664,7 +673,7 @@ Recommended SQL Server naming prefix: `usp_`.
 | `usp_CancelReservation` | Validate cancellation eligibility; cancel Reservation and SCHEDULED reservation Visit; release hold. | Reservation, Visit | Uses captured Reservation Policy if cancellation rules become configurable. | Yes |
 | `usp_CheckInVisit` | Validate Visit SCHEDULED, Staff role/facility and date; set actual actor and CHECKED_IN. | Visit, Employee, Facility | No hard-coded business dates. | Yes |
 | `usp_CancelVisit` | Permit only SCHEDULED -> CANCELLED and enforce type-specific restrictions. | Visit |  | Yes |
-| `usp_CompleteHandover` | Validate Reservation/Visit, selected AVAILABLE StorageUnit, signed confirmation handled by application flow, successful first-month Payment, optional Contract Discount; create Contract + first Rental Invoice, link Payment, set Unit IN_USE, Reservation COMPLETED, Visit CHECKED_OUT. | Reservation, Visit, StorageUnit, Contract, Invoice, Payment, Discount, Policy | `Contract.PolicyId = Reservation.PolicyId`. First Rental Invoice uses `Reservation.LockedRentalPrice` with `DiscountId = NULL`, `DiscountAmount = 0`; Contract Discount starts on the next Rental Fee invoice. | **Yes, mandatory** |
+| `usp_CompleteHandover` | Validate Reservation/Visit, selected AVAILABLE StorageUnit and optional Contract Discount; authorized Staff acknowledges full offline first-month receipt; create Contract, set Unit IN_USE, Reservation COMPLETED, Visit CHECKED_OUT. No first-month Invoice/Payment. | Reservation, Visit, StorageUnit, Contract, Discount, Policy | `Contract.PolicyId = Reservation.PolicyId`. Offline amount is `Reservation.LockedRentalPrice` without Discount; captured Discount may apply to later invoices. | **Yes, mandatory** |
 | `usp_CreateAccessVisit` | Create ACCESS Visit only for ACTIVE Contract; reject if active RETURN Visit exists. | Contract, Visit |  | Yes |
 | `usp_CreateReturnVisit` | Create RETURN Visit for ACTIVE Contract and block contradictory Access/Renewal actions while pending. | Contract, Visit |  | Yes |
 | `usp_ConfirmActualReturn` | Set `ActualReturnDate`, classify Normal/Early Return, move StorageUnit to INSPECTION, create Inspection PENDING; apply early-return current-month rule. | Contract, Visit, StorageUnit, Inspection, Invoice, LateFee, Policy | `EarlyReturnWaiveFeeUntilDay`. | **Yes, mandatory** |
@@ -676,8 +685,8 @@ Recommended SQL Server naming prefix: `usp_`.
 | `usp_CompleteInspection` | Validate claimed inspection; mark COMPLETED; move StorageUnit to AVAILABLE or MAINTENANCE according to operator action/business rule. | Inspection, StorageUnit | `NextUnitStatus` is not stored on Inspection. | Yes |
 | `usp_FinalizeReturn` | Reject finalization while any related DamageRecord is PENDING; calculate applicable LateFee + ExtraFee + APPROVED Damage, create/finalize DepositSettlement, set Contract COMPLETED or TERMINATED. | Contract, Invoice, LateFee, ExtraFee, DamageRecord, DepositSettlement | REJECTED Damage contributes zero; Early Return => RefundAmount = 0. | **Yes, mandatory** |
 | `usp_RenewContract` | Validate ACTIVE Contract, no pending RETURN Visit, contiguous period and capacity; snapshot current UnitType price; append ContractExtension; update EndMonth. | Contract, ContractExtension, StorageUnit, UnitType, Reservation | Contract continues using captured Policy for contract rules. | **Yes, mandatory** |
-| `usp_CreateMonthlyInvoice` | Generate subsequent Rental Fee invoice for a BillingMonth using correct price source and captured Contract Discount. | Contract, Reservation, ContractExtension, Invoice, Discount | `MonthlyPaymentDueDay`; initial-period price from Reservation, extension-period price from ContractExtension. First month is created during handover and never applies Contract Discount. | Yes |
-| `usp_ApplyPaymentResult` | Process idempotent MoMo result/callback; update Payment and related Invoice status. | Payment, Invoice | Staff cannot manually mark PAID. | **Yes** |
+| `usp_CreateMonthlyInvoice` | Generate Rental Fee invoice strictly after Contract.StartMonth using the correct price source and captured Contract Discount. | Contract, Reservation, ContractExtension, Invoice, Discount | `MonthlyPaymentDueDay`; initial-period price from Reservation, extension-period price from ContractExtension. Never create a first-month Invoice. | Yes |
+| `usp_ApplyPaymentResult` | Process normalized, verified payOS webhook result idempotently; update Payment and related Invoice status. | Payment, Invoice, AuditLog | Webhook is POST JSON; verified code/data.code=00 and success=true are required. Browser return and Staff cannot manually mark PAID. | **Yes** |
 | `usp_CalculateLateFee` | Calculate/update LateFee for overdue Rental Invoice. | Invoice, Contract, Policy, LateFee | Formula uses `Policy.LateFeeDivisorDays`. | Yes |
 | `usp_MarkOverdueInvoices` | Mark unpaid rental invoices overdue when their captured Contract Policy threshold is reached. | Invoice, Contract, Policy | `OverdueStartDay`. | Yes |
 | `usp_CreatePolicyVersion` | Inactivate prior active Policy and insert new active version with all configuration values. | Policy | Never update old business parameters in place. | **Yes** |
@@ -783,7 +792,7 @@ The following must execute inside transactions with suitable locking/isolation:
 - Complete Handover and StorageUnit assignment.
 - Renewal capacity check + ContractExtension + EndMonth update.
 - Inspection claim.
-- MoMo callback idempotency.
+- Verified payOS signed POST webhook idempotency.
 
 ---
 
@@ -810,9 +819,9 @@ The following must execute inside transactions with suitable locking/isolation:
 
 ## 12. Known V1 Implementation Notes
 
-### 12.1 First-month pre-handover Payment
+### 12.1 Offline first-month settlement
 
-The first-month payment succeeds before Contract creation, while Rental Fee Invoice normally references Contract. V1 resolves this by allowing `Payment.InvoiceId` to be temporarily null for that pre-handover payment and requiring `usp_CompleteHandover` to validate/link the exact successful Payment to the newly created first-month Invoice atomically.
+Staff receives the full `Reservation.LockedRentalPrice` offline before Complete Handover. The authorized OPS-004 command acknowledges receipt; Contract creation records settlement without first-month Invoice, Payment, receipt entity or paid flag. PAY-002 is retired and its identifier must not be reused. Every new online Payment is Invoice-backed. Preserve any legacy first-month or unlinked historical rows pending approved deployment review, without fabricating links or counting revenue twice.
 
 This is a database implementation decision that should be tested carefully for idempotency and incorrect-payment binding.
 
@@ -891,7 +900,7 @@ All enum-like values are persisted as `VARCHAR` plus `CHECK` constraints unless 
 | `Contract.Status` | `ACTIVE`, `COMPLETED`, `TERMINATED` |
 | `Invoice.InvoiceType` | `DEPOSIT`, `RENTAL_FEE` |
 | `Invoice.Status` | `UNPAID`, `PAID`, `OVERDUE`, `CANCELLED` |
-| `Payment.PaymentMethod` | V1: `MOMO` |
+| `Payment.PaymentMethod` | New attempts: `PAYOS`; existing `MOMO`/`VNPAY` only as legacy history |
 | `Payment.Status` | `PENDING`, `SUCCESS`, `FAILED` |
 | `Discount.Status` | `ACTIVE`, `INACTIVE` |
 | `Policy.Status` | `ACTIVE`, `INACTIVE` |
@@ -921,7 +930,7 @@ Defaults are applied only where the initial state is deterministic. Business res
 | `Reservation.Status` | `PENDING_DEPOSIT` | Created before Deposit payment. |
 | `Visit.Status` | `SCHEDULED` | All customer visits are scheduled first. |
 | `Contract.Status` | `ACTIVE` | Contract row is created only on successful handover. |
-| `Invoice.Status` | `UNPAID` | Except first-month invoice created/linked as `PAID` during atomic handover after successful prepayment. |
+| `Invoice.Status` | `UNPAID` | No first-month Invoice is created during handover. Verified payOS webhook may mark an eligible existing Invoice PAID. |
 | `Invoice.DiscountAmount` | `0` | Deposit always uses zero discount. |
 | `Payment.Status` | `PENDING` | Until gateway callback/result. |
 | `Discount.Status` | `ACTIVE` | If created for immediate use. |
@@ -947,8 +956,8 @@ Defaults are applied only where the initial state is deterministic. Business res
 | `Visit.ActualReturnDate` | Only meaningful for confirmed physical RETURN. | Must be null for RESERVATION/ACCESS; set for confirmed RETURN. |
 | `Contract.DiscountId` | Discount is optional. | If present, Discount must belong to Contract Customer and be valid at Contract creation. |
 | `Invoice.BillingMonth` | Deposit is not monthly. | Null for DEPOSIT; required for RENTAL_FEE. |
-| `Invoice.DiscountId` | Discount is optional; Deposit and first-month RENTAL_FEE cannot use it. | Null for DEPOSIT and first-month RENTAL_FEE; subsequent RENTAL_FEE may reference the Contract-selected Discount. |
-| `Payment.InvoiceId` | First-month pre-handover payment occurs before Contract/Invoice exists. | Null only for the specific pre-handover payment state; must be linked atomically during handover. |
+| `Invoice.DiscountId` | Discount is optional; Deposit cannot use it and first-month Invoice does not exist. | Null for DEPOSIT; eligible RENTAL_FEE after StartMonth may reference the Contract-selected Discount. |
+| `Payment.InvoiceId` | Every new Payment is Invoice-backed. | Non-null for current-model rows; historical null rows require approved deployment review, never fabricated links. |
 | `Payment.TransactionCode` | May not exist before gateway has created a transaction reference. | Unique when present. |
 | `Payment.PaidAt` | Only successful payments have a paid time. | Required when `Status=SUCCESS`; null otherwise. |
 | `Policy.EffectiveTo` | Current active Policy is open-ended. | Set when version is inactivated. |
@@ -990,22 +999,22 @@ The following rules are the minimum business rules that DB procedures/triggers m
 | `BR-VIS-03` | ACCESS Visit requires ACTIVE Contract. | Contract, Visit | `usp_CreateAccessVisit` |
 | `BR-VIS-04` | Pending RETURN Visit blocks new ACCESS Visit and Renewal. | Visit, Contract | `usp_CreateAccessVisit`, `usp_RenewContract` |
 | `BR-HO-01` | Selected StorageUnit must be AVAILABLE and match Reservation Facility + UnitType. | Reservation, StorageUnit | `usp_CompleteHandover` |
-| `BR-HO-02` | First-month Payment must be successful before Complete Handover. | Payment, Contract, Invoice | `usp_CompleteHandover` |
-| `BR-HO-03` | Complete Handover atomically creates Contract, links first Rental Invoice/Payment, marks Unit IN_USE, Reservation COMPLETED, Visit CHECKED_OUT; Contract inherits Reservation.PolicyId. | Reservation, Visit, StorageUnit, Contract, Invoice, Payment, Policy | `usp_CompleteHandover` transaction |
+| `BR-HO-02` | Staff acknowledges full offline first-month receipt before Complete Handover. | Reservation, Contract | `usp_CompleteHandover` |
+| `BR-HO-03` | Complete Handover atomically creates Contract without first-month Invoice/Payment, marks Unit IN_USE, Reservation COMPLETED, Visit CHECKED_OUT; Contract inherits Reservation.PolicyId. | Reservation, Visit, StorageUnit, Contract, Policy | `usp_CompleteHandover` transaction |
 | `BR-CON-01` | One Reservation creates at most one Contract. | Reservation, Contract | UNIQUE index |
 | `BR-CON-02` | A StorageUnit has at most one ACTIVE Contract at a time. | Contract, StorageUnit | Filtered UNIQUE index + SP |
 | `BR-DIS-01` | Customer owns many Discounts; each Discount belongs to exactly one Customer. | Customer, Discount | FK |
 | `BR-DIS-02` | Each Contract uses zero or one Discount, and it must belong to the same Customer. | Contract, Discount | FK + TRG/SP |
 | `BR-DIS-03` | Contract-selected Discount is fixed for that Contract lifecycle in Release 1. | Contract | TRG/restrict UPDATE |
 | `BR-DIS-04` | Rental invoices snapshot DiscountId and DiscountAmount; later Discount edits do not rewrite issued invoices. | Contract, Discount, Invoice | `usp_CreateMonthlyInvoice` |
-| `BR-DIS-05` | First Rental Fee Invoice at handover does not apply Contract Discount; later rental invoices may apply the captured Contract Discount. | Reservation, Contract, Invoice, Discount | `usp_CompleteHandover` / `usp_CreateMonthlyInvoice` |
+| `BR-DIS-05` | First-month offline rent does not apply Contract Discount; eligible invoices strictly after Contract.StartMonth may apply the captured Discount. | Reservation, Contract, Invoice, Discount | `usp_CompleteHandover` / `usp_CreateMonthlyInvoice` |
 | `BR-DIS-06` | Referenced Discount `CustomerId`, `Percentage`, `EffectiveFrom`, `EffectiveTo` are immutable; INACTIVE blocks only new selection. | Discount, Contract | TRG/SP |
 | `BR-BIL-01` | Exactly one logical Deposit Invoice per Reservation. | Reservation, Invoice | Filtered UNIQUE index |
 | `BR-BIL-02` | At most one Rental Fee Invoice per Contract + BillingMonth. | Contract, Invoice | Filtered UNIQUE index |
 | `BR-BIL-03` | Rental invoice initial-period BaseAmount comes from Reservation.LockedRentalPrice. | Reservation, Contract, Invoice | `usp_CreateMonthlyInvoice` |
 | `BR-BIL-04` | Rental invoice extension-period BaseAmount comes from corresponding ContractExtension.AppliedMonthlyPrice. | ContractExtension, Invoice | `usp_CreateMonthlyInvoice` |
 | `BR-BIL-05` | From Policy overdue threshold, unpaid Rental Invoice becomes OVERDUE. | Invoice, Contract, Policy | scheduled `usp_MarkOverdueInvoices` |
-| `BR-PAY-01` | Payment callback is idempotent by gateway transaction/reference. | Payment, Invoice | `usp_ApplyPaymentResult` + UNIQUE index |
+| `BR-PAY-01` | Verified payOS signed POST webhook is idempotent by gateway transaction/reference. | Payment, Invoice | `usp_ApplyPaymentResult` + UNIQUE index |
 | `BR-PAY-02` | Staff/Manager cannot manually mark Deposit/Rental Invoice PAID. | Payment, Invoice | Procedure-only write path + permissions |
 | `BR-LATE-01` | LateFee exists only for overdue RENTAL_FEE Invoice. | LateFee, Invoice | SP + TRG |
 | `BR-LATE-02` | LateFee amount uses the Contract-captured Policy divisor. | LateFee, Invoice, Contract, Policy | `usp_CalculateLateFee` |
@@ -1137,7 +1146,7 @@ A retry may create another Payment attempt rather than mutating a FAILED attempt
 | `CALC-DEP-01` Deposit amount | `Reservation.DepositAmount = UnitType.RentalPrice` at Reservation creation | Snapshot; later UnitType price change does not rewrite it. |
 | `CALC-INV-01` Initial BaseAmount | `Reservation.LockedRentalPrice` | Used for BillingMonth inside original Reservation period. |
 | `CALC-INV-02` Renewal BaseAmount | `ContractExtension.AppliedMonthlyPrice` | Select extension covering BillingMonth. |
-| `CALC-DIS-01` DiscountAmount | `BaseAmount * Discount.Percentage / 100` | Applies only from the second Rental Fee invoice onward when a Contract Discount is captured; first month is always 0 discount. |
+| `CALC-DIS-01` DiscountAmount | `BaseAmount * Discount.Percentage / 100` | Eligible Rental Fee invoices have BillingMonth > Contract.StartMonth and may apply the captured Discount. First-month offline rent has no Discount or Invoice. |
 | `CALC-INV-03` AmountDue | `MAX(BaseAmount - DiscountAmount, 0)` | Deposit has DiscountAmount = 0. |
 | `CALC-LATE-01` OverdueDays | Number of chargeable overdue days from captured Policy `OverdueStartDay` to calculation/return/payment cutoff | Exact date arithmetic implemented consistently in SP. |
 | `CALC-LATE-02` LateFee | `(RentalFeeAmount / Policy.LateFeeDivisorDays) * OverdueDays` | Use `DECIMAL`, not floating-point. |
@@ -1146,7 +1155,7 @@ A retry may create another Payment attempt rather than mutating a FAILED attempt
 | `CALC-SET-03` AdditionalAmountDue | `MAX(TotalDeduction - DepositPaidAmount, 0)` | Recorded obligation only. |
 | `CALC-CAP-01` Available capacity | `eligible physical-unit capacity - Reservation holds - Contract occupancy` for each month | Must evaluate every month in requested period. |
 | `CALC-REP-01` Usage Rate | `IN_USE rentable StorageUnits / total rentable StorageUnits` | Derived reporting value; not persisted. |
-| `CALC-REP-02` Revenue | Sum of successfully paid Rental Fee amounts in reporting period | Deposit/late/extra/damage excluded from core revenue. |
+| `CALC-REP-02` Revenue | Contract-derived first-month amount in Contract.StartMonth plus paid later Rental Fee invoice amounts | First-month amount is Reservation.LockedRentalPrice once per Contract. Exclude Deposit/late/extra/damage and legacy first-month invoice double counting. |
 
 ### 19.1 Monetary rounding
 
@@ -1218,7 +1227,7 @@ V1 should use **no cascading hard deletes** for core business data. Historical i
 | Complete Handover | Two handovers select same AVAILABLE StorageUnit. | Transaction + update lock on selected StorageUnit; validate `Status=AVAILABLE` at update time. |
 | Renew Contract | Renewal and new Reservation consume same future capacity. | Same capacity locking strategy as Reservation across every extension month. |
 | Claim Inspection | Two Staff claim one PENDING Inspection. | Single conditional UPDATE `WHERE Status='PENDING'`; require exactly 1 affected row. |
-| Apply MoMo callback | Gateway retries same callback. | UNIQUE `TransactionCode`/gateway reference + idempotent procedure. |
+| Apply payOS signed POST webhook | Gateway retries the same verified webhook. | UNIQUE `TransactionCode`/gateway reference + idempotent procedure; no second financial effect. |
 | Generate monthly invoice | Job retried / multiple workers. | Unique filtered index on Contract+BillingMonth for RENTAL_FEE + insert-if-absent transaction. |
 | Create Deposit invoice | Reservation creation retried. | Unique filtered index on Reservation EntityId for DEPOSIT. |
 | Create Policy version | Two admins create versions concurrently. | Transaction + lock current active Policy/version sequence; filtered unique active-policy index. |
@@ -1253,7 +1262,8 @@ Use the narrowest isolation/locking approach that still protects the invariant; 
 
 | Operation | Idempotency key / invariant | Repeat behavior |
 |---|---|---|
-| MoMo callback | Gateway transaction/reference | Same success callback must not create duplicate payment/invoice effects. |
+| PAY-001 payOS attempt creation | UUID Idempotency-Key, globally unique Payment.IdempotencyKey | Same Invoice/key returns the stored attempt without another provider session; another Invoice with the same key returns a controlled conflict without exposing the first Payment. |
+| payOS signed POST webhook | SQL-sequence ProviderOrderCode / verified reference | Same verified webhook returns already-confirmed acknowledgement without duplicate Payment/Invoice effects. |
 | Complete Handover | `Contract.ReservationId` UNIQUE + terminal Reservation state | Repeat after success returns existing result or controlled "already completed" error. |
 | Confirm Reservation | Reservation status + one RESERVATION Visit | Repeat must not create second Visit. |
 | Monthly invoice generation | `(ContractId, BillingMonth)` filtered uniqueness | Duplicate call returns/uses existing invoice. |
@@ -1591,7 +1601,7 @@ The schema is ready for DDL generation when all items below are explicitly repre
 - [ ] Defaults created for deterministic initial statuses and timestamps (`Facility=INACTIVE`, `StorageUnit=AVAILABLE`).
 - [ ] `Customer 1:N Discount` implemented through `Discount.CustomerId`.
 - [ ] `Contract.DiscountId` nullable and ownership/validity guard implemented; referenced Discount financial/effective fields are immutable.
-- [ ] First-month RENTAL_FEE has `DiscountId=NULL`, `DiscountAmount=0`; Contract Discount starts on subsequent invoices.
+- [ ] First-month rent is offline without Invoice/Payment; eligible invoices strictly after Contract.StartMonth may apply captured Contract Discount.
 - [ ] Complete Handover enforces `Contract.PolicyId = Reservation.PolicyId`.
 - [ ] Damage decision lifecycle/Manager authorization and PENDING-finalization block are implemented.
 - [ ] Reservation immutable business fields protected after creation.
@@ -1599,7 +1609,7 @@ The schema is ready for DDL generation when all items below are explicitly repre
 - [ ] Append-only protections implemented for ContractExtension, LoginHistory, AuditLog.
 - [ ] Stored procedures implemented with transactions and stable business error codes.
 - [ ] Capacity-sensitive procedures use an explicit concurrency strategy.
-- [ ] Payment callback and recurring jobs are idempotent.
+- [ ] Verified payOS signed POST webhook and recurring jobs are idempotent; browser return does not mutate financial state.
 - [ ] Trigger code is multi-row safe.
 - [ ] Audit rules exclude secrets/binary payloads.
 - [ ] Phase 0 seed data created for the five roles, initial Policy v1, and six fixed DamageTypes; ExtraFeeType schema/checks exist without seeded rows.
@@ -1623,7 +1633,7 @@ These tests are required to validate the physical database behavior, not only ap
 | `DBT-06` | Two handovers allocate same StorageUnit concurrently. | Exactly one can set it IN_USE. |
 | `DBT-07` | Contract selects Discount owned by another Customer. | Rejected. |
 | `DBT-08` | Create two Rental invoices for same Contract/BillingMonth. | Second rejected by unique index. |
-| `DBT-09` | Same MoMo callback arrives twice. | No duplicate financial/lifecycle effects. |
+| `DBT-09` | Same verified payOS signed POST webhook arrives twice. | Already-confirmed acknowledgement; no duplicate financial/lifecycle effects. |
 | `DBT-10` | Two Staff claim same Inspection. | Exactly one succeeds. |
 | `DBT-11` | Renewal and new Reservation compete for last future capacity. | Invariant preserved; no overbooking. |
 | `DBT-12` | Reservation captures Policy V1; Policy V2 activates before handover. | Contract created at handover inherits Reservation.PolicyId = V1, not active V2. |
@@ -1638,7 +1648,7 @@ These tests are required to validate the physical database behavior, not only ap
 | `DBT-21` | Same-Facility Manager decides PENDING Damage. | Exactly one valid terminal APPROVED/REJECTED state is stored and audited. |
 | `DBT-22` | Two concurrent Manager decisions target the same PENDING DamageRecord. | Exactly one terminal decision wins; the other is rejected/idempotently controlled. |
 | `DBT-23` | Finalize return with REJECTED Damage. | REJECTED Damage contributes zero; PENDING Damage blocks finalization. |
-| `DBT-24` | Contract has Discount at handover. | First invoice/payment has `DiscountId=NULL`, `DiscountAmount=0`; next invoice applies captured Contract Discount. |
+| `DBT-24` | Offline first-month handover with Contract Discount. | No first-month Invoice/Payment; first eligible later invoice may apply captured Contract Discount; first-month revenue is Contract-derived once. |
 | `DBT-25` | Employee initial credential email fails. | Account remains INACTIVE; no plaintext password is persisted or logged. |
 
 ---
@@ -1665,11 +1675,11 @@ These tests are required to validate the physical database behavior, not only ap
 
 ## 36. Source and Authority
 
-Primary implementation source: `02-FRMS_SRS_V10.md` (V10 FINAL, 2026-10-04). This Data Dictionary incorporates the confirmed ERD baseline and database-relevant V9 decisions preserved by V10.
+Primary implementation source: `FRMS_SRS_V10.md` (V10 FINAL, including approved 2026-10-07 offline-first-month and payOS revisions). Unrelated database rules retain their existing baseline.
 
 Authority order:
 
-1. `02-FRMS_SRS_V10.md`.
+1. `FRMS_SRS_V10.md`.
 2. This aligned Data Dictionary V2.1.
 3. Aligned Scope document.
 4. Implementation detail.

@@ -11,7 +11,7 @@ The HTTP path is API → Business → repository → SQL Server. Infrastructure 
 
 ## Configure and run
 
-From the repository root (`C:\SWP391`), create the ignored `backend/Frms.Api/.env` file locally and add the approved `ConnectionStrings__FrmsDb`, `Jwt__SigningKey`, and `Payment__VnPay__*` values from the SRS. Preserve an existing local file and never commit it:
+From the repository root (`C:\SWP391`), create the ignored `backend/Frms.Api/.env` file locally and add the approved `ConnectionStrings__FrmsDb`, `Jwt__SigningKey`, and `Payment__PayOS__*` values from the SRS. Preserve an existing local file and never commit it:
 
 ```powershell
 dotnet run --project .\backend\Frms.Api
@@ -23,22 +23,39 @@ In Development only, DotNetEnv loads `.env` from the API's `ContentRootPath`, in
 
 The existing `ConnectionStrings:Frms` name remains supported and takes precedence over the `FrmsDb` alias; set only one name locally. Missing connection settings fail clearly. This runtime loader does not configure EF design-time tools, run migrations, create a test database or change tables. SQL Server must be running for database access, but startup itself does not validate the schema.
 
-The real `.env` is ignored by Git and excluded from build/publish items. Repository policy forbids tracking `.env` variants, including example files. Never commit connection credentials, database files, local settings, JWT keys or VNPay `HashSecret`. Never print `HashSecret` in application or test logs. `TrustServerCertificate=True` is for approved local test configuration only, not a production TLS policy.
+The real `.env` is ignored by Git and excluded from build/publish items. Create `backend/Frms.Api/.env` yourself; there is no backend `.env.example`. Never commit connection credentials, database files, local settings, JWT keys or payOS ApiKey/ChecksumKey, and never print secrets, signed payment URLs or raw signed webhooks. `TrustServerCertificate=True` is for approved local test configuration only, not a production TLS policy.
 
-For VNPay Sandbox IPN testing, keep the backend running at `http://localhost:5164` and start ngrok in another terminal:
+Use only `Payment:PayOS`; old VNPay environment keys are no longer bound to an active provider:
 
-```powershell
-ngrok http 5164
+```text
+Payment__PayOS__ClientId=<configured locally>
+Payment__PayOS__ApiKey=<secret/configured locally; never share or commit>
+Payment__PayOS__ChecksumKey=<secret/configured locally; never share or commit>
+Payment__PayOS__ApiBaseUrl=https://api-merchant.payos.vn
+Payment__PayOS__ReturnUrl=http://localhost:5173/customer/payments/result
+Payment__PayOS__CancelUrl=http://localhost:5173/customer/payments/result
+Payment__PayOS__WebhookUrl=https://lying-ladder-showroom.ngrok-free.dev/api/v1/payments/payos/webhook
+Payment__PayOS__ExpiryMinutes=15
 ```
 
-The approved public IPN URL uses `https://lying-ladder-showroom.ngrok-free.dev`. If ngrok assigns a different hostname, update both `Payment__VnPay__IpnUrl` in the ignored local `.env` and the IPN configuration registered with VNPay Sandbox before testing.
+payOS has no sandbox/staging: its API is production. This revision authorizes **code/mock tests only**. Do not create real links, call /confirm-webhook, register a live webhook or transfer money until separately approved.
+Missing payment credentials do not prevent startup; PAY-001 raises EXTERNAL_PROVIDER_NOT_CONFIGURED before creating an attempt.
+POST /api/v1/invoices/{invoiceId}/payments/payos needs only the UUID Idempotency-Key header; no caller amount/redirect is used. Use a new UUID for a deliberate action and reuse it for automatic retries.
+PAY-003 is the authorized detail read and excludes session URL/idempotency key. PAY-004 is anonymous POST JSON /api/v1/payments/payos/webhook, verified before mapping ProviderOrderCode and invoking authoritative SQL.
+Only Created may invoke the provider; timeouts leave PENDING and do not trigger automatic HTTP create retries. Typed HttpClient keeps exact wire JSON/signing inside Infrastructure, allows deterministic fake-handler tests, and avoids SDK logging/retry behavior in the Created-only boundary. No payOS SDK dependency is added.
+Description FRMS is display-only; SQL sequence orderCode starts1000, filtered-unique, and is authoritative identity. Verified transactionDateTime is interpreted UTC+7 by owner approval then persisted UTC. Signed unknown/sample code returns200 without mutation.
+Browser return/cancel do not mark success/failure; frontend refreshes PAY-003. First month remains offline with no Invoice/Payment; PAY-002 retired. MOMO/VNPAY rows and migrations are retained, never rewritten. Historical VNPay algorithm/options fixtures now compile only in the unit-test assembly.
+The forward migration adds nullable BIGINT ProviderOrderCode, dbo.ProviderOrderCodeSequence, unique filtered index and PAYOS method support. Down refuses PAYOS/order-code evidence; do not use it to erase historical financial data.
+
+[ ] Separately approved live payOS E2E
+[ ] Successful real payment/webhook and Invoice.PaidAt evidence
+[ ] EPS-01 release acceptance (NOT COMPLETE)
 
 The existing `/health` endpoint probes SQL Server through the registered `FrmsDbContext`. It returns 200 when reachable and 503 when unavailable, without exposing connection details. A healthy probe does not verify migration/schema completeness.
 
-In another terminal at the repository root:
+In another terminal at the repository root, create the ignored `frontend/.env.local` yourself with `VITE_API_PROXY_TARGET=http://localhost:5164`. The frontend template was removed by current main; do not depend on copying it. If a frontend-owned `.env.example` is supplied later, it must contain only public frontend settings, never backend secrets:
 
 ```powershell
-Copy-Item frontend/.env.example frontend/.env.local
 pnpm dev
 ```
 

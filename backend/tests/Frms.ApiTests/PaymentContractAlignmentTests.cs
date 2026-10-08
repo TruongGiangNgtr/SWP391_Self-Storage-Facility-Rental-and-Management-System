@@ -63,7 +63,7 @@ public sealed class PaymentContractAlignmentTests
                 Is.EqualTo(new[] { typeof(PaymentGatewayCallbackRequest), typeof(CancellationToken) }));
             Assert.That(requestProperties, Is.EqualTo(new[] { "RawPayload" }));
             Assert.That(resultProperties,
-                Is.EquivalentTo(new[] { "PaymentId", "Amount", "TransactionCode", "Status", "PaidAt" }));
+                Is.EquivalentTo(new[] { "PaymentId", "Amount", "TransactionCode", "Status", "PaidAt", "ProviderOrderCode" }));
             Assert.That(typeof(PaymentGatewayCallbackResult).GetProperty("Amount")!.PropertyType, Is.EqualTo(typeof(decimal?)));
             Assert.That(typeof(PaymentGatewayCallbackResult).GetProperty("PaidAt")!.PropertyType, Is.EqualTo(typeof(DateTimeOffset?)));
             Assert.That(typeof(PaymentGatewayCallbackResult).GetProperty("Status")!.PropertyType, Is.EqualTo(typeof(PaymentGatewayCallbackOutcome)));

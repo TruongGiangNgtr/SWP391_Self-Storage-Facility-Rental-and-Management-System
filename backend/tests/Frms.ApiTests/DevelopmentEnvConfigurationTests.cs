@@ -10,9 +10,9 @@ public sealed class DevelopmentEnvConfigurationTests
 {
     private string directory = null!;
     private string? previousEnvironmentValue;
-    private string? previousVnPayTmnCode;
+    private string? previousPayOsClientId;
     private const string EnvironmentKey = "ConnectionStrings__FrmsDb";
-    private const string VnPayTmnCodeEnvironmentKey = "Payment__VnPay__TmnCode";
+    private const string PayOsClientIdEnvironmentKey = "Payment__PayOS__ClientId";
 
     [SetUp]
     public void SetUp()
@@ -20,16 +20,16 @@ public sealed class DevelopmentEnvConfigurationTests
         directory = Path.Combine(Path.GetTempPath(), "frms-dotenv-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
         previousEnvironmentValue = Environment.GetEnvironmentVariable(EnvironmentKey);
-        previousVnPayTmnCode = Environment.GetEnvironmentVariable(VnPayTmnCodeEnvironmentKey);
+        previousPayOsClientId = Environment.GetEnvironmentVariable(PayOsClientIdEnvironmentKey);
         Environment.SetEnvironmentVariable(EnvironmentKey, null);
-        Environment.SetEnvironmentVariable(VnPayTmnCodeEnvironmentKey, null);
+        Environment.SetEnvironmentVariable(PayOsClientIdEnvironmentKey, null);
     }
 
     [TearDown]
     public void TearDown()
     {
         Environment.SetEnvironmentVariable(EnvironmentKey, previousEnvironmentValue);
-        Environment.SetEnvironmentVariable(VnPayTmnCodeEnvironmentKey, previousVnPayTmnCode);
+        Environment.SetEnvironmentVariable(PayOsClientIdEnvironmentKey, previousPayOsClientId);
         Directory.Delete(directory, recursive: true);
     }
 
@@ -73,14 +73,14 @@ public sealed class DevelopmentEnvConfigurationTests
     public void API_CONFIG_004_OtherEnvironmentsIgnoreLocalFile(string environmentName)
     {
         File.WriteAllText(Path.Combine(directory, ".env"),
-            "ConnectionStrings__FrmsDb=from-file\nPayment__VnPay__TmnCode=fake-file-terminal\n");
+            "ConnectionStrings__FrmsDb=from-file\nPayment__PayOS__ClientId=fake-file-terminal\n");
         using var configuration = CreateConfiguration();
         configuration.AddDevelopmentEnvFile(CreateEnvironment(environmentName));
 
         Assert.Multiple(() =>
         {
             Assert.That(configuration.GetConnectionString("FrmsDb"), Is.EqualTo("from-settings"));
-            Assert.That(configuration["Payment:VnPay:TmnCode"], Is.EqualTo("fake-settings-terminal"));
+            Assert.That(configuration["Payment:PayOS:ClientId"], Is.EqualTo("fake-settings-terminal"));
         });
     }
 
@@ -110,33 +110,33 @@ public sealed class DevelopmentEnvConfigurationTests
     }
 
     [Test]
-    public void API_CONFIG_007_DevelopmentMapsVnPayKeyWithoutChangingProcessEnvironment()
+    public void API_CONFIG_007_DevelopmentMapsPayOsKeyWithoutChangingProcessEnvironment()
     {
         File.WriteAllText(Path.Combine(directory, ".env"),
-            "Payment__VnPay__TmnCode=fake-file-terminal\n");
+            "Payment__PayOS__ClientId=fake-file-terminal\n");
         using var configuration = CreateConfiguration();
         configuration.AddDevelopmentEnvFile(CreateEnvironment(Environments.Development));
 
         Assert.Multiple(() =>
         {
-            Assert.That(configuration["Payment:VnPay:TmnCode"], Is.EqualTo("fake-file-terminal"));
-            Assert.That(Environment.GetEnvironmentVariable(VnPayTmnCodeEnvironmentKey), Is.Null);
+            Assert.That(configuration["Payment:PayOS:ClientId"], Is.EqualTo("fake-file-terminal"));
+            Assert.That(Environment.GetEnvironmentVariable(PayOsClientIdEnvironmentKey), Is.Null);
         });
     }
 
     [Test]
-    public void API_CONFIG_008_ProcessEnvironmentOverridesVnPayLocalFile()
+    public void API_CONFIG_008_ProcessEnvironmentOverridesPayOsLocalFile()
     {
         File.WriteAllText(Path.Combine(directory, ".env"),
-            "Payment__VnPay__TmnCode=fake-file-terminal\n");
-        Environment.SetEnvironmentVariable(VnPayTmnCodeEnvironmentKey, "fake-process-terminal");
+            "Payment__PayOS__ClientId=fake-file-terminal\n");
+        Environment.SetEnvironmentVariable(PayOsClientIdEnvironmentKey, "fake-process-terminal");
         using var configuration = CreateConfiguration();
         configuration.AddDevelopmentEnvFile(CreateEnvironment(Environments.Development));
 
         Assert.Multiple(() =>
         {
-            Assert.That(configuration["Payment:VnPay:TmnCode"], Is.EqualTo("fake-process-terminal"));
-            Assert.That(Environment.GetEnvironmentVariable(VnPayTmnCodeEnvironmentKey),
+            Assert.That(configuration["Payment:PayOS:ClientId"], Is.EqualTo("fake-process-terminal"));
+            Assert.That(Environment.GetEnvironmentVariable(PayOsClientIdEnvironmentKey),
                 Is.EqualTo("fake-process-terminal"));
         });
     }
@@ -147,7 +147,7 @@ public sealed class DevelopmentEnvConfigurationTests
         configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ConnectionStrings:FrmsDb"] = "from-settings",
-            ["Payment:VnPay:TmnCode"] = "fake-settings-terminal"
+            ["Payment:PayOS:ClientId"] = "fake-settings-terminal"
         });
         configuration.AddEnvironmentVariables();
         return configuration;

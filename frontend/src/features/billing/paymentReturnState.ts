@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'frms.pendingMomoPayment'
+const STORAGE_KEY = 'frms.pendingPayment'
 
 export interface PendingPaymentReturn {
   paymentId: string

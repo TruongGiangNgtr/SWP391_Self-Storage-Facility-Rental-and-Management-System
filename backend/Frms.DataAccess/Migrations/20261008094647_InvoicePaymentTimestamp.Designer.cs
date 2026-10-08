@@ -4,6 +4,7 @@ using Frms.DataAccess.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Frms.DataAccess.Migrations
 {
     [DbContext(typeof(FrmsDbContext))]
-    partial class FrmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261008094647_InvoicePaymentTimestamp")]
+    partial class InvoicePaymentTimestamp
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,9 +24,6 @@ namespace Frms.DataAccess.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.HasSequence("ProviderOrderCodeSequence", "dbo")
-                .StartsAt(1000L);
 
             modelBuilder.Entity("Frms.DataAccess.Persistence.Entities.AuditLog", b =>
                 {
@@ -828,9 +828,6 @@ namespace Frms.DataAccess.Migrations
                     b.Property<DateTime?>("PaymentUrlExpiresAt")
                         .HasColumnType("datetime2(3)");
 
-                    b.Property<long?>("ProviderOrderCode")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -845,10 +842,6 @@ namespace Frms.DataAccess.Migrations
                     b.HasIndex("IdempotencyKey")
                         .IsUnique();
 
-                    b.HasIndex("ProviderOrderCode")
-                        .IsUnique()
-                        .HasFilter("[ProviderOrderCode] IS NOT NULL");
-
                     b.HasIndex("TransactionCode")
                         .IsUnique()
                         .HasFilter("[TransactionCode] IS NOT NULL");
@@ -859,7 +852,7 @@ namespace Frms.DataAccess.Migrations
                         {
                             t.HasCheckConstraint("CK_Payment_Amount", "[Amount]>0");
 
-                            t.HasCheckConstraint("CK_Payment_Method", "[PaymentMethod] IN ('MOMO','VNPAY','PAYOS')");
+                            t.HasCheckConstraint("CK_Payment_Method", "[PaymentMethod] IN ('MOMO','VNPAY')");
 
                             t.HasCheckConstraint("CK_Payment_PaidAt", "([Status]='SUCCESS' AND [PaidAt] IS NOT NULL) OR ([Status]<>'SUCCESS' AND [PaidAt] IS NULL)");
 

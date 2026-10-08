@@ -14,7 +14,7 @@ test-results/
 /backend/Frms.Api/.env
 .env
 .env.*
-!.env.example
+!/frontend/.env.example
 
 appsettings.*.local.json
 *.bat

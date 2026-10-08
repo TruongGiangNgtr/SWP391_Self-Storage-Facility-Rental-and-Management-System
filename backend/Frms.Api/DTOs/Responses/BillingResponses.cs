@@ -25,8 +25,8 @@ public sealed record PaymentDetailResponse(
     DateTimeOffset? PaidAt,
     DateTimeOffset CreatedAt);
 
-/// <summary>Represents a VNPay payment attempt for an existing Invoice.</summary>
-public sealed record InvoiceVnPayPaymentResponse(
+/// <summary>Represents a payOS payment attempt for an existing Invoice.</summary>
+public sealed record InvoicePayOsPaymentResponse(
     Guid PaymentId,
     Guid InvoiceId,
     decimal Amount,
@@ -34,13 +34,11 @@ public sealed record InvoiceVnPayPaymentResponse(
     string Status,
     string? PaymentUrl)
 {
-    public override string ToString() => $"InvoiceVnPayPaymentResponse {{ PaymentId = {PaymentId}, Status = {Status} }}";
+    public override string ToString() => $"InvoicePayOsPaymentResponse {{ PaymentId = {PaymentId}, Status = {Status} }}";
 }
 
 /// <summary>Provider acknowledgement returned by PAY-004.</summary>
-public sealed record VnPayIpnResponse(
-    [property: System.Text.Json.Serialization.JsonPropertyName("RspCode")] string ResponseCode,
-    [property: System.Text.Json.Serialization.JsonPropertyName("Message")] string Message);
+public sealed record PayOsWebhookResponse(string Outcome);
 
 public sealed record DiscountResponse(
     Guid DiscountId,

@@ -17,7 +17,8 @@ public sealed record PaymentGatewayRequest(
     decimal Amount,
     [property: JsonIgnore] string ReturnUrl,
     string ClientIpAddress,
-    DateTimeOffset CreatedAt)
+    DateTimeOffset CreatedAt,
+    long? ProviderOrderCode = null)
 {
     public override string ToString() => $"PaymentGatewayRequest {{ PaymentId = {PaymentId} }}";
 }
@@ -70,7 +71,8 @@ public sealed record PaymentGatewayCallbackResult(
     decimal? Amount,
     string? TransactionCode,
     PaymentGatewayCallbackOutcome Status,
-    DateTimeOffset? PaidAt)
+    DateTimeOffset? PaidAt,
+    long? ProviderOrderCode = null)
 {
     public override string ToString() => $"PaymentGatewayCallbackResult {{ PaymentId = {PaymentId}, Status = {Status} }}";
 }

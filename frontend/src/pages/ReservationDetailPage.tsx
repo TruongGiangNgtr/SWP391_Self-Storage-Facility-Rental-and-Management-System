@@ -64,11 +64,11 @@ export function ReservationDetailPage() {
     setWorking(true)
     setError(null)
     try {
-      const response = await billingApi.startMomoPayment(
+      const response = await billingApi.startPayOsPayment(
         reservation.depositInvoice.invoiceId,
-        { returnUrl: `${window.location.origin}/customer/payments/result` },
+        crypto.randomUUID(),
       )
-      const paymentUrl = getSafePaymentUrl(response.data.paymentUrl)
+      const paymentUrl = response.data.paymentUrl ? getSafePaymentUrl(response.data.paymentUrl) : null
       if (!paymentUrl) {
         setError(
           presentValidationError('The payment gateway returned an invalid redirect URL.'),
@@ -189,7 +189,7 @@ export function ReservationDetailPage() {
                     onClick={handleStartPayment}
                     type="button"
                   >
-                    {working ? 'Connecting to MoMo...' : 'Pay Deposit with MoMo'}
+                    {working ? 'Connecting to payOS...' : 'Pay Deposit with payOS'}
                   </button>
                 )}
               {reservation.status === 'PENDING_DEPOSIT' &&

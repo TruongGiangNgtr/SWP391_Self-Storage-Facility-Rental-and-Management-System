@@ -106,7 +106,7 @@ export function PaymentResultPage() {
         <p className="eyebrow">Pay Deposit</p>
         <h1>Payment Result</h1>
         <p className="muted">
-          Check the payment status recorded by FRMS after paying with MoMo.
+          Check the payment status recorded by FRMS after paying with payOS.
         </p>
       </section>
 

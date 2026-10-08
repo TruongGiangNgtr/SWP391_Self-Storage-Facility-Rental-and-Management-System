@@ -28,7 +28,7 @@ public sealed class OpenApiTests
     }
 
     [Test]
-    public async Task OpenApi_PaymentRoutes_MatchVnPayRevision()
+    public async Task OpenApi_PaymentRoutes_MatchPayOsRevision()
     {
         await using var factory = new FrmsWebApplicationFactory();
         using var client = factory.CreateClient();
@@ -42,9 +42,9 @@ public sealed class OpenApiTests
         Assert.Multiple(() =>
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(paths.GetProperty("/api/v1/invoices/{invoiceId}/payments/vnpay").TryGetProperty("post", out _), Is.True);
+            Assert.That(paths.GetProperty("/api/v1/invoices/{invoiceId}/payments/payos").TryGetProperty("post", out _), Is.True);
             Assert.That(paths.GetProperty("/api/v1/payments/{paymentId}").TryGetProperty("get", out _), Is.True);
-            Assert.That(paths.GetProperty("/api/v1/payments/vnpay/ipn").TryGetProperty("get", out _), Is.True);
+            Assert.That(paths.GetProperty("/api/v1/payments/payos/webhook").TryGetProperty("post", out _), Is.True);
             Assert.That(paths.TryGetProperty(retiredRoute, out _), Is.False);
         });
     }

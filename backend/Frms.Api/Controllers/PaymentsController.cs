@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text;
+using System.Text.Json;
 using Frms.Api.Authorization;
-using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Abstractions.External;
 using Frms.Business.Exceptions;
@@ -18,29 +19,27 @@ namespace Frms.Api.Controllers;
 [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status503ServiceUnavailable)]
 public sealed class PaymentsController(IPaymentService service) : ControllerBase
 {
-    /// <summary>PAY-001: Start or recover the same authorized Invoice payment attempt.</summary>
+    /// <summary>PAY-001: Start/retrieve an authorized Invoice payment, with server-owned redirects/amount.</summary>
     [Authorize(Roles = RoleNames.Customer)]
-    [HttpPost("invoices/{invoiceId:guid}/payments/vnpay")]
-    [ProducesResponseType(typeof(ApiResponse<InvoiceVnPayPaymentResponse>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ApiResponse<InvoiceVnPayPaymentResponse>), StatusCodes.Status200OK)]
+    [HttpPost("invoices/{invoiceId:guid}/payments/payos")]
+    [ProducesResponseType(typeof(ApiResponse<InvoicePayOsPaymentResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<InvoicePayOsPaymentResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ApiResponse<InvoiceVnPayPaymentResponse>>> StartInvoiceVnPayPayment(
+    public async Task<ActionResult<ApiResponse<InvoicePayOsPaymentResponse>>> StartInvoicePayOsPayment(
         Guid invoiceId, [FromHeader(Name = "Idempotency-Key"), Required] string idempotencyKey,
-        [FromBody] StartInvoiceVnPayPaymentRequest request, CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(idempotencyKey, out var key) || key == Guid.Empty)
             throw new BusinessException("VALIDATION_ERROR", "A non-empty UUID Idempotency-Key is required.", 400);
-        var clientIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
         var result = await service.StartInvoicePaymentAsync(
-            invoiceId, new StartPaymentCommand(key, request.ReturnUrl, clientIpAddress), cancellationToken);
-        var response = new ApiResponse<InvoiceVnPayPaymentResponse>(new(result.PaymentId, result.InvoiceId,
+            invoiceId, new StartPaymentCommand(key, string.Empty, string.Empty), cancellationToken);
+        var response = new ApiResponse<InvoicePayOsPaymentResponse>(new(result.PaymentId, result.InvoiceId,
             result.Amount, result.PaymentMethod, result.Status, result.PaymentUrl));
         return result.NewlyInitiated && result.Outcome == PaymentStartOutcome.SessionAvailable
-            ? CreatedAtAction(nameof(GetPayment), new { paymentId = result.PaymentId }, response)
-            : Ok(response);
+            ? CreatedAtAction(nameof(GetPayment), new { paymentId = result.PaymentId }, response) : Ok(response);
     }
 
     /// <summary>PAY-003: Read Payment detail within authoritative ownership/Facility scope.</summary>
@@ -57,37 +56,37 @@ public sealed class PaymentsController(IPaymentService service) : ControllerBase
             p.PaymentMethod, p.TransactionCode, p.Status, p.PaidAt, p.CreatedAt)));
     }
 
-    /// <summary>PAY-004: checksum-verified VNPay IPN acknowledgement.</summary>
+    /// <summary>PAY-004: signature-verified JSON webhook. Browser return/cancel never mutate state.</summary>
     [AllowAnonymous]
-    [HttpGet("payments/vnpay/ipn")]
+    [HttpPost("payments/payos/webhook")]
+    [RequestSizeLimit(65_536)]
+    [Consumes("application/json")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(VnPayIpnResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult<VnPayIpnResponse>> VnPayIpn(CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(PayOsWebhookResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> PayOsWebhook([FromBody] JsonElement payload, CancellationToken cancellationToken)
     {
+        var raw = payload.GetRawText();
+        if (Encoding.UTF8.GetByteCount(raw) > 65_536)
+            return StatusCode(413, new ApiErrorResponse("PAYMENT_CALLBACK_TOO_LARGE", "The callback is too large.", HttpContext.TraceIdentifier));
         try
         {
-            var result = await service.ProcessCallbackAsync(
-                new PaymentGatewayCallbackRequest(Request.QueryString.Value ?? string.Empty), cancellationToken);
-            return Ok(result.Outcome switch
+            var result = await service.ProcessCallbackAsync(new PaymentGatewayCallbackRequest(raw), cancellationToken);
+            return result.Outcome switch
             {
-                PaymentApplicationOutcome.Applied
-                    => new VnPayIpnResponse("00", "Confirm Success"),
-                PaymentApplicationOutcome.Duplicate or PaymentApplicationOutcome.TerminalConflict
-                    => new VnPayIpnResponse("02", "Order already confirmed"),
-                PaymentApplicationOutcome.NotFound
-                    => new VnPayIpnResponse("01", "Order not found"),
-                PaymentApplicationOutcome.AmountMismatch
-                    => new VnPayIpnResponse("04", "Invalid amount"),
-                PaymentApplicationOutcome.VerificationRejected
-                    => new VnPayIpnResponse("97", "Invalid signature"),
-                _ => new VnPayIpnResponse("99", "Invalid request")
-            });
+                PaymentApplicationOutcome.Applied or PaymentApplicationOutcome.Duplicate or PaymentApplicationOutcome.TerminalConflict
+                    => Ok(new PayOsWebhookResponse("ACKNOWLEDGED")),
+                PaymentApplicationOutcome.NotFound => Ok(new PayOsWebhookResponse("IGNORED_UNKNOWN_ORDER")),
+                PaymentApplicationOutcome.AmountMismatch => Conflict(new ApiErrorResponse("AMOUNT_MISMATCH", "The payment amount does not match.", HttpContext.TraceIdentifier)),
+                PaymentApplicationOutcome.ReferenceConflict => Conflict(new ApiErrorResponse("REFERENCE_CONFLICT", "The payment reference conflicts.", HttpContext.TraceIdentifier)),
+                _ => BadRequest(new ApiErrorResponse("PAYMENT_CALLBACK_INVALID", "The payment callback could not be verified.", HttpContext.TraceIdentifier))
+            };
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (Exception)
         {
-            // RspCode 99 asks VNPay to retry and does not claim that persistence succeeded.
-            return Ok(new VnPayIpnResponse("99", "Internal processing error"));
+            // Non-2xx permits delivery retry; never acknowledge a failed persistence call.
+            return StatusCode(503, new ApiErrorResponse("PAYMENT_CALLBACK_UNAVAILABLE", "Payment processing is temporarily unavailable.", HttpContext.TraceIdentifier));
         }
     }
 }
