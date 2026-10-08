@@ -22,4 +22,26 @@ public interface IVisitService
         Guid visitId,
         string reason,
         CancellationToken cancellationToken = default);
+
+    Task<Visit> CheckInAsync(
+        Guid visitId,
+        CancellationToken cancellationToken = default);
+
+    Task<Visit> GetByIdAsync(
+        Guid visitId,
+        CancellationToken cancellationToken = default);
+
+    Task<(IReadOnlyList<Visit> Items, int TotalItems)> ListAccessibleAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
+    Task<Visit> CreateAccessAsync(
+        Guid contractId,
+        DateOnly visitDate,
+        CancellationToken cancellationToken = default);
+
+    Task<Visit> CheckOutAsync(
+        Guid visitId,
+        CancellationToken cancellationToken = default);
 }

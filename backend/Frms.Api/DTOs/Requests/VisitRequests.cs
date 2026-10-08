@@ -28,8 +28,7 @@ public sealed record CancelVisitRequest
 }
 
 /// <summary>Payload for completing a handover (OPS-004).</summary>
-public sealed record CompleteHandoverRequest
-{
+public sealed record CompleteHandoverRequest {
     public required Guid VisitId { get; init; }
 
     public required Guid StorageUnitId { get; init; }

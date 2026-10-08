@@ -1,4 +1,5 @@
 using Frms.DataAccess.Persistence;
+using Frms.DataAccess.Persistence.Entities;
 using Frms.DataAccess.Repositories.Interfaces;
 using Frms.DataAccess.Repositories.Models;
 using Microsoft.EntityFrameworkCore;
@@ -9,12 +10,10 @@ using Microsoft.Data.SqlClient;
 namespace Frms.DataAccess.Repositories.Implementations;
 
 internal sealed class ReservationRepository(
-    FrmsDbContext dbContext) : IReservationRepository
-{
+    FrmsDbContext dbContext) : IReservationRepository {
     public Task<Guid?> GetCustomerIdByUserAccountIdAsync(
         Guid userAccountId,
-        CancellationToken cancellationToken)
-    {
+        CancellationToken cancellationToken) {
         return dbContext.Customers
             .AsNoTracking()
             .Where(x => x.UserAccountId == userAccountId)
@@ -28,75 +27,136 @@ internal sealed class ReservationRepository(
         Guid unitTypeId,
         DateOnly startMonth,
         DateOnly endMonth,
-        CancellationToken cancellationToken)
-    {
+        CancellationToken cancellationToken) {
         Guid reservationId;
         Guid depositInvoiceId;
 
-        var connection = dbContext.Database.GetDbConnection();
-        var shouldCloseConnection = connection.State != ConnectionState.Open;
+        var connection =
+            dbContext.Database.GetDbConnection();
 
-        try
-        {
-            if (shouldCloseConnection)
-            {
-                await connection.OpenAsync(cancellationToken);
+        var shouldCloseConnection =
+            connection.State != ConnectionState.Open;
+
+        try {
+            if (shouldCloseConnection) {
+                await connection.OpenAsync(
+                    cancellationToken);
             }
 
-            await using var command = connection.CreateCommand();
+            await using var command =
+                connection.CreateCommand();
 
-            command.CommandText = "dbo.usp_CreateReservation";
-            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText =
+                "dbo.usp_CreateReservation";
 
-            var customerParameter = command.CreateParameter();
-            customerParameter.ParameterName = "@CustomerId";
-            customerParameter.DbType = DbType.Guid;
-            customerParameter.Value = customerId;
-            command.Parameters.Add(customerParameter);
+            command.CommandType =
+                CommandType.StoredProcedure;
 
-            var facilityParameter = command.CreateParameter();
-            facilityParameter.ParameterName = "@FacilityId";
-            facilityParameter.DbType = DbType.Guid;
-            facilityParameter.Value = facilityId;
-            command.Parameters.Add(facilityParameter);
+            var customerParameter =
+                command.CreateParameter();
 
-            var unitTypeParameter = command.CreateParameter();
-            unitTypeParameter.ParameterName = "@UnitTypeId";
-            unitTypeParameter.DbType = DbType.Guid;
-            unitTypeParameter.Value = unitTypeId;
-            command.Parameters.Add(unitTypeParameter);
+            customerParameter.ParameterName =
+                "@CustomerId";
 
-            var startMonthParameter = command.CreateParameter();
-            startMonthParameter.ParameterName = "@StartMonth";
-            startMonthParameter.DbType = DbType.Date;
-            startMonthParameter.Value = startMonth.ToDateTime(TimeOnly.MinValue);
-            command.Parameters.Add(startMonthParameter);
+            customerParameter.DbType =
+                DbType.Guid;
 
-            var endMonthParameter = command.CreateParameter();
-            endMonthParameter.ParameterName = "@EndMonth";
-            endMonthParameter.DbType = DbType.Date;
-            endMonthParameter.Value = endMonth.ToDateTime(TimeOnly.MinValue);
-            command.Parameters.Add(endMonthParameter);
+            customerParameter.Value =
+                customerId;
+
+            command.Parameters.Add(
+                customerParameter);
+
+            var facilityParameter =
+                command.CreateParameter();
+
+            facilityParameter.ParameterName =
+                "@FacilityId";
+
+            facilityParameter.DbType =
+                DbType.Guid;
+
+            facilityParameter.Value =
+                facilityId;
+
+            command.Parameters.Add(
+                facilityParameter);
+
+            var unitTypeParameter =
+                command.CreateParameter();
+
+            unitTypeParameter.ParameterName =
+                "@UnitTypeId";
+
+            unitTypeParameter.DbType =
+                DbType.Guid;
+
+            unitTypeParameter.Value =
+                unitTypeId;
+
+            command.Parameters.Add(
+                unitTypeParameter);
+
+            var startMonthParameter =
+                command.CreateParameter();
+
+            startMonthParameter.ParameterName =
+                "@StartMonth";
+
+            startMonthParameter.DbType =
+                DbType.Date;
+
+            startMonthParameter.Value =
+                startMonth.ToDateTime(
+                    TimeOnly.MinValue);
+
+            command.Parameters.Add(
+                startMonthParameter);
+
+            var endMonthParameter =
+                command.CreateParameter();
+
+            endMonthParameter.ParameterName =
+                "@EndMonth";
+
+            endMonthParameter.DbType =
+                DbType.Date;
+
+            endMonthParameter.Value =
+                endMonth.ToDateTime(
+                    TimeOnly.MinValue);
+
+            command.Parameters.Add(
+                endMonthParameter);
 
             await using var reader =
-                await command.ExecuteReaderAsync(cancellationToken);
+                await command.ExecuteReaderAsync(
+                    cancellationToken);
 
-            if (!await reader.ReadAsync(cancellationToken))
-            {
+            if (!await reader.ReadAsync(
+                    cancellationToken)) {
                 throw new InvalidOperationException(
                     "usp_CreateReservation returned no result.");
             }
 
             reservationId =
-                reader.GetGuid(reader.GetOrdinal("ReservationId"));
+                reader.GetGuid(
+                    reader.GetOrdinal(
+                        "ReservationId"));
 
             depositInvoiceId =
-                reader.GetGuid(reader.GetOrdinal("DepositInvoiceId"));
+                reader.GetGuid(
+                    reader.GetOrdinal(
+                        "DepositInvoiceId"));
         }
-        catch (SqlException ex) when (ex.Number is 51101 or 51102 or 51103 or 51104 or 51106)
-        {
-            var code = ex.Number switch
-            {
+        catch (SqlException ex)
+            when (ex.Number is
+                51101 or
+                51102 or
+                51103 or
+                51104 or
+                51106) {
+            var code = ex.Number switch {
                 51101 => "INVALID_MONTH_RANGE",
                 51102 => "ACCOUNT_INACTIVE",
                 51103 => "FACILITY_INACTIVE",
@@ -105,28 +165,34 @@ internal sealed class ReservationRepository(
                 _ => throw new InvalidOperationException()
             };
 
-            throw new StoredProcedureBusinessException(code, code);
+            throw new StoredProcedureBusinessException(
+                code,
+                code);
         }
-        finally
-        {
+        finally {
             if (shouldCloseConnection &&
-                connection.State == ConnectionState.Open)
-            {
+                connection.State == ConnectionState.Open) {
                 await connection.CloseAsync();
             }
         }
 
-        var reservation = await dbContext.Reservations
-            .AsNoTracking()
-            .SingleAsync(
-                x => x.ReservationId == reservationId,
-                cancellationToken);
+        var reservation =
+            await dbContext.Reservations
+                .AsNoTracking()
+                .SingleAsync(
+                    x =>
+                        x.ReservationId ==
+                        reservationId,
+                    cancellationToken);
 
-        var depositInvoice = await dbContext.Invoices
-            .AsNoTracking()
-            .SingleAsync(
-                x => x.InvoiceId == depositInvoiceId,
-                cancellationToken);
+        var depositInvoice =
+            await dbContext.Invoices
+                .AsNoTracking()
+                .SingleAsync(
+                    x =>
+                        x.InvoiceId ==
+                        depositInvoiceId,
+                    cancellationToken);
 
         return new CreatedReservationRecord(
             reservation.ReservationId,
@@ -146,21 +212,216 @@ internal sealed class ReservationRepository(
             reservation.CreatedAt);
     }
 
+    public Task<ReservationPageRecord> ListByCustomerAsync(
+        Guid customerId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        var query =
+            dbContext.Reservations
+                .AsNoTracking()
+                .Where(
+                    x =>
+                        x.CustomerId ==
+                        customerId);
+
+        return ListAsync(
+            query,
+            page,
+            pageSize,
+            cancellationToken);
+    }
+
+    public Task<ReservationPageRecord> ListByFacilityAsync(
+        Guid facilityId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        var query =
+            dbContext.Reservations
+                .AsNoTracking()
+                .Where(
+                    x =>
+                        x.FacilityId ==
+                        facilityId);
+
+        return ListAsync(
+            query,
+            page,
+            pageSize,
+            cancellationToken);
+    }
+
+    public Task<ReservationPageRecord> ListAllAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        var query =
+            dbContext.Reservations
+                .AsNoTracking();
+
+        return ListAsync(
+            query,
+            page,
+            pageSize,
+            cancellationToken);
+    }
+
+    public async Task<ReservationDetailRecord?> GetByIdAsync(
+        Guid reservationId,
+        CancellationToken cancellationToken) {
+        var reservation =
+            await dbContext.Reservations
+                .AsNoTracking()
+                .SingleOrDefaultAsync(
+                    x =>
+                        x.ReservationId ==
+                        reservationId,
+                    cancellationToken);
+
+        if (reservation is null) {
+            return null;
+        }
+
+        return await BuildDetailAsync(
+            reservation,
+            cancellationToken);
+    }
+
+    private async Task<ReservationPageRecord> ListAsync(
+        IQueryable<Reservation> scopedQuery,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        /*
+         * IMPORTANT:
+         * scopedQuery đã được filter theo Customer/Facility
+         * trước Count/Skip/Take.
+         *
+         * Không được chuyển Count lên trước authorization filter
+         * vì sẽ leak totalItems.
+         */
+
+        var totalItems =
+            await scopedQuery.CountAsync(
+                cancellationToken);
+
+        var reservations =
+            await scopedQuery
+                .OrderByDescending(
+                    x => x.CreatedAt)
+                .ThenByDescending(
+                    x => x.ReservationId)
+                .Skip(
+                    (page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(
+                    cancellationToken);
+
+        var items =
+            new List<ReservationDetailRecord>(
+                reservations.Count);
+
+        foreach (var reservation in reservations) {
+            items.Add(
+                await BuildDetailAsync(
+                    reservation,
+                    cancellationToken));
+        }
+
+        var totalPages =
+            totalItems == 0
+                ? 0
+                : (int)Math.Ceiling(
+                    totalItems /
+                    (double)pageSize);
+
+        return new ReservationPageRecord(
+            items,
+            page,
+            pageSize,
+            totalItems,
+            totalPages);
+    }
+
+    private async Task<ReservationDetailRecord> BuildDetailAsync(
+        Reservation reservation,
+        CancellationToken cancellationToken) {
+        var depositInvoice =
+            await dbContext.Invoices
+                .AsNoTracking()
+                .SingleOrDefaultAsync(
+                    x =>
+                        x.EntityId ==
+                        reservation.ReservationId &&
+                        x.InvoiceType ==
+                        "DEPOSIT",
+                    cancellationToken);
+
+        if (depositInvoice is null) {
+            throw new InvalidOperationException(
+                $"Reservation {reservation.ReservationId} has no DEPOSIT invoice.");
+        }
+
+        var reservationVisit =
+            await dbContext.Visits
+                .AsNoTracking()
+                .Where(
+                    x =>
+                        x.EntityId ==
+                        reservation.ReservationId &&
+                        x.VisitType ==
+                        "RESERVATION")
+                .OrderByDescending(
+                    x => x.VisitDate)
+                .ThenByDescending(
+                    x => x.VisitId)
+                .FirstOrDefaultAsync(
+                    cancellationToken);
+
+        return new ReservationDetailRecord(
+            reservation.ReservationId,
+            reservation.CustomerId,
+            reservation.FacilityId,
+            reservation.UnitTypeId,
+            reservation.PolicyId,
+            reservation.StartMonth,
+            reservation.EndMonth,
+            reservation.LockedRentalPrice,
+            reservation.DepositAmount,
+            reservation.Status,
+            new DepositInvoiceRecord(
+                depositInvoice.InvoiceId,
+                depositInvoice.Status,
+                depositInvoice.AmountDue,
+                depositInvoice.DueDate),
+            reservationVisit is null
+                ? null
+                : new ReservationVisitRecord(
+                    reservationVisit.VisitId,
+                    reservationVisit.VisitType,
+                    reservationVisit.VisitDate,
+                    reservationVisit.Status),
+            reservation.CreatedAt);
+    }
+
     public async Task<ConfirmedReservationRecord> ConfirmAsync(
         Guid customerId,
         Guid reservationId,
         DateOnly reservationVisitDate,
-        CancellationToken cancellationToken)
-    {
-        var ownedReservation = await dbContext.Reservations
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                x => x.ReservationId == reservationId &&
-                    x.CustomerId == customerId,
-                cancellationToken);
+        CancellationToken cancellationToken) {
+        var ownedReservation =
+            await dbContext.Reservations
+                .AsNoTracking()
+                .SingleOrDefaultAsync(
+                    x =>
+                        x.ReservationId ==
+                        reservationId &&
+                        x.CustomerId ==
+                        customerId,
+                    cancellationToken);
 
-        if (ownedReservation is null)
-        {
+        if (ownedReservation is null) {
             throw new StoredProcedureBusinessException(
                 "RESOURCE_NOT_FOUND",
                 "RESOURCE_NOT_FOUND");
@@ -168,15 +429,14 @@ internal sealed class ReservationRepository(
 
         // Idempotent retry: nếu Reservation đã confirm và Visit đã tồn tại,
         // trả lại authoritative state thay vì tạo Visit thứ hai.
-        if (ownedReservation.Status == "CONFIRMED")
-        {
-            var existing = await TryGetConfirmedAsync(
-                customerId,
-                reservationId,
-                cancellationToken);
+        if (ownedReservation.Status == "CONFIRMED") {
+            var existing =
+                await TryGetConfirmedAsync(
+                    customerId,
+                    reservationId,
+                    cancellationToken);
 
-            if (existing is not null)
-            {
+            if (existing is not null) {
                 return existing;
             }
         }
@@ -184,95 +444,135 @@ internal sealed class ReservationRepository(
         Guid visitId;
         string reservationStatus;
 
-        var connection = dbContext.Database.GetDbConnection();
+        var connection =
+            dbContext.Database.GetDbConnection();
+
         var shouldCloseConnection =
             connection.State != ConnectionState.Open;
 
-        try
-        {
-            if (shouldCloseConnection)
-            {
-                await connection.OpenAsync(cancellationToken);
+        try {
+            if (shouldCloseConnection) {
+                await connection.OpenAsync(
+                    cancellationToken);
             }
 
-            await using var command = connection.CreateCommand();
+            await using var command =
+                connection.CreateCommand();
 
-            command.CommandText = "dbo.usp_ConfirmReservation";
-            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText =
+                "dbo.usp_ConfirmReservation";
 
-            var reservationParameter = command.CreateParameter();
-            reservationParameter.ParameterName = "@ReservationId";
-            reservationParameter.DbType = DbType.Guid;
-            reservationParameter.Value = reservationId;
-            command.Parameters.Add(reservationParameter);
+            command.CommandType =
+                CommandType.StoredProcedure;
 
-            var visitDateParameter = command.CreateParameter();
-            visitDateParameter.ParameterName = "@ReservationVisitDate";
-            visitDateParameter.DbType = DbType.Date;
+            var reservationParameter =
+                command.CreateParameter();
+
+            reservationParameter.ParameterName =
+                "@ReservationId";
+
+            reservationParameter.DbType =
+                DbType.Guid;
+
+            reservationParameter.Value =
+                reservationId;
+
+            command.Parameters.Add(
+                reservationParameter);
+
+            var visitDateParameter =
+                command.CreateParameter();
+
+            visitDateParameter.ParameterName =
+                "@ReservationVisitDate";
+
+            visitDateParameter.DbType =
+                DbType.Date;
+
             visitDateParameter.Value =
-                reservationVisitDate.ToDateTime(TimeOnly.MinValue);
-            command.Parameters.Add(visitDateParameter);
+                reservationVisitDate.ToDateTime(
+                    TimeOnly.MinValue);
+
+            command.Parameters.Add(
+                visitDateParameter);
 
             await using var reader =
-                await command.ExecuteReaderAsync(cancellationToken);
+                await command.ExecuteReaderAsync(
+                    cancellationToken);
 
-            if (!await reader.ReadAsync(cancellationToken))
-            {
+            if (!await reader.ReadAsync(
+                    cancellationToken)) {
                 throw new InvalidOperationException(
                     "usp_ConfirmReservation returned no result.");
             }
 
-            visitId = reader.GetGuid(
-                reader.GetOrdinal("VisitId"));
+            visitId =
+                reader.GetGuid(
+                    reader.GetOrdinal(
+                        "VisitId"));
 
-            reservationStatus = reader.GetString(
-                reader.GetOrdinal("Status"));
+            reservationStatus =
+                reader.GetString(
+                    reader.GetOrdinal(
+                        "Status"));
         }
         catch (SqlException ex)
-            when (ex.Number is 51107 or 51108 or 51109 or 51110)
-        {
+            when (ex.Number is
+                51107 or
+                51108 or
+                51109 or
+                51110) {
             // 51107/51110 có thể xảy ra khi request confirm được retry
             // sau/concurrently với request đã thành công.
-            if (ex.Number is 51107 or 51110)
-            {
-                var existing = await TryGetConfirmedAsync(
-                    customerId,
-                    reservationId,
-                    cancellationToken);
+            if (ex.Number is 51107 or 51110) {
+                var existing =
+                    await TryGetConfirmedAsync(
+                        customerId,
+                        reservationId,
+                        cancellationToken);
 
-                if (existing is not null)
-                {
+                if (existing is not null) {
                     return existing;
                 }
             }
 
-            var code = ex.Number switch
-            {
-                51107 => "RESERVATION_INVALID_STATUS",
-                51108 => "DEPOSIT_NOT_PAID",
-                51109 => "VISIT_DATE_OUT_OF_POLICY",
-                51110 => "RESERVATION_INVALID_STATUS",
-                _ => throw new InvalidOperationException()
+            var code = ex.Number switch {
+                51107 =>
+                    "RESERVATION_INVALID_STATUS",
+
+                51108 =>
+                    "DEPOSIT_NOT_PAID",
+
+                51109 =>
+                    "VISIT_DATE_OUT_OF_POLICY",
+
+                51110 =>
+                    "RESERVATION_INVALID_STATUS",
+
+                _ =>
+                    throw new InvalidOperationException()
             };
 
             throw new StoredProcedureBusinessException(
                 code,
                 code);
         }
-        finally
-        {
+        finally {
             if (shouldCloseConnection &&
-                connection.State == ConnectionState.Open)
-            {
+                connection.State ==
+                ConnectionState.Open) {
                 await connection.CloseAsync();
             }
         }
 
-        var visit = await dbContext.Visits
-            .AsNoTracking()
-            .SingleAsync(
-                x => x.VisitId == visitId,
-                cancellationToken);
+        var visit =
+            await dbContext.Visits
+                .AsNoTracking()
+                .SingleAsync(
+                    x =>
+                        x.VisitId ==
+                        visitId,
+                    cancellationToken);
 
         return new ConfirmedReservationRecord(
             reservationId,
@@ -284,33 +584,40 @@ internal sealed class ReservationRepository(
                 visit.Status));
     }
 
-    private async Task<ConfirmedReservationRecord?> TryGetConfirmedAsync(
-        Guid customerId,
-        Guid reservationId,
-        CancellationToken cancellationToken)
-    {
-        var reservation = await dbContext.Reservations
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                x => x.ReservationId == reservationId &&
-                    x.CustomerId == customerId &&
-                    x.Status == "CONFIRMED",
-                cancellationToken);
+    private async Task<ConfirmedReservationRecord?>
+        TryGetConfirmedAsync(
+            Guid customerId,
+            Guid reservationId,
+            CancellationToken cancellationToken) {
+        var reservation =
+            await dbContext.Reservations
+                .AsNoTracking()
+                .SingleOrDefaultAsync(
+                    x =>
+                        x.ReservationId ==
+                        reservationId &&
+                        x.CustomerId ==
+                        customerId &&
+                        x.Status ==
+                        "CONFIRMED",
+                    cancellationToken);
 
-        if (reservation is null)
-        {
+        if (reservation is null) {
             return null;
         }
 
-        var visit = await dbContext.Visits
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                x => x.EntityId == reservationId &&
-                    x.VisitType == "RESERVATION",
-                cancellationToken);
+        var visit =
+            await dbContext.Visits
+                .AsNoTracking()
+                .SingleOrDefaultAsync(
+                    x =>
+                        x.EntityId ==
+                        reservationId &&
+                        x.VisitType ==
+                        "RESERVATION",
+                    cancellationToken);
 
-        if (visit is null)
-        {
+        if (visit is null) {
             return null;
         }
 

@@ -41,3 +41,12 @@ public sealed record InvoiceVnPayPaymentResponse(
 public sealed record VnPayIpnResponse(
     [property: System.Text.Json.Serialization.JsonPropertyName("RspCode")] string ResponseCode,
     [property: System.Text.Json.Serialization.JsonPropertyName("Message")] string Message);
+
+public sealed record DiscountResponse(
+    Guid DiscountId,
+    Guid CustomerId,
+    string Name,
+    decimal Percentage,
+    string Status,
+    DateTime EffectiveFrom,
+    DateTime? EffectiveTo);

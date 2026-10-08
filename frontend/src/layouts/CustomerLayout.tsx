@@ -8,6 +8,7 @@ const NAV_ITEMS: { to: string; label: string; icon: FlowIconName; end?: boolean 
   { to: '/customer', label: 'Overview', icon: 'overview', end: true },
   { to: '/customer/visits', label: 'My Visits', icon: 'visits' },
   { to: '/customer/reservations', label: 'My Reservations', icon: 'reservations' },
+  { to: '/customer/contracts', label: 'My Contracts', icon: 'unit' },
   { to: '/customer/invoices', label: 'Deposit & Invoices', icon: 'invoices' },
 ]
 

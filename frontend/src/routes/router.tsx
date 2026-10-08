@@ -5,6 +5,10 @@ import { RootLayout } from '../layouts/RootLayout'
 import { CustomerLoginPage } from '../pages/CustomerLoginPage'
 import { CustomerRegisterPage } from '../pages/CustomerRegisterPage'
 import { CustomerPortalPage } from '../pages/CustomerPortalPage'
+import { CustomerContractListPage } from '../pages/CustomerContractListPage'
+import { CustomerContractDetailPage } from '../pages/CustomerContractDetailPage'
+import { ContractRenewalPage } from '../pages/ContractRenewalPage'
+import { AccessVisitCreatePage } from '../pages/AccessVisitCreatePage'
 import { EmployeeLoginPage } from '../pages/EmployeeLoginPage'
 import { ForbiddenPage } from '../pages/ForbiddenPage'
 import { HomePage } from '../pages/HomePage'
@@ -13,6 +17,23 @@ import { InvoiceListPage } from '../pages/InvoiceListPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PaymentResultPage } from '../pages/PaymentResultPage'
 import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
+import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
+import { FacilityManagerLayout } from '../layouts/FacilityManagerLayout'
+import { SystemAdministratorLayout } from '../layouts/SystemAdministratorLayout'
+import { FacilityStaffLayout } from '../layouts/FacilityStaffLayout'
+import { FacilityManagementPage } from '../features/facility-management/FacilityManagementPage'
+import { UnitTypePricingPage } from '../features/unit-type-pricing/UnitTypePricingPage'
+import { PolicyVersionManagementPage } from '../features/policy-version-management/PolicyVersionManagementPage'
+import { HandoverUnitSelectionPage } from '../features/handover-unit-selection/HandoverUnitSelectionPage'
+import { PhysicalUnitManagementPage } from '../features/physical-unit-management/PhysicalUnitManagementPage'
+import ManagerSupportTicketsPage from '../features/manager-support/pages/ManagerSupportTicketsPage'
+import UserAccountMonitoringPage from '../features/admin-user-monitoring/UserAccountMonitoringPage'
+import EmployeeAccountManagementPage from '../features/admin-employee-management/EmployeeAccountManagementPage'
+import RoleFacilityAssignmentPage from '../features/admin-role-facility-assignment/RoleFacilityAssignmentPage'
+import CustomerAccountStatusPage from '../features/admin-customer-status/CustomerAccountStatusPage'
+import AccessManagementPage from '../features/admin-access-management/AccessManagementPage'
+import LoginHistoryPage from '../features/admin-login-history/LoginHistoryPage'
+import ActivityLogManagementPage from '../features/admin-activity-logs/ActivityLogManagementPage'
 import { ReservationConfirmPage } from '../pages/ReservationConfirmPage'
 import { ReservationCreatePage } from '../pages/ReservationCreatePage'
 import { ReservationDetailPage } from '../pages/ReservationDetailPage'
@@ -20,6 +41,12 @@ import { ReservationListPage } from '../pages/ReservationListPage'
 import { StorageSearchPage } from '../pages/StorageSearchPage'
 import { VisitDetailPage } from '../pages/VisitDetailPage'
 import { VisitListPage } from '../pages/VisitListPage'
+import { StaffWorkItemsPage } from '../pages/StaffWorkItemsPage'
+import { StaffHandoverPage } from '../pages/StaffHandoverPage'
+import { StaffAccessVisitPage } from '../pages/StaffAccessVisitPage'
+import { StaffContractPage } from '../pages/StaffContractPage'
+import { StaffReturnsPage } from '../pages/StaffReturnsPage'
+import { StaffSupportPage } from '../pages/StaffSupportPage'
 
 export function AppRouter() {
   const location = useLocation()
@@ -31,69 +58,311 @@ export function AppRouter() {
   return (
     <>
     <Routes location={backgroundLocation ?? location}>
-      <Route element={<RootLayout />}>
-        <Route index element={<HomePage />} />
-        <Route path="auth/customer/login" element={<CustomerLoginPage />} />
-        <Route path="auth/customer/register" element={<CustomerRegisterPage />} />
-        <Route path="auth/employee/login" element={<EmployeeLoginPage />} />
-        <Route path="forbidden" element={<ForbiddenPage />} />
+  {/* ROOT LAYOUT + CUSTOMER */}
+  <Route element={<RootLayout />}>
+    <Route index element={<HomePage />} />
 
-        <Route element={<RequireAuth />}>
-          <Route element={<RequireRole allowedRoles={['CUSTOMER']} />}>
-            <Route path="customer" element={<CustomerPortalPage />} />
-            <Route path="customer/storage-search" element={<StorageSearchPage />} />
-            <Route path="customer/reservations/new" element={<ReservationCreatePage />} />
-            <Route path="customer/reservations" element={<ReservationListPage />} />
-            <Route
-              path="customer/reservations/:reservationId"
-              element={<ReservationDetailPage />}
-            />
-            <Route
-              path="customer/reservations/:reservationId/confirm"
-              element={<ReservationConfirmPage />}
-            />
-            <Route path="customer/invoices" element={<InvoiceListPage />} />
-            <Route path="customer/invoices/:invoiceId" element={<InvoiceDetailPage />} />
-            <Route path="customer/payments/result" element={<PaymentResultPage />} />
-            <Route path="customer/visits" element={<VisitListPage />} />
-            <Route path="customer/visits/:visitId" element={<VisitDetailPage />} />
-          </Route>
+    <Route
+      path="auth/customer/login"
+      element={<CustomerLoginPage />}
+    />
 
-          <Route element={<RequireRole allowedRoles={['FACILITY_STAFF']} />}>
-            <Route
-              path="staff"
-              element={<PortalPlaceholderPage title="Facility Staff Portal" />}
-            />
-          </Route>
+    <Route
+      path="auth/customer/register"
+      element={<CustomerRegisterPage />}
+    />
 
-          <Route element={<RequireRole allowedRoles={['FACILITY_MANAGER']} />}>
-            <Route
-              path="manager"
-              element={<PortalPlaceholderPage title="Facility Manager Portal" />}
-            />
-          </Route>
+    <Route
+      path="auth/employee/login"
+      element={<EmployeeLoginPage />}
+    />
 
-          <Route
-            element={<RequireRole allowedRoles={['BUSINESS_OPERATIONS_MANAGER']} />}
-          >
-            <Route
-              path="business"
-              element={<PortalPlaceholderPage title="Business Operations Portal" />}
-            />
-          </Route>
+    <Route
+      path="forbidden"
+      element={<ForbiddenPage />}
+    />
 
-          <Route element={<RequireRole allowedRoles={['SYSTEM_ADMINISTRATOR']} />}>
-            <Route
-              path="admin"
-              element={<PortalPlaceholderPage title="System Administrator Portal" />}
-            />
-          </Route>
-        </Route>
+    <Route element={<RequireAuth />}>
+      <Route
+        element={
+          <RequireRole allowedRoles={['CUSTOMER']} />
+        }
+      >
+        <Route
+          path="customer"
+          element={<CustomerPortalPage />}
+        />
 
-        <Route path="404" element={<NotFoundPage />} />
-        <Route path="*" element={<Navigate to="/404" replace />} />
+        <Route
+          path="customer/storage-search"
+          element={<StorageSearchPage />}
+        />
+
+        <Route
+          path="customer/reservations/new"
+          element={<ReservationCreatePage />}
+        />
+
+        <Route
+          path="customer/reservations"
+          element={<ReservationListPage />}
+        />
+
+        <Route
+          path="customer/reservations/:reservationId"
+          element={<ReservationDetailPage />}
+        />
+
+        <Route
+          path="customer/reservations/:reservationId/confirm"
+          element={<ReservationConfirmPage />}
+        />
+
+        <Route
+          path="customer/invoices"
+          element={<InvoiceListPage />}
+        />
+
+        <Route
+          path="customer/invoices/:invoiceId"
+          element={<InvoiceDetailPage />}
+        />
+
+        <Route
+          path="customer/payments/result"
+          element={<PaymentResultPage />}
+        />
+
+        <Route
+          path="customer/visits"
+          element={<VisitListPage />}
+        />
+
+        <Route
+          path="customer/contracts"
+          element={<CustomerContractListPage />}
+        />
+
+        <Route
+          path="customer/contracts/:contractId"
+          element={<CustomerContractDetailPage />}
+        />
+
+        <Route
+          path="customer/contracts/:contractId/renew"
+          element={<ContractRenewalPage key={location.pathname} />}
+        />
+
+        <Route
+          path="customer/contracts/:contractId/access-visits/new"
+          element={<AccessVisitCreatePage />}
+        />
+
+        <Route
+          path="customer/visits/:visitId"
+          element={<VisitDetailPage />}
+        />
       </Route>
-    </Routes>
+    </Route>
+
+    <Route path="404" element={<NotFoundPage />} />
+  </Route>
+
+  {/* FACILITY STAFF */}
+  <Route element={<RequireAuth />}>
+    <Route
+      element={
+        <RequireRole
+          allowedRoles={['FACILITY_STAFF']}
+        />
+      }
+    >
+      <Route path="staff" element={<FacilityStaffLayout />}>
+        <Route index element={<Navigate to="work-list" replace />} />
+        <Route path="work-list" element={<StaffWorkItemsPage mode="daily" />} />
+        <Route path="reservation-check-in" element={<StaffWorkItemsPage mode="reservation-check-in" />} />
+        <Route path="handover-processing" element={<StaffWorkItemsPage mode="handover" />} />
+        <Route path="access-visits" element={<StaffWorkItemsPage mode="access" />} />
+        <Route path="returns" element={<StaffReturnsPage />} />
+        <Route path="support" element={<StaffSupportPage />} />
+        <Route path="reservations/:reservationId/visits/:visitId" element={<StaffHandoverPage />} />
+        <Route path="contracts/:contractId/access-visits/:visitId" element={<StaffAccessVisitPage />} />
+        <Route path="contracts/:contractId" element={<StaffContractPage />} />
+      </Route>
+    </Route>
+  </Route>
+
+  {/* FACILITY MANAGER */}
+  <Route element={<RequireAuth />}>
+    <Route
+      element={
+        <RequireRole
+          allowedRoles={['FACILITY_MANAGER']}
+        />
+      }
+    >
+      <Route
+        path="manager"
+        element={<FacilityManagerLayout />}
+      >
+        <Route
+          index
+          element={
+            <Navigate
+              to="handover-unit-selection"
+              replace
+            />
+          }
+        />
+
+        <Route
+          path="handover-unit-selection"
+          element={<HandoverUnitSelectionPage />}
+        />
+
+        <Route
+          path="physical-units"
+          element={<PhysicalUnitManagementPage />}
+        />
+
+        <Route
+          path="operations"
+          element={
+            <PortalPlaceholderPage
+              title="Monitor Facility Operations"
+            />
+          }
+        />
+
+        <Route
+          path="returns-inspections"
+          element={
+            <PortalPlaceholderPage
+              title="Returns & Inspections"
+            />
+          }
+        />
+
+        <Route
+          path="support-assignment"
+          element={<ManagerSupportTicketsPage />}
+        />
+
+        <Route
+          path="reports"
+          element={
+            <PortalPlaceholderPage
+              title="Facility Reports"
+            />
+          }
+        />
+      </Route>
+    </Route>
+  </Route>
+
+  {/* BUSINESS OPERATIONS MANAGER */}
+  <Route element={<RequireAuth />}>
+    <Route
+      element={
+        <RequireRole
+          allowedRoles={[
+            'BUSINESS_OPERATIONS_MANAGER',
+          ]}
+        />
+      }
+    >
+      <Route
+        path="business"
+        element={<BusinessOperationsLayout />}
+      >
+        <Route
+          index
+          element={
+            <Navigate to="facilities" replace />
+          }
+        />
+
+        <Route
+          path="facilities"
+          element={<FacilityManagementPage />}
+        />
+
+        <Route
+          path="unit-types"
+          element={<UnitTypePricingPage />}
+        />
+
+        <Route
+          path="policies"
+          element={<PolicyVersionManagementPage />}
+        />
+      </Route>
+    </Route>
+  </Route>
+
+  {/* SYSTEM ADMINISTRATOR */}
+  <Route element={<RequireAuth />}>
+    <Route
+      element={
+        <RequireRole
+          allowedRoles={[
+            'SYSTEM_ADMINISTRATOR',
+          ]}
+        />
+      }
+    >
+      <Route
+        path="admin"
+        element={<SystemAdministratorLayout />}
+      >
+        <Route
+          index
+          element={<Navigate to="users" replace />}
+        />
+
+        <Route
+          path="users"
+          element={<UserAccountMonitoringPage />}
+        />
+
+        <Route
+          path="customer-status"
+          element={<CustomerAccountStatusPage />}
+        />
+
+        <Route
+          path="employees"
+          element={<EmployeeAccountManagementPage />}
+        />
+
+        <Route
+          path="assignment"
+          element={<RoleFacilityAssignmentPage />}
+        />
+
+        <Route
+          path="access-management"
+          element={<AccessManagementPage />}
+        />
+
+        <Route
+          path="login-history"
+          element={<LoginHistoryPage />}
+        />
+
+        <Route
+          path="activity-logs"
+          element={<ActivityLogManagementPage />}
+        />
+      </Route>
+    </Route>
+  </Route>
+
+  <Route
+    path="*"
+    element={<Navigate to="/404" replace />}
+  />
+</Routes>
     {backgroundLocation && (
       <Routes>
         <Route element={<RequireAuth />}>

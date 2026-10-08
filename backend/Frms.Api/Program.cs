@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using Frms.Api.Authentication;
+using Frms.Api.Authorization;
 using Frms.Api.BackgroundJobs;
 using Frms.Api.Configuration;
 using Frms.Api.DTOs.Responses;
@@ -13,6 +14,8 @@ using Frms.Business.Services.Interfaces;
 using Frms.DataAccess.DependencyInjection;
 using Frms.Infrastructure.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -103,6 +106,10 @@ builder.Services.AddSwaggerGen(options => {
                 document)] = []
         });
 });
+
+builder.Services.AddSingleton<
+    IAuthorizationMiddlewareResultHandler,
+    ApiAuthorizationMiddlewareResultHandler>();
 
 var app = builder.Build();
 app.UseExceptionHandler();

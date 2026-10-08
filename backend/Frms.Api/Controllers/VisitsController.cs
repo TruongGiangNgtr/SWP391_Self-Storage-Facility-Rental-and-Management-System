@@ -12,8 +12,12 @@ namespace Frms.Api.Controllers;
 public sealed class VisitsController(
     IVisitService visitService) : ScaffoldControllerBase
 {
-    /// <summary>VIS-003: List own Visits.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
+    /// <summary>VIS-003: List authorized Visits.</summary>
+    [Authorize(
+        Roles =
+            RoleNames.Customer + "," +
+            RoleNames.FacilityManager + "," +
+            RoleNames.BusinessOperationsManager)]
     [HttpGet]
     [ProducesResponseType(
         typeof(PaginatedResponse<VisitDetailResponse>),
@@ -21,9 +25,8 @@ public sealed class VisitsController(
     public async Task<IActionResult> ListVisits(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default)
-    {
-        var result = await visitService.ListOwnAsync(
+        CancellationToken cancellationToken = default) {
+        var result = await visitService.ListAccessibleAsync(
             page,
             pageSize,
             cancellationToken);
@@ -37,11 +40,9 @@ public sealed class VisitsController(
             : (int)Math.Ceiling(
                 result.TotalItems / (double)pageSize);
 
-        return Ok(new
-        {
+        return Ok(new {
             data,
-            pagination = new
-            {
+            pagination = new {
                 page,
                 pageSize,
                 totalItems = result.TotalItems,
@@ -50,17 +51,21 @@ public sealed class VisitsController(
         });
     }
 
-    /// <summary>VIS-004: Get own Visit detail.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
+    /// <summary>VIS-004: Authorized Visit detail.</summary>
+    [Authorize(
+        Roles =
+            RoleNames.Customer + "," +
+            RoleNames.FacilityStaff + "," +
+            RoleNames.FacilityManager + "," +
+            RoleNames.BusinessOperationsManager)]
     [HttpGet("{visitId:guid}")]
     [ProducesResponseType(
         typeof(ApiResponse<VisitDetailResponse>),
         StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<VisitDetailResponse>>> GetVisit(
         Guid visitId,
-        CancellationToken cancellationToken)
-    {
-        var visit = await visitService.GetOwnAsync(
+        CancellationToken cancellationToken) {
+        var visit = await visitService.GetByIdAsync(
             visitId,
             cancellationToken);
 
@@ -113,19 +118,47 @@ public sealed class VisitsController(
                 "Visit cancelled."));
     }
 
-    /// <summary>OPS-002: Check in a Visit scaffold.</summary>
+    /// <summary>OPS-002: Check in a Visit.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff)]
     [HttpPost("{visitId:guid}/check-in")]
-    public ActionResult<ApiErrorResponse> CheckInVisit(
+    [ProducesResponseType(
+        typeof(ApiResponse<VisitDetailResponse>),
+        StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<VisitDetailResponse>>> CheckInVisit(
         Guid visitId,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("OPS-002");
+        CancellationToken cancellationToken)
+    {
+        var visit =
+            await visitService.CheckInAsync(
+                visitId,
+                cancellationToken);
 
-    /// <summary>OPS-003: Check out an eligible non-handover Visit scaffold.</summary>
+        return Ok(
+            new ApiResponse<VisitDetailResponse>(
+                ToResponse(visit),
+                "Visit checked in."));
+    }
+
+    /// <summary>OPS-003: Check out an ACCESS Visit.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff)]
     [HttpPost("{visitId:guid}/check-out")]
-    public ActionResult<ApiErrorResponse> CheckOutVisit(
+    [ProducesResponseType(
+        typeof(ApiResponse<VisitDetailResponse>),
+        StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<VisitDetailResponse>>> CheckOutVisit(
         Guid visitId,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("OPS-003");
+        CancellationToken cancellationToken)
+    {
+        var visit =
+            await visitService.CheckOutAsync(
+                visitId,
+                cancellationToken);
+
+        return Ok(
+            new ApiResponse<VisitDetailResponse>(
+                ToResponse(visit),
+                "Visit checked out."));
+    }
 
     /// <summary>OPS-005: Confirm actual return and create Inspection scaffold.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff)]

@@ -1,12 +1,53 @@
 import type {
   CancelVisitRequest,
+  CreateAccessVisitRequest,
   RescheduleVisitRequest,
   VisitDetail,
 } from '../features/visits/visit.types'
 import type { ApiCollectionResponse, ApiResponse } from './api.types'
+import type {
+  CompleteHandoverRequest,
+  CompleteHandoverResult,
+  StaffWorkItem,
+  StaffWorkItemsRequest,
+} from '../features/handover/handover.types'
+import type { ConfirmActualReturnResult } from '../features/return-management/return.types'
 import { httpClient } from './httpClient'
 
 export const visitApi = {
+  createAccess(contractId: string, request: CreateAccessVisitRequest): Promise<ApiResponse<VisitDetail>> {
+    return httpClient.post(`/contracts/${encodeURIComponent(contractId)}/access-visits`, {
+      visitDate: request.visitDate,
+    })
+  },
+
+  listStaffWorkItems({ date, page = 1, pageSize = 20 }: StaffWorkItemsRequest = {}): Promise<ApiCollectionResponse<StaffWorkItem>> {
+    const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) })
+    if (date) query.set('date', date)
+    return httpClient.get(`/staff/work-items?${query}`)
+  },
+
+  checkIn(visitId: string): Promise<unknown> {
+    return httpClient.post(`/visits/${encodeURIComponent(visitId)}/check-in`, {})
+  },
+
+  checkOut(visitId: string): Promise<unknown> {
+    // OPS-003 has no client-owned actor/status fields. Read VIS-004 after success.
+    return httpClient.post(`/visits/${encodeURIComponent(visitId)}/check-out`)
+  },
+
+  confirmReturn(visitId: string, actualReturnDate: string): Promise<ApiResponse<ConfirmActualReturnResult>> {
+    return httpClient.post(`/visits/${encodeURIComponent(visitId)}/confirm-return`, { actualReturnDate })
+  },
+
+  completeHandover(reservationId: string, request: CompleteHandoverRequest): Promise<ApiResponse<CompleteHandoverResult>> {
+    return httpClient.post(`/reservations/${encodeURIComponent(reservationId)}/complete-handover`, {
+      visitId: request.visitId,
+      storageUnitId: request.storageUnitId,
+      discountId: request.discountId,
+    })
+  },
+
   list(page = 1, pageSize = 20): Promise<ApiCollectionResponse<VisitDetail>> {
     return httpClient.get(`/visits?page=${page}&pageSize=${pageSize}`)
   },
