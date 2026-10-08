@@ -28,6 +28,7 @@ import RoleFacilityAssignmentPage from '../features/admin-role-facility-assignme
 import CustomerAccountStatusPage from '../features/admin-customer-status/CustomerAccountStatusPage'
 import AccessManagementPage from '../features/admin-access-management/AccessManagementPage'
 import LoginHistoryPage from '../features/admin-login-history/LoginHistoryPage'
+import ActivityLogManagementPage from '../features/admin-activity-logs/ActivityLogManagementPage'
 import { ReservationConfirmPage } from '../pages/ReservationConfirmPage'
 import { ReservationCreatePage } from '../pages/ReservationCreatePage'
 import { ReservationDetailPage } from '../pages/ReservationDetailPage'
@@ -316,11 +317,7 @@ export function AppRouter() {
 
         <Route
           path="activity-logs"
-          element={
-            <PortalPlaceholderPage
-              title="Activity Logs"
-            />
-          }
+          element={<ActivityLogManagementPage />}
         />
       </Route>
     </Route>
