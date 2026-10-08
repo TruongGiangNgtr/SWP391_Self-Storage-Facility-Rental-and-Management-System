@@ -33,20 +33,42 @@ const DEFAULT_FILTERS: AdminEmployeeFilters = {
 export function useAdminEmployees() {
   const [accounts, setAccounts] = useState<AdminUserAccount[]>([])
   const [pagination, setPagination] = useState<Pagination>(DEFAULT_PAGINATION)
+  const [requestedPage, setRequestedPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<AdminApiErrorShape | null>(null)
   const [filters, setFilters] = useState<AdminEmployeeFilters>(DEFAULT_FILTERS)
 
   const load = useCallback(async (page = 1) => {
+    const targetPage = Number.isFinite(page)
+      ? Math.max(1, Math.trunc(page))
+      : 1
+
+    // Keep the attempted page independently from the last successful server
+    // pagination. If page N fails, Refresh/Try again must retry page N instead
+    // of silently falling back to the previous successful page.
+    setRequestedPage(targetPage)
     setLoading(true)
     setError(null)
 
     try {
-      const response = await listAdminUsers({ page, pageSize: PAGE_SIZE })
+      const response = await listAdminUsers({
+        page: targetPage,
+        pageSize: PAGE_SIZE,
+      })
+      const nextPagination = response.pagination ?? {
+        ...DEFAULT_PAGINATION,
+        page: targetPage,
+      }
+
       setAccounts((response.data ?? []).filter((account) => Boolean(account.profile?.employeeId)))
-      setPagination(response.pagination ?? { ...DEFAULT_PAGINATION, page })
+      setPagination(nextPagination)
+      setRequestedPage(nextPagination.page)
     } catch (requestError) {
       setAccounts([])
+      setPagination((current) => ({
+        ...current,
+        page: targetPage,
+      }))
       setError(normalizeAdminApiError(requestError))
     } finally {
       setLoading(false)
@@ -85,8 +107,8 @@ export function useAdminEmployees() {
   }, [accounts, filters])
 
   const refresh = useCallback(
-    () => load(pagination.page || 1),
-    [load, pagination.page],
+    () => load(requestedPage),
+    [load, requestedPage],
   )
 
   return {

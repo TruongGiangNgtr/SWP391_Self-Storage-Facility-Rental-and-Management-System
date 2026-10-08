@@ -15,6 +15,11 @@ export interface UpdateAdminEmployeeRequest {
   fullName: string
 }
 
+export interface AssignAdminEmployeeRequest {
+  role: EmployeeRole
+  facilityId: string | null
+}
+
 export interface AdminEmployeeFilters {
   status: 'ALL' | UserAccountStatus
   role: 'ALL' | EmployeeRole

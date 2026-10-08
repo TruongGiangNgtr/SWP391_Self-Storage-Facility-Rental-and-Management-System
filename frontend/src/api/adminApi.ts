@@ -4,6 +4,7 @@ import type {
   AdminUserListQuery,
 } from '../models/adminUser'
 import type {
+  AssignAdminEmployeeRequest,
   CreateAdminEmployeeRequest,
   UpdateAdminEmployeeRequest,
 } from '../models/adminEmployee'
@@ -85,6 +86,17 @@ export function resendAdminEmployeeInitialCredential(
   return httpClient.post(
     `/admin/employees/${encodeURIComponent(employeeId)}/resend-initial-credential`,
     {},
+  )
+}
+
+/** AWP-04 / ADM-009 */
+export function assignAdminEmployee(
+  employeeId: string,
+  request: AssignAdminEmployeeRequest,
+): Promise<ApiResponse<AdminUserAccount>> {
+  return httpClient.put(
+    `/admin/employees/${encodeURIComponent(employeeId)}/assignment`,
+    request,
   )
 }
 
