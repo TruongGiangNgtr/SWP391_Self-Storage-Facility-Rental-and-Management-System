@@ -20,8 +20,11 @@ import type {
 } from '../../models/adminUser'
 import { USER_ROLE_LABELS } from '../../models/adminUser'
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
+type FacilityOption = {
+  facilityId: string
+  name: string
+  status?: string
+}
 interface Props {
   account: AdminUserAccount
   busy: boolean
@@ -50,13 +53,65 @@ export function EmployeeAssignmentDialog({
   const [role, setRole] = useState<EmployeeRole>(() => employeeRole(account))
   const [facilityId, setFacilityId] = useState(account.profile?.facilityId ?? '')
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({})
+   
+  type FacilityOption = {
+  facilityId: string
+  name: string
+  status?: string
+}
 
+const [facilities, setFacilities] = useState<FacilityOption[]>([])
+const [facilitiesLoading, setFacilitiesLoading] = useState(false)
+const [facilitiesError, setFacilitiesError] = useState<string | null>(null)
   const facilityRequired = useMemo(
     () => isFacilityScopedEmployeeRole(role),
     [role],
   )
+  useEffect(() => {
+  if (!facilityRequired) return
+
+  const controller = new AbortController()
+
+  async function loadFacilities() {
+    setFacilitiesLoading(true)
+    setFacilitiesError(null)
+
+    try {
+      const response = await fetch(
+        '/api/v1/facilities?page=1&pageSize=100',
+        {
+          signal: controller.signal,
+          credentials: 'include',
+        },
+      )
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const result = await response.json()
+
+      if (!controller.signal.aborted) {
+        setFacilities(result.data?.items ?? [])
+      }
+    } catch {
+      if (!controller.signal.aborted) {
+        setFacilitiesError('Unable to load facilities.')
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setFacilitiesLoading(false)
+      }
+    }
+  }
+
+  void loadFacilities()
+
+  return () => controller.abort()
+}, [facilityRequired])
 
   useEffect(() => {
+    
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !busy) {
         onClose()
@@ -76,12 +131,10 @@ export function EmployeeAssignmentDialog({
     const nextErrors: Record<string, string> = {}
 
     if (facilityRequired) {
-      if (!facilityId.trim()) {
-        nextErrors.facilityId = 'Facility ID is required for Facility Staff and Facility Manager.'
-      } else if (!UUID_PATTERN.test(facilityId.trim())) {
-        nextErrors.facilityId = 'Facility ID must be a valid UUID.'
-      }
-    }
+  if (!facilityId || !facilities.some(f => f.facilityId === facilityId)) {
+    nextErrors.facilityId = 'Please select a valid facility.'
+  }
+}
 
     setClientErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) {
@@ -170,34 +223,58 @@ export function EmployeeAssignmentDialog({
           </label>
 
           {facilityRequired ? (
-            <label>
-              <span>Facility ID</span>
-              <input
-                value={facilityId}
-                onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                  setFacilityId(event.target.value)
-                  setClientErrors((current) => {
-                    if (!current.facilityId) return current
-                    const next = { ...current }
-                    delete next.facilityId
-                    return next
-                  })
-                }}
-                disabled={busy}
-                aria-invalid={Boolean(fieldError('facilityId'))}
-                placeholder="00000000-0000-0000-0000-000000000000"
-              />
-              {fieldError('facilityId') ? (
-                <small className="awp03-field-error">{fieldError('facilityId')}</small>
-              ) : null}
-              <small>ADM-009 validates that the Facility exists before the assignment is persisted.</small>
-            </label>
-          ) : (
-            <div className="awp03-field-readonly">
-              <span>Facility</span>
-              <strong>None — global Employee role</strong>
-            </div>
-          )}
+  <label>
+    <span>Facility</span>
+
+    <select
+      value={facilityId}
+      onChange={(event: ChangeEvent<HTMLSelectElement>) => {
+        setFacilityId(event.target.value)
+
+        setClientErrors((current) => {
+          if (!current.facilityId) return current
+
+          const next = { ...current }
+          delete next.facilityId
+          return next
+        })
+      }}
+      disabled={busy || facilitiesLoading}
+      aria-invalid={Boolean(fieldError('facilityId'))}
+    >
+      <option value="">
+        {facilitiesLoading ? 'Loading facilities...' : 'Select facility'}
+      </option>
+
+      {facilities.map((facility) => (
+        <option
+          key={facility.facilityId}
+          value={facility.facilityId}
+        >
+          {facility.name} — {facility.facilityId}
+        </option>
+      ))}
+    </select>
+
+    {fieldError('facilityId') ? (
+      <small className="awp03-field-error">
+        {fieldError('facilityId')}
+      </small>
+    ) : null}
+
+    {facilitiesError ? (
+      <small className="awp03-field-error">
+        {facilitiesError}
+      </small>
+    ) : null}
+  </label>
+) : (
+  <div className="awp03-field-readonly">
+    <span>Facility</span>
+    <strong>None — global Employee role</strong>
+  </div>
+)}
+
 
           <div className="awp04-current-assignment" aria-label="Current assignment">
             <span>Current</span>
