@@ -40,9 +40,6 @@ public sealed record CompleteInspectionRequest
 {
     [Required]
     public required string ConditionNote { get; init; }
-
-    [Required]
-    public required string StorageUnitStatus { get; init; }
 }
 
 /// <summary>Payload for a Facility Manager damage decision (INS-009).</summary>
