@@ -1,6 +1,5 @@
-/* Facility Staff portal deliberately reuses the System Administrator portal's
-   shell language: white profile/navigation card, blue active row and compact
-   operational surfaces. Staff-specific workflow classes remain isolated here. */
+/* Facility Staff portal follows the shared employee shell used by Manager/Admin.
+   Staff workflow styles are isolated below the shell styles. */
 
 .staff-shell {
   min-height: 100vh;
@@ -81,7 +80,6 @@
 
 .staff-sidebar {
   align-self: start;
-  min-height: calc(100vh - 90px);
   display: flex;
   flex-direction: column;
   padding: 18px;
@@ -106,7 +104,7 @@
   display: grid;
   place-items: center;
   margin-bottom: 10px;
-  border-radius: 50%;
+  border-radius: 12px;
   color: #fff;
   background: #4368eb;
   box-shadow: 0 6px 12px rgb(67 104 235 / 20%);
@@ -162,8 +160,8 @@
 .staff-nav-link-active svg { color: #365ee8; }
 
 .staff-sidebar-actions {
-  margin-top: auto;
-  padding-top: 14px;
+  margin-top: 10px;
+  padding-top: 10px;
   border-top: 1px solid #eef1f5;
 }
 
@@ -192,21 +190,6 @@
 }
 
 .staff-main .page-container { width: 100%; max-width: none; margin: 0; padding: 0; }
-
-.staff-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 20px 34px;
-  color: #93a0b7;
-  background: #091123;
-  font-size: 10px;
-}
-
-.staff-footer > div { display: flex; align-items: center; gap: 16px; }
-.staff-footer a { color: #b7c5f8; text-decoration: none; }
-.staff-footer a:hover { color: #fff; }
 
 /* Shared FWP operational page language. */
 .fwp-page { width: 100%; max-width: 1480px; margin: 0 auto; }
@@ -305,14 +288,17 @@
 .fwp-inline-date:focus { border-color: #6d8cff; box-shadow: 0 0 0 3px rgb(67 104 235 / 10%); }
 
 .fwp-input-with-icon {
-  min-width: min(320px, 100%);
-  flex: 1 1 280px;
+  min-width: 0;
   position: relative;
-  justify-content: center;
 }
 
 .fwp-input-with-icon svg { position: absolute; left: 11px; bottom: 11px; color: #7c889d; pointer-events: none; }
 .fwp-input-with-icon input { width: 100%; padding-left: 34px; }
+/* Inputs inside vertical labels must not have a 280px flex-basis (height). */
+.fwp-toolbar-search { flex: 1 1 300px; min-width: min(240px, 100%); }
+.fwp-toolbar-search .fwp-input-with-icon { width: 100%; }
+.fwp-toolbar-note { flex: 1 0 100%; margin: 2px 0 0; color: #77849a; font-size: 11px; line-height: 1.5; }
+.fwp-toolbar .fwp-input-with-icon:not(label) { flex: none; }
 
 .fwp-button,
 .fwp-icon-button,
@@ -561,7 +547,7 @@
 .fwp-settlement-card .fwp-detail-grid { margin-top: 14px; }
 
 /* FWP-08 support processing. */
-.fwp-support-toolbar .fwp-input-with-icon { min-width: 240px; }
+.fwp-support-toolbar .fwp-input-with-icon { min-width: 240px; flex: 1 1 300px; }
 .fwp-support-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(330px, .9fr); gap: 14px; align-items: start; }
 .fwp-support-table-card { min-width: 0; }
 .fwp-support-detail-card { position: sticky; top: 12px; }
@@ -588,9 +574,8 @@
 
 @media (max-width: 900px) {
   .staff-body { grid-template-columns: 1fr; }
-  .staff-sidebar { min-height: auto; }
   .staff-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .staff-sidebar-actions { margin-top: 12px; }
+  .staff-sidebar-actions { margin-top: 10px; }
   .staff-main { padding: 16px 8px 36px; }
   .fwp-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .fwp-record-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -599,8 +584,6 @@
 @media (max-width: 680px) {
   .staff-header { align-items: flex-start; flex-direction: column; padding-block: 12px; }
   .staff-nav { grid-template-columns: 1fr; }
-  .staff-footer { align-items: flex-start; flex-direction: column; padding-inline: 22px; }
-  .staff-footer > div { align-items: flex-start; flex-direction: column; }
   .fwp-page-header { align-items: flex-start; flex-direction: column; }
   .fwp-summary,
   .fwp-tabs,
@@ -609,7 +592,30 @@
   .fwp-record-summary { grid-template-columns: 1fr; }
   .fwp-inline-form { grid-template-columns: 1fr; }
   .fwp-toolbar > label { width: 100%; }
-  .fwp-input-with-icon { min-width: 0; flex-basis: 100%; }
+  .fwp-input-with-icon { min-width: 0; }
+  .fwp-toolbar-search { min-width: 0; flex-basis: 100%; }
+  .fwp-support-toolbar .fwp-input-with-icon { min-width: 0; flex-basis: 100%; }
   .fwp-pagination { align-items: flex-start; flex-direction: column; }
   .fwp-record-list > div { grid-template-columns: 1fr; }
+}
+
+/* Staff sidebar uses the same compact small-screen composition as Manager. */
+@media (max-width: 760px) {
+  .staff-body { display: block; padding: 0; }
+  .staff-sidebar {
+    margin: 0;
+    border-width: 0 0 1px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .staff-profile {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 10px;
+    text-align: left;
+  }
+  .staff-profile-avatar { grid-row: 1 / 4; width: 46px; height: 46px; margin: 0; }
+  .staff-role-badge { justify-self: start; }
+  .staff-header { padding: 14px 16px; }
+  .staff-main { padding: 18px 14px 36px; }
 }

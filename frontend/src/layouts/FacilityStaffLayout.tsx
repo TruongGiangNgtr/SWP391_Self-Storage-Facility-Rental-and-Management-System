@@ -7,9 +7,10 @@ import {
   LogOut,
   RotateCcw,
 } from 'lucide-react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/auth.context'
 import { BrandLogo } from '../components/BrandLogo'
+import { EmployeePortalFooter } from '../components/EmployeePortalFooter'
 import '../styles/staff.css'
 
 function getInitials(fullName?: string | null) {
@@ -91,13 +92,33 @@ export function FacilityStaffLayout() {
         </main>
       </div>
 
-      <footer className="staff-footer">
-        <div>
-          <BrandLogo inverse />
-          <span>Facility-scoped operations · Actual actor tracking · Authoritative server state</span>
-        </div>
-        <Link to="/staff/work-list">Facility Staff Portal</Link>
-      </footer>
+      <EmployeePortalFooter
+        variant="staff"
+        portalName="Facility Staff"
+        homePath="/staff/work-list"
+        displayName={displayName}
+        description="Daily facility operations, customer visit handling, returns, inspections and assigned support for FStoRent."
+        trustMessage="Secure · Facility-scoped · Role-based access"
+        sections={[
+          {
+            title: 'OPERATIONS',
+            links: [
+              { to: '/staff/work-list', label: 'Daily Work List' },
+              { to: '/staff/reservation-check-in', label: 'Reservation Check-in' },
+              { to: '/staff/handover-processing', label: 'Handover Processing' },
+            ],
+          },
+          {
+            title: 'WORKFLOWS',
+            links: [
+              { to: '/staff/access-visits', label: 'Access Visit Processing' },
+              { to: '/staff/returns', label: 'Handle Returns' },
+              { to: '/staff/support', label: 'Support Processing' },
+            ],
+          },
+        ]}
+        onSignOut={logout}
+      />
     </div>
   )
 }
