@@ -17,6 +17,7 @@ public static class BusinessServiceCollectionExtensions
         services.AddScoped<IReservationService, ReservationService>();
         services.AddScoped<IVisitService, VisitService>();
         services.AddScoped<IInspectionService, InspectionService>();
+        services.AddScoped<ISupportTicketService, SupportTicketService>();
         services.AddScoped<ICapacityService, CapacityService>();
         services.AddScoped<IReservationExpirationService,ReservationExpirationService>();
         services.AddScoped<IHandoverService, HandoverService>();
@@ -29,6 +30,10 @@ public static class BusinessServiceCollectionExtensions
         services.AddScoped<IAdminEmployeeService, AdminEmployeeService>();
         services.AddScoped<IFacilityCatalogService,FacilityCatalogService>();
         services.AddScoped<IDiscountService, DiscountService>();
+
+        services.AddScoped<IStaffWorkItemService,StaffWorkItemService>();
+        services.AddScoped<IReturnProcessingService, ReturnProcessingService>();
+        services.AddScoped<IInspectionWorkflowService, InspectionWorkflowService>();
         return services;
     }
 }

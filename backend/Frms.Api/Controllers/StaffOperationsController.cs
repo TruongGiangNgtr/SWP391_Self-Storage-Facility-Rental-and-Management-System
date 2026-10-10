@@ -11,16 +11,54 @@ namespace Frms.Api.Controllers;
 [Authorize(Roles = RoleNames.FacilityStaff)]
 [Route("api/v1")]
 public sealed class StaffOperationsController(
-    IHandoverService handoverService) : ScaffoldControllerBase
-{
-    /// <summary>OPS-001: Derived daily Staff work list scaffold.</summary>
+    IHandoverService handoverService,
+    IStaffWorkItemService staffWorkItemService)
+    : ScaffoldControllerBase {
+    /// <summary>OPS-001: Derived daily Staff work list.</summary>
     [HttpGet("staff/work-items")]
-    [ProducesResponseType(typeof(PaginatedResponse<StaffWorkItemResponse>), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> GetWorkItems(
-        [FromQuery] DateOnly? date,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default) => ScaffoldNotImplemented("OPS-001");
+    [ProducesResponseType(
+        typeof(PaginatedResponse<StaffWorkItemResponse>),
+        StatusCodes.Status200OK)]
+    public async Task<ActionResult<PaginatedResponse<StaffWorkItemResponse>>>
+        GetWorkItems(
+            [FromQuery] DateOnly? date,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken cancellationToken = default) {
+        var result = await staffWorkItemService.ListAsync(
+            date,
+            page,
+            pageSize,
+            cancellationToken);
+
+        var data = result.Items.Select(x =>
+            new StaffWorkItemResponse(
+                x.WorkType,
+                x.ReferenceId,
+                x.EntityId,
+                x.ScheduledDate,
+                x.Status,
+                x.CustomerId.HasValue
+                    ? new StaffWorkItemCustomerResponse(
+                        x.CustomerId.Value,
+                        x.CustomerName!,
+                        x.CustomerPhone!)
+                    : null
+            )).ToArray();
+
+        var totalPages = result.TotalItems == 0
+            ? 0
+            : (int)Math.Ceiling(
+                result.TotalItems / (double)result.PageSize);
+
+        return Ok(new PaginatedResponse<StaffWorkItemResponse>(
+            data,
+            new PaginationResponse(
+                result.Page,
+                result.PageSize,
+                result.TotalItems,
+                totalPages)));
+    }
 
     /// <summary>OPS-004: Atomic Complete Handover.</summary>
     [HttpPost("reservations/{reservationId:guid}/complete-handover")]

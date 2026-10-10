@@ -31,6 +31,7 @@ public static class DataAccessServiceCollectionExtensions
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IVisitRepository, VisitRepository>();
         services.AddScoped<IInspectionRepository, InspectionRepository>();
+        services.AddScoped<ISupportTicketRepository, SupportTicketRepository>();
         services.AddScoped<ICapacityRepository, CapacityRepository>();
         services.AddScoped<IReservationExpirationRepository, ReservationExpirationRepository>();
         services.AddScoped<IHandoverRepository, HandoverRepository>();
@@ -43,6 +44,11 @@ public static class DataAccessServiceCollectionExtensions
         services.AddScoped<IAdminEmployeeRepository, AdminEmployeeRepository>();
         services.AddScoped<IDiscountRepository, DiscountRepository>();
         services.AddScoped<IFacilityCatalogRepository,FacilityCatalogRepository>();
+        services.AddScoped<IStaffWorkItemRepository,StaffWorkItemRepository>();
+
+        services.AddScoped<ReturnSqlExecutor>();
+        services.AddScoped<IReturnProcessingRepository, ReturnProcessingRepository>();
+        services.AddScoped<IInspectionWorkflowRepository, InspectionWorkflowRepository>();
         return services;
     }
 }

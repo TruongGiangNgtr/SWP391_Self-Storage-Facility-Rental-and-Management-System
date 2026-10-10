@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Frms.Api.DTOs.Responses;
 
 /// <summary>Represents the canonical VisitDetail schema.</summary>
@@ -14,8 +16,20 @@ public sealed record VisitDetailResponse(
 public sealed record StaffWorkItemResponse(
     string WorkType,
     Guid ReferenceId,
-    DateOnly ScheduledDate,
-    string Status);
+
+    [property: JsonIgnore(
+        Condition = JsonIgnoreCondition.WhenWritingNull)]
+    Guid? EntityId,
+
+    [property: JsonIgnore(
+        Condition = JsonIgnoreCondition.WhenWritingNull)]
+    DateOnly? ScheduledDate,
+
+    string Status,
+
+    [property: JsonIgnore(
+        Condition = JsonIgnoreCondition.WhenWritingNull)]
+    StaffWorkItemCustomerResponse? Customer);
 
 /// <summary>Represents the Contract portion returned after Complete Handover.</summary>
 public sealed record HandoverContractResponse(
@@ -40,3 +54,10 @@ public sealed record ConfirmActualReturnResponse(
     string InspectionStatus,
     string StorageUnitStatus,
     string ReturnClassification);
+
+public sealed record StaffWorkItemCustomerResponse(
+    Guid CustomerId,
+    string FullName,
+    string PhoneNumber);
+
+

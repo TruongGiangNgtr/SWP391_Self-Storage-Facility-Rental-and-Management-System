@@ -10,7 +10,7 @@ namespace Frms.Api.Controllers;
 
 [Route("api/v1/visits")]
 public sealed class VisitsController(
-    IVisitService visitService) : ScaffoldControllerBase
+    IVisitService visitService, IReturnProcessingService returnService) : ScaffoldControllerBase
 {
     /// <summary>VIS-003: List authorized Visits.</summary>
     [Authorize(
@@ -160,14 +160,19 @@ public sealed class VisitsController(
                 "Visit checked out."));
     }
 
-    /// <summary>OPS-005: Confirm actual return and create Inspection scaffold.</summary>
+    /// <summary>OPS-005: Atomic actual return confirmation.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff)]
     [HttpPost("{visitId:guid}/confirm-return")]
     [ProducesResponseType(typeof(ApiResponse<ConfirmActualReturnResponse>), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> ConfirmReturn(
-        Guid visitId,
-        [FromBody] ConfirmActualReturnRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("OPS-005");
+    public async Task<ActionResult<ApiResponse<ConfirmActualReturnResponse>>> ConfirmReturn(
+        Guid visitId, [FromBody] ConfirmActualReturnRequest request,
+        CancellationToken cancellationToken)
+    {
+        var r = await returnService.ConfirmAsync(visitId, request.ActualReturnDate, cancellationToken);
+        return Ok(new ApiResponse<ConfirmActualReturnResponse>(new(
+            r.VisitId, r.ActualReturnDate, r.InspectionId,
+            r.InspectionStatus, r.StorageUnitStatus, r.ReturnClassification)));
+    }
 
     private static VisitDetailResponse ToResponse(Visit visit)
     {
