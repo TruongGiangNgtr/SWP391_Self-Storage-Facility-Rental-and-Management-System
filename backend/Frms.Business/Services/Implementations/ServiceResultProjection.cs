@@ -11,6 +11,7 @@ internal static class ServiceResultProjection
     internal static FacilityResult Map(Facility row) => new(row.FacilityId, row.Name, row.Address, row.ContactInfo, row.Description, row.Status);
     internal static UnitTypeResult Map(UnitType row) => new(row.UnitTypeId, row.Name, row.Mode, row.Size, row.RentalPrice, row.Description);
     internal static VisitResult Map(Visit row) => new(row.VisitId, row.EntityId, row.EmployeeId, row.VisitType, row.VisitDate, row.ActualReturnDate, row.Status);
+    internal static SupportTicketResult Map(SupportTicket row) => new(row.SupportTicketId, row.ContractId, row.CustomerId, row.AssignedEmployeeId, row.Category, row.Description, row.Status, row.ResultNote, row.CreatedAt, row.CompletedAt);
     internal static (AccountProfileResult Account, EmployeeProfileResult Employee, string RoleName) Map((UserAccount Account, Employee Employee, string RoleName) row) => (Map(row.Account), Map(row.Employee), row.RoleName);
     internal static (AccountProfileResult Account, EmployeeProfileResult Employee, string RoleName)? Map((UserAccount Account, Employee Employee, string RoleName)? row) => row is null ? null : Map(row.Value);
     internal static (AccountProfileResult Account, string RoleName, CustomerProfileResult? Customer, EmployeeProfileResult? Employee) Map((UserAccount Account, string RoleName, Customer? Customer, Employee? Employee) row) => (Map(row.Account), row.RoleName, Map(row.Customer), row.Employee is null ? null : Map(row.Employee));

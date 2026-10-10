@@ -9,7 +9,7 @@
 **Operational Consistency Revision Date:** 2026-10-07 — REV-2026-10-07-OP-READ
 **Payment Gateway Revision Date:** 2026-10-09 — REV-2026-10-09-PAYOS
 **Payment Idempotency Clarification Date:** 2026-10-10 — REV-2026-10-10-PAY-IDEMPOTENCY
-**Status:** Final Implementation Baseline — Limited payOS Live Payment Verified; Release Gates Under Verification
+**Status:** Final Implementation Baseline — EPS-01 Implementation Gates Passed; Limited payOS Live Payment Verified
 **Architecture:** 3 Logical Layers + Repository Pattern + Infrastructure Adapters
 **Backend:** ASP.NET Core Web API / C#
 **Frontend:** React + TypeScript
@@ -164,7 +164,7 @@ Start the selected tunnel with `ngrok http 5164` and keep both the backend and n
 payOS is the sole active EPS-01 gateway; MOMO/VNPAY rows and old migrations remain historical-compatible and are never rewritten.
 payOS supports personal/household-business accounts; no separate sandbox/staging exists. Official production API: https://api-merchant.payos.vn.
 The original 2026-10-09 scope was code, migrations and mock/fixture automated tests only. The limited owner-approved live E2E exception is recorded in section 0.0.5; it does not grant general production-payment authority.
-No live payOS evidence exists; EPS-01 release acceptance remains NOT COMPLETE until separately approved live E2E succeeds.
+Limited live payOS financial-path evidence is recorded in section 0.0.5; EPS-01 release acceptance additionally requires the implementation gates, and does not imply acceptance of unrelated FRMS workflows.
 First month remains offline: no first-month Invoice/Payment, PAY-002 remains retired. Deposit/later Rental Fee eligibility, authorization, idempotency, three Payment statuses, audit and authoritative SQL effects are unchanged.
 
 **Approved persistence:** ProviderOrderCode BIGINT NULL; SQL Server dbo.ProviderOrderCodeSequence starts at 1000, increment 1, NO CYCLE. Allocate atomically with new PAYOS attempts, not timestamps/UUID conversions; filtered unique index. Existing MOMO/VNPAY codes remain null. Downgrade fails clearly when PAYOS/code evidence exists.
@@ -189,7 +189,7 @@ Payment__PayOS__ExpiryMinutes=15
 
 [x] Approved live payOS link creation
 [x] Approved real payment / verified webhook / UTC Invoice.PaidAt evidence
-[ ] EPS-01 release acceptance
+[ ] EPS-01 full release acceptance (live later Rental Fee scenario not yet demonstrated)
 
 No editable task-tracker PDF source has been supplied; do not recreate PDF. This record supersedes historical provider requirements, not unrelated business semantics.
 
@@ -210,6 +210,8 @@ Payment must still use the persisted Invoice.AmountDue through PAY-001; do not h
 The owner permits checking the existing FRMS baseline and applying forward EPS-01 migrations without dropping tables/database or deleting historical data. If the baseline differs, stop and obtain approval for a specific adoption or new-database approach; do not fabricate migration history. Disposable Frms_Test_* integration databases remain separate from the live fixture. EPS-01 acceptance remains pending until actual build/test and verified live payment/Invoice.PaidAt evidence are recorded.
 
 **Limited live evidence (2026-10-10):** The owner approved a new attempt after the earlier link expired and personally paid 2,000 VND. SQL inspection of FRMS_EPS01_Dev confirmed payOS ProviderOrderCode 1008 / Payment 46661ece-7df4-4179-ad82-f4c0daf3f18b as SUCCESS, linked Invoice e5010000-0000-0000-0000-000000000007 as PAID, both PaidAt values 2026-10-10T10:15:00Z (17:15:00 GMT+7), and exactly one PAYMENT_RESULT audit. The old attempts remain preserved. This is limited live financial-path evidence, not proof that unrelated FRMS workflows or all release gates are complete. No provider secret, signed payload, PaymentUrl or bank account is recorded here.
+
+**Implementation verification (2026-10-10, integrated with origin/main d7cc1a5):** Backend Release build passed with zero errors/warnings; frontend production build passed with only a bundle-size warning. Unit tests: 142 passed; API tests: 64 passed; architecture tests: 13 passed; real SQL Server PaymentSql/PaymentMigration/PaymentServiceSql/PayOsSql tests: 65 passed. All four test runs had zero failures and zero skips. The SQL suites include empty-database migration, payment constraints, authorization, idempotency and concurrent result processing. Limited live evidence covers the Deposit payment above; a separate live later Rental Fee payment and the seven unrelated FRMS browser journeys are not claimed as verified.
 
 ## 0.1 Authority Order
 
@@ -856,7 +858,7 @@ Mandatory Core Demo concerns:
 [ ] Flow 6 Renewal/Return/Settlement works
 [ ] Flow 7 Support lifecycle works
 [ ] All five roles can perform required demo actions
-[ ] approved live payOS Deposit works (NOT RUN)
+[x] approved live payOS Deposit works (limited evidence in section 0.0.5)
 [ ] Offline first-month receipt is acknowledged by OPS-004 without Invoice/Payment
 [ ] Second-month-onward Rental Fee payment works
 [ ] Reservation overbooking race is protected
@@ -5779,7 +5781,7 @@ Core Demo requires:
 [ ] Critical DBT/CON tests pass
 [ ] Role/Facility isolation tests pass
 [ ] Seed/demo data reset process works
-[ ] approved live payOS scenario works (NOT RUN)
+[x] approved live payOS Deposit scenario works (limited evidence in section 0.0.5)
 [ ] No known blocker corrupts lifecycle state
 ```
 
@@ -5860,7 +5862,7 @@ Phase 0 is Done when all Section 6.1.1 exit-gate items pass.
 ```text
 [ ] Seven flows demonstrated end-to-end
 [ ] Five roles demonstrate required actions
-[ ] approved live payOS Deposit + Rental Fee flows work (NOT RUN)
+[ ] approved live payOS Deposit + Rental Fee flows work (Deposit verified; live later Rental Fee not yet demonstrated)
 [ ] Critical lifecycle transactions are atomic
 [ ] Critical concurrency scenarios pass
 [ ] Critical RBAC/facility/resource tests pass
