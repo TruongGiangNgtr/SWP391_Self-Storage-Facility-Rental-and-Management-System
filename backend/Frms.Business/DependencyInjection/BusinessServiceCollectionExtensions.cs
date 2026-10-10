@@ -16,11 +16,13 @@ public static class BusinessServiceCollectionExtensions
         services.AddScoped<IFacilityService, FacilityService>();
         services.AddScoped<IReservationService, ReservationService>();
         services.AddScoped<IVisitService, VisitService>();
+        services.AddScoped<IInspectionService, InspectionService>();
         services.AddScoped<ICapacityService, CapacityService>();
         services.AddScoped<IReservationExpirationService,ReservationExpirationService>();
         services.AddScoped<IHandoverService, HandoverService>();
         services.AddScoped<IRenewalService, RenewalService>();
         services.AddScoped<IContractService, ContractService>();
+        services.AddScoped<IFacilityOperationsReportService, FacilityOperationsReportService>();
         services.AddScoped<IUnitTypeService, UnitTypeService>();
         services.AddScoped<IPolicyService, PolicyService>();
         services.AddScoped<IAdminUserService, AdminUserService>();

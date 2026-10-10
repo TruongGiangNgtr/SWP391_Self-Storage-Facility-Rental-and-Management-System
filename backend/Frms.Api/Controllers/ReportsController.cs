@@ -1,4 +1,5 @@
 using Frms.Api.Authorization;
+using Frms.Business.Services.Interfaces;
 using Frms.Api.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,15 +7,24 @@ using Microsoft.AspNetCore.Mvc;
 namespace Frms.Api.Controllers;
 
 [Route("api/v1/reports")]
-public sealed class ReportsController : ScaffoldControllerBase
+public sealed class ReportsController(IFacilityOperationsReportService facilityOperationsReportService) : ScaffoldControllerBase
 {
     /// <summary>REP-001: Facility Operations report scaffold.</summary>
     [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpGet("facilities/{facilityId:guid}/operations")]
     [ProducesResponseType(typeof(ApiResponse<FacilityOperationsReportResponse>), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> GetFacilityOperationsReport(
+    public async Task<ActionResult<ApiResponse<FacilityOperationsReportResponse>>> GetFacilityOperationsReport(
         Guid facilityId,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("REP-001");
+        CancellationToken cancellationToken)
+    {
+        var result = await facilityOperationsReportService.GetAsync(facilityId, cancellationToken);
+        var data = result.Operations;
+        return Ok(new ApiResponse<FacilityOperationsReportResponse>(
+            new FacilityOperationsReportResponse(
+                facilityId, result.AsOf, data.AvailableUnits, data.InUseUnits,
+                data.InspectionUnits, data.MaintenanceUnits, result.UsageRate,
+                data.OverdueContractCount)));
+    }
 
     /// <summary>REP-002: Facility revenue report scaffold.</summary>
     [Authorize(Roles = RoleNames.FacilityManager)]

@@ -1,4 +1,6 @@
 using Frms.Api.Authorization;
+using Frms.Business.Services.Interfaces;
+using Frms.DataAccess.Repositories.Models;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
@@ -7,22 +9,43 @@ using Microsoft.AspNetCore.Mvc;
 namespace Frms.Api.Controllers;
 
 [Route("api/v1")]
-public sealed class InspectionsController : ScaffoldControllerBase
+public sealed class InspectionsController(IInspectionService inspectionService) : ScaffoldControllerBase
 {
     /// <summary>INS-001: List Facility-scoped Inspections scaffold.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
     [HttpGet("inspections")]
-    public ActionResult<ApiErrorResponse> ListInspections(
+    public async Task<IActionResult> ListInspections(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default) => ScaffoldNotImplemented("INS-001");
+        CancellationToken cancellationToken = default)
+    {
+        var result = await inspectionService.ListAccessibleAsync(page, pageSize, cancellationToken);
+        var data = result.Items.Select(ToSummaryResponse).ToArray();
+        var totalPages = result.TotalItems == 0 ? 0 : (int)Math.Ceiling(result.TotalItems / (double)pageSize);
+        return Ok(new {
+            data,
+            pagination = new { page, pageSize, totalItems = result.TotalItems, totalPages }
+        });
+    }
 
     /// <summary>INS-002: Inspection detail scaffold.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
     [HttpGet("inspections/{inspectionId:guid}")]
-    public ActionResult<ApiErrorResponse> GetInspection(
+    public async Task<ActionResult<ApiResponse<InspectionDetailResponse>>> GetInspection(
         Guid inspectionId,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("INS-002");
+        CancellationToken cancellationToken)
+    {
+        var result = await inspectionService.GetAccessibleAsync(inspectionId, cancellationToken);
+        return Ok(new ApiResponse<InspectionDetailResponse>(new InspectionDetailResponse(
+            ToSummaryResponse(result.Inspection),
+            result.Damages.Select(x => new InspectionDamageResponse(
+                x.DamageRecordId, x.DamageTypeId, x.DamageTypeName,
+                x.DamageAmount, x.Note, x.Status, x.CreatedAt)).ToArray(),
+            result.ExtraFees.Select(x => new InspectionExtraFeeResponse(
+                x.ExtraFeeId, x.ExtraFeeTypeId, x.Amount, x.Reason, x.CreatedAt)).ToArray(),
+            result.Evidence.Select(x => new InspectionEvidenceMetadataResponse(
+                x.InspectionEvidenceId, x.EvidenceType, x.CreatedAt)).ToArray())));
+    }
 
     /// <summary>INS-003: Atomic Inspection claim scaffold.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff)]
@@ -67,15 +90,33 @@ public sealed class InspectionsController : ScaffoldControllerBase
     /// <summary>INS-009: Facility Manager Damage decision scaffold.</summary>
     [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpPost("damage-records/{damageRecordId:guid}/decision")]
-    public ActionResult<ApiErrorResponse> DecideDamage(
+    [ProducesResponseType(typeof(ApiResponse<DamageDecisionResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<DamageDecisionResponse>>> DecideDamage(
         Guid damageRecordId,
         [FromBody] DecideDamageRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("INS-009");
+        CancellationToken cancellationToken)
+    {
+        var result = await inspectionService.DecideDamageAsync(
+            damageRecordId, request.Decision, cancellationToken);
+        return Ok(new ApiResponse<DamageDecisionResponse>(
+            new DamageDecisionResponse(result.DamageRecordId, result.Status),
+            "Damage decision recorded."));
+    }
 
     /// <summary>INS-010: List active seeded DamageTypes scaffold.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
     [HttpGet("damage-types")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<DamageTypeResponse>>), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> ListDamageTypes(CancellationToken cancellationToken) =>
-        ScaffoldNotImplemented("INS-010");
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<DamageTypeResponse>>>> ListDamageTypes(
+        CancellationToken cancellationToken)
+    {
+        var types = await inspectionService.ListActiveDamageTypesAsync(cancellationToken);
+        var response = types.Select(x => new DamageTypeResponse(
+            x.DamageTypeId, x.Name, x.DefaultAmount, x.Status)).ToArray();
+        return Ok(new ApiResponse<IReadOnlyList<DamageTypeResponse>>(response));
+    }
+
+    private static InspectionSummaryResponse ToSummaryResponse(InspectionSummaryRecord x) => new(
+        x.InspectionId, x.ContractId, x.StorageUnitId, x.VisitId,
+        x.EmployeeId, x.FacilityId, x.Status, x.ConditionNote, x.CompletedAt);
 }
