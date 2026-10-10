@@ -27,6 +27,8 @@ public static class BusinessServiceCollectionExtensions
         services.AddScoped<IAdminEmployeeService, AdminEmployeeService>();
         services.AddScoped<IFacilityCatalogService,FacilityCatalogService>();
         services.AddScoped<IDiscountService, DiscountService>();
+
+        services.AddScoped<IStaffWorkItemService,StaffWorkItemService>();
         return services;
     }
 }
