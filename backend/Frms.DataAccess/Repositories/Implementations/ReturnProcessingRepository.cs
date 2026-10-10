@@ -25,9 +25,34 @@ internal sealed class ReturnProcessingRepository(
         Guid visitId, DateOnly date, Guid staffId, CancellationToken ct)
     {
         // Signature must be checked against deployed SQL. See README.md.
-        await sql.ExecuteAsync("usp_ConfirmActualReturn", ct,
-            ReturnSqlExecutor.GuidParam("@VisitId", visitId),
-            ReturnSqlExecutor.DateParam("@ActualReturnDate", date));
+        // Visit.EntityId references ContractId for RETURN visits.
+        var contractId = await db.Visits
+            .AsNoTracking()
+            .Where(x =>
+                x.VisitId == visitId &&
+                x.VisitType == "RETURN")
+            .Select(x => x.EntityId)
+            .SingleAsync(ct);
+
+        // Match the deployed SQL stored procedure signature.
+        await sql.ExecuteAsync(
+            "usp_ConfirmActualReturn",
+            ct,
+            ReturnSqlExecutor.GuidParam(
+                "@ContractId",
+                contractId),
+            ReturnSqlExecutor.GuidParam(
+                "@EmployeeId",
+                staffId),
+            ReturnSqlExecutor.GuidParam(
+                "@VisitId",
+                visitId),
+            (
+                "@ActualReturnDate",
+                System.Data.DbType.DateTime2,
+                date.ToDateTime(TimeOnly.MinValue)
+            )
+        );
 
         var visit = await db.Visits.AsNoTracking()
             .SingleAsync(x => x.VisitId == visitId, ct);

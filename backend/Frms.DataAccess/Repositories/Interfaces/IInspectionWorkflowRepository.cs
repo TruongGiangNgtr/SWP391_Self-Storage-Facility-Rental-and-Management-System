@@ -13,5 +13,5 @@ public interface IInspectionWorkflowRepository
     Task<DamageRecordItem> RecordDamageAsync(Guid inspectionId, Guid typeId, decimal amount, string? note, Guid staffId, CancellationToken ct);
     Task<ExtraFeeRecordItem> RecordExtraFeeAsync(Guid inspectionId, Guid typeId, decimal amount, string reason, Guid staffId, CancellationToken ct);
     Task<EvidenceRecordItem> AddEvidenceAsync(Guid inspectionId, byte[] data, string type, Guid staffId, CancellationToken ct);
-    Task<InspectionRecord> CompleteAsync(Guid inspectionId, string note, Guid staffId, CancellationToken ct);
+    Task<InspectionRecord?> CompleteAsync(Guid inspectionId, string note, Guid staffId, CancellationToken ct);
 }

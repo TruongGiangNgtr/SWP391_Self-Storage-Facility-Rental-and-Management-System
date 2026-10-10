@@ -129,13 +129,26 @@ internal sealed class InspectionWorkflowService(
         catch (StoredProcedureBusinessException ex) { throw Error(ex.Code); }
     }
 
-    public async Task<InspectionResult> CompleteAsync(Guid id, string note, CancellationToken ct = default)
-    {
+    public async Task<InspectionResult> CompleteAsync(
+        Guid id, string note, CancellationToken ct = default) {
         if (string.IsNullOrWhiteSpace(note))
-            throw new BusinessException("VALIDATION_ERROR", "conditionNote is required.", 400);
+            throw new BusinessException(
+                "VALIDATION_ERROR",
+                "conditionNote is required.",
+                400);
+
         var staff = await ClaimedStaffAsync(id, ct);
-        try { return Map(await repository.CompleteAsync(id, note.Trim(), staff, ct)); }
-        catch (StoredProcedureBusinessException ex) { throw Error(ex.Code); }
+
+        var completed = await repository.CompleteAsync(
+            id, note.Trim(), staff, ct);
+
+        if (completed is null)
+            throw new BusinessException(
+                "INSPECTION_INVALID_STATUS",
+                "Inspection cannot be completed in its current state.",
+                409);
+
+        return Map(completed);
     }
 
     public async Task<IReadOnlyList<DamageTypeResult>> ListDamageTypesAsync(CancellationToken ct = default)

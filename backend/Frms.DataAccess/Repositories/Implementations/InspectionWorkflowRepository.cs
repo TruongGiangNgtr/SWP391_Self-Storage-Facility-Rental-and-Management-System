@@ -129,13 +129,54 @@ internal sealed class InspectionWorkflowRepository(
         return new(row.InspectionEvidenceId, row.EvidenceType, row.CreatedAt);
     }
 
-    public async Task<InspectionRecord> CompleteAsync(
-        Guid id, string note, Guid staffId, CancellationToken ct)
-    {
-        await sql.ExecuteAsync("usp_CompleteInspection", ct,
-            ReturnSqlExecutor.GuidParam("@InspectionId", id),
-            ReturnSqlExecutor.GuidParam("@EmployeeId", staffId),
-            ReturnSqlExecutor.TextParam("@ConditionNote", note));
-        return await ReadAsync(id, ct);
+    public async Task<InspectionRecord?> CompleteAsync(
+        Guid id, string note, Guid staffId, CancellationToken ct) {
+        var completedAtUtc = DateTime.UtcNow;
+
+        await using var transaction =
+            await db.Database.BeginTransactionAsync(
+                IsolationLevel.Serializable, ct);
+
+        var updated = await db.Inspections
+            .Where(i =>
+                i.InspectionId == id &&
+                i.Status == "IN_PROGRESS" &&
+                i.EmployeeId == staffId &&
+                db.Contracts.Any(c =>
+                    c.ContractId == i.ContractId &&
+                    c.Status == "ACTIVE" &&
+                    c.StorageUnitId == i.StorageUnitId &&
+                    db.StorageUnits.Any(u =>
+                        u.StorageUnitId == i.StorageUnitId &&
+                        u.FacilityId == c.FacilityId &&
+                        u.Status == "INSPECTION") &&
+                    db.Employees.Any(e =>
+                        e.EmployeeId == staffId &&
+                        e.FacilityId == c.FacilityId &&
+                        db.UserAccounts.Any(a =>
+                            a.UserAccountId == e.UserAccountId &&
+                            a.Status == "ACTIVE"))))
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(i => i.Status, "COMPLETED")
+                .SetProperty(i => i.ConditionNote, note)
+                .SetProperty(i => i.CompletedAt, completedAtUtc), ct);
+
+        if (updated != 1)
+            return null;
+
+        var inspection = await ReadAsync(id, ct);
+
+        var unitStillInspecting =
+            await db.StorageUnits.AsNoTracking()
+                .AnyAsync(u =>
+                    u.StorageUnitId == inspection.StorageUnitId &&
+                    u.Status == "INSPECTION", ct);
+
+        if (!unitStillInspecting)
+            throw new InvalidOperationException(
+                "INS-007: StorageUnit must remain INSPECTION.");
+
+        await transaction.CommitAsync(ct);
+        return inspection;
     }
 }

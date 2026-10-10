@@ -640,7 +640,7 @@ internal sealed class VisitService(
                 reservation.FacilityId,
                 cancellationToken);
         }
-        else if (visit.VisitType == "ACCESS")
+        else if (visit.VisitType is "ACCESS" or "RETURN")
         {
             var contract =
                 await repository.GetContractForVisitAsync(
