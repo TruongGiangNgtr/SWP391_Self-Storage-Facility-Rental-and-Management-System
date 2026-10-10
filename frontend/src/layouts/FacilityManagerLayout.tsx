@@ -8,12 +8,12 @@ import {
   Warehouse,
 } from 'lucide-react'
 import {
-  Link,
   NavLink,
   Outlet,
 } from 'react-router-dom'
 import { useAuth } from '../auth/auth.context'
 import { BrandLogo } from '../components/BrandLogo'
+import { EmployeePortalFooter } from '../components/EmployeePortalFooter'
 import '../styles/manager.css'
 
 function getInitials(fullName?: string | null) {
@@ -151,94 +151,33 @@ export function FacilityManagerLayout() {
         </main>
       </div>
 
-      <footer className="manager-footer">
-        <div className="manager-footer-main">
-          <div className="manager-footer-brand">
-            <BrandLogo inverse />
-            <p>
-              Facility-level storage operations, handover coordination,
-              inspections, support assignment, and reporting for FStoRent.
-            </p>
-            <span className="manager-footer-trust">
-              Secure · Facility-scoped · Role-based access
-            </span>
-          </div>
-
-          <div className="manager-footer-column">
-            <strong>OPERATIONS</strong>
-            <Link
-              className="manager-footer-link"
-              to="/manager/handover-unit-selection"
-            >
-              Handover Unit Selection
-            </Link>
-            <Link
-              className="manager-footer-link"
-              to="/manager/physical-units"
-            >
-              Physical Unit Management
-            </Link>
-            <Link
-              className="manager-footer-link"
-              to="/manager/operations"
-            >
-              Facility Monitoring
-            </Link>
-          </div>
-
-          <div className="manager-footer-column">
-            <strong>WORKFLOWS</strong>
-            <Link
-              className="manager-footer-link"
-              to="/manager/returns-inspections"
-            >
-              Returns &amp; Inspections
-            </Link>
-            <Link
-              className="manager-footer-link"
-              to="/manager/support-assignment"
-            >
-              Support Assignment
-            </Link>
-            <Link
-              className="manager-footer-link"
-              to="/manager/reports"
-            >
-              Facility Reports
-            </Link>
-          </div>
-
-          <div className="manager-footer-column">
-            <strong>ACCOUNT</strong>
-            <span>{displayName}</span>
-            <span>Facility Manager</span>
-            <button
-              type="button"
-              className="manager-footer-logout"
-              onClick={logout}
-            >
-              Sign Out
-            </button>
-          </div>
-        </div>
-
-        <div className="manager-footer-bottom">
-          <span>
-            © 2026 FStoRent. All rights reserved.
-          </span>
-
-          <div>
-            <span>Privacy Policy</span>
-            <span>Terms of Service</span>
-            <Link
-              className="manager-footer-bottom-link"
-              to="/manager/handover-unit-selection"
-            >
-              Facility Manager Portal
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <EmployeePortalFooter
+        variant="manager"
+        portalName="Facility Manager"
+        homePath="/manager/handover-unit-selection"
+        displayName={displayName}
+        description="Facility-level storage operations, handover coordination, inspections, support assignment, and reporting for FStoRent."
+        trustMessage="Secure · Facility-scoped · Role-based access"
+        sections={[
+          {
+            title: 'OPERATIONS',
+            links: [
+              { to: '/manager/handover-unit-selection', label: 'Handover Unit Selection' },
+              { to: '/manager/physical-units', label: 'Physical Unit Management' },
+              { to: '/manager/operations', label: 'Facility Monitoring' },
+            ],
+          },
+          {
+            title: 'WORKFLOWS',
+            links: [
+              { to: '/manager/returns-inspections', label: 'Returns & Inspections' },
+              { to: '/manager/support-assignment', label: 'Support Assignment' },
+              { to: '/manager/reports', label: 'Facility Reports' },
+            ],
+          },
+        ]}
+        onSignOut={logout}
+      />
     </div>
   )
 }
