@@ -7,7 +7,8 @@
 **Architecture Revision Date:** 2026-10-04
 **Business Revision Date:** 2026-10-07 — REV-2026-10-07-FM-OFFLINE
 **Operational Consistency Revision Date:** 2026-10-07 — REV-2026-10-07-OP-READ
-**Status:** Final Implementation Baseline — Approved Offline First-Month and Operational Consistency Revisions
+**Payment Gateway Revision Date:** 2026-10-09 — REV-2026-10-09-PAYOS
+**Status:** Final Implementation Baseline — Approved payOS Code/Mock Revision; Live Payment Acceptance Pending
 **Architecture:** 3 Logical Layers + Repository Pattern + Infrastructure Adapters
 **Backend:** ASP.NET Core Web API / C#
 **Frontend:** React + TypeScript
@@ -38,6 +39,9 @@
 | **V10 FINAL — 2026-10-05 clarification** | Owner-approved Phase 0 seed scope | Phase 0 requires UserRole, Policy v1 and the fixed DamageType catalogue only. ExtraFeeType schema/constraints remain; its five rows are deferred beyond Phase 0 until amounts and currency are approved. No rental/payment rule changes. |
 | **V10 FINAL — 2026-10-07 business revision** | Owner-approved offline first-month collection | REV-2026-10-07-FM-OFFLINE replaces first-month online Payment/Invoice with Staff's offline-receipt acknowledgment through OPS-004 and Contract-based settlement. PAY-002 is retired; billing starts after Contract.StartMonth; first-month revenue uses Reservation.LockedRentalPrice in Contract.StartMonth. |
 | **V10 FINAL — 2026-10-07 operational consistency revision** | Owner-approved operational reads, return release and reporting | REV-2026-10-07-OP-READ aligns Staff/Manager/BOM reads and operational catalogues; locks Unit release at Finalize Return, usageRate over all scoped Units, Visit work-item navigation and resolved DamageType wording. No new entity or first-month payment change. |
+| **V10 FINAL — 2026-10-07 payment gateway revision** | Owner-approved VNPay Sandbox substitution | REV-2026-10-07-VNPAY replaces the MoMo Sandbox adapter and routes with VNPay Sandbox for Deposit and post-first-month Rental Fee invoices. Payment business semantics, offline first-month settlement, Invoice/Payment entities and idempotency rules remain unchanged. |
+| **V10 FINAL — 2026-10-09 payOS revision** | Owner-approved provider replacement (code/mock only) | REV-2026-10-09-PAYOS; preserve MOMO/VNPAY history, numeric order-code sequence, signed JSON webhook; live acceptance pending. |
+| **V10 FINAL — 2026-10-08 payment timestamp clarification** | Owner-approved persisted Invoice payment timestamp | Invoice.PaidAt is nullable UTC, set from the verified provider timestamp only on the first UNPAID/OVERDUE -> PAID transition. Duplicate webhook, subsequent successful attempts and cancelled invoices preserve the Invoice timestamp. Existing historical timestamps are not fabricated. |
 
 ## V5 Review Summary
 
@@ -66,7 +70,7 @@ V5 performs a consistency review rather than adding a new business flow.
 - Replace ambiguous “recommended” wording with either a mandatory rule, an explicitly equivalent alternative, or a Deferred Decision.
 - Distinguish source-derived rule, SRS technical decision, and unresolved source gap.
 
-> V10 FINAL, including the approved 2026-10-07 revisions, is the implementation source of truth. The original architecture revision preserved V9 semantics; REV-2026-10-07-FM-OFFLINE supersedes the online first-month model and REV-2026-10-07-OP-READ locks operational read contracts. Earlier version-history and V5-review entries describe historical decisions, not current first-month requirements.
+> V10 FINAL with REV-2026-10-09-PAYOS is the current implementation baseline. Earlier MoMo/VNPay revision entries are historical only; payOS is the sole active gateway. Offline first-month and operational-read semantics remain unchanged.
 
 ---
 
@@ -82,18 +86,56 @@ V5 performs a consistency review rather than adding a new business flow.
 - The authorized Staff's OPS-004 command acknowledges that full first-month rent has been received and handover is complete.
 - Successful Contract creation is FRMS's business record of first-month settlement. No first-month Invoice, Payment, receipt entity, paid flag or new Contract attribute is created.
 - First-month amount = Reservation.LockedRentalPrice, without Contract Discount.
-- Deposit retains the existing Invoice/Payment/MoMo flow. Online Rental Fee invoices start strictly after Contract.StartMonth.
+- Deposit retains the existing Invoice/Payment flow through payOS Payment. Online Rental Fee invoices start strictly after Contract.StartMonth.
 - First-month recognized revenue is derived once per Contract from Reservation.LockedRentalPrice and attributed to Contract.StartMonth; this is not a physical cash-receipt timestamp.
 - PAY-002 is retired. OPS-004 retains VisitId, StorageUnitId and nullable DiscountId but removes FirstMonthPaymentId.
 
-**Affected requirements:** Flow 2; BR-HO-02/03; BR-DIS-05; BR-BIL-06; CALC-FIRST-01; CALC-REP-02; DD-13; OPS-004; CWP-08/FWP-03/SSP-06/08; monthly billing, reporting, callback scope, DBT-24, E2E-F02/F04 and release gates.
+**Affected requirements:** Flow 2; BR-HO-02/03; BR-DIS-05; BR-BIL-06; CALC-FIRST-01; CALC-REP-02; DD-13; OPS-004; CWP-08/FWP-03/SSP-06/08; monthly billing, reporting, payment-result scope, DBT-24, E2E-F02/F04 and release gates.
 
 **Authority and scope:** This revision overrides conflicting first-month rules in Data Dictionary V2.1, earlier proposals, DTOs, Swagger, SQL objects and code. Only this SRS is updated in the present task; alignment of those artifacts is a follow-up implementation task. Do not claim the new API/DB behavior is already implemented or synchronized. Architecture, five roles, 27 entities, Deposit flow, subsequent online payments, captured Policy and other approved flows remain unchanged.
 
 **Historical-data protection:** Do not delete, rewrite or fabricate links for existing first-month Invoice/Payment or unlinked legacy payment rows. Preserve historical evidence; new handovers must not create those records. Require an approved migration/deployment review before changing constraints or replacing old SQL/API behavior. Revenue must not count a historical first-month Invoice/Payment in addition to the Contract-derived amount.
 
+## 0.0.1 Historical Change Record (superseded by REV-2026-10-09-PAYOS) — REV-2026-10-07-VNPAY
 
-## 0.0.1 Approved Change Record — REV-2026-10-07-OP-READ
+**Approval:** The project owner selects VNPay Sandbox as the Release 1 online payment gateway on 2026-10-07 because the team is implementing an academic project and will use VNPay Sandbox credentials.
+
+**Approved scope:**
+
+- VNPay Sandbox replaces MoMo Sandbox for Deposit invoices and Rental Fee invoices whose BillingMonth is later than Contract.StartMonth.
+- The first rental month remains offline under REV-2026-10-07-FM-OFFLINE. This revision does not restore PAY-002 or create a first-month Invoice/Payment.
+- `Payment.PaymentMethod` for new Release 1 online attempts is `VNPAY`.
+- PAY-001 becomes `POST /api/v1/invoices/{invoiceId}/payments/vnpay`.
+- PAY-004 becomes the provider-facing `GET /api/v1/payments/vnpay/ipn`. VNPay sends IPN parameters in the query string; the endpoint is anonymous at the HTTP authentication layer but trusted only after adapter-level checksum, merchant, reference and amount validation.
+- The customer browser return target is `/customer/payments/result`. Local development uses `http://localhost:5173/customer/payments/result`. A staging/production frontend origin has not been provided and MUST remain environment configuration rather than a fabricated domain.
+- The team selects ngrok for Sandbox development. ngrok proxies the public HTTPS origin `https://lying-ladder-showroom.ngrok-free.dev` to the backend HTTP origin `http://localhost:5164`. The provider-facing IPN URL is `https://lying-ladder-showroom.ngrok-free.dev/api/v1/payments/vnpay/ipn`; localhost is not used as the server-to-server IPN target.
+- Browser return data is not authoritative and MUST NOT update Payment/Invoice state. The frontend refreshes PAY-003/BIL-002; only a valid, idempotently applied IPN result may update financial state.
+
+**Provider contract lock:** VNPay Sandbox API version `2.1.0` is used with payment URL `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html`, VND amounts encoded as the FRMS amount multiplied by 100, and HMAC-SHA512 checksum validation. `vnp_TmnCode` is non-secret runtime configuration; `vnp_HashSecret` is a secret and MUST NOT be committed, logged or exposed to the frontend. Exact provider fields remain inside the VNPay adapter.
+
+**Runtime configuration:**
+
+```text
+Payment__VnPay__TmnCode=<configured locally>
+Payment__VnPay__HashSecret=<secret/configured locally>
+Payment__VnPay__CredentialSetId=sandbox-v1
+Payment__VnPay__PaymentUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+Payment__VnPay__ReturnUrl=http://localhost:5173/customer/payments/result
+Payment__VnPay__IpnUrl=https://lying-ladder-showroom.ngrok-free.dev/api/v1/payments/vnpay/ipn
+Payment__VnPay__Locale=vn
+Payment__VnPay__OrderType=other
+Payment__VnPay__ExpiryMinutes=15
+```
+
+The approved .NET configuration section is `Payment:VnPay`; do not introduce a parallel `Vnpay:*` section. `Locale=vn` selects the Vietnamese VNPay UI, `OrderType=other` classifies the self-storage rental service for the current Sandbox flow, and `ExpiryMinutes=15` is used to calculate the required `vnp_ExpireDate`. VNPay API version `2.1.0`, command `pay`, currency `VND` and HMAC-SHA512 remain adapter constants for this locked contract rather than runtime configuration.
+
+Start the selected tunnel with `ngrok http 5164` and keep both the backend and ngrok process running during VNPay Sandbox tests. If ngrok later assigns a different public hostname, the environment value and VNPay Sandbox IPN registration MUST be updated together before testing. `CredentialSetId` is internal non-secret metadata and is not sent to VNPay.
+
+**Affected requirements:** EPS-01; SSP-07; CWP-04/CWP-08; PAY-001/PAY-003/PAY-004; PaymentDetail; BR-PAY-01; external-integration, security, testing, traceability and release-gate references; Data Dictionary PaymentMethod and payment-result wording.
+
+**Compatibility boundary:** Existing code, migrations, tests, branch names and historical records may still contain `MOMO` until their owning implementation plan migrates them. The supplied BE task-tracker PDF also still labels CWP-04/CWP-08/SSP-07/EPS-01 as MoMo and must be regenerated from its editable source; the Topic PDF is gateway-neutral and needs no change. This change record defines the target source of truth; it does not falsely claim that implementation artifacts have already been aligned. Existing historical `MOMO` rows, if any, MUST be preserved rather than rewritten.
+
+## 0.0.2 Approved Change Record — REV-2026-10-07-OP-READ
 
 **Approval:** The project owner confirms team approval of operational read and consistency corrections on 2026-10-07, including the explicit follow-up choices for return release, usageRate and reuse of existing read endpoints.
 
@@ -113,6 +155,41 @@ V5 performs a consistency review rather than adding a new business flow.
 **Affected requirements:** actor scopes, Flow 2/6, procedure catalogue, DD-15, authorization, endpoint registry and detail/catalogue/return/report contracts, pseudocode, FE requirements, tests, traceability, acceptance and lifecycle summaries; FWP-01..07, MWP-01/03/04, BWP-06, SSP-12/14/15/17.
 
 **Implementation boundary:** This task updates the SRS only. Backend role gates, authoritative Facility/ownership checks, DTOs/Swagger, return stored procedures and frontend types/UI must be aligned and verified by their owners before the affected feature is declared complete. No new entity, persisted attribute, role, state, first-month Invoice/Payment or write-role permission is introduced. The existing offline-first-month revision remains in force. The approved Finalize Return release rule supersedes conflicting Complete Inspection release wording in the lower-level Data Dictionary; its SQL deployment alignment requires the existing migration/redeploy review process, not a new database field.
+
+## 0.0.3 Approved Change Record — REV-2026-10-09-PAYOS
+
+**Approval:** Owner approved VNPay replacement and clarified webhook acknowledgement, UTC+7 provider time and description on 2026-10-09.
+payOS is the sole active EPS-01 gateway; MOMO/VNPAY rows and old migrations remain historical-compatible and are never rewritten.
+payOS supports personal/household-business accounts; no separate sandbox/staging exists. Official production API: https://api-merchant.payos.vn.
+Current scope is code, migrations, mock/fixture automated tests only. No real payment link, transfer, /confirm-webhook or live API call is authorized.
+No live payOS evidence exists; EPS-01 release acceptance remains NOT COMPLETE until separately approved live E2E succeeds.
+First month remains offline: no first-month Invoice/Payment, PAY-002 remains retired. Deposit/later Rental Fee eligibility, authorization, idempotency, three Payment statuses, audit and authoritative SQL effects are unchanged.
+
+**Approved persistence:** ProviderOrderCode BIGINT NULL; SQL Server dbo.ProviderOrderCodeSequence starts at 1000, increment 1, NO CYCLE. Allocate atomically with new PAYOS attempts, not timestamps/UUID conversions; filtered unique index. Existing MOMO/VNPAY codes remain null. Downgrade fails clearly when PAYOS/code evidence exists.
+PaymentUrl stores checkoutUrl (2048 bounded characters); PaymentUrlExpiresAt UTC stores provider expiry when supplied or explicit request expiry; TransactionCode stores successful webhook reference, not paymentLinkId/orderCode.
+Missing config does not fail startup; PAY-001 raises EXTERNAL_PROVIDER_NOT_CONFIGURED before creation. Secrets are local only; .env ignored and excluded from build/publish.
+PAY-001 is POST /api/v1/invoices/{invoiceId}/payments/payos; PAY-003 unchanged; PAY-004 is anonymous POST /api/v1/payments/payos/webhook. Old MoMo/VNPay routes are inactive.
+Browser return/cancel never update financial state; refresh PAY-003/BIL-002.
+Signed unknown/sample webhook -> HTTP200 without mutation; reserve sample code 123 by starting sequence at1000.
+Provider transactionDateTime is interpreted as UTC+7 by owner decision then persisted UTC; description is FRMS, trace identity uses ProviderOrderCode.
+
+**Only active configuration:** Payment:PayOS
+```text
+Payment__PayOS__ClientId=<configured locally>
+Payment__PayOS__ApiKey=<secret/configured locally>
+Payment__PayOS__ChecksumKey=<secret/configured locally>
+Payment__PayOS__ApiBaseUrl=https://api-merchant.payos.vn
+Payment__PayOS__ReturnUrl=http://localhost:5173/customer/payments/result
+Payment__PayOS__CancelUrl=http://localhost:5173/customer/payments/result
+Payment__PayOS__WebhookUrl=https://lying-ladder-showroom.ngrok-free.dev/api/v1/payments/payos/webhook
+Payment__PayOS__ExpiryMinutes=15
+```
+
+[ ] Approved live payOS link creation
+[ ] Approved real payment / verified webhook / UTC Invoice.PaidAt evidence
+[ ] EPS-01 release acceptance
+
+No editable task-tracker PDF source has been supplied; do not recreate PDF. This record supersedes historical provider requirements, not unrelated business semantics.
 
 ## 0.1 Authority Order
 
@@ -280,7 +357,7 @@ Current FRMS Release 1 business scope includes:
 - Facility and Unit Type browsing;
 - available-capacity display for a requested month range;
 - Reservation creation using future `StartMonth` / `EndMonth`;
-- Deposit invoice/payment through MoMo Sandbox;
+- Deposit invoice/payment through payOS Payment;
 - Reservation Visit scheduling in the captured Policy window;
 - Staff check-in;
 - Manager physical StorageUnit selection;
@@ -307,7 +384,7 @@ Current FRMS Release 1 business scope includes:
 - Notification queue/retry support;
 - optional AI Size Guide / Unit Type recommendation.
 
-MoMo payment integration is limited to Deposit and Rental Fee invoices from the second rental month onward. The first month is collected offline and represented by Contract creation, not an Invoice/Payment.
+payOS payment integration is limited to Deposit and Rental Fee invoices from the second rental month onward. The first month is collected offline and represented by Contract creation, not an Invoice/Payment.
 
 ## 2.4 Out-of-Scope
 
@@ -323,7 +400,7 @@ The current core scope does **not** implement:
 - Physical Unit allocation at Reservation time.
 - `ASSIGNED` / `RESERVED` StorageUnit status.
 - complex StorageUnit priority algorithm.
-- production/full payment gateway beyond current MoMo Sandbox scope.
+- live production payment validation until separately approved; only payOS code/mock integration is authorized.
 - actual refund transfer.
 - actual debt/compensation collection.
 - legal dispute management.
@@ -376,7 +453,7 @@ Customer may:
 - browse active Facilities;
 - view Unit Types, size/mode, current price and requested-period capacity;
 - create Reservation;
-- pay Deposit via MoMo, pay the first rental month offline before handover, and pay subsequent Rental Fee invoices via MoMo;
+- pay Deposit via payOS, pay the first rental month offline before handover, and pay subsequent Rental Fee invoices via payOS;
 - schedule/reschedule valid RESERVATION Visit;
 - receive a StorageUnit through the handover flow;
 - manage multiple Contracts;
@@ -492,7 +569,7 @@ Internal system responsibilities include:
 
 ## 3.7 External Providers
 
-- **MoMo Sandbox** — Deposit and second-month-onward Rental Fee Invoice payment processing.
+- **payOS Payment** — Deposit and second-month-onward Rental Fee Invoice payment processing.
 - **Runtime AI service** — optional Size Guide recommendation.
 - **Future Google Identity Provider** — Employee external login only; Future Work.
 
@@ -507,7 +584,7 @@ Browse active Facility / UnitType
 -> calculate capacity for every requested month
 -> create Reservation(PENDING_DEPOSIT)
 -> create Deposit Invoice
--> MoMo payment
+-> payOS payment
 -> confirm Reservation
 -> create RESERVATION Visit(SCHEDULED)
 ```
@@ -538,7 +615,7 @@ Reservation CONFIRMED
 -> Visit CHECKED_OUT
 ```
 
-Complete Handover is an atomic multi-table transaction without a first-month Invoice/Payment. The authorized Staff command acknowledges offline receipt; FRMS does not verify cash through MoMo. Contract existence records initial settlement, including after its status becomes COMPLETED or TERMINATED.
+Complete Handover is an atomic multi-table transaction without a first-month Invoice/Payment. The authorized Staff command acknowledges offline receipt; FRMS does not verify cash through payOS. Contract existence records initial settlement, including after its status becomes COMPLETED or TERMINATED.
 
 ## 4.3 Flow 3 — Rented Storage Unit Management
 
@@ -743,7 +820,7 @@ Mandatory Core Demo concerns:
 - correct lifecycle;
 - transaction correctness;
 - role/facility/resource authorization;
-- MoMo Sandbox Deposit and second-month-onward Rental Fee flow; offline first-month handover confirmation;
+- payOS Payment Deposit and second-month-onward Rental Fee flow; offline first-month handover confirmation;
 - critical concurrency protection;
 - reproducible migration/seed;
 - seven E2E journeys.
@@ -759,14 +836,14 @@ Mandatory Core Demo concerns:
 [ ] Flow 6 Renewal/Return/Settlement works
 [ ] Flow 7 Support lifecycle works
 [ ] All five roles can perform required demo actions
-[ ] MoMo Sandbox Deposit works
+[ ] approved live payOS Deposit works (NOT RUN)
 [ ] Offline first-month receipt is acknowledged by OPS-004 without Invoice/Payment
 [ ] Second-month-onward Rental Fee payment works
 [ ] Reservation overbooking race is protected
 [ ] Handover same-unit race is protected
 [ ] Renewal capacity race is protected
 [ ] Inspection double-claim is protected
-[ ] Duplicate payment callback is idempotent
+[ ] Duplicate payOS webhook is idempotent
 [ ] Duplicate return finalization is protected
 [ ] Wrong-facility access is rejected
 [ ] Wrong-customer ownership access is rejected
@@ -1166,7 +1243,7 @@ Testing
 Production
 ```
 
-Secrets such as JWT signing key, SQL connection, MoMo credentials, AI keys, and notification credentials MUST NOT be hard-coded or committed.
+Secrets such as JWT signing key, SQL connection, payOS ApiKey/ChecksumKey, AI keys, and notification credentials MUST NOT be hard-coded or committed.
 
 ## 8.6 Validation Standard
 
@@ -1476,6 +1553,7 @@ FAILED
 - `Contract.DiscountId` nullable.
 - `Invoice.BillingMonth` null for DEPOSIT; required for RENTAL_FEE.
 - `Invoice.DiscountId` null for DEPOSIT.
+- `Invoice.PaidAt` is a nullable persisted UTC timestamp. Set it from the verified provider success timestamp only when the Invoice first transitions from UNPAID/OVERDUE to PAID. Already-PAID and CANCELLED invoices retain their timestamp; duplicate webhook never overwrites it. Historical rows without timestamp evidence remain null (owner-approved 2026-10-08 clarification).
 - Every new Payment MUST reference an existing Invoice through Payment.InvoiceId. No first-month Payment is allowed. Historical null InvoiceId rows from the superseded model must be preserved until an approved migration/deployment review; do not silently link or delete them.
 - `Payment.TransactionCode` nullable before gateway reference exists; unique when present.
 - `Payment.PaidAt` required for `SUCCESS`.
@@ -2048,14 +2126,14 @@ Notification queue/retry is an internal supporting requirement from the Data Dic
 ## 11.8 External Service
 
 ```text
-EPS-01 — MoMo Sandbox Payment Processing
+EPS-01 — payOS Payment Processing
 EPS-02 — Employee Initial Credential Email Delivery
 ```
 
 Used for:
 
 - Deposit;
-- Rental Fee invoices from the second month onward; offline first-month receipt does not use MoMo.
+- Rental Fee invoices from the second month onward; offline first-month receipt does not use payOS.
 
 It is not the settlement mechanism for LateFee, ExtraFee, Damage, RefundAmount or AdditionalAmountDue in FRMS Release 1.
 
@@ -2112,7 +2190,7 @@ The following rule IDs are canonical for FRMS Release 1:
 
 ### Payment / Late Fee
 
-- `BR-PAY-01` payment callback is idempotent.
+- `BR-PAY-01` payOS webhook processing is idempotent.
 - `BR-PAY-02` Staff/Manager cannot manually mark an Invoice paid or create a successful gateway Payment. Staff's OPS-004 first-month receipt acknowledgment does not create or mark an Invoice/Payment.
 - `BR-LATE-01` LateFee exists only for overdue RENTAL_FEE Invoice.
 - `BR-LATE-02` LateFee uses Contract-captured Policy divisor.
@@ -2314,7 +2392,7 @@ RentalRevenue
 = FirstMonthRecognizedRevenue + SubsequentPaidRentalRevenue
 ```
 
-Include Contract history in ACTIVE, COMPLETED and TERMINATED states. Do not lose initial recognized revenue when rental ends. Use the immutable Reservation price, not a current UnitType/extension price. Deduplicate by Contract for initial recognition and by Invoice for subsequent paid revenue; joins, retries, callbacks and multiple Payment attempts must not multiply either amount.
+Include Contract history in ACTIVE, COMPLETED and TERMINATED states. Do not lose initial recognized revenue when rental ends. Use the immutable Reservation price, not a current UnitType/extension price. Deduplicate by Contract for initial recognition and by Invoice for subsequent paid revenue; joins, retries, webhooks and multiple Payment attempts must not multiply either amount.
 
 Contract.StartMonth is the offline recognition month, not an actual cash-receipt timestamp. Online PaidAt reporting boundaries retain the GMT+7 business-calendar interpretation of UTC timestamps. Reporting is server-owned; the FE must not calculate the total.
 
@@ -2342,7 +2420,7 @@ Existing Reservation/Contract keeps captured `PolicyId`.
 | Renew Contract | same future-capacity locking strategy as Reservation |
 | Claim Inspection | conditional update PENDING -> IN_PROGRESS; exactly one row |
 | Decide Damage | conditional update PENDING -> APPROVED/REJECTED; exactly one manager decision wins |
-| MoMo callback | unique gateway reference + idempotent procedure |
+| payOS webhook | unique `orderCode`/`reference` + idempotent procedure |
 | Monthly invoice generation | logical uniqueness + insert-if-absent transaction |
 | Deposit invoice creation | logical uniqueness |
 | Create Policy version | lock active version / sequence |
@@ -2354,7 +2432,7 @@ Existing Reservation/Contract keeps captured `PolicyId`.
 
 Repeat behavior MUST preserve logical single-effect semantics for:
 
-- MoMo callback;
+- payOS webhook;
 - Complete Handover;
 - Confirm Reservation;
 - monthly Invoice generation;
@@ -2700,7 +2778,7 @@ For `RENTAL_FEE`, the configured `MonthlyPaymentDueDay` is the final non-overdue
   "paymentId": "uuid",
   "invoiceId": "uuid",
   "amount": 1500000.00,
-  "paymentMethod": "MOMO",
+  "paymentMethod": "PAYOS",
   "transactionCode": null,
   "status": "PENDING",
   "paidAt": null,
@@ -2764,9 +2842,9 @@ For `RENTAL_FEE`, the configured `MonthlyPaymentDueDay` is the final non-overdue
 | `RES-005` | `POST` | `/api/v1/reservations/{reservationId}/cancel` | Cancel eligible Reservation | CUSTOMER | CWP-04 |
 | `BIL-001` | `GET` | `/api/v1/invoices` | Authorized own / Facility / system Invoice list | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-08/CWP-11 / operational monitoring |
 | `BIL-002` | `GET` | `/api/v1/invoices/{invoiceId}` | Authorized own / Facility / system Invoice detail | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-08/CWP-11 / operational monitoring |
-| `PAY-001` | `POST` | `/api/v1/invoices/{invoiceId}/payments/momo` | Start MoMo payment for Deposit/Rental Invoice | CUSTOMER | CWP-04/CWP-08 |
+| `PAY-001` | `POST` | `/api/v1/invoices/{invoiceId}/payments/payos` | Start payOS payment for Deposit/Rental Invoice | CUSTOMER | CWP-04/CWP-08 |
 | `PAY-003` | `GET` | `/api/v1/payments/{paymentId}` | Authorized own / Facility / system Payment status | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-08 / operational verification |
-| `PAY-004` | `POST` | `/api/v1/payments/momo/callback` | MoMo provider callback | EXTERNAL | EPS-01/SSP-07 |
+| `PAY-004` | `POST` | `/api/v1/payments/payos/webhook` | payOS provider webhook | EXTERNAL | EPS-01/SSP-07 |
 | `CON-001` | `GET` | `/api/v1/contracts` | Customer own / Manager Facility / BOM system Contract list | CUSTOMER,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-06 / operational monitoring |
 | `CON-002` | `GET` | `/api/v1/contracts/{contractId}` | Authorized own / Facility / system Contract detail | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-06 / operational read |
 | `CON-003` | `POST` | `/api/v1/contracts/{contractId}/renew` | Renew active Contract | CUSTOMER | CWP-09 |
@@ -3172,59 +3250,47 @@ Success returns authoritative Reservation state.
 
 Reuse canonical InvoiceDetail/PaymentDetail and standard list/detail envelopes. BIL-001 returns a server-filtered paginated Invoice collection; BIL-002/PAY-003 return the authorized detail. Roles are CUSTOMER, FACILITY_STAFF, FACILITY_MANAGER and BUSINESS_OPERATIONS_MANAGER. Apply the Invoice/Payment relationship resolution in section 13.11.1, including Deposit -> Reservation and Rental Fee -> Contract.
 
-Employee GET access can verify persisted payment/invoice state but cannot initiate PAY-001, submit a provider callback as a trusted actor, mutate money or manually mark PAID/SUCCESS. Neither this read nor CON-004 creates a first-month Invoice/Payment. Expose existing financial status/detail only, not gateway secrets or technical provider payloads.
+Employee GET access can verify persisted payment/invoice state but cannot initiate PAY-001, submit a provider webhook as a trusted actor, mutate money or manually mark PAID/SUCCESS. Neither this read nor CON-004 creates a first-month Invoice/Payment. Expose existing financial status/detail only, not gateway secrets or technical provider payloads.
 
-### PAY-001 — Start MoMo Payment for Existing Invoice
+### PAY-001 — Start payOS Payment for Existing Invoice
 
-Request:
+`POST /api/v1/invoices/{invoiceId}/payments/payos`; ACTIVE CUSTOMER only, with authoritative ownership checks.
+No client redirect URL or amount is accepted. The UUID `Idempotency-Key` header identifies one deliberate action; automatic retries reuse it and new deliberate retries use a new key.
 
-```json
-{
-  "returnUrl": "https://frontend.example/payment-result"
-}
-```
+Response: `ApiResponse<{ paymentId, invoiceId, amount, paymentMethod: "PAYOS", status, paymentUrl }>`.
+First available session returns 201 with Location; same-key retries return 200 with the same stored attempt.
+PAY-003 may also return historical `MOMO`/`VNPAY` methods, but never session URL or idempotency key.
+A key bound to another Invoice yields PAYMENT_IDEMPOTENCY_CONFLICT without disclosing its Payment.
 
-Response:
-
-```json
-{
-  "data": {
-    "paymentId": "uuid",
-    "invoiceId": "uuid",
-    "amount": 1500000.00,
-    "paymentMethod": "MOMO",
-    "status": "PENDING",
-    "paymentUrl": "<provider redirect URL>"
-  }
-}
-```
-
-FE MUST NOT treat redirect completion as payment success. FE refreshes `PAY-003` / invoice status.
+Order: authenticate ACTIVE Customer -> load Invoice/ownership -> validate key -> resolve existing key/conflict -> validate new-attempt eligibility/integral positive VND amount -> local gateway configuration/preflight -> atomic CreateOrGet -> provider create only for Created -> persist session.
+Existing authorized attempts bypass gateway configuration; terminal attempts stay terminal. Known configuration failures/cancellation do not consume a key or write FAILED. No database transaction spans a provider call.
+New attempts are Deposit or Rental Fee with BillingMonth > Contract.StartMonth, Invoice UNPAID/OVERDUE, server-owned AmountDue.
+Fractional or non-positive VND yields PAYMENT_AMOUNT_UNSUPPORTED; no rounding or auto-settlement.
+ReturnUrl/CancelUrl are server configuration only. Browser return/cancel are not proof of success; refresh PAY-003/BIL-002. Cancel does not implicitly write FAILED.
+Unknown provider outcome/timeout leaves PENDING; recovery of stranded attempts remains outside this replacement.
 
 ### First-month offline collection — no payment endpoint
 
 The first rental month is collected offline before Staff invokes OPS-004. Successful Contract creation records settlement; no first-month Invoice or Payment is created, returned or linked.
 
-PAY-002 is retired by REV-2026-10-07-FM-OFFLINE and removed from the current endpoint inventory. Its identifier must not be reused. Do not expose/call the old first-month MoMo route, substitute PAY-001 for it, or fabricate an Invoice/Payment for Contract.StartMonth.
+PAY-002 is retired by REV-2026-10-07-FM-OFFLINE and removed from the current endpoint inventory. Its identifier must not be reused. Do not expose/call any old first-month gateway route, substitute PAY-001 for it, or fabricate an Invoice/Payment for Contract.StartMonth.
 
 The amount is Reservation.LockedRentalPrice without Contract Discount. A Discount selected at handover may apply to eligible invoices strictly after Contract.StartMonth. Deposit and later Rental Fee invoices retain PAY-001/PAY-003/PAY-004.
 
 Contract existence records Staff's offline-receipt acknowledgment, not gateway verification. No separate Payment SUCCESS status is required for the first month.
 
-### PAY-004 — MoMo Callback
+### PAY-004 — payOS Webhook
 
-This endpoint is provider-facing, not FE-facing.
-
-The exact raw provider payload is adapter-specific and is **not normalized into an invented SRS payload**.
-
-Normative behavior:
-
-```text
-verify provider authenticity/reference
--> map provider payload to internal payment result
--> call idempotent usp_ApplyPaymentResult
--> return provider-required acknowledgement
-```
+`POST /api/v1/payments/payos/webhook`, anonymous at JWT boundary, bounded JSON body. No browser-return mutation route exists.
+Infrastructure verifies HMAC-SHA256 over alphabetically sorted `data` using official payment-request canonicalization (including null/arrays/types), constant-time comparison when implemented locally.
+Reject invalid/malformed/duplicate-property payloads before repository access. Never log raw payload, signature, keys or complete checkoutUrl.
+Require `code == "00"`, `success == true`, `data.code == "00"`, positive integral VND, valid reference, and parseable transactionDateTime.
+Owner-approved timestamp interpretation: provider `yyyy-MM-dd HH:mm:ss` is UTC+7; convert exactly once to UTC, independently of server timezone.
+Business resolves verified orderCode to the persisted PAYOS Payment and checks the persisted amount before entering `usp_ApplyPaymentResult`. Description is display-only and never authoritative identity.
+A verified unknown order (including registration sample) returns HTTP200 with no Payment/Invoice mutation. Sequence starts at 1000 so the documented sample orderCode 123 cannot be allocated.
+Applied/duplicate/terminal-conflict results acknowledge HTTP200 without repeated financial effects.
+Invalid signature/payload -> controlled HTTP400; amount/reference conflicts -> controlled HTTP409; transient processing failure -> controlled HTTP503 with traceId (not acknowledged as successful).
+Only verified results enter the idempotent SQL transaction. No registration call to /confirm-webhook or production call is permitted during this code/mock phase.
 
 ## 13.16 Contract / Visit API Contracts
 
@@ -4174,7 +4240,7 @@ Not every transport is JSON:
 
 1. `INS-006` uses `multipart/form-data` for binary evidence.
 2. `REP-004` returns an export file.
-3. `PAY-004` accepts provider-defined callback payload through the MoMo adapter; SRS specifies behavior, not invented gateway fields.
+3. `PAY-004` accepts signed payOS JSON through the provider adapter; see the locked PAY-004 contract.
 
 # 14. Frontend Requirements
 
@@ -4363,9 +4429,9 @@ Start payment
 -> UI reflects authoritative server status
 ```
 
-Navigation to/from MoMo is never proof of payment success.
+Navigation to/from payOS is never proof of payment success.
 
-For the first month, Customer receives offline-payment instructions and Staff acknowledges full receipt by submitting Complete Handover. Do not show a first-month MoMo payment button or create an initial Invoice/Payment history row. Contract creation records settlement; absence of an initial invoice is intentional, not an unpaid charge.
+For the first month, Customer receives offline-payment instructions and Staff acknowledges full receipt by submitting Complete Handover. Do not show a first-month payOS payment button or create an initial Invoice/Payment history row. Contract creation records settlement; absence of an initial invoice is intentional, not an unpaid charge.
 
 Staff sees the server-owned Reservation.LockedRentalPrice and must acknowledge full receipt before submitting OPS-004. The authorized request itself is the acknowledgment; no separately persisted first-month-paid flag is required. UI checks do not replace server authorization and lifecycle validation.
 
@@ -4432,28 +4498,19 @@ Any mismatch must be resolved before Release 1 acceptance.
 # 15. External Integration and System Services
 
 
-## 15.1 MoMo Sandbox
+## 15.1 payOS Payment Processing
 
-Current gateway scope:
+Deposit and Rental Fee invoices strictly after Contract.StartMonth only. No first-month Invoice/Payment.
+payOS supports individual/household-business onboarding and has no sandbox/staging; official API is production.
+This phase uses mocks/fixtures only: no real links, /confirm-webhook registration or transfers; live E2E requires separate owner approval.
+Staff/Manager cannot manually mark Invoice paid.
 
-```text
-Deposit
-Rental Fee invoices for BillingMonth > Contract.StartMonth
-```
+## 15.2 payOS Webhook Processing
 
-Payment state is taken from gateway result/callback.
-
-Facility Staff/Manager MUST NOT manually mark Invoice paid.
-
-## 15.2 Payment Callback Processing
-
-Required characteristics:
-
-- validate gateway transaction/reference;
-- update Payment idempotently;
-- update related Invoice where applicable;
-- repeated success callback creates no duplicate financial/lifecycle effect;
-- current-model callbacks concern existing Invoices only; offline first-month receipt has no MoMo callback and must not create an Invoice/Payment. Legacy data/callback handling requires the deployment review in section 0.0.
+See PAY-004 for signed JSON validation, UTC+7 normalization and acknowledgement semantics.
+Use ProviderOrderCode to resolve the Payment, reference for gateway-result idempotency, verified amount and timestamp, and authoritative usp_ApplyPaymentResult.
+Late success on CANCELLED Invoice records Payment SUCCESS with LATE_SUCCESS_ON_CANCELLED_INVOICE audit, leaves Invoice CANCELLED, and never revives Reservation/Contract or executes refund.
+Duplicate delivery, second legitimate success and terminal/reference conflicts preserve existing atomic SQL behavior and Invoice.PaidAt first-transition semantics.
 
 ## 15.3 Notification Processing
 
@@ -4670,7 +4727,7 @@ JWT access token
 JWT signing key
 refresh token (if introduced in future)
 database credential
-MoMo secret
+payOS ApiKey/ChecksumKey
 AI/provider secret
 InspectionEvidence.FileData
 ```
@@ -4683,7 +4740,7 @@ These values MUST NOT appear in AuditLog old/new snapshots either.
 
 | Operation | Idempotency/invariant | Repeat behavior |
 |---|---|---|
-| MoMo callback | gateway transaction/reference | no duplicate Payment/Invoice effect |
+| payOS webhook | `orderCode` / `reference` | no duplicate Payment/Invoice effect |
 | Confirm Reservation | one Reservation + one RESERVATION Visit | no second Visit |
 | Complete Handover | unique `Contract.ReservationId` + terminal state | return existing outcome or controlled already-completed conflict |
 | Monthly Invoice | unique Contract + BillingMonth | reuse/reject duplicate logical Invoice |
@@ -4719,7 +4776,7 @@ Environment/configuration includes:
 - SQL Server connection;
 - JWT signing settings;
 - BCrypt work factor;
-- MoMo settings;
+- payOS settings;
 - AI provider settings if enabled;
 - notification settings;
 - email provider / `IEmailService` settings;
@@ -4940,9 +4997,11 @@ FUNCTION ApplyPaymentResult(gatewayResult):
 
     update Payment status
 
-    IF SUCCESS and linked Invoice exists
+    IF SUCCESS and linked Invoice.Status in (UNPAID, OVERDUE)
         Invoice.Status = PAID
-        set PaidAt
+        Invoice.PaidAt = verified provider success timestamp normalized to UTC
+    // Already PAID/CANCELLED: preserve Invoice status and PaidAt.
+    // Payment.PaidAt records each legitimate successful attempt separately.
 ```
 
 ## 17.9 Renewal
@@ -5131,7 +5190,7 @@ Security acceptance is primarily behavioral and test-driven, not based on UI hid
 FRMS MUST preserve business-state correctness under:
 
 - repeated HTTP requests;
-- duplicate payment callbacks;
+- duplicate payOS webhooks;
 - scheduled-job retries;
 - concurrent Reservation/Renewal/Handover/Inspection actions;
 - external-provider timeout/failure;
@@ -5179,7 +5238,7 @@ The following invariants MUST hold under concurrency:
 - one logical Deposit Invoice per Reservation;
 - one settlement per Contract;
 - one active Policy version;
-- no duplicate callback financial effect.
+- no duplicate webhook financial effect.
 
 Concurrency correctness MUST be proven with real SQL Server integration tests.
 
@@ -5261,7 +5320,7 @@ Release 1 availability behavior:
 
 - AI Size Guide failure MUST NOT block manual browsing/reservation;
 - notification delivery failure leaves NotificationLog `PENDING` for retry;
-- MoMo provider failure MUST NOT mark Invoice paid;
+- payOS provider failure MUST NOT mark Invoice paid;
 - external-provider error is returned as controlled `502/503` behavior where applicable;
 - failed critical transaction MUST leave the prior consistent state;
 - scheduled jobs can resume/retry without duplicate logical effects;
@@ -5282,7 +5341,7 @@ Release 1 UI MUST provide:
 - clear current lifecycle/status display;
 - disabled/unavailable action explanation where practical;
 - GMT+7 display for timestamps;
-- server-authoritative payment/status refresh after MoMo return.
+- server-authoritative payment/status refresh after payOS browser return.
 
 Frontend MUST NOT present local calculations as authoritative financial/capacity results.
 
@@ -5333,7 +5392,7 @@ SQL Server -> real database integration/concurrency tests
 | TG-05 Transaction / Concurrency / Idempotency Testing | `CON-*` | Races, rollback, duplicate actions |
 | TG-06 Authentication / Authorization / Security Testing | `SEC-*` | BCrypt, JWT, RBAC, facility/resource scope |
 | TG-07 API / Postman Testing | `API-*` | REST contracts and business responses |
-| TG-08 External Integration / Background Job Testing | `INT-*`, `JOB-*` | MoMo, AI, notification, scheduler |
+| TG-08 External Integration / Background Job Testing | `INT-*`, `JOB-*` | payOS, AI, notification, scheduler |
 | TG-09 Playwright End-to-End Testing | `E2E-*` | Seven business flows |
 | TG-10 Regression / Acceptance Testing | `REG-*`, `ACC-*` | Whole-system release confidence |
 
@@ -5362,7 +5421,7 @@ EF Core InMemory is not sufficient evidence for those behaviors.
 | `DBT-06` | Two handovers allocate same StorageUnit | exactly one succeeds |
 | `DBT-07` | Contract uses another Customer's Discount | rejected |
 | `DBT-08` | Duplicate Rental Invoice for Contract/BillingMonth | rejected/prevented |
-| `DBT-09` | Same MoMo callback twice | no duplicate effect |
+| `DBT-09` | Same payOS webhook twice | no duplicate effect |
 | `DBT-10` | Two Staff claim same Inspection | exactly one succeeds |
 | `DBT-11` | Renewal and Reservation compete for last future capacity | no overbooking |
 | `DBT-12` | Existing Contract after new Policy activation | old captured Policy remains |
@@ -5388,7 +5447,7 @@ CON-HO-*   Same StorageUnit handover race
 CON-REN-*  Renewal vs Reservation capacity race
 CON-INS-*  Inspection claim race
 CON-DMG-*  Concurrent Damage approval/rejection decision
-CON-PAY-*  Duplicate MoMo callback
+CON-PAY-*  Duplicate payOS webhook
 CON-INV-*  Duplicate invoice generation
 CON-RET-*  Duplicate return finalization
 CON-RET-*  Handover cannot reuse a Unit before return finalization commits
@@ -5417,7 +5476,7 @@ Successful OPS-004 Contract can be read through CON-002 without initial Invoice/
 Same-Facility Manager lists/details and BOM system-wide operational reads are authorized
 Wrong-Facility Manager and cross-Customer catalogue/detail requests are denied
 Collection filtering/counting precedes pagination and never leaks other Facilities
-Staff/Manager Invoice/Payment GET access cannot initiate MoMo or manually mark PAID
+Staff/Manager Invoice/Payment GET access cannot initiate payOS or manually mark PAID
 Customer/Staff/Manager Discount reads preserve ownership/Facility and immutable captured semantics
 Staff/Manager ExtraFeeType reads expose ACTIVE deployment rows only; write roles unchanged
 Staff cannot approve/reject Damage
@@ -5555,7 +5614,7 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 | `SSP-04` | Reservation Deposit Expiration | System / Khoa | job_ExpirePendingReservations | Policy timeout | JOB/DBT | Yes |
 | `SSP-05` | Handover Window Expiration | System / Khoa | job_ProcessReservationNoShow | Policy visit window | JOB/DBT | Yes |
 | `SSP-06` | Rental Fee Calculation | System / Giang | Billing APIs/jobs | CALC-INV-*; CALC-DIS-* | UT/DBT/API | Yes |
-| `SSP-07` | Payment Result Processing | System / Giang | PAY-004 | BR-PAY-01 | DBT-09, CON-PAY, INT-MOMO | Yes |
+| `SSP-07` | Payment Result Processing | System / Giang | PAY-004 | BR-PAY-01 | DBT-09, CON-PAY, INT-PAYOS | Yes |
 | `SSP-08` | Atomic Complete Handover without first-month Invoice/Payment | System / Khoa | OPS-004 | BR-HO-02..03; BR-BIL-06 | DBT-06/24, CON-HO | Yes |
 | `SSP-09` | Monthly Billing Management | System / Giang | billing jobs | BR-BIL-* | DBT-08, CON-INV, JOB | Yes |
 | `SSP-10` | Overdue & Late Fee Calculation | System / Giang | CON-004 + jobs | BR-BIL-05; BR-LATE-* | UT/JOB/DBT | Yes |
@@ -5567,7 +5626,7 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 | `SSP-16` | Policy Version Application | System / Long | BOM-008..009 | BR-POL-* | DBT-12, CON-POL | Yes |
 | `SSP-17` | RBAC & Facility Authorization | System / Long | all protected endpoints | actor matrix | SEC-* | Yes |
 | `SSP-18` | Actor & Activity Audit | System / Long | audit paths | BR-AUD-01 | DAL/API/REG | Yes |
-| `EPS-01` | MoMo Sandbox Payment Processing (Deposit and later Rental Invoices) | External / Giang | PAY-001, PAY-003, PAY-004 | BR-PAY-01 | INT-MOMO, API-PAY | Yes |
+| `EPS-01` | payOS Payment Processing (Deposit and later Rental Invoices) | External / Giang | PAY-001, PAY-003, PAY-004 | BR-PAY-01 | INT-PAYOS, API-PAY | Yes |
 | `EPS-02` | Employee Initial Credential Email Delivery | External / Long | ADM-005, ADM-012 | DD-01 resolved workflow | INT-EMAIL, SEC, API-ADM | Yes |
 
 ## 20.3 API → Service / Stored Procedure Mapping
@@ -5677,7 +5736,7 @@ Core Demo requires:
 [ ] Critical DBT/CON tests pass
 [ ] Role/Facility isolation tests pass
 [ ] Seed/demo data reset process works
-[ ] MoMo Sandbox scenario works
+[ ] approved live payOS scenario works (NOT RUN)
 [ ] No known blocker corrupts lifecycle state
 ```
 
@@ -5708,7 +5767,7 @@ Repository scan/review MUST ensure absence of committed:
 
 - database password;
 - JWT signing key;
-- MoMo secret;
+- payOS ApiKey/ChecksumKey;
 - AI provider key;
 - notification credentials;
 - plaintext production password.
@@ -5758,7 +5817,7 @@ Phase 0 is Done when all Section 6.1.1 exit-gate items pass.
 ```text
 [ ] Seven flows demonstrated end-to-end
 [ ] Five roles demonstrate required actions
-[ ] Deposit + Rental Fee MoMo Sandbox flows work
+[ ] approved live payOS Deposit + Rental Fee flows work (NOT RUN)
 [ ] Critical lifecycle transactions are atomic
 [ ] Critical concurrency scenarios pass
 [ ] Critical RBAC/facility/resource tests pass
@@ -5889,31 +5948,18 @@ Numeric performance measurements MAY be collected during testing, but they are d
 
 This avoids inventing unsupported contractual targets while keeping engineering performance requirements enforceable.
 
-## 23.5 DD-05 — Exact MoMo Wire Payload — RESOLVED
+## 23.5 DD-05 — Exact payOS Wire Payload — RESOLVED
 
-`DESIGN-LOCKED — V9 FINAL`
-
-Exact MoMo Sandbox request/callback fields are **provider-adapter contracts**, not FRMS domain contracts.
-
-Rule:
-
-```text
-MoMo provider DTO
--> MoMo adapter
--> normalized internal payment result
--> PaymentService
--> usp_ApplyPaymentResult
-```
-
-Requirements:
-
-- provider DTOs MUST remain inside the payment-integration boundary;
-- provider-specific field names MUST NOT leak into core Service/Repository/domain contracts;
-- callback authenticity/reference validation MUST occur before applying payment result;
-- idempotency remains governed by gateway transaction/reference;
-- Swagger may document the callback as provider-facing and reference the adapter/provider specification used by the implementation.
-
-A change in provider wire fields does not require a business-domain change as long as normalized FRMS payment semantics remain unchanged.
+`DESIGN-LOCKED — V10 FINAL / REV-2026-10-09-PAYOS`
+Technical sources: https://payos.vn/docs/api/, https://payos.vn/docs/du-lieu-tra-ve/webhook/, https://payos.vn/docs/tich-hop-webhook/kiem-tra-du-lieu-voi-signature/, https://payos.vn/docs/sdks/back-end/net/ (checked 2026-10-09).
+Wire DTOs and signatures remain Infrastructure/API transport concerns, never Business/Repository domain contracts.
+Create request signature contains exactly alphabet-sorted amount, cancelUrl, description, orderCode, returnUrl; expiredAt is sent but excluded from this signature fieldset.
+Description is the owner-approved ASCII literal FRMS (4 characters; within the documented 9-character restricted-account limit). Traceability uses ProviderOrderCode -> PaymentId.
+Amount/orderCode use signed 64-bit integers, matching official .NET long models and SQL BIGINT. expiredAt must fit the documented Int32 Unix timestamp range.
+Validate successful create envelope/signature, orderCode/amount/currency, initial PENDING status, HTTPS checkoutUrl and usable expiry before persisting.
+If response omits expiry, persist the explicitly requested server expiry; never invent a provider expiry interval.
+No automatic HTTP retries of create requests; only the Created request invokes the provider.
+Only verified webhook success may set financial state; SDK/provider status enums do not add persisted Payment statuses.
 
 ## 23.6 DD-06 — Password Complexity Policy — RESOLVED
 
@@ -6403,7 +6449,7 @@ V10 FINAL consolidates the following implementation baseline, including the owne
 53. SRS JSON schemas, Swagger/OpenAPI and FE TypeScript models must remain aligned.
 54. Binary InspectionEvidence upload uses multipart/form-data.
 55. Report export is a UTF-8 CSV file response.
-56. MoMo wire payload remains behind the payment adapter.
+56. payOS wire payload remains behind the payment adapter.
 57. Business algorithms in the SRS are expressed in pseudocode.
 58. Ten testing groups are mandatory delivery structure.
 59. Real SQL Server integration tests are required for stored procedure/trigger/index/locking proof.
@@ -6426,7 +6472,7 @@ V10 FINAL consolidates the following implementation baseline, including the owne
 76. Any post-V9 semantic change requires an explicit SRS revision/change record.
 77. Release 1 report export format is UTF-8 CSV.
 78. Release 1 has no mandatory numeric performance/uptime SLA beyond qualitative NFRs.
-79. MoMo wire DTOs remain adapter/provider-specific and outside domain contracts.
+79. payOS wire DTOs remain adapter/provider-specific and outside domain contracts.
 80. Password validation is 8–64 characters with no mandatory composition classes and BCrypt input <=72 bytes.
 81. Login identifiers cannot be changed in Release 1.
 82. Runtime AI provider is provider-agnostic/configuration-selected.
@@ -6520,7 +6566,7 @@ FRMS Release 1 is accepted only when all applicable conditions below are true.
 [ ] Stable error.code handling implemented
 [ ] Pagination contract implemented
 [ ] Protected endpoints enforce server-side authorization
-[ ] Retired first-month MoMo route/payment reference are absent from current API/FE contracts
+[ ] Retired first-month online-payment route/payment reference are absent from current API/FE contracts
 [ ] OPS-004 follows the approved offline DD-13 model without initial Invoice/Payment
 [ ] Staff detail read RES-003/CON-002/VIS-004 and OPS-001 Visit navigation match the approved operational contract
 [ ] ContractDetail remains unchanged; locked rent and handover Visit are read through its ReservationId
@@ -6570,7 +6616,7 @@ All known DD-01..DD-18 decisions are resolved in V9.
 [ ] Employee initial credential email flow verified
 [ ] Facility Manager Damage decision flow verified
 [ ] Offline first-month amount and Staff acknowledgment verified
-[ ] No Invoice/Payment is generated for Contract.StartMonth by billing/return/callback paths
+[ ] No Invoice/Payment is generated for Contract.StartMonth by billing/return/webhook paths
 [ ] Later-invoice Discount behavior and Contract-derived first-month revenue verified
 [ ] Production DamageType seed verified
 [ ] No implementation introduces an unrecorded new business decision
@@ -6615,7 +6661,7 @@ During rental:
 ACTIVE Contract
 -> ACCESS Visit(s)
 -> monthly Invoice(s) strictly after Contract.StartMonth
--> MoMo Payment / Overdue / LateFee for those invoices
+-> payOS Payment / Overdue / LateFee for those invoices
 -> optional Renewal -> ContractExtension
 ```
 
@@ -6645,7 +6691,7 @@ RETURN Visit
 | Contract | Rental agreement, occupancy source and first-month offline settlement record after successful handover |
 | ContractExtension | Append-only successful renewal history |
 | Invoice | DEPOSIT or second-month-onward RENTAL_FEE billing record; none for the initial month |
-| Payment | Invoice-backed MoMo payment attempt/result; no first-month offline Payment |
+| Payment | Invoice-backed payOS payment attempt/result; no first-month offline Payment |
 | Policy | Complete immutable versioned operational-parameter row |
 | Inspection | Official return/recovery inspection record |
 | DamageRecord | Damage found during Inspection |
@@ -6752,9 +6798,9 @@ Quick index:
 | `RES-005` | `POST` | `/api/v1/reservations/{reservationId}/cancel` |
 | `BIL-001` | `GET` | `/api/v1/invoices` |
 | `BIL-002` | `GET` | `/api/v1/invoices/{invoiceId}` |
-| `PAY-001` | `POST` | `/api/v1/invoices/{invoiceId}/payments/momo` |
+| `PAY-001` | `POST` | `/api/v1/invoices/{invoiceId}/payments/payos` |
 | `PAY-003` | `GET` | `/api/v1/payments/{paymentId}` |
-| `PAY-004` | `POST` | `/api/v1/payments/momo/callback` |
+| `PAY-004` | `POST` | `/api/v1/payments/payos/webhook` |
 | `CON-001` | `GET` | `/api/v1/contracts` |
 | `CON-002` | `GET` | `/api/v1/contracts/{contractId}` |
 | `CON-003` | `POST` | `/api/v1/contracts/{contractId}/renew` |
@@ -6854,7 +6900,7 @@ DBT-05  cancel after CHECKED_IN
 DBT-06  same-unit concurrent Handover
 DBT-07  cross-customer Discount
 DBT-08  duplicate monthly Rental Invoice
-DBT-09  duplicate MoMo callback
+DBT-09  duplicate payOS webhook
 DBT-10  concurrent Inspection claim
 DBT-11  Renewal vs Reservation capacity race
 DBT-12  historical Contract retains old Policy
