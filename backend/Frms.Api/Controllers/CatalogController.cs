@@ -1,3 +1,4 @@
+using Frms.Business.Models.Results;
 using Frms.Api.Authorization;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Services.Interfaces;
@@ -105,7 +106,7 @@ public sealed class CatalogController(
     }
 
     private static UnitTypeSummary Map(
-        Frms.DataAccess.Persistence.Entities.UnitType unitType)
+        UnitTypeResult unitType)
         => new(
             unitType.UnitTypeId,
             unitType.Name,

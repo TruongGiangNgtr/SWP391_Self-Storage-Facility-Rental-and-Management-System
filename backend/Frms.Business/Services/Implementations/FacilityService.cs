@@ -1,3 +1,4 @@
+using Frms.Business.Models.Results;
 using Frms.Business.Services.Interfaces;
 using Frms.DataAccess.Persistence.Entities;
 using Frms.DataAccess.Repositories.Interfaces;
@@ -6,13 +7,13 @@ namespace Frms.Business.Services.Implementations;
 
 internal sealed class FacilityService(
     IFacilityRepository facilityRepository) : IFacilityService {
-    public Task<(IReadOnlyList<Facility> Items, int TotalItems)> GetPagedAsync(
+    private Task<(IReadOnlyList<Facility> Items, int TotalItems)> GetPagedCoreAsync(
         int page,
         int pageSize,
         CancellationToken cancellationToken = default)
         => facilityRepository.GetPagedAsync(page, pageSize, cancellationToken);
 
-    public async Task<Facility> CreateAsync(
+    private async Task<Facility> CreateCoreAsync(
         string name,
         string address,
         string? contactInfo,
@@ -32,7 +33,7 @@ internal sealed class FacilityService(
         return facility;
     }
 
-    public async Task<Facility?> UpdateAsync(
+    private async Task<Facility?> UpdateCoreAsync(
         Guid facilityId,
         string? name,
         string? address,
@@ -65,7 +66,7 @@ internal sealed class FacilityService(
         return facility;
     }
 
-    public async Task<Facility?> ActivateAsync(
+    private async Task<Facility?> ActivateCoreAsync(
         Guid facilityId,
         CancellationToken cancellationToken = default) {
         var facility = await facilityRepository.GetByIdAsync(
@@ -82,7 +83,7 @@ internal sealed class FacilityService(
         return facility;
     }
 
-    public async Task<Facility?> DeactivateAsync(
+    private async Task<Facility?> DeactivateCoreAsync(
         Guid facilityId,
         CancellationToken cancellationToken = default) {
         var facility = await facilityRepository.GetByIdAsync(
@@ -103,4 +104,33 @@ internal sealed class FacilityService(
         => string.IsNullOrWhiteSpace(value)
             ? null
             : value.Trim();
+
+    public async Task<(IReadOnlyList<FacilityResult> Items, int TotalItems)> GetPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var row = await GetPagedCoreAsync(page, pageSize, cancellationToken);
+        return (row.Items.Select(ServiceResultProjection.Map).ToArray(), row.TotalItems);
+    }
+
+    public async Task<FacilityResult> CreateAsync(string name, string address, string? contactInfo, string? description, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await CreateCoreAsync(name, address, contactInfo, description, cancellationToken));
+    }
+
+    public async Task<FacilityResult?> UpdateAsync(Guid facilityId, string? name, string? address, string? contactInfo, string? description, bool contactInfoSupplied, bool descriptionSupplied, CancellationToken cancellationToken = default)
+    {
+        var row = await UpdateCoreAsync(facilityId, name, address, contactInfo, description, contactInfoSupplied, descriptionSupplied, cancellationToken);
+        return row is null ? null : ServiceResultProjection.Map(row);
+    }
+
+    public async Task<FacilityResult?> ActivateAsync(Guid facilityId, CancellationToken cancellationToken = default)
+    {
+        var row = await ActivateCoreAsync(facilityId, cancellationToken);
+        return row is null ? null : ServiceResultProjection.Map(row);
+    }
+
+    public async Task<FacilityResult?> DeactivateAsync(Guid facilityId, CancellationToken cancellationToken = default)
+    {
+        var row = await DeactivateCoreAsync(facilityId, cancellationToken);
+        return row is null ? null : ServiceResultProjection.Map(row);
+    }
 }

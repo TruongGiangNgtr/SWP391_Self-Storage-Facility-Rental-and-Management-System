@@ -1,3 +1,4 @@
+using Frms.Business.Models.Results;
 using Frms.Business.Abstractions.Security;
 using Frms.Business.Exceptions;
 using Frms.Business.Services.Interfaces;
@@ -15,7 +16,7 @@ internal sealed class VisitService(
     IClock clock)
     : IVisitService
 {
-    public async Task<Visit> CheckOutAsync(
+    private async Task<Visit> CheckOutCoreAsync(
     Guid visitId,
     CancellationToken cancellationToken = default)
 {
@@ -101,7 +102,7 @@ internal sealed class VisitService(
             409);
     }
 }
-    public async Task<Visit> CreateAccessAsync(
+    private async Task<Visit> CreateAccessCoreAsync(
         Guid contractId,
         DateOnly visitDate,
         CancellationToken cancellationToken = default) {
@@ -212,8 +213,7 @@ internal sealed class VisitService(
         }
     }
 
-    public async Task<(IReadOnlyList<Visit> Items, int TotalItems)>
-    ListAccessibleAsync(
+    private async Task<(IReadOnlyList<Visit> Items, int TotalItems)> ListAccessibleCoreAsync(
         int page,
         int pageSize,
         CancellationToken cancellationToken = default) {
@@ -235,7 +235,7 @@ internal sealed class VisitService(
 
         switch (currentUser.Role) {
             case "CUSTOMER":
-                return await ListOwnAsync(
+                return await ListOwnCoreAsync(
                     page,
                     pageSize,
                     cancellationToken);
@@ -290,7 +290,7 @@ internal sealed class VisitService(
         }
     }
 
-    public async Task<(IReadOnlyList<Visit> Items, int TotalItems)> ListOwnAsync(
+    private async Task<(IReadOnlyList<Visit> Items, int TotalItems)> ListOwnCoreAsync(
         int page,
         int pageSize,
         CancellationToken cancellationToken = default)
@@ -318,7 +318,7 @@ internal sealed class VisitService(
         return (items, totalItems);
     }
 
-    public async Task<Visit> GetOwnAsync(
+    private async Task<Visit> GetOwnCoreAsync(
         Guid visitId,
         CancellationToken cancellationToken = default)
     {
@@ -340,7 +340,7 @@ internal sealed class VisitService(
         return visit;
     }
 
-    public async Task<Visit> RescheduleAsync(
+    private async Task<Visit> RescheduleCoreAsync(
         Guid visitId,
         DateOnly visitDate,
         CancellationToken cancellationToken = default)
@@ -479,7 +479,7 @@ internal sealed class VisitService(
             cancellationToken);
     }
 
-    public async Task<Visit> CancelAsync(
+    private async Task<Visit> CancelCoreAsync(
         Guid visitId,
         string reason,
         CancellationToken cancellationToken = default)
@@ -566,7 +566,7 @@ internal sealed class VisitService(
                    404);
     }
 
-    public async Task<Visit> CheckInAsync(
+    private async Task<Visit> CheckInCoreAsync(
         Guid visitId,
         CancellationToken cancellationToken = default)
     {
@@ -711,7 +711,7 @@ internal sealed class VisitService(
         }
     }
 
-    public async Task<Visit> GetByIdAsync(
+    private async Task<Visit> GetByIdCoreAsync(
         Guid visitId,
         CancellationToken cancellationToken = default)
     {
@@ -724,7 +724,7 @@ internal sealed class VisitService(
 
         switch (currentUser.Role) {
             case "CUSTOMER":
-                return await GetOwnAsync(
+                return await GetOwnCoreAsync(
                     visitId,
                     cancellationToken);
 
@@ -815,5 +815,52 @@ internal sealed class VisitService(
                     "Visit referenced resource was not found.",
                     404);
         }
+    }
+
+    public async Task<(IReadOnlyList<VisitResult> Items, int TotalItems)> ListOwnAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var row = await ListOwnCoreAsync(page, pageSize, cancellationToken);
+        return (row.Items.Select(ServiceResultProjection.Map).ToArray(), row.TotalItems);
+    }
+
+    public async Task<(IReadOnlyList<VisitResult> Items, int TotalItems)> ListAccessibleAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var row = await ListAccessibleCoreAsync(page, pageSize, cancellationToken);
+        return (row.Items.Select(ServiceResultProjection.Map).ToArray(), row.TotalItems);
+    }
+
+    public async Task<VisitResult> GetOwnAsync(Guid visitId, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await GetOwnCoreAsync(visitId, cancellationToken));
+    }
+
+    public async Task<VisitResult> GetByIdAsync(Guid visitId, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await GetByIdCoreAsync(visitId, cancellationToken));
+    }
+
+    public async Task<VisitResult> CheckInAsync(Guid visitId, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await CheckInCoreAsync(visitId, cancellationToken));
+    }
+
+    public async Task<VisitResult> CheckOutAsync(Guid visitId, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await CheckOutCoreAsync(visitId, cancellationToken));
+    }
+
+    public async Task<VisitResult> RescheduleAsync(Guid visitId, DateOnly visitDate, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await RescheduleCoreAsync(visitId, visitDate, cancellationToken));
+    }
+
+    public async Task<VisitResult> CancelAsync(Guid visitId, string reason, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await CancelCoreAsync(visitId, reason, cancellationToken));
+    }
+
+    public async Task<VisitResult> CreateAccessAsync(Guid contractId, DateOnly visitDate, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await CreateAccessCoreAsync(contractId, visitDate, cancellationToken));
     }
 }

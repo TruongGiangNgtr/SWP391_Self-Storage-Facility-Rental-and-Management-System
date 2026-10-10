@@ -1,24 +1,24 @@
-using Frms.DataAccess.Persistence.Entities;
+using Frms.Business.Models.Results;
 
 namespace Frms.Business.Services.Interfaces;
 
 public interface IAdminUserService {
     Task<(
         IReadOnlyList<(
-            UserAccount Account,
+            AccountProfileResult Account,
             string RoleName,
-            Customer? Customer,
-            Employee? Employee)> Items,
+            CustomerProfileResult? Customer,
+            EmployeeProfileResult? Employee)> Items,
         int TotalItems)> GetPagedAsync(
             int page,
             int pageSize,
             CancellationToken cancellationToken = default);
 
     Task<(
-        UserAccount Account,
+        AccountProfileResult Account,
         string RoleName,
-        Customer? Customer,
-        Employee? Employee)?> GetByIdAsync(
+        CustomerProfileResult? Customer,
+        EmployeeProfileResult? Employee)?> GetByIdAsync(
             Guid userAccountId,
             CancellationToken cancellationToken = default);
 }

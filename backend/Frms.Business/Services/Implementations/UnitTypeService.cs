@@ -1,3 +1,4 @@
+using Frms.Business.Models.Results;
 using Frms.Business.Services.Interfaces;
 using Frms.DataAccess.Persistence.Entities;
 using Frms.DataAccess.Repositories.Interfaces;
@@ -6,7 +7,7 @@ namespace Frms.Business.Services.Implementations;
 
 internal sealed class UnitTypeService(
     IUnitTypeRepository unitTypeRepository) : IUnitTypeService {
-    public Task<(IReadOnlyList<UnitType> Items, int TotalItems)> GetPagedAsync(
+    private Task<(IReadOnlyList<UnitType> Items, int TotalItems)> GetPagedCoreAsync(
         int page,
         int pageSize,
         CancellationToken cancellationToken = default)
@@ -15,7 +16,7 @@ internal sealed class UnitTypeService(
             pageSize,
             cancellationToken);
 
-    public async Task<UnitType?> UpdatePriceAsync(
+    private async Task<UnitType?> UpdatePriceCoreAsync(
         Guid unitTypeId,
         decimal rentalPrice,
         CancellationToken cancellationToken = default) {
@@ -33,10 +34,10 @@ internal sealed class UnitTypeService(
         return unitType;
     }
 
-    public Task<(
+    private Task<(
     IReadOnlyList<UnitType> Items,
     int TotalItems,
-    string? FacilityStatus)> GetFacilityPagedAsync(
+    string? FacilityStatus)> GetFacilityPagedCoreAsync(
         Guid facilityId,
         int page,
         int pageSize,
@@ -47,10 +48,34 @@ internal sealed class UnitTypeService(
         pageSize,
         cancellationToken);
 
-    public Task<UnitType?> GetByIdAsync(
+    private Task<UnitType?> GetByIdCoreAsync(
         Guid unitTypeId,
         CancellationToken cancellationToken = default)
         => unitTypeRepository.GetByIdAsync(
             unitTypeId,
             cancellationToken);
+
+    public async Task<(IReadOnlyList<UnitTypeResult> Items, int TotalItems)> GetPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var row = await GetPagedCoreAsync(page, pageSize, cancellationToken);
+        return (row.Items.Select(ServiceResultProjection.Map).ToArray(), row.TotalItems);
+    }
+
+    public async Task<UnitTypeResult?> UpdatePriceAsync(Guid unitTypeId, decimal rentalPrice, CancellationToken cancellationToken = default)
+    {
+        var row = await UpdatePriceCoreAsync(unitTypeId, rentalPrice, cancellationToken);
+        return row is null ? null : ServiceResultProjection.Map(row);
+    }
+
+    public async Task<(IReadOnlyList<UnitTypeResult> Items, int TotalItems, string? FacilityStatus)> GetFacilityPagedAsync(Guid facilityId, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var row = await GetFacilityPagedCoreAsync(facilityId, page, pageSize, cancellationToken);
+        return (row.Items.Select(ServiceResultProjection.Map).ToArray(), row.TotalItems, row.FacilityStatus);
+    }
+
+    public async Task<UnitTypeResult?> GetByIdAsync(Guid unitTypeId, CancellationToken cancellationToken = default)
+    {
+        var row = await GetByIdCoreAsync(unitTypeId, cancellationToken);
+        return row is null ? null : ServiceResultProjection.Map(row);
+    }
 }

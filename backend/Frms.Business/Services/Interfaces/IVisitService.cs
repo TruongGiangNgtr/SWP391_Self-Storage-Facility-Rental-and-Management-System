@@ -1,47 +1,47 @@
-using Frms.DataAccess.Persistence.Entities;
+using Frms.Business.Models.Results;
 
 namespace Frms.Business.Services.Interfaces;
 
 public interface IVisitService
 {
-    Task<(IReadOnlyList<Visit> Items, int TotalItems)> ListOwnAsync(
+    Task<(IReadOnlyList<VisitResult> Items, int TotalItems)> ListOwnAsync(
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
 
-    Task<Visit> GetOwnAsync(
+    Task<VisitResult> GetOwnAsync(
         Guid visitId,
         CancellationToken cancellationToken = default);
 
-    Task<Visit> RescheduleAsync(
+    Task<VisitResult> RescheduleAsync(
         Guid visitId,
         DateOnly visitDate,
         CancellationToken cancellationToken = default);
 
-    Task<Visit> CancelAsync(
+    Task<VisitResult> CancelAsync(
         Guid visitId,
         string reason,
         CancellationToken cancellationToken = default);
 
-    Task<Visit> CheckInAsync(
+    Task<VisitResult> CheckInAsync(
         Guid visitId,
         CancellationToken cancellationToken = default);
 
-    Task<Visit> GetByIdAsync(
+    Task<VisitResult> GetByIdAsync(
         Guid visitId,
         CancellationToken cancellationToken = default);
 
-    Task<(IReadOnlyList<Visit> Items, int TotalItems)> ListAccessibleAsync(
+    Task<(IReadOnlyList<VisitResult> Items, int TotalItems)> ListAccessibleAsync(
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
 
-    Task<Visit> CreateAccessAsync(
+    Task<VisitResult> CreateAccessAsync(
         Guid contractId,
         DateOnly visitDate,
         CancellationToken cancellationToken = default);
 
-    Task<Visit> CheckOutAsync(
+    Task<VisitResult> CheckOutAsync(
         Guid visitId,
         CancellationToken cancellationToken = default);
 }

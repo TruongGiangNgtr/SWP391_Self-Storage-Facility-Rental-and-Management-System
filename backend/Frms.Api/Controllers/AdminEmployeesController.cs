@@ -3,7 +3,7 @@ using Frms.Api.DTOs.Responses;
 using Frms.Business.Exceptions;
 using Frms.Business.Models.Commands;
 using Frms.Business.Services.Interfaces;
-using Frms.DataAccess.Persistence.Entities;
+using Frms.Business.Models.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -139,8 +139,8 @@ public sealed class AdminEmployeesController(
 
     private static AdminUserAccountResponse Map(
         (
-            UserAccount Account,
-            Employee Employee,
+            AccountProfileResult Account,
+            EmployeeProfileResult Employee,
             string RoleName) row)
         => new(
             row.Account.UserAccountId,

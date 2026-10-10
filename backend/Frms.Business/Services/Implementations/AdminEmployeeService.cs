@@ -1,3 +1,4 @@
+using Frms.Business.Models.Results;
 using System.Security.Cryptography;
 using Frms.Business.Abstractions.External;
 using Frms.Business.Abstractions.Security;
@@ -20,10 +21,10 @@ internal sealed class AdminEmployeeService(
     private const string SystemAdministrator =
         "SYSTEM_ADMINISTRATOR";
 
-    public async Task<(
+    private async Task<(
         UserAccount Account,
         Employee Employee,
-        string RoleName)> CreateAsync(
+        string RoleName)> CreateCoreAsync(
             CreateAdminEmployeeCommand command,
             CancellationToken cancellationToken = default) {
         var fullName = command.FullName.Trim();
@@ -116,10 +117,10 @@ internal sealed class AdminEmployeeService(
             cancellationToken))!.Value;
     }
 
-    public async Task<(
+    private async Task<(
         UserAccount Account,
         Employee Employee,
-        string RoleName)?> UpdateAsync(
+        string RoleName)?> UpdateCoreAsync(
             Guid employeeId,
             UpdateAdminEmployeeCommand command,
             CancellationToken cancellationToken = default) {
@@ -143,10 +144,10 @@ internal sealed class AdminEmployeeService(
         return row;
     }
 
-    public Task<(
+    private Task<(
         UserAccount Account,
         Employee Employee,
-        string RoleName)?> ActivateAsync(
+        string RoleName)?> ActivateCoreAsync(
             Guid employeeId,
             CancellationToken cancellationToken = default)
         => SetStatusAsync(
@@ -154,10 +155,10 @@ internal sealed class AdminEmployeeService(
             "ACTIVE",
             cancellationToken);
 
-    public Task<(
+    private Task<(
         UserAccount Account,
         Employee Employee,
-        string RoleName)?> DeactivateAsync(
+        string RoleName)?> DeactivateCoreAsync(
             Guid employeeId,
             CancellationToken cancellationToken = default)
         => SetStatusAsync(
@@ -165,10 +166,10 @@ internal sealed class AdminEmployeeService(
             "INACTIVE",
             cancellationToken);
 
-    public async Task<(
+    private async Task<(
         UserAccount Account,
         Employee Employee,
-        string RoleName)?> ResendInitialCredentialAsync(
+        string RoleName)?> ResendInitialCredentialCoreAsync(
             Guid employeeId,
             CancellationToken cancellationToken = default) {
         var row = await adminEmployeeRepository.GetByEmployeeIdAsync(
@@ -301,10 +302,10 @@ internal sealed class AdminEmployeeService(
             message,
             field);
 
-    public async Task<(
+    private async Task<(
     UserAccount Account,
     Employee Employee,
-    string RoleName)?> AssignAsync(
+    string RoleName)?> AssignCoreAsync(
         Guid employeeId,
         string role,
         Guid? facilityId,
@@ -342,5 +343,35 @@ internal sealed class AdminEmployeeService(
         return await adminEmployeeRepository.GetByEmployeeIdAsync(
             employeeId,
             cancellationToken);
+    }
+
+    public async Task<(AccountProfileResult Account, EmployeeProfileResult Employee, string RoleName)> CreateAsync(CreateAdminEmployeeCommand command, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await CreateCoreAsync(command, cancellationToken));
+    }
+
+    public async Task<(AccountProfileResult Account, EmployeeProfileResult Employee, string RoleName)?> UpdateAsync(Guid employeeId, UpdateAdminEmployeeCommand command, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await UpdateCoreAsync(employeeId, command, cancellationToken));
+    }
+
+    public async Task<(AccountProfileResult Account, EmployeeProfileResult Employee, string RoleName)?> ActivateAsync(Guid employeeId, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await ActivateCoreAsync(employeeId, cancellationToken));
+    }
+
+    public async Task<(AccountProfileResult Account, EmployeeProfileResult Employee, string RoleName)?> DeactivateAsync(Guid employeeId, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await DeactivateCoreAsync(employeeId, cancellationToken));
+    }
+
+    public async Task<(AccountProfileResult Account, EmployeeProfileResult Employee, string RoleName)?> ResendInitialCredentialAsync(Guid employeeId, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await ResendInitialCredentialCoreAsync(employeeId, cancellationToken));
+    }
+
+    public async Task<(AccountProfileResult Account, EmployeeProfileResult Employee, string RoleName)?> AssignAsync(Guid employeeId, string role, Guid? facilityId, CancellationToken cancellationToken = default)
+    {
+        return ServiceResultProjection.Map(await AssignCoreAsync(employeeId, role, facilityId, cancellationToken));
     }
 }

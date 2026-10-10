@@ -1,21 +1,21 @@
-using Frms.DataAccess.Persistence.Entities;
+using Frms.Business.Models.Results;
 
 namespace Frms.Business.Services.Interfaces;
 
 public interface IFacilityService {
-    Task<(IReadOnlyList<Facility> Items, int TotalItems)> GetPagedAsync(
+    Task<(IReadOnlyList<FacilityResult> Items, int TotalItems)> GetPagedAsync(
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
 
-    Task<Facility> CreateAsync(
+    Task<FacilityResult> CreateAsync(
         string name,
         string address,
         string? contactInfo,
         string? description,
         CancellationToken cancellationToken = default);
 
-    Task<Facility?> UpdateAsync(
+    Task<FacilityResult?> UpdateAsync(
         Guid facilityId,
         string? name,
         string? address,
@@ -25,11 +25,11 @@ public interface IFacilityService {
         bool descriptionSupplied,
         CancellationToken cancellationToken = default);
 
-    Task<Facility?> ActivateAsync(
+    Task<FacilityResult?> ActivateAsync(
         Guid facilityId,
         CancellationToken cancellationToken = default);
 
-    Task<Facility?> DeactivateAsync(
+    Task<FacilityResult?> DeactivateAsync(
         Guid facilityId,
         CancellationToken cancellationToken = default);
 }

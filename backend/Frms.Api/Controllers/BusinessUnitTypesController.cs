@@ -1,7 +1,7 @@
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Services.Interfaces;
-using Frms.DataAccess.Persistence.Entities;
+using Frms.Business.Models.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -78,7 +78,7 @@ public sealed class BusinessUnitTypesController(
         });
     }
 
-    private static UnitTypeSummary Map(UnitType unitType)
+    private static UnitTypeSummary Map(UnitTypeResult unitType)
         => new(
             unitType.UnitTypeId,
             unitType.Name,

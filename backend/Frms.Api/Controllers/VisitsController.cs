@@ -4,7 +4,7 @@ using Frms.Api.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Frms.Business.Services.Interfaces;
-using Frms.DataAccess.Persistence.Entities;
+using Frms.Business.Models.Results;
 
 namespace Frms.Api.Controllers;
 
@@ -169,7 +169,7 @@ public sealed class VisitsController(
         [FromBody] ConfirmActualReturnRequest request,
         CancellationToken cancellationToken) => ScaffoldNotImplemented("OPS-005");
 
-    private static VisitDetailResponse ToResponse(Visit visit)
+    private static VisitDetailResponse ToResponse(VisitResult visit)
     {
         return new VisitDetailResponse(
             visit.VisitId,

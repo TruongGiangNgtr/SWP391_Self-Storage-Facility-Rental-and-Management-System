@@ -2,7 +2,7 @@ using Frms.Api.Authorization;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Services.Interfaces;
-using Frms.DataAccess.Persistence.Entities;
+using Frms.Business.Models.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -73,10 +73,10 @@ public sealed class AdminController(
 
     private static AdminUserAccountResponse Map(
         (
-            UserAccount Account,
+            AccountProfileResult Account,
             string RoleName,
-            Customer? Customer,
-            Employee? Employee) row) {
+            CustomerProfileResult? Customer,
+            EmployeeProfileResult? Employee) row) {
         AdminUserProfileResponse? profile = null;
 
         if (row.Customer is not null) {

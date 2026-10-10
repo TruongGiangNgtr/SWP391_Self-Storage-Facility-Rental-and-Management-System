@@ -1,14 +1,15 @@
 # FRMS Data Dictionary — Version 2.1 (SRS V10 Aligned)
 
-> REV-2026-10-09-PAYOS aligns Payment with the governing SRS. Only code/mock tests are authorized; no sandbox/staging, live calls, links, registration or transfers. Live acceptance is pending. Description FRMS; transactionDateTime UTC+7 -> UTC; verified unknown/sample webhook HTTP200 without mutation. First month remains offline, PAY-002 retired; every current Payment is Invoice-backed. Downgrade must protect PAYOS/code evidence.
+> REV-2026-10-09-PAYOS aligns Payment with the governing SRS. Its original scope was code/mock only. On 2026-10-10 the owner separately approved limited live E2E under SRS section 0.0.5 and personally paid 2,000 VND: order 1008 is SUCCESS, its Invoice is PAID, both PaidAt values are 2026-10-10T10:15:00Z, and one PAYMENT_RESULT audit exists. No agent-initiated bank transfer, payout or refund is authorized. Release gates remain separately verified; this is not proof of unrelated workflows. Description FRMS; transactionDateTime UTC+7 -> UTC; verified unknown/sample webhook HTTP200 without mutation. First month remains offline, PAY-002 retired; every current Payment is Invoice-backed. Downgrade must protect PAYOS/code evidence.
 
 **Project:** Self-Storage Facility Rental and Management System (FRMS)
 **Document:** Data Dictionary / Lifecycle / Database Automation Specification
 **Version:** 2.1
 **Date:** 2026-10-04
-**Baseline:** `FRMS_SRS_V10.md` (highest authority), including REV-2026-10-07-FM-OFFLINE and REV-2026-10-09-PAYOS.
+**Payment Alignment Date:** 2026-10-10 — REV-2026-10-10-PAY-IDEMPOTENCY
+**Baseline:** `FRMS_SRS_V10.md` (highest authority), including REV-2026-10-07-FM-OFFLINE, REV-2026-10-09-PAYOS and REV-2026-10-10-PAY-IDEMPOTENCY.
 **Authority:** `SRS V10 FINAL > Data Dictionary V2.1 > aligned Scope > implementation detail`.
-**Revision scope:** Phase 0 seed clarification plus Payment-related alignment with the approved offline-first-month and payOS code/mock revision. Unrelated domain requirements are unchanged.
+**Revision scope:** Phase 0 seed clarification plus Payment-related alignment with the approved offline-first-month, payOS, persisted Invoice.PaidAt and PAY-001 idempotency requirements. SRS section 0.0.5 records the separate limited live E2E/2,000 VND fixture approval; unrelated domain requirements are unchanged. This document edit does not itself apply migrations, manufacture migration history or prove live acceptance.
 
 ---
 
@@ -302,7 +303,7 @@ No status. UPDATE/DELETE should be blocked.
 | `AmountDue` | DECIMAL | No | CHECK >= 0 | Final amount due. |
 | `DueDate` | DATE/DATETIME | No |  | Due date/deadline. |
 | `Status` | ENUM/VARCHAR | No | CHECK | `UNPAID`, `PAID`, `OVERDUE`, `CANCELLED`. |
-| `PaidAt` | DATETIME | Yes | UTC timestamp | Verified provider time on first UNPAID/OVERDUE -> PAID transition; retain on duplicate, later successful attempt or cancellation. Historical missing evidence stays null. |
+| `PaidAt` | DATETIME2(3) | Yes | UTC timestamp | Verified provider time on first UNPAID/OVERDUE -> PAID transition; retain on duplicate, later successful attempt or cancellation. Historical missing evidence stays null. |
 | `CreatedAt` | DATETIME | No |  | Creation timestamp. |
 
 Rules: Deposit cannot use Discount. Handover creates no first-month Invoice/Payment; first-month offline rent equals `Reservation.LockedRentalPrice` without Discount. RENTAL_FEE requires `BillingMonth > Contract.StartMonth`; eligible later invoices snapshot the captured Contract Discount. Preserve historical invoices without recreating or double-counting first-month charges.
@@ -322,13 +323,27 @@ Rules: Deposit cannot use Discount. Handover creates no first-month Invoice/Paym
 | `PaidAt` | DATETIME | Yes, conditional | Required only for SUCCESS | Verified provider success time normalized to UTC. |
 | `CreatedAt` | DATETIME | No |  | Creation time in UTC. |
 | `ProviderOrderCode` | BIGINT | Yes | Filtered UNIQUE when non-null | Server sequence dbo.ProviderOrderCodeSequence starts 1000, increment 1, NO CYCLE; allocated atomically for PAYOS attempts. Legacy MOMO/VNPAY rows remain null. |
-| `IdempotencyKey` | UNIQUEIDENTIFIER | No | Globally UNIQUE | UUID identifying one deliberate Customer payment action; HTTP retries reuse the stored attempt. |
+| `IdempotencyKey` | UNIQUEIDENTIFIER | No | NOT NULL; globally UNIQUE | Frontend UUID for one deliberate Customer payment action; immutable for the lifetime of the Payment row. HTTP retries reuse the key/attempt; never fabricate or backfill a missing key. |
 | `PaymentUrl` | NVARCHAR(2048) | Yes | Bounded session value | Persist the checkoutUrl for the same authorized attempt; never expose through PAY-003 or logs. |
 | `PaymentUrlExpiresAt` | DATETIME | Yes | UTC timestamp | Provider response expiry or explicitly requested server expiry, persisted UTC; an expired attempt requires a new action/key. |
 
 The superseded pre-handover null-InvoiceId model is not used for new payments. If unexpected historical null rows exist, preserve them pending the migration/deployment review required by SRS §0.0/§9.6; never fabricate Invoice links or delete historical evidence.
 
 PAY-001 is `POST /api/v1/invoices/{invoiceId}/payments/payos` for Deposit or Rental Fee after the first month. PAY-002 remains retired. PAY-003 is the authorized Payment-detail read. PAY-004 is signature-verified payOS `POST /api/v1/payments/payos/webhook`; browser return/cancel never change financial state. `usp_ApplyPaymentResult` applies normalized verified webhook results atomically and idempotently.
+
+#### 4.13.1 Required PAY-001 Idempotency and Session Persistence
+
+The governing contract is SRS section 12.7.1. The `Idempotency-Key` header UUID is persisted unchanged, not generated by a repository, timestamp, database default or backfill.
+
+- One deliberate Customer action creates one new frontend UUID. Automatic retries reuse it; a new deliberate retry after failure uses a new UUID and is subject to Invoice eligibility.
+- `Payment.IdempotencyKey` is `uniqueidentifier NOT NULL` and globally UNIQUE across all Payment rows, Invoices and Customers. Retain it unchanged for the lifetime of the row; no short-lived expiry or reset when Payment becomes terminal.
+- Same key and Invoice resolves to the same Payment and stored session; no second Payment, provider order code for that attempt or provider session is created. Terminal states stay terminal.
+- Same key with another Invoice yields HTTP 409 / `PAYMENT_IDEMPOTENCY_CONFLICT` without exposing the first Payment. Keys associated with another Customer must not disclose that Payment; Business performs actor authorization using authoritative ownership projections, not repository-side actor permission decisions.
+- Concurrent same-key requests create exactly one row. Enforce a database unique constraint/index; handle the race by retrieving the winning row and applying the same conflict/non-disclosure rules. Only the atomic Created caller may create a provider session; Existing callers must not.
+- Resolve existing authorized attempts before gateway configuration. Configuration failure/cancellation before new-attempt creation must not persist Payment/session, consume the key or write a financial result. No database transaction spans a provider call.
+- Preserve nullable PaymentUrl until session persistence and nullable UTC PaymentUrlExpiresAt. Known expired URLs produce a controlled expired/conflict result on the same-key path, not a new session or attempt; a new deliberate action requires a new key. Do not invent an unavailable expiry or recover a stranded PENDING attempt as part of same-key replay.
+- Never expose the key or complete PaymentUrl in PAY-003; logs must not contain the complete PaymentUrl. Callback idempotency uses the verified provider reference, while ProviderOrderCode resolves the Payment; neither uses this frontend key as callback identity.
+- Deployment must fail clearly for unexpected rows missing a required key rather than manufacturing keys, fabricating Invoice links or deleting protected historical evidence. Preserve such rows pending the approved migration/deployment review required by the SRS.
 
 ### 4.14 `LateFee`
 
@@ -768,6 +783,8 @@ Use native constraints/indexes before triggers whenever possible.
 - `DepositSettlement.ContractId` UNIQUE.
 - `LateFee.InvoiceId` UNIQUE.
 - `Payment.TransactionCode` UNIQUE where not null.
+- `Payment.IdempotencyKey` mandatory globally UNIQUE, with `uniqueidentifier NOT NULL`; it must not be scoped only to InvoiceId or CustomerId.
+- `Payment.ProviderOrderCode` filtered UNIQUE where not null, as approved by the payOS revision.
 - Recommended unique `(FacilityId, UnitCode)` for StorageUnit.
 - Recommended unique `(ContractId, BillingMonth, InvoiceType)` for Rental Fee invoices.
 - Recommended one ACTIVE Contract per StorageUnit using a filtered unique index when supported.
@@ -793,6 +810,7 @@ The following must execute inside transactions with suitable locking/isolation:
 - Renewal capacity check + ContractExtension + EndMonth update.
 - Inspection claim.
 - Verified payOS signed POST webhook idempotency.
+- Atomic PAY-001 create-or-get by globally unique IdempotencyKey; the concurrent losing request reads the winning row instead of creating another attempt/session.
 
 ---
 
@@ -958,6 +976,8 @@ Defaults are applied only where the initial state is deterministic. Business res
 | `Invoice.BillingMonth` | Deposit is not monthly. | Null for DEPOSIT; required for RENTAL_FEE. |
 | `Invoice.DiscountId` | Discount is optional; Deposit cannot use it and first-month Invoice does not exist. | Null for DEPOSIT; eligible RENTAL_FEE after StartMonth may reference the Contract-selected Discount. |
 | `Payment.InvoiceId` | Every new Payment is Invoice-backed. | Non-null for current-model rows; historical null rows require approved deployment review, never fabricated links. |
+| `Payment.IdempotencyKey` | Not nullable; identifies one deliberate Customer action. | Frontend UUID, uniqueidentifier NOT NULL, globally unique and unchanged for the Payment row's lifetime; see SRS 12.7.1 / DD 4.13.1. |
+| `Invoice.PaidAt` | Unpaid/historical Invoice may have no verified payment time. | Nullable UTC datetime2(3); set only on first UNPAID/OVERDUE -> PAID from verified provider time; preserve on duplicate, later success and CANCELLED. |
 | `Payment.TransactionCode` | May not exist before gateway has created a transaction reference. | Unique when present. |
 | `Payment.PaidAt` | Only successful payments have a paid time. | Required when `Status=SUCCESS`; null otherwise. |
 | `Policy.EffectiveTo` | Current active Policy is open-ended. | Set when version is inactivated. |
@@ -1262,7 +1282,7 @@ Use the narrowest isolation/locking approach that still protects the invariant; 
 
 | Operation | Idempotency key / invariant | Repeat behavior |
 |---|---|---|
-| PAY-001 payOS attempt creation | UUID Idempotency-Key, globally unique Payment.IdempotencyKey | Same Invoice/key returns the stored attempt without another provider session; another Invoice with the same key returns a controlled conflict without exposing the first Payment. |
+| PAY-001 payOS attempt creation | Frontend UUID Idempotency-Key -> uniqueidentifier NOT NULL, globally unique Payment.IdempotencyKey retained for row lifetime | Same Invoice/key resolves to stored attempt; terminal remains terminal, known expiry is a controlled conflict and PENDING without a session is not recovered. Another Invoice: HTTP 409 PAYMENT_IDEMPOTENCY_CONFLICT without disclosure. Concurrent same-key calls create one row; only Created may call the provider. See 4.13.1. |
 | payOS signed POST webhook | SQL-sequence ProviderOrderCode / verified reference | Same verified webhook returns already-confirmed acknowledgement without duplicate Payment/Invoice effects. |
 | Complete Handover | `Contract.ReservationId` UNIQUE + terminal Reservation state | Repeat after success returns existing result or controlled "already completed" error. |
 | Confirm Reservation | Reservation status + one RESERVATION Visit | Repeat must not create second Visit. |
@@ -1294,11 +1314,11 @@ Stored procedures should raise stable business error codes/messages that API cod
 | `RETURN_VISIT_PENDING` | ACCESS/Renewal blocked by RETURN Visit. |
 | `UNIT_NOT_AVAILABLE` | StorageUnit cannot be allocated. |
 | `UNIT_FACILITY_TYPE_MISMATCH` | Unit does not match Reservation Facility/UnitType. |
-| `FIRST_MONTH_PAYMENT_NOT_SUCCESS` | Handover payment precondition failed. |
 | `DISCOUNT_NOT_OWNED_BY_CUSTOMER` | Contract Discount belongs to another Customer. |
 | `DISCOUNT_NOT_VALID` | Discount inactive/outside effective period. |
 | `INVOICE_ALREADY_EXISTS` | Duplicate logical invoice attempt. |
 | `PAYMENT_CALLBACK_DUPLICATE` | Callback already processed; should normally be handled idempotently rather than treated as fatal. |
+| `PAYMENT_IDEMPOTENCY_CONFLICT` | PAY-001 key is already bound to another Invoice; controlled repository/API conflict mapped to HTTP 409 without Payment/session disclosure. |
 | `INSPECTION_ALREADY_CLAIMED` | Another Staff already claimed Inspection. |
 | `INSPECTION_INVALID_STATUS` | Invalid inspection transition. |
 | `RENEWAL_CAPACITY_NOT_AVAILABLE` | Future extension capacity unavailable. |
@@ -1313,6 +1333,7 @@ Stored procedures should raise stable business error codes/messages that API cod
 | `PHONE_NUMBER_ALREADY_EXISTS` | Duplicate UserAccount PhoneNumber. |
 
 Exact numeric SQL error numbers can be allocated during DDL implementation (for example, custom `THROW 510xx, ...`).
+`PAYMENT_IDEMPOTENCY_CONFLICT` describes attempt-creation repository/API handling; it does not require `usp_ApplyPaymentResult` to accept an IdempotencyKey or use it for webhook idempotency. The superseded first-month payment-precondition error is not a current handover/PAY-002 contract.
 
 ---
 
@@ -1343,6 +1364,8 @@ The following indexes are recommended in addition to PK/unique constraints. Fina
 | Invoice | filtered UNIQUE `(EntityId, BillingMonth) WHERE InvoiceType='RENTAL_FEE'` | One monthly invoice per Contract/month. |
 | Invoice | `(Status, DueDate, InvoiceType)` | Overdue/payment jobs. |
 | Invoice | `(EntityId, InvoiceType, BillingMonth)` | Contract/Reservation billing history. |
+| Payment | Mandatory UNIQUE `(IdempotencyKey)` | Global attempt-creation idempotency; final database protection for same-key races. |
+| Payment | Mandatory filtered UNIQUE `(ProviderOrderCode) WHERE ProviderOrderCode IS NOT NULL` | Resolve a verified payOS order to exactly one Payment while preserving legacy null codes. |
 | Payment | UNIQUE filtered `(TransactionCode) WHERE TransactionCode IS NOT NULL` | Gateway idempotency. |
 | Payment | `(InvoiceId, Status, CreatedAt)` | Payment attempts per invoice. |
 | LateFee | UNIQUE `(InvoiceId)` | One current late-fee row per invoice. |
@@ -1651,6 +1674,21 @@ These tests are required to validate the physical database behavior, not only ap
 | `DBT-24` | Offline first-month handover with Contract Discount. | No first-month Invoice/Payment; first eligible later invoice may apply captured Contract Discount; first-month revenue is Contract-derived once. |
 | `DBT-25` | Employee initial credential email fails. | Account remains INACTIVE; no plaintext password is persisted or logged. |
 
+### 34.1 Additional PAY-001 Idempotency Verification
+
+Keep DBT-01..DBT-25 intact. Payment-specific DAL/DBT/CON/SEC/API checks must additionally prove:
+
+- Required-key null rejection and duplicate-key rejection in real SQL Server; no fabricated historical backfill.
+- Same Invoice/key resolves to the same Payment without a second row/session, including terminal attempts.
+- Another Invoice or Customer cannot obtain the first Payment/session using its key.
+- Concurrent same-key creation produces exactly one Payment; a unique-key race returns the winner/controlled conflict rather than an uncontrolled SQL error.
+- A new deliberate action/key can create a new eligible attempt after failure.
+- Session information persists for authorized replay; known expired URLs and PENDING attempts without a session do not trigger same-key session creation/recovery.
+- Configuration failure/cancellation does not create Payment/session, consume a key or write a Payment result; existing authorized attempts remain resolvable without gateway configuration.
+- Webhook retries remain keyed by verified provider reference, independently of frontend IdempotencyKey.
+
+These are requirement checks, not a statement that implementation tests or deployment have run in this documentation-only change.
+
 ---
 
 ## 35. Version 2.1 Change Log
@@ -1675,7 +1713,7 @@ These tests are required to validate the physical database behavior, not only ap
 
 ## 36. Source and Authority
 
-Primary implementation source: `FRMS_SRS_V10.md` (V10 FINAL, including approved 2026-10-07 offline-first-month and payOS revisions). Unrelated database rules retain their existing baseline.
+Primary implementation source: `FRMS_SRS_V10.md` (V10 FINAL, including the 2026-10-07 offline-first-month, 2026-10-09 payOS and 2026-10-10 Payment idempotency revisions). Unrelated database rules retain their existing baseline.
 
 Authority order:
 

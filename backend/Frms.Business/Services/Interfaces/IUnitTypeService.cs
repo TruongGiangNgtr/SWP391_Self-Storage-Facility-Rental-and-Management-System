@@ -1,20 +1,20 @@
-using Frms.DataAccess.Persistence.Entities;
+using Frms.Business.Models.Results;
 
 namespace Frms.Business.Services.Interfaces;
 
 public interface IUnitTypeService {
-    Task<(IReadOnlyList<UnitType> Items, int TotalItems)> GetPagedAsync(
+    Task<(IReadOnlyList<UnitTypeResult> Items, int TotalItems)> GetPagedAsync(
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
 
-    Task<UnitType?> UpdatePriceAsync(
+    Task<UnitTypeResult?> UpdatePriceAsync(
         Guid unitTypeId,
         decimal rentalPrice,
         CancellationToken cancellationToken = default);
 
     Task<(
-    IReadOnlyList<UnitType> Items,
+    IReadOnlyList<UnitTypeResult> Items,
     int TotalItems,
     string? FacilityStatus)> GetFacilityPagedAsync(
         Guid facilityId,
@@ -22,7 +22,7 @@ public interface IUnitTypeService {
         int pageSize,
         CancellationToken cancellationToken = default);
 
-    Task<UnitType?> GetByIdAsync(
+    Task<UnitTypeResult?> GetByIdAsync(
         Guid unitTypeId,
         CancellationToken cancellationToken = default);
 }

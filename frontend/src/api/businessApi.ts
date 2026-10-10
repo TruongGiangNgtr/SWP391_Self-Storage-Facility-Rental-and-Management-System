@@ -141,6 +141,18 @@ export const businessApi = {
     return httpClient.get(`/business/customers/${encodeURIComponent(customerId)}/discounts?page=${page}&pageSize=20`)
   },
 
+  listAllCustomerDiscounts(customerId: string): Promise<Discount[]> {
+    return readAllPages((page) => businessApi.listCustomerDiscounts(customerId, page))
+  },
+
+  createCustomerDiscount(customerId: string, request: CreateCustomerDiscountRequest): Promise<ApiResponse<Discount>> {
+    return httpClient.post(`/business/customers/${encodeURIComponent(customerId)}/discounts`, request)
+  },
+
+  updateDiscount(discountId: string, request: UpdateDiscountRequest): Promise<ApiResponse<Discount>> {
+    return httpClient.patch(`/business/discounts/${encodeURIComponent(discountId)}`, request)
+  },
+
   listExtraFeeTypes(page = 1, pageSize = 20): Promise<ApiCollectionResponse<ExtraFeeTypeDetail>> {
     return httpClient.get(`/business/extra-fee-types?page=${page}&pageSize=${pageSize}`)
   },

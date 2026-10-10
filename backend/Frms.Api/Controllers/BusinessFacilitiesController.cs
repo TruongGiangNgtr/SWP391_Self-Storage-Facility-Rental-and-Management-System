@@ -2,7 +2,7 @@ using System.Text.Json;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Services.Interfaces;
-using Frms.DataAccess.Persistence.Entities;
+using Frms.Business.Models.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -235,7 +235,7 @@ public sealed class BusinessFacilitiesController(
         });
     }
 
-    private static FacilitySummary Map(Facility facility)
+    private static FacilitySummary Map(FacilityResult facility)
         => new(
             facility.FacilityId,
             facility.Name,
