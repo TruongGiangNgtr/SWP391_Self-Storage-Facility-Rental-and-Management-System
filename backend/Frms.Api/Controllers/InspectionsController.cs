@@ -1,4 +1,6 @@
 using Frms.Api.Authorization;
+using Frms.Business.Services.Interfaces;
+using Frms.DataAccess.Repositories.Models;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Models.Results;
@@ -9,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Frms.Api.Controllers;
 
 [Route("api/v1")]
-public sealed class InspectionsController(IInspectionWorkflowService workflow) : ScaffoldControllerBase
+public sealed class InspectionsController(IInspectionService inspectionService) : ScaffoldControllerBase
 {
     private static InspectionSummaryResponse ToSummary(InspectionResult r)
         => new(r.InspectionId, r.ContractId, r.StorageUnitId, r.VisitId,
@@ -17,37 +19,36 @@ public sealed class InspectionsController(IInspectionWorkflowService workflow) :
 
     [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
     [HttpGet("inspections")]
-    [ProducesResponseType(typeof(PaginatedResponse<InspectionSummaryResponse>), 200)]
-    public async Task<ActionResult<PaginatedResponse<InspectionSummaryResponse>>> ListInspections(
-        [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
+    public async Task<IActionResult> ListInspections(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        var r = await workflow.ListAsync(page, pageSize, cancellationToken);
-        return Ok(new PaginatedResponse<InspectionSummaryResponse>(
-            r.Items.Select(ToSummary).ToArray(),
-            new PaginationResponse(r.Page, r.PageSize, r.TotalItems,
-                r.TotalItems == 0 ? 0 : (int)Math.Ceiling(r.TotalItems / (double)r.PageSize))));
+        var result = await inspectionService.ListAccessibleAsync(page, pageSize, cancellationToken);
+        var data = result.Items.Select(ToSummaryResponse).ToArray();
+        var totalPages = result.TotalItems == 0 ? 0 : (int)Math.Ceiling(result.TotalItems / (double)pageSize);
+        return Ok(new {
+            data,
+            pagination = new { page, pageSize, totalItems = result.TotalItems, totalPages }
+        });
     }
 
     [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
     [HttpGet("inspections/{inspectionId:guid}")]
-    [ProducesResponseType(typeof(ApiResponse<InspectionDetailResponse>), 200)]
     public async Task<ActionResult<ApiResponse<InspectionDetailResponse>>> GetInspection(
-        Guid inspectionId, CancellationToken cancellationToken)
+        Guid inspectionId,
+        CancellationToken cancellationToken)
     {
-        var r = await workflow.GetAsync(inspectionId, cancellationToken);
+        var result = await inspectionService.GetAccessibleAsync(inspectionId, cancellationToken);
         return Ok(new ApiResponse<InspectionDetailResponse>(new InspectionDetailResponse(
-            r.Inspection.InspectionId, r.Inspection.ContractId,
-            r.Inspection.StorageUnitId, r.Inspection.VisitId,
-            r.Inspection.EmployeeId, r.Inspection.Status,
-            r.Inspection.ConditionNote,
-            r.Damages.Select(x => new InspectionDamageResponse(x.DamageRecordId,
-                x.DamageTypeId, x.DamageAmount, x.Note, x.Status)).ToArray(),
-            r.ExtraFees.Select(x => new InspectionExtraFeeResponse(x.ExtraFeeId,
-                x.ExtraFeeTypeId, x.Amount, x.Reason)).ToArray(),
-            r.Evidence.Select(x => new InspectionEvidenceResponse(x.InspectionEvidenceId,
-                x.EvidenceType, x.CreatedAt)).ToArray(),
-            r.Inspection.CompletedAt)));
+            ToSummaryResponse(result.Inspection),
+            result.Damages.Select(x => new InspectionDamageResponse(
+                x.DamageRecordId, x.DamageTypeId, x.DamageTypeName,
+                x.DamageAmount, x.Note, x.Status, x.CreatedAt)).ToArray(),
+            result.ExtraFees.Select(x => new InspectionExtraFeeResponse(
+                x.ExtraFeeId, x.ExtraFeeTypeId, x.Amount, x.Reason, x.CreatedAt)).ToArray(),
+            result.Evidence.Select(x => new InspectionEvidenceMetadataResponse(
+                x.InspectionEvidenceId, x.EvidenceType, x.CreatedAt)).ToArray())));
     }
 
     [Authorize(Roles = RoleNames.FacilityStaff)]
@@ -121,19 +122,32 @@ public sealed class InspectionsController(IInspectionWorkflowService workflow) :
     // MWP-04 only. Intentionally not implemented in FWP-05/06/07 scope.
     [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpPost("damage-records/{damageRecordId:guid}/decision")]
-    public ActionResult<ApiErrorResponse> DecideDamage(
-        Guid damageRecordId, [FromBody] DecideDamageRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("INS-009");
+    [ProducesResponseType(typeof(ApiResponse<DamageDecisionResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<DamageDecisionResponse>>> DecideDamage(
+        Guid damageRecordId,
+        [FromBody] DecideDamageRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await inspectionService.DecideDamageAsync(
+            damageRecordId, request.Decision, cancellationToken);
+        return Ok(new ApiResponse<DamageDecisionResponse>(
+            new DamageDecisionResponse(result.DamageRecordId, result.Status),
+            "Damage decision recorded."));
+    }
 
     [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
     [HttpGet("damage-types")]
-    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<DamageTypeResponse>>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<DamageTypeResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<DamageTypeResponse>>>> ListDamageTypes(
         CancellationToken cancellationToken)
     {
-        var r = await workflow.ListDamageTypesAsync(cancellationToken);
-        return Ok(new ApiResponse<IReadOnlyList<DamageTypeResponse>>(
-            r.Select(x => new DamageTypeResponse(x.DamageTypeId, x.Name,
-                x.DefaultAmount, x.Status)).ToArray()));
+        var types = await inspectionService.ListActiveDamageTypesAsync(cancellationToken);
+        var response = types.Select(x => new DamageTypeResponse(
+            x.DamageTypeId, x.Name, x.DefaultAmount, x.Status)).ToArray();
+        return Ok(new ApiResponse<IReadOnlyList<DamageTypeResponse>>(response));
     }
+
+    private static InspectionSummaryResponse ToSummaryResponse(InspectionSummaryRecord x) => new(
+        x.InspectionId, x.ContractId, x.StorageUnitId, x.VisitId,
+        x.EmployeeId, x.FacilityId, x.Status, x.ConditionNote, x.CompletedAt);
 }
