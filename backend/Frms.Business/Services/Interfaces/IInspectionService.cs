@@ -9,7 +9,7 @@ public interface IInspectionService
         CancellationToken cancellationToken = default);
     Task<(IReadOnlyList<InspectionSummaryRecord> Items, int TotalItems)> ListAccessibleAsync(
         int page, int pageSize, CancellationToken cancellationToken = default);
-    Task<InspectionDetailRecord> GetAccessibleAsync(
+    Task<InspectionMonitoringDetailRecord> GetAccessibleAsync(
         Guid inspectionId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<DamageTypeRecord>> ListActiveDamageTypesAsync(
         CancellationToken cancellationToken = default);

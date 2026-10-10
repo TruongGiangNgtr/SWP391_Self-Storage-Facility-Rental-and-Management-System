@@ -75,7 +75,7 @@ internal sealed class InspectionService(
         return (rows, count);
     }
 
-    public async Task<InspectionDetailRecord> GetAccessibleAsync(
+    public async Task<InspectionMonitoringDetailRecord> GetAccessibleAsync(
         Guid inspectionId, CancellationToken cancellationToken = default)
     {
         EnsureFacilityRole();

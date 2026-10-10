@@ -11,6 +11,6 @@ public interface IInspectionRepository
     Task<int> CountByFacilityAsync(Guid facilityId, CancellationToken cancellationToken);
     Task<IReadOnlyList<InspectionSummaryRecord>> ListByFacilityAsync(
         Guid facilityId, int skip, int take, CancellationToken cancellationToken);
-    Task<InspectionDetailRecord?> GetDetailAsync(Guid inspectionId, CancellationToken cancellationToken);
+    Task<InspectionMonitoringDetailRecord?> GetDetailAsync(Guid inspectionId, CancellationToken cancellationToken);
     Task<IReadOnlyList<DamageTypeRecord>> ListActiveDamageTypesAsync(CancellationToken cancellationToken);
 }

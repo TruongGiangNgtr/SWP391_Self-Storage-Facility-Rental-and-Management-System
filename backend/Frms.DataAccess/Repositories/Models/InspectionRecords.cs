@@ -16,7 +16,7 @@ public sealed record InspectionExtraFeeRecord(
 public sealed record InspectionEvidenceRecord(
     Guid InspectionEvidenceId, string EvidenceType, DateTime CreatedAt);
 
-public sealed record InspectionDetailRecord(
+public sealed record InspectionMonitoringDetailRecord(
     InspectionSummaryRecord Inspection,
     IReadOnlyList<InspectionDamageRecord> Damages,
     IReadOnlyList<InspectionExtraFeeRecord> ExtraFees,

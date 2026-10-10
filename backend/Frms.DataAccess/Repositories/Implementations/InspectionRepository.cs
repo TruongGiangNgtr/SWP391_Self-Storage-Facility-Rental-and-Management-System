@@ -103,7 +103,7 @@ internal sealed class InspectionRepository(FrmsDbContext dbContext) : IInspectio
                    inspection.Status, inspection.ConditionNote, inspection.CompletedAt))
               .Skip(skip).Take(take).ToListAsync(cancellationToken);
 
-    public async Task<InspectionDetailRecord?> GetDetailAsync(
+    public async Task<InspectionMonitoringDetailRecord?> GetDetailAsync(
         Guid inspectionId, CancellationToken cancellationToken)
     {
         var summary = await (from inspection in dbContext.Inspections.AsNoTracking()
@@ -142,7 +142,7 @@ internal sealed class InspectionRepository(FrmsDbContext dbContext) : IInspectio
                 x.InspectionEvidenceId, x.EvidenceType, x.CreatedAt))
             .ToListAsync(cancellationToken);
 
-        return new InspectionDetailRecord(summary, damages, extraFees, evidence);
+        return new InspectionMonitoringDetailRecord(summary, damages, extraFees, evidence);
     }
 
     public async Task<IReadOnlyList<DamageTypeRecord>> ListActiveDamageTypesAsync(

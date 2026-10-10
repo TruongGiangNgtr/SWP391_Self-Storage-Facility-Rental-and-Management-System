@@ -4,14 +4,15 @@ using Frms.DataAccess.Repositories.Models;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Models.Results;
-using Frms.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Frms.Api.Controllers;
 
 [Route("api/v1")]
-public sealed class InspectionsController(IInspectionService inspectionService) : ScaffoldControllerBase
+public sealed class InspectionsController(
+    IInspectionService inspectionService,
+    IInspectionWorkflowService workflow) : ScaffoldControllerBase
 {
     private static InspectionSummaryResponse ToSummary(InspectionResult r)
         => new(r.InspectionId, r.ContractId, r.StorageUnitId, r.VisitId,
@@ -25,7 +26,7 @@ public sealed class InspectionsController(IInspectionService inspectionService) 
         CancellationToken cancellationToken = default)
     {
         var result = await inspectionService.ListAccessibleAsync(page, pageSize, cancellationToken);
-        var data = result.Items.Select(ToSummaryResponse).ToArray();
+        var data = result.Items.Select(ToMonitoringSummaryResponse).ToArray();
         var totalPages = result.TotalItems == 0 ? 0 : (int)Math.Ceiling(result.TotalItems / (double)pageSize);
         return Ok(new {
             data,
@@ -35,17 +36,17 @@ public sealed class InspectionsController(IInspectionService inspectionService) 
 
     [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
     [HttpGet("inspections/{inspectionId:guid}")]
-    public async Task<ActionResult<ApiResponse<InspectionDetailResponse>>> GetInspection(
+    public async Task<ActionResult<ApiResponse<InspectionMonitoringDetailResponse>>> GetInspection(
         Guid inspectionId,
         CancellationToken cancellationToken)
     {
         var result = await inspectionService.GetAccessibleAsync(inspectionId, cancellationToken);
-        return Ok(new ApiResponse<InspectionDetailResponse>(new InspectionDetailResponse(
-            ToSummaryResponse(result.Inspection),
-            result.Damages.Select(x => new InspectionDamageResponse(
+        return Ok(new ApiResponse<InspectionMonitoringDetailResponse>(new InspectionMonitoringDetailResponse(
+            ToMonitoringSummaryResponse(result.Inspection),
+            result.Damages.Select(x => new InspectionMonitoringDamageResponse(
                 x.DamageRecordId, x.DamageTypeId, x.DamageTypeName,
                 x.DamageAmount, x.Note, x.Status, x.CreatedAt)).ToArray(),
-            result.ExtraFees.Select(x => new InspectionExtraFeeResponse(
+            result.ExtraFees.Select(x => new InspectionMonitoringExtraFeeResponse(
                 x.ExtraFeeId, x.ExtraFeeTypeId, x.Amount, x.Reason, x.CreatedAt)).ToArray(),
             result.Evidence.Select(x => new InspectionEvidenceMetadataResponse(
                 x.InspectionEvidenceId, x.EvidenceType, x.CreatedAt)).ToArray())));
@@ -147,7 +148,15 @@ public sealed class InspectionsController(IInspectionService inspectionService) 
         return Ok(new ApiResponse<IReadOnlyList<DamageTypeResponse>>(response));
     }
 
-    private static InspectionSummaryResponse ToSummaryResponse(InspectionSummaryRecord x) => new(
-        x.InspectionId, x.ContractId, x.StorageUnitId, x.VisitId,
-        x.EmployeeId, x.FacilityId, x.Status, x.ConditionNote, x.CompletedAt);
+    private static InspectionMonitoringSummaryResponse ToMonitoringSummaryResponse(
+    InspectionSummaryRecord x) => new(
+        x.InspectionId,
+        x.ContractId,
+        x.StorageUnitId,
+        x.VisitId,
+        x.EmployeeId,
+        x.FacilityId,
+        x.Status,
+        x.ConditionNote,
+        x.CompletedAt);
 }
