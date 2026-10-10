@@ -11,7 +11,8 @@ namespace Frms.Api.Controllers;
 [Route("api/v1/contracts")]
 public sealed class ContractsController(
     IRenewalService renewalService,
-    IContractService contractService)
+    IContractService contractService,
+    IReturnProcessingService returnService)
     : ScaffoldControllerBase
 {
     /// <summary>CON-001: List own Contracts.</summary>
@@ -190,11 +191,21 @@ public sealed class ContractsController(
         [FromBody] CreateReturnVisitRequest request,
         CancellationToken cancellationToken) => ScaffoldNotImplemented("VIS-002");
 
-    /// <summary>INS-008: Finalize return and settlement scaffold.</summary>
+    /// <summary>INS-008: Atomic settlement, terminal Contract and Unit release.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff)]
     [HttpPost("{contractId:guid}/finalize-return")]
     [ProducesResponseType(typeof(ApiResponse<FinalizeReturnResponse>), StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> FinalizeReturn(
-        Guid contractId,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("INS-008");
+    public async Task<ActionResult<ApiResponse<FinalizeReturnResponse>>> FinalizeReturn(
+        Guid contractId, [FromBody] FinalizeReturnRequest request,
+        CancellationToken cancellationToken)
+    {
+        var r = await returnService.FinalizeAsync(contractId, request.StorageUnitStatus,
+            cancellationToken);
+        return Ok(new ApiResponse<FinalizeReturnResponse>(new(
+            r.ContractId, r.ContractStatus, r.StorageUnitStatus,
+            new DepositSettlementResponse(r.Settlement.DepositSettlementId,
+                r.Settlement.TotalDeduction, r.Settlement.RefundAmount,
+                r.Settlement.AdditionalAmountDue, r.Settlement.Status))));
+    }
+
 }
