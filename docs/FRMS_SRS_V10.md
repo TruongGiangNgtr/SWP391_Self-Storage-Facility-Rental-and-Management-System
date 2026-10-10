@@ -8,6 +8,7 @@
 **Business Revision Date:** 2026-10-07 — REV-2026-10-07-FM-OFFLINE
 **Operational Consistency Revision Date:** 2026-10-07 — REV-2026-10-07-OP-READ
 **Payment Gateway Revision Date:** 2026-10-09 — REV-2026-10-09-PAYOS
+**Payment Idempotency Clarification Date:** 2026-10-10 — REV-2026-10-10-PAY-IDEMPOTENCY
 **Status:** Final Implementation Baseline — Approved payOS Code/Mock Revision; Live Payment Acceptance Pending
 **Architecture:** 3 Logical Layers + Repository Pattern + Infrastructure Adapters
 **Backend:** ASP.NET Core Web API / C#
@@ -42,6 +43,7 @@
 | **V10 FINAL — 2026-10-07 payment gateway revision** | Owner-approved VNPay Sandbox substitution | REV-2026-10-07-VNPAY replaces the MoMo Sandbox adapter and routes with VNPay Sandbox for Deposit and post-first-month Rental Fee invoices. Payment business semantics, offline first-month settlement, Invoice/Payment entities and idempotency rules remain unchanged. |
 | **V10 FINAL — 2026-10-09 payOS revision** | Owner-approved provider replacement (code/mock only) | REV-2026-10-09-PAYOS; preserve MOMO/VNPAY history, numeric order-code sequence, signed JSON webhook; live acceptance pending. |
 | **V10 FINAL — 2026-10-08 payment timestamp clarification** | Owner-approved persisted Invoice payment timestamp | Invoice.PaidAt is nullable UTC, set from the verified provider timestamp only on the first UNPAID/OVERDUE -> PAID transition. Duplicate webhook, subsequent successful attempts and cancelled invoices preserve the Invoice timestamp. Existing historical timestamps are not fabricated. |
+| **V10 FINAL — 2026-10-10 payment idempotency clarification** | Owner-requested alignment with the approved PAY-001 contract | REV-2026-10-10-PAY-IDEMPOTENCY makes the frontend UUID, required persisted uniqueidentifier, global uniqueness, lifetime retention, retry/concurrency and non-disclosure rules explicit in the SRS and Data Dictionary. No new Payment status, recovery workflow or live-provider authorization. |
 
 ## V5 Review Summary
 
@@ -190,6 +192,14 @@ Payment__PayOS__ExpiryMinutes=15
 [ ] EPS-01 release acceptance
 
 No editable task-tracker PDF source has been supplied; do not recreate PDF. This record supersedes historical provider requirements, not unrelated business semantics.
+
+## 0.0.4 Approved Clarification — REV-2026-10-10-PAY-IDEMPOTENCY
+
+**Approval:** On 2026-10-10 the owner requests explicit IdempotencyKey requirements in both the SRS and Data Dictionary, and Payment-related Data Dictionary alignment with the already-approved payOS and Invoice.PaidAt revisions. This incorporates the previously approved PAY-001 idempotency contract; it does not introduce a new payment obligation or gateway workflow.
+
+`Payment.IdempotencyKey` MUST be a frontend-generated UUID persisted as SQL Server `uniqueidentifier NOT NULL`, globally unique across all Payment rows and retained for the lifetime of its Payment row. The authoritative attempt-creation/retry contract is section 12.7.1; PAY-001 and the Data Dictionary MUST follow that contract.
+
+This clarification does not authorize fabricated keys or Invoice links for historical data, repair of stranded attempts, refund/reconciliation, additional statuses, code/schema changes, deployment or live payOS calls. Historical-data review and the code/mock-only boundary remain in force.
 
 ## 0.1 Authority Order
 
@@ -1555,6 +1565,7 @@ FAILED
 - `Invoice.DiscountId` null for DEPOSIT.
 - `Invoice.PaidAt` is a nullable persisted UTC timestamp. Set it from the verified provider success timestamp only when the Invoice first transitions from UNPAID/OVERDUE to PAID. Already-PAID and CANCELLED invoices retain their timestamp; duplicate webhook never overwrites it. Historical rows without timestamp evidence remain null (owner-approved 2026-10-08 clarification).
 - Every new Payment MUST reference an existing Invoice through Payment.InvoiceId. No first-month Payment is allowed. Historical null InvoiceId rows from the superseded model must be preserved until an approved migration/deployment review; do not silently link or delete them.
+- `Payment.IdempotencyKey` is a required frontend UUID stored as `uniqueidentifier NOT NULL`; it has no fabricated server-generated backfill, is globally unique and is retained unchanged for the lifetime of the Payment row. See section 12.7.1.
 - `Payment.TransactionCode` nullable before gateway reference exists; unique when present.
 - `Payment.PaidAt` required for `SUCCESS`.
 - `Policy.EffectiveTo` nullable for current active version.
@@ -1596,6 +1607,7 @@ Minimum design:
 - UNIQUE `LateFee.InvoiceId`.
 - UNIQUE `DepositSettlement.ContractId`.
 - filtered UNIQUE `Payment.TransactionCode` when present.
+- globally UNIQUE `Payment.IdempotencyKey` (`uniqueidentifier NOT NULL`); a database unique constraint/index is the final protection against concurrent same-key attempt creation.
 - one active Policy row.
 - CHECK non-negative monetary values.
 - CHECK Discount percentage 0..100.
@@ -2442,6 +2454,25 @@ Repeat behavior MUST preserve logical single-effect semantics for:
 - Finalize Return;
 - notification queueing where event semantics require one message.
 
+### 12.7.1 PAY-001 Payment-Attempt Idempotency Contract
+
+1. `POST /api/v1/invoices/{invoiceId}/payments/payos` requires an `Idempotency-Key` header containing a UUID generated by the frontend. The frontend generates one new UUID for each deliberate Customer payment action.
+2. Automatic HTTP retries of the same action reuse the same key. A new deliberate retry, including a new attempt after failure, uses a new key; new-attempt eligibility is still validated.
+3. Store the key in `Payment.IdempotencyKey` as `uniqueidentifier NOT NULL`. It is globally unique across all Invoices and Customers, not only within an Invoice or Customer, and remains stored unchanged for the lifetime of the Payment row.
+4. Same key and same Invoice resolves to the existing attempt: do not create another Payment, allocate another provider order code for that attempt or create another provider session. Return/reuse its persisted session information when available; terminal Payment state remains terminal.
+5. Same key with a different Invoice returns a controlled conflict, HTTP 409 with stable code `PAYMENT_IDEMPOTENCY_CONFLICT`, without disclosing the existing Payment or its session.
+6. A key associated with another Customer MUST NOT disclose that Customer's Payment. Authentication, authoritative Invoice ownership and existing-attempt ownership checks precede any attempt/session disclosure. Repositories supply ownership data; Business decides actor authorization.
+7. Concurrent same-key requests MUST produce exactly one Payment row. The atomic repository operation and database uniqueness enforce this invariant; the unique-key race resolves by reading the winning row and then applying same-Invoice/conflict/non-disclosure handling, not by exposing an uncontrolled SQL exception.
+8. Only the atomic `Created` outcome may call the provider create operation. A concurrent loser resolving to `Existing` must not create another session. Do not hold a database transaction across gateway calls.
+9. Resolve authorized existing attempts/conflicts before gateway configuration checks. For a new attempt, configuration validation must succeed before atomic creation. Configuration failure or cancellation must propagate without creating Payment/session, consuming the key or writing a Payment result.
+10. Persist `PaymentUrl` (nullable until a session exists, maximum 2048 characters) and nullable `PaymentUrlExpiresAt` in UTC so an authorized HTTP retry can reuse the same stored session. PAY-003 must not expose the URL or idempotency key; logs must not contain the complete PaymentUrl.
+11. If a stored session is known to be expired, resolve the stored attempt through a controlled expired/conflict outcome; never create another attempt or session silently with that key. A new deliberate Customer action requires a new key. Do not invent an expiry when no provider/request expiry is available.
+12. An existing PENDING attempt without a session remains the existing attempt; the same-key path must not bypass the Created-only rule or perform recovery. Unknown provider outcome/timeout remains PENDING, as specified in PAY-001. A definitive failure does not reset the key or make a terminal attempt reusable as a new attempt.
+13. Webhook result idempotency uses the verified gateway transaction/reference. ProviderOrderCode resolves the Payment; neither the frontend Idempotency-Key nor a display description is authoritative webhook identity.
+14. No migration may manufacture missing IdempotencyKeys or Invoice links. Unexpected rows incompatible with the required key must block deployment with a clear diagnostic and remain preserved pending approved deployment review; do not silently delete or rewrite them.
+
+Required verification includes SQL rejection of null/duplicate keys, same-key reuse, different-Invoice/cross-Customer non-disclosure, concurrent same-key creation, different-key new attempts, retained terminal states, expired-session handling and configuration failure/cancellation without key consumption. Database uniqueness and concurrency must be proved using real SQL Server, not EF InMemory; listing these requirements does not claim the tests have run.
+
 ## 12.8 Stable Error Codes
 
 Canonical Data Dictionary codes:
@@ -2464,6 +2495,7 @@ DISCOUNT_NOT_OWNED_BY_CUSTOMER
 DISCOUNT_NOT_VALID
 INVOICE_ALREADY_EXISTS
 PAYMENT_CALLBACK_DUPLICATE
+PAYMENT_IDEMPOTENCY_CONFLICT
 INSPECTION_ALREADY_CLAIMED
 INSPECTION_INVALID_STATUS
 RENEWAL_CAPACITY_NOT_AVAILABLE
@@ -3256,6 +3288,7 @@ Employee GET access can verify persisted payment/invoice state but cannot initia
 
 `POST /api/v1/invoices/{invoiceId}/payments/payos`; ACTIVE CUSTOMER only, with authoritative ownership checks.
 No client redirect URL or amount is accepted. The UUID `Idempotency-Key` header identifies one deliberate action; automatic retries reuse it and new deliberate retries use a new key.
+The required storage, lifetime, concurrency, expiry and non-disclosure contract is section 12.7.1. Persist the header UUID unchanged; same-key retries never authorize a second Payment or provider session.
 
 Response: `ApiResponse<{ paymentId, invoiceId, amount, paymentMethod: "PAYOS", status, paymentUrl }>`.
 First available session returns 201 with Location; same-key retries return 200 with the same stored attempt.
