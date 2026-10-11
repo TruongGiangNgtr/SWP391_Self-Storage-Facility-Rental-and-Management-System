@@ -2,6 +2,11 @@ import { Link } from 'react-router-dom'
 
 const PORTAL_ACTIONS = [
   {
+    title: 'My Support Tickets',
+    description: 'Create, track and cancel eligible contract-related support tickets.',
+    to: '/customer/support-tickets',
+  },
+  {
     title: 'Find and Reserve Storage',
     description: 'Check availability for your rental period and start a new reservation.',
     to: '/customer/storage-search',
