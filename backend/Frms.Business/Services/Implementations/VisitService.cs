@@ -676,11 +676,14 @@ internal sealed class VisitService(
                 409);
         }
 
-        try
-        {
+        var businessDate = DateOnly.FromDateTime(
+        clock.ToBusinessTime(clock.UtcNow).DateTime);
+
+        try {
             return await repository.CheckInAsync(
                 visitId,
                 employee.EmployeeId,
+                businessDate,
                 cancellationToken);
         }
         catch (StoredProcedureBusinessException ex)
@@ -704,7 +707,11 @@ internal sealed class VisitService(
                         ex.Code,
                         "You are not authorized to handle this Visit.",
                         403);
-
+                case "VISIT_DATE_MISMATCH":
+                    throw new BusinessException(
+                        "VISIT_INVALID_STATUS",
+                        "Visit can only be checked in on its scheduled business date.",
+                        409);
                 default:
                     throw;
             }

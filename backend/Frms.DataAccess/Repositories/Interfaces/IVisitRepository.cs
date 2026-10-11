@@ -58,6 +58,7 @@ public interface IVisitRepository
     Task<Visit> CheckInAsync(
         Guid visitId,
         Guid employeeId,
+        DateOnly businessDate,
         CancellationToken cancellationToken);
 
     Task<Contract?> GetContractForVisitAsync(

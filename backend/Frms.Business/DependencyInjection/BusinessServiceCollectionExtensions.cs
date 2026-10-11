@@ -7,9 +7,11 @@ namespace Frms.Business.DependencyInjection;
 
 public static class BusinessServiceCollectionExtensions
 {
-    public static IServiceCollection AddBusiness(this IServiceCollection services)
+    public static IServiceCollection AddBusiness(
+        this IServiceCollection services,
+        string? businessTimeZone = null)
     {
-        services.AddSingleton<IClock, SystemClock>();
+        services.AddSingleton<IClock>(_ => new SystemClock(businessTimeZone ?? "Asia/Ho_Chi_Minh"));
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IFacilityAuthorizationService, FacilityAuthorizationService>();

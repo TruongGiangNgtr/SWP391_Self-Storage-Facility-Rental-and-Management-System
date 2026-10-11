@@ -226,6 +226,7 @@ internal sealed class VisitRepository(
     public async Task<Visit> CheckInAsync(
         Guid visitId,
         Guid employeeId,
+        DateOnly businessDate,
         CancellationToken cancellationToken)
     {
         var connection = dbContext.Database.GetDbConnection();
@@ -256,11 +257,31 @@ internal sealed class VisitRepository(
             employeeParameter.Value = employeeId;
             command.Parameters.Add(employeeParameter);
 
+            var businessDateParameter = command.CreateParameter();
+            businessDateParameter.ParameterName = "@BusinessDate";
+            businessDateParameter.DbType = DbType.Date;
+            businessDateParameter.Value =
+                businessDate.ToDateTime(TimeOnly.MinValue);
+
+            command.Parameters.Add(businessDateParameter);
+
             await command.ExecuteNonQueryAsync(
                 cancellationToken);
         }
         catch (SqlException ex)
         {
+            if (ex.Number == 51113) {
+                throw new StoredProcedureBusinessException(
+                    "VISIT_DATE_MISMATCH",
+                    "VISIT_DATE_MISMATCH");
+            }
+
+            if (ex.Number == 51114) {
+                throw new StoredProcedureBusinessException(
+                    "FORBIDDEN",
+                    "STAFF_FACILITY_OR_ROLE_INVALID");
+            }
+
             if (ex.Message.Contains(
                     "VISIT_INVALID_STATUS",
                     StringComparison.OrdinalIgnoreCase))
