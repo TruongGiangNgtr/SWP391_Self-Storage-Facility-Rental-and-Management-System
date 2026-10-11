@@ -13,7 +13,8 @@ internal sealed class VisitService(
     IVisitRepository repository,
     ICurrentUserContext currentUser,
     IFacilityAuthorizationService facilityAuthorizationService,
-    IClock clock)
+    IClock clock,
+    IReturnVisitService returnVisits)
     : IVisitService
 {
     private async Task<Visit> CheckOutCoreAsync(
@@ -860,11 +861,15 @@ internal sealed class VisitService(
 
     public async Task<VisitResult> RescheduleAsync(Guid visitId, DateOnly visitDate, CancellationToken cancellationToken = default)
     {
+        if ((await repository.GetByIdAsync(visitId, cancellationToken))?.VisitType == "RETURN")
+            return await returnVisits.RescheduleAsync(visitId, visitDate, cancellationToken);
         return ServiceResultProjection.Map(await RescheduleCoreAsync(visitId, visitDate, cancellationToken));
     }
 
     public async Task<VisitResult> CancelAsync(Guid visitId, string reason, CancellationToken cancellationToken = default)
     {
+        if ((await repository.GetByIdAsync(visitId, cancellationToken))?.VisitType == "RETURN")
+            return await returnVisits.CancelAsync(visitId, reason, cancellationToken);
         return ServiceResultProjection.Map(await CancelCoreAsync(visitId, reason, cancellationToken));
     }
 

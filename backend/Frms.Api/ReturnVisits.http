@@ -1,0 +1,29 @@
+@baseUrl = http://localhost:5164
+@contractId = 00000000-0000-0000-0000-000000000000
+@visitId = 00000000-0000-0000-0000-000000000000
+# Configure accessToken privately. Choose today or a future GMT+7 calendar date.
+
+### VIS-002
+POST {{baseUrl}}/api/v1/contracts/{{contractId}}/return-visits
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "visitDate": "2027-01-28" }
+
+### VIS-005
+PATCH {{baseUrl}}/api/v1/visits/{{visitId}}/schedule
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "visitDate": "2027-01-29" }
+
+### VIS-006
+POST {{baseUrl}}/api/v1/visits/{{visitId}}/cancel
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "reason": "Customer changed return plans." }
+
+### CON-005 (missing contract returns RESOURCE_NOT_FOUND)
+GET {{baseUrl}}/api/v1/contracts/{{contractId}}/return-summary
+Authorization: Bearer {{accessToken}}

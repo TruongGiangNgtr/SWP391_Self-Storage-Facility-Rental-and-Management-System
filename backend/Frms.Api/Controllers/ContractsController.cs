@@ -15,7 +15,8 @@ public sealed class ContractsController(
     IRenewalService renewalService,
     IContractService contractService,
     IReturnProcessingService returnService,
-    IBillingService billingService)
+    IBillingService billingService,
+    IReturnVisitService returnVisits)
     : ScaffoldControllerBase {
     /// <summary>CON-001: List own Contracts.</summary>
     [Authorize(
@@ -182,25 +183,42 @@ public sealed class ContractsController(
         return Ok(new ApiResponse<ContractBillingSummaryResponse>(result.ToResponse()));
     }
 
-    /// <summary>CON-005: Contract return summary scaffold.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
+    /// <summary>CON-005: Authorized persisted return, Inspection, fees and settlement summary.</summary>
+    [Authorize(Roles = RoleNames.Customer + "," + RoleNames.FacilityStaff + "," +
+        RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
     [HttpGet("{contractId:guid}/return-summary")]
-    public ActionResult<ApiErrorResponse> GetReturnSummary(
+    [ProducesResponseType(typeof(ApiResponse<ContractReturnSummaryResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<ContractReturnSummaryResponse>>> GetReturnSummary(
         Guid contractId,
         CancellationToken cancellationToken)
-        => ScaffoldNotImplemented("CON-005");
+    {
+        var result = await returnVisits.GetSummaryAsync(contractId, cancellationToken);
+        return Ok(new ApiResponse<ContractReturnSummaryResponse>(result.ToResponse()));
+    }
 
-    /// <summary>VIS-002: Create a RETURN Visit scaffold.</summary>
+    /// <summary>VIS-002: Create an owned RETURN Visit without confirming physical return.</summary>
     [Authorize(Roles = RoleNames.Customer)]
     [HttpPost("{contractId:guid}/return-visits")]
     [ProducesResponseType(
         typeof(ApiResponse<VisitDetailResponse>),
         StatusCodes.Status201Created)]
-    public ActionResult<ApiErrorResponse> CreateReturnVisit(
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ApiResponse<VisitDetailResponse>>> CreateReturnVisit(
         Guid contractId,
         [FromBody] CreateReturnVisitRequest request,
         CancellationToken cancellationToken)
-        => ScaffoldNotImplemented("VIS-002");
+    {
+        var visit = await returnVisits.CreateAsync(contractId, request.VisitDate, cancellationToken);
+        return CreatedAtAction(nameof(VisitsController.GetVisit), "Visits", new { visitId = visit.VisitId },
+            new ApiResponse<VisitDetailResponse>(visit.ToVisitResponse(), "Return visit created."));
+    }
 
     /// <summary>INS-008: Finalize return.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff)]
