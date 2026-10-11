@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Frms.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = "BUSINESS_OPERATIONS_MANAGER")]
+[Authorize(Roles = "BUSINESS_OPERATIONS_MANAGER,SYSTEM_ADMINISTRATOR")]
 [Route("api/v1/business/facilities")]
 public sealed class BusinessFacilitiesController(
     IFacilityService facilityService) : ControllerBase {
@@ -55,6 +55,7 @@ public sealed class BusinessFacilitiesController(
     /// BOM-002: Create Facility.
     /// New Facility always starts INACTIVE.
     /// </summary>
+    [Authorize(Roles = "BUSINESS_OPERATIONS_MANAGER")]
     [HttpPost]
     public async Task<IActionResult> CreateFacility(
         [FromBody] CreateFacilityRequest request,
@@ -198,6 +199,7 @@ public sealed class BusinessFacilitiesController(
     /// <summary>
     /// BOM-004: Activate Facility.
     /// </summary>
+    [Authorize(Roles = "BUSINESS_OPERATIONS_MANAGER")]
     [HttpPost("{facilityId:guid}/activate")]
     public async Task<IActionResult> ActivateFacility(
         Guid facilityId,
@@ -218,6 +220,7 @@ public sealed class BusinessFacilitiesController(
     /// <summary>
     /// BOM-005: Deactivate Facility.
     /// </summary>
+    [Authorize(Roles = "BUSINESS_OPERATIONS_MANAGER")]
     [HttpPost("{facilityId:guid}/deactivate")]
     public async Task<IActionResult> DeactivateFacility(
         Guid facilityId,
