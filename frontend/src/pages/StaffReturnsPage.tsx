@@ -18,6 +18,7 @@ import type {
   FinalizeReturnResult,
   FinalStorageUnitStatus,
   InspectionDetail,
+  InspectionListItem,
 } from '../features/return-management/return.types'
 import { formatMoney, formatUtcDateTime, getCurrentBusinessDate } from '../utils/formatters'
 import '../styles/staff.css'
@@ -204,7 +205,7 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
   const requestedInspectionId = searchParams.get('inspectionId')
   const [page, setPage] = useState(1)
   const [retry, setRetry] = useState(0)
-  const [list, setList] = useState<ApiCollectionResponse<InspectionDetail> | null>(null)
+  const [list, setList] = useState<ApiCollectionResponse<InspectionListItem> | null>(null)
   const [loadingList, setLoadingList] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(requestedInspectionId)
   const [detail, setDetail] = useState<InspectionDetail | null>(null)
