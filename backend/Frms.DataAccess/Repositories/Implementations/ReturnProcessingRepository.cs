@@ -77,8 +77,9 @@ internal sealed class ReturnProcessingRepository(
     {
         // Must be a *single atomic SQL transaction*, not sequential EF updates.
         await sql.ExecuteAsync("usp_FinalizeReturn", ct,
-            ReturnSqlExecutor.GuidParam("@ContractId", contractId),
-            ReturnSqlExecutor.TextParam("@StorageUnitStatus", status));
+                ReturnSqlExecutor.GuidParam("@ContractId", contractId),
+                ReturnSqlExecutor.TextParam("@StorageUnitStatus", status),
+                ReturnSqlExecutor.GuidParam("@EmployeeId", staffId));
 
         var contract = await db.Contracts.AsNoTracking()
             .SingleAsync(x => x.ContractId == contractId, ct);
