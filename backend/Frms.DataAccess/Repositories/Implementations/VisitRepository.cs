@@ -223,10 +223,10 @@ internal sealed class VisitRepository(
             .SingleOrDefaultAsync(cancellationToken);
     }
 
+
     public async Task<Visit> CheckInAsync(
         Guid visitId,
         Guid employeeId,
-        DateOnly businessDate,
         CancellationToken cancellationToken)
     {
         var connection = dbContext.Database.GetDbConnection();
@@ -256,14 +256,6 @@ internal sealed class VisitRepository(
             employeeParameter.DbType = DbType.Guid;
             employeeParameter.Value = employeeId;
             command.Parameters.Add(employeeParameter);
-
-            var businessDateParameter = command.CreateParameter();
-            businessDateParameter.ParameterName = "@BusinessDate";
-            businessDateParameter.DbType = DbType.Date;
-            businessDateParameter.Value =
-                businessDate.ToDateTime(TimeOnly.MinValue);
-
-            command.Parameters.Add(businessDateParameter);
 
             await command.ExecuteNonQueryAsync(
                 cancellationToken);

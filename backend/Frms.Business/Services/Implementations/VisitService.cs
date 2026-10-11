@@ -682,14 +682,10 @@ internal sealed class VisitService(
                 409);
         }
 
-        var businessDate = DateOnly.FromDateTime(
-        clock.ToBusinessTime(clock.UtcNow).DateTime);
-
         try {
             return await repository.CheckInAsync(
                 visitId,
                 employee.EmployeeId,
-                businessDate,
                 cancellationToken);
         }
         catch (StoredProcedureBusinessException ex)
