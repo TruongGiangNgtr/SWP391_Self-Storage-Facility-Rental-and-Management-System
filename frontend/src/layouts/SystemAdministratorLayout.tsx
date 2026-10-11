@@ -50,12 +50,7 @@ const navItems = [
   },
   {
     to: '/admin/assignment',
-    label: 'Role & Facility Assignment',
-    icon: ShieldCheck,
-  },
-  {
-    to: '/admin/access-management',
-    label: 'Access Management',
+    label: 'Role & Access Management',
     icon: ShieldCheck,
   },
   {
@@ -176,7 +171,7 @@ export function SystemAdministratorLayout() {
           <div className="admin-footer-column">
             <strong>SECURITY</strong>
             <Link className="admin-footer-link" to="/admin/assignment">
-              Role &amp; Facility Assignment
+              Role &amp; Access Management
             </Link>
             <Link className="admin-footer-link" to="/admin/login-history">
               Login History
