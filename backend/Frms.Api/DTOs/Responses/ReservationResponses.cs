@@ -1,3 +1,4 @@
+
 namespace Frms.Api.DTOs.Responses;
 
 /// <summary>Represents the Deposit invoice portion of ReservationDetail.</summary>
@@ -27,7 +28,9 @@ public sealed record ReservationDetailResponse(
     string Status,
     DepositInvoiceSummaryResponse DepositInvoice,
     ReservationVisitSummaryResponse? ReservationVisit,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt) {
+    public Guid CustomerId { get; init; }
+}
 
 /// <summary>Represents the result of confirming a Reservation.</summary>
 public sealed record ConfirmReservationResponse(

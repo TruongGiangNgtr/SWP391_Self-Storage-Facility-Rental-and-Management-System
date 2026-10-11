@@ -1,3 +1,4 @@
+
 namespace Frms.DataAccess.Repositories.Models;
 
 public sealed record ContractSummaryRecord(
@@ -10,7 +11,9 @@ public sealed record ContractSummaryRecord(
     string UnitTypeMode,
     DateOnly StartMonth,
     DateOnly EndMonth,
-    string Status);
+    string Status) {
+    public Guid CustomerId { get; init; }
+}
 
 public sealed record ContractExtensionRecord(
     Guid ContractExtensionId,
@@ -52,7 +55,9 @@ public sealed record ContractDetailRecord(
     string UnitTypeSize,
     IReadOnlyList<ContractExtensionRecord> Extensions,
     IReadOnlyList<ContractVisitRecord> Visits,
-    IReadOnlyList<ContractInvoiceRecord> RentalInvoices);
+    IReadOnlyList<ContractInvoiceRecord> RentalInvoices) {
+    public Guid CustomerId { get; init; }
+}
 
 public sealed record ContractPageRecord(
     IReadOnlyList<ContractSummaryRecord> Items,
