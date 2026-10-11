@@ -85,7 +85,7 @@ builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 
-builder.Services.AddBusiness();
+builder.Services.AddBusiness(builder.Configuration["Time:BusinessTimeZone"]);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddFrmsBackgroundJobs();
 

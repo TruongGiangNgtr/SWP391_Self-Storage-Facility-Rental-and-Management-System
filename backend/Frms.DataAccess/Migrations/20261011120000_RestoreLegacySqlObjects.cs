@@ -1,4 +1,4 @@
-// Generated from FRMS_Database_V2_Final_InspectionSafe.sql (uploaded legacy DB source).
+﻿// Generated from FRMS_Database_V2_Final_InspectionSafe.sql (uploaded legacy DB source).
 // RESERVATION-FOCUSED RESTORE: legacy SQL is installed only if missing, except current V10.1 Handover/billing procedures which are upgraded.
 // V2 stored procedure semantics are NOT automatically aligned with SRS V10.1.
 // CompleteHandover and first-month billing exclusions use V10.1 semantics; Return/Inspection remain out of scope.
