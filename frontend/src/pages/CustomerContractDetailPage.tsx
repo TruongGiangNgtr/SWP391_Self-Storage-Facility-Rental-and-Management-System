@@ -30,6 +30,7 @@ export function CustomerContractDetailPage() {
           {contract.status === 'ACTIVE' && <Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(contractId)}/renew`}>Renew Contract</Link>}
           {contract.status === 'ACTIVE' && <Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(contractId)}/return-visits/new`}>Schedule Return Visit</Link>}
           <Link className="button button-secondary" to="/customer/visits">My Visits</Link>
+          <Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(contractId)}/fees-return`}>Fees &amp; Return Tracking</Link>
           <Link className="button button-secondary" to={`/customer/reservations/${encodeURIComponent(contract.reservationId)}`}>Original Reservation</Link>
         </div>
         <p className="muted">An access visit is a visit to your rented unit. It does not create a new reservation or change your rental period.</p>
