@@ -3,12 +3,20 @@ import {
   Search,
   ShieldCheck,
   X,
+  LayoutList,
+  LockKeyhole,
+  ArrowRight,
 } from 'lucide-react'
 import {
+  useEffect,
   useMemo,
   useState,
   type ChangeEvent,
 } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { businessApi } from '../../api/businessApi'
+import { RolePermissionsPanel } from './RolePermissionsPanel'
+import type { Facility } from '../../models/facility'
 import {
   assignAdminEmployee,
   normalizeAdminApiError,
@@ -30,6 +38,7 @@ import {
 import '../../styles/adminUserMonitoring.css'
 import '../../styles/adminEmployeeManagement.css'
 import '../../styles/adminRoleFacilityAssignment.css'
+import '../../styles/adminAccessManagement.css'
 
 function shortId(value: string) {
   if (value.length <= 16) return value
@@ -43,7 +52,7 @@ interface PageNotice {
   traceId?: string
 }
 
-export default function RoleFacilityAssignmentPage() {
+function EmployeeAssignmentsPanel() {
   const {
     accounts,
     rawAccounts,
@@ -60,6 +69,28 @@ export default function RoleFacilityAssignmentPage() {
   const [assignmentBusy, setAssignmentBusy] = useState(false)
   const [assignmentError, setAssignmentError] = useState<AdminApiErrorShape | null>(null)
   const [notice, setNotice] = useState<PageNotice | null>(null)
+
+  // Display Facility names rather than opaque IDs in the assignment table.
+  // Assignment still sends the original FacilityId via ADM-009.
+  const [facilities, setFacilities] = useState<Facility[]>([])
+  const [facilityDirectoryError, setFacilityDirectoryError] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    void businessApi.listAllFacilities().then((list) => {
+      if (active) {
+        setFacilities(list)
+        setFacilityDirectoryError(false)
+      }
+    }).catch(() => {
+      if (active) setFacilityDirectoryError(true)
+    })
+    return () => { active = false }
+  }, [])
+
+  const facilityNames = useMemo(() => new Map(
+    facilities.map((facility) => [facility.facilityId.toLowerCase(), facility.name]),
+  ), [facilities])
 
   const facilityScopedCount = useMemo(
     () => rawAccounts.filter((account) =>
@@ -106,16 +137,13 @@ export default function RoleFacilityAssignmentPage() {
   }
 
   return (
-    <div className="awp01-page awp03-page awp04-page" data-testid="awp04-page">
-      <header className="awp01-page__header">
+    <div className="awp45-panel-body" id="awp45-assignments-panel" role="tabpanel" aria-labelledby="awp45-assignments-tab">
+      <div className="awp45-panel-header">
         <div>
-          <p className="awp01-eyebrow">System Administrator · AWP-04</p>
-          <h1>Role &amp; facility assignment</h1>
-          <p>
-            Assign exactly one valid Employee role and enforce Facility scope through ADM-009. The employee list reuses the AWP-03/AWP-01 administration reads and visual components.
-          </p>
+          <p className="awp01-eyebrow">AWP-04 · ADM-009</p>
+          <h2>Employee assignments</h2>
+          <p>Review Employee access and update one role and Facility scope at a time. Changes are enforced by the backend.</p>
         </div>
-
         <button
           className="awp01-button awp01-button--secondary"
           type="button"
@@ -125,19 +153,19 @@ export default function RoleFacilityAssignmentPage() {
           <RefreshCw size={16} />
           Refresh
         </button>
-      </header>
+      </div>
 
       <section className="awp01-summary" aria-label="Assignment summary">
         <div className="awp01-summary-card">
-          <span>Employee rows loaded</span>
+          <span>Employees on API page</span>
           <strong>{rawAccounts.length}</strong>
         </div>
         <div className="awp01-summary-card">
-          <span>Facility-scoped roles</span>
+          <span>Facility-scoped on page</span>
           <strong>{facilityScopedCount}</strong>
         </div>
         <div className="awp01-summary-card">
-          <span>Global roles</span>
+          <span>Global roles on page</span>
           <strong>{globalCount}</strong>
         </div>
       </section>
@@ -217,7 +245,8 @@ export default function RoleFacilityAssignmentPage() {
         </label>
 
         <p className="awp01-toolbar__note">
-          ADM-001 remains the paged source for Employee rows. Assignment changes are submitted only through ADM-009; UI filtering does not replace backend role/Facility validation.
+          Showing Employee records from the current ADM-001 API page only. Assignment changes use ADM-009; Facility scope and role eligibility are validated server-side.
+          {facilityDirectoryError ? ' Facility names are unavailable; IDs are shown as a fallback.' : ''}
         </p>
       </section>
 
@@ -284,9 +313,13 @@ export default function RoleFacilityAssignmentPage() {
                       <span className="awp01-role-chip">{USER_ROLE_LABELS[account.role]}</span>
                     </td>
                     <td>
-                      <code className="awp03-facility-code" title={account.profile?.facilityId ?? undefined}>
-                        {account.profile?.facilityId ? shortId(account.profile.facilityId) : 'Global'}
-                      </code>
+                      {account.profile?.facilityId ? (
+                        <span className="awp45-facility-cell" title={account.profile.facilityId}>
+                          {facilityNames.get(account.profile.facilityId.toLowerCase()) ?? shortId(account.profile.facilityId)}
+                        </span>
+                      ) : (
+                        <span className="awp45-global-chip">Global</span>
+                      )}
                     </td>
                     <td><AccountStatusBadge status={account.status} /></td>
                     <td>
@@ -303,7 +336,7 @@ export default function RoleFacilityAssignmentPage() {
                         disabled={assignmentBusy || !account.profile?.employeeId}
                       >
                         <ShieldCheck size={15} />
-                        Assign
+                        Edit assignment
                       </button>
                     </td>
                   </tr>
@@ -352,6 +385,79 @@ export default function RoleFacilityAssignmentPage() {
           onSubmit={submitAssignment}
         />
       )}
+    </div>
+  )
+}
+
+export default function RoleFacilityAssignmentPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab = searchParams.get('tab') === 'permissions' ? 'permissions' : 'assignments'
+
+  function switchTab(tab: 'assignments' | 'permissions') {
+    const next = new URLSearchParams(searchParams)
+    if (tab === 'permissions') next.set('tab', 'permissions')
+    else next.delete('tab')
+    setSearchParams(next)
+  }
+
+  return (
+    <div className="awp01-page awp03-page awp04-page awp45-page" data-testid="awp04-page">
+      <header className="awp45-page-heading">
+        <div className="awp45-page-heading__icon"><ShieldCheck size={23} aria-hidden="true" /></div>
+        <div className="awp45-page-heading__content">
+          <p className="awp01-eyebrow">System Administrator · AWP-04 / AWP-05</p>
+          <h1>Role &amp; access management</h1>
+          <p>Manage Employee role and Facility assignments, and review the fixed Release 1 access policies in one place.</p>
+        </div>
+        <span className="awp45-heading-badge">5 fixed roles</span>
+      </header>
+
+      <nav className="awp45-tabs" aria-label="Role and access sections" role="tablist">
+        <button
+          id="awp45-assignments-tab"
+          className={`awp45-tab ${activeTab === 'assignments' ? 'awp45-tab--active' : ''}`}
+          role="tab"
+          type="button"
+          aria-selected={activeTab === 'assignments'}
+          aria-controls="awp45-assignments-panel"
+          tabIndex={activeTab === 'assignments' ? 0 : -1}
+          onClick={() => switchTab('assignments')}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+              event.preventDefault()
+              switchTab('permissions')
+              document.getElementById('awp45-permissions-tab')?.focus()
+            }
+          }}
+        >
+          <LayoutList size={17} aria-hidden="true" />
+          <span><strong>Employee assignments</strong><small>Role &amp; Facility · AWP-04</small></span>
+          <ArrowRight className="awp45-tab__arrow" size={15} aria-hidden="true" />
+        </button>
+        <button
+          id="awp45-permissions-tab"
+          className={`awp45-tab ${activeTab === 'permissions' ? 'awp45-tab--active' : ''}`}
+          role="tab"
+          type="button"
+          aria-selected={activeTab === 'permissions'}
+          aria-controls="awp45-permissions-panel"
+          tabIndex={activeTab === 'permissions' ? 0 : -1}
+          onClick={() => switchTab('permissions')}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+              event.preventDefault()
+              switchTab('assignments')
+              document.getElementById('awp45-assignments-tab')?.focus()
+            }
+          }}
+        >
+          <LockKeyhole size={17} aria-hidden="true" />
+          <span><strong>RBAC permissions</strong><small>Access policies · AWP-05</small></span>
+          <ArrowRight className="awp45-tab__arrow" size={15} aria-hidden="true" />
+        </button>
+      </nav>
+
+      {activeTab === 'assignments' ? <EmployeeAssignmentsPanel /> : <RolePermissionsPanel />}
     </div>
   )
 }

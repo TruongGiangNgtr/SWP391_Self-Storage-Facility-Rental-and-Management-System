@@ -53,6 +53,13 @@ export const businessApi = {
     )
   },
 
+  // Admin assignment must use the complete catalogue, not just page 1.
+  listAllFacilities(): Promise<Facility[]> {
+    return readAllPages((page) =>
+      businessApi.listFacilities(page, 100),
+    )
+  },
+
   createFacility(
     request: CreateFacilityRequest,
   ): Promise<ApiResponse<Facility>> {

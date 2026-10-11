@@ -1,4 +1,8 @@
 import { ShieldCheck, X } from 'lucide-react'
+import { businessApi } from '../../api/businessApi'
+import { ApiRequestError } from '../../api/httpClient'
+import '../../styles/adminRoleFacilityAssignment.css'
+import type { Facility } from '../../models/facility'
 import {
   useEffect,
   useMemo,
@@ -19,8 +23,6 @@ import type {
   AdminUserAccount,
 } from '../../models/adminUser'
 import { USER_ROLE_LABELS } from '../../models/adminUser'
-
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 interface Props {
   account: AdminUserAccount
@@ -50,6 +52,42 @@ export function EmployeeAssignmentDialog({
   const [role, setRole] = useState<EmployeeRole>(() => employeeRole(account))
   const [facilityId, setFacilityId] = useState(account.profile?.facilityId ?? '')
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({})
+  const [facilities, setFacilities] = useState<Facility[]>([])
+  const [facilitiesLoading, setFacilitiesLoading] = useState(true)
+  const [facilitiesError, setFacilitiesError] = useState<string | null>(null)
+  const [facilitiesReload, setFacilitiesReload] = useState(0)
+
+  // Load all pages from BOM-001 (also readable by System Administrator).
+  // Keep the original FacilityId for ADM-009; labels are Facility names only.
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadFacilities() {
+      setFacilitiesLoading(true)
+      setFacilitiesError(null)
+      try {
+        const result = await businessApi.listAllFacilities()
+        if (!cancelled) {
+          setFacilities(result.sort((a, b) => a.name.localeCompare(b.name, 'vi')))
+        }
+      } catch (loadError) {
+        if (cancelled) return
+        setFacilities([])
+        if (loadError instanceof ApiRequestError && loadError.status === 403) {
+          setFacilitiesError('You do not have permission to view Facilities. Verify your Facility list read access.')
+        } else if (loadError instanceof ApiRequestError && loadError.status === 401) {
+          setFacilitiesError('Your session has expired. Sign in again to load Facilities.')
+        } else {
+          setFacilitiesError('Unable to load Facilities. Try again.')
+        }
+      } finally {
+        if (!cancelled) setFacilitiesLoading(false)
+      }
+    }
+
+    void loadFacilities()
+    return () => { cancelled = true }
+  }, [facilitiesReload])
 
   const facilityRequired = useMemo(
     () => isFacilityScopedEmployeeRole(role),
@@ -76,10 +114,12 @@ export function EmployeeAssignmentDialog({
     const nextErrors: Record<string, string> = {}
 
     if (facilityRequired) {
-      if (!facilityId.trim()) {
-        nextErrors.facilityId = 'Facility ID is required for Facility Staff and Facility Manager.'
-      } else if (!UUID_PATTERN.test(facilityId.trim())) {
-        nextErrors.facilityId = 'Facility ID must be a valid UUID.'
+      if (facilitiesLoading || facilitiesError) {
+        nextErrors.facilityId = 'Load the Facility list before saving this assignment.'
+      } else if (!facilityId) {
+        nextErrors.facilityId = 'Select a Facility for Facility Staff or Facility Manager.'
+      } else if (!facilities.some((facility) => facility.facilityId === facilityId)) {
+        nextErrors.facilityId = 'Select a Facility from the current list.'
       }
     }
 
@@ -90,7 +130,7 @@ export function EmployeeAssignmentDialog({
 
     await onSubmit({
       role,
-      facilityId: facilityRequired ? facilityId.trim() : null,
+      facilityId: facilityRequired ? facilityId : null,
     })
   }
 
@@ -170,28 +210,56 @@ export function EmployeeAssignmentDialog({
           </label>
 
           {facilityRequired ? (
-            <label>
-              <span>Facility ID</span>
-              <input
-                value={facilityId}
-                onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                  setFacilityId(event.target.value)
-                  setClientErrors((current) => {
-                    if (!current.facilityId) return current
-                    const next = { ...current }
-                    delete next.facilityId
-                    return next
-                  })
-                }}
-                disabled={busy}
-                aria-invalid={Boolean(fieldError('facilityId'))}
-                placeholder="00000000-0000-0000-0000-000000000000"
-              />
-              {fieldError('facilityId') ? (
-                <small className="awp03-field-error">{fieldError('facilityId')}</small>
+            <>
+              <label>
+                <span>Facility</span>
+                <select
+                  value={facilitiesLoading || facilitiesError ? '' : facilityId}
+                  onChange={(event: ChangeEvent<HTMLSelectElement>) => {
+                    setFacilityId(event.target.value)
+                    setClientErrors((current) => {
+                      if (!current.facilityId) return current
+                      const next = { ...current }
+                      delete next.facilityId
+                      return next
+                    })
+                  }}
+                  disabled={busy || facilitiesLoading || Boolean(facilitiesError) || facilities.length === 0}
+                  aria-invalid={Boolean(fieldError('facilityId'))}
+                  aria-busy={facilitiesLoading}
+                >
+                  <option value="">
+                    {facilitiesLoading ? 'Loading Facilities…' : facilitiesError ? 'Facilities unavailable' : facilities.length === 0 ? 'No Facilities available' : 'Select a Facility'}
+                  </option>
+                  {!facilitiesLoading && !facilitiesError && facilityId &&
+                    !facilities.some((facility) => facility.facilityId === facilityId) && (
+                      <option value={facilityId} disabled>Current Facility not found — select another</option>
+                    )}
+                  {facilities.map((facility) => (
+                    <option key={facility.facilityId} value={facility.facilityId}>
+                      {facility.name}{facility.status === 'INACTIVE' ? ' (Inactive)' : ''}
+                    </option>
+                  ))}
+                </select>
+                {fieldError('facilityId') ? (
+                  <small className="awp03-field-error">{fieldError('facilityId')}</small>
+                ) : null}
+                <small>Facility names are loaded from the business Facilities API. The selected Facility ID is sent to ADM-009.</small>
+              </label>
+              {facilitiesError ? (
+                <div className="awp04-facility-load-error" role="alert">
+                  <small>{facilitiesError}</small>
+                  <button
+                    className="awp01-button awp01-button--secondary"
+                    type="button"
+                    onClick={() => setFacilitiesReload((current) => current + 1)}
+                    disabled={busy}
+                  >
+                    Retry
+                  </button>
+                </div>
               ) : null}
-              <small>ADM-009 validates that the Facility exists before the assignment is persisted.</small>
-            </label>
+            </>
           ) : (
             <div className="awp03-field-readonly">
               <span>Facility</span>
@@ -202,7 +270,7 @@ export function EmployeeAssignmentDialog({
           <div className="awp04-current-assignment" aria-label="Current assignment">
             <span>Current</span>
             <strong>{USER_ROLE_LABELS[account.role]}</strong>
-            <code>{account.profile?.facilityId ?? 'Global / no Facility'}</code>
+            <code>{account.profile?.facilityId ? (facilities.find((facility) => facility.facilityId === account.profile?.facilityId)?.name ?? account.profile.facilityId) : 'Global / no Facility'}</code>
           </div>
 
           <footer className="awp03-modal__actions">
@@ -217,7 +285,7 @@ export function EmployeeAssignmentDialog({
             <button
               className="awp01-button awp03-button--primary"
               type="submit"
-              disabled={busy}
+              disabled={busy || (facilityRequired && (facilitiesLoading || Boolean(facilitiesError) || facilities.length === 0 || !facilities.some((facility) => facility.facilityId === facilityId)))}
             >
               {busy ? 'Saving assignment…' : 'Save assignment'}
             </button>
