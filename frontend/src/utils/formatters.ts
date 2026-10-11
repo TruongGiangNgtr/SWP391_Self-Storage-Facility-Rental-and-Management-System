@@ -1,3 +1,5 @@
+const APP_TIME_ZONE = import.meta.env.VITE_APP_TIME_ZONE || 'Asia/Ho_Chi_Minh'
+
 const moneyFormatter = new Intl.NumberFormat('en-GB', {
   style: 'currency',
   currency: 'VND',
@@ -6,7 +8,7 @@ const moneyFormatter = new Intl.NumberFormat('en-GB', {
 })
 
 const dateTimeFormatter = new Intl.DateTimeFormat('en-GB', {
-  timeZone: 'Asia/Ho_Chi_Minh',
+  timeZone: APP_TIME_ZONE,
   dateStyle: 'short',
   timeStyle: 'short',
 })
@@ -25,7 +27,7 @@ export function formatMonthRange(startMonth: string, endMonth: string): string {
 
 export function getCurrentBusinessDate(now = new Date()): string {
   const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit',
+    timeZone: APP_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit',
   }).formatToParts(now)
   const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? ''
   return `${part('year')}-${part('month')}-${part('day')}`
