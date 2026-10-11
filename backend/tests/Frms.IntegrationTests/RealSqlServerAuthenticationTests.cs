@@ -98,7 +98,7 @@ public sealed class RealSqlServerAuthenticationTests
     {
         using var scope = services.CreateScope();
         var database = scope.ServiceProvider.GetRequiredService<FrmsDbContext>();
-        await database.Database.MigrateAsync();
+        await SqlScriptTestDatabase.EnsureAsync(database);
         var customerAccountId = Guid.NewGuid();
         var employeeAccountId = Guid.NewGuid();
         var inactiveAccountId = Guid.NewGuid();

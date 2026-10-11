@@ -16,7 +16,7 @@ public sealed class RealSqlServerBaselineTests
         Assert.That(connectionString, Is.Not.Null.And.Not.Empty, "FRMS_TEST_CONNECTION_STRING is required for the SQL Server baseline gate.");
         Assert.That(new SqlConnectionStringBuilder(connectionString!).InitialCatalog, Does.StartWith("Frms_Test_"), "Only disposable Frms_Test_* databases may contain these fixtures.");
         database = new FrmsDbContext(new DbContextOptionsBuilder<FrmsDbContext>().UseSqlServer(connectionString).Options);
-        await database.Database.MigrateAsync();
+        await SqlScriptTestDatabase.EnsureAsync(database);
     }
 
     [TearDown]

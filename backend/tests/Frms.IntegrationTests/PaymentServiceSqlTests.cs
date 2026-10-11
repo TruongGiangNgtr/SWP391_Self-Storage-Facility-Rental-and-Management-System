@@ -31,7 +31,7 @@ public sealed class PaymentServiceSqlTests
             .AddSingleton<ITokenService, UnusedTokenService>()
             .BuildServiceProvider();
         await using var db = Open();
-        await db.Database.MigrateAsync();
+        await SqlScriptTestDatabase.EnsureAsync(db);
     }
 
     [OneTimeTearDown]

@@ -8,10 +8,6 @@ namespace Frms.IntegrationTests;
 internal static class PaymentSqlTestSupport
 {
     internal static string Prepare(Guid id, decimal amount) => System.Text.Json.JsonSerializer.Serialize(new { id, amount });
-    internal const string BaselineMigration = "20261004191200_PhaseZeroBaselineConstraints";
-    internal const string PaymentMigration = "20261007045825_PaymentProcessing";
-    internal const string VnPayMigration = "20261007170917_VnPayPaymentGateway";
-    internal const string InvoiceTimestampMigration = "20261008094647_InvoicePaymentTimestamp";
     internal static readonly DateTimeOffset Now = new(2026, 10, 7, 10, 0, 0, TimeSpan.Zero);
     internal static readonly DateTimeOffset ProviderTime = new(2026, 10, 7, 17, 2, 3, 456, TimeSpan.FromHours(7));
 
@@ -66,7 +62,7 @@ internal static class PaymentSqlTestSupport
             BillingMonth = type == "DEPOSIT" ? null : new DateOnly(2026, firstMonth ? 10 : 11, 1),
             BaseAmount = amount, AmountDue = amount, DueDate = Now.UtcDateTime, CreatedAt = Now.UtcDateTime, Status = status };
         await db.SaveChangesAsync();
-        // Migration tests also seed the pre-timestamp schema. Use only its shared columns.
+        // Keep fixture inserts limited to shared invoice columns.
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             INSERT dbo.Invoice (InvoiceId, EntityId, InvoiceType, BillingMonth, BaseAmount,
                 DiscountAmount, AmountDue, DueDate, Status, CreatedAt)

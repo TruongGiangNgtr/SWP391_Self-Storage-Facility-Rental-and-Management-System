@@ -6,6 +6,7 @@ using Frms.Api.DTOs.Responses;
 using Frms.Business.Abstractions.External;
 using Frms.Business.Exceptions;
 using Frms.Business.Models.Commands;
+using Frms.Business.Models.Common;
 using Frms.Business.Models.Results;
 using Frms.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -36,6 +37,11 @@ public sealed class PaymentsController(IPaymentService service) : ControllerBase
             throw new BusinessException("VALIDATION_ERROR", "A non-empty UUID Idempotency-Key is required.", 400);
         var result = await service.StartInvoicePaymentAsync(
             invoiceId, new StartPaymentCommand(key, string.Empty, string.Empty), cancellationToken);
+        if (result.Outcome == PaymentStartOutcome.SessionUnavailable)
+            return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                new ApiErrorResponse(PaymentErrorCodes.SessionUnavailable,
+                    "The payment session is temporarily unavailable. Start a new payment attempt.",
+                    HttpContext.TraceIdentifier));
         var response = new ApiResponse<InvoicePayOsPaymentResponse>(new(result.PaymentId, result.InvoiceId,
             result.Amount, result.PaymentMethod, result.Status, result.PaymentUrl));
         return result.NewlyInitiated && result.Outcome == PaymentStartOutcome.SessionAvailable

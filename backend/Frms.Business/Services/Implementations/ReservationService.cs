@@ -1,6 +1,7 @@
 using Frms.Business.Abstractions.Security;
 using Frms.Business.Exceptions;
 using Frms.Business.Models.Commands;
+using Frms.Business.Models.Results;
 using Frms.Business.Services.Interfaces;
 using Frms.DataAccess.Repositories.Interfaces;
 using Frms.DataAccess.Repositories.Models;
@@ -11,7 +12,8 @@ namespace Frms.Business.Services.Implementations;
 internal sealed class ReservationService(
     IReservationRepository repository,
     ICurrentUserContext currentUser,
-    IFacilityAuthorizationService facilityAuthorization)
+    IFacilityAuthorizationService facilityAuthorization,
+    IAuthenticationService authentication)
     : IReservationService {
     private const string CustomerRole =
         "CUSTOMER";
@@ -233,12 +235,12 @@ internal sealed class ReservationService(
                         "Reservation deposit has not been paid.",
                         409);
 
+
                 case "VISIT_DATE_OUT_OF_POLICY":
                     throw new BusinessException(
                         ex.Code,
                         "Reservation Visit date is outside the captured Policy window.",
                         400);
-
                 case "RESERVATION_INVALID_STATUS":
                     throw new BusinessException(
                         ex.Code,
@@ -250,6 +252,59 @@ internal sealed class ReservationService(
             }
         }
     }
+
+    public async Task<ReservationCancellationResult> CancelAsync(
+        CancelReservationCommand command,
+        CancellationToken cancellationToken = default) {
+        EnsureAuthenticated();
+        var actor = await authentication.GetCurrentAccountAsync(
+            currentUser.UserAccountId, cancellationToken);
+        if (actor.Status != "ACTIVE") {
+            throw new BusinessException("ACCOUNT_INACTIVE", "The account is inactive.", 403);
+        }
+
+        if (actor.Role != CustomerRole) {
+            throw Forbidden();
+        }
+
+        if (command.ReservationId == Guid.Empty || string.IsNullOrWhiteSpace(command.Reason)) {
+            throw new BusinessException("VALIDATION_ERROR", "Reservation ID and reason are required.", 400);
+        }
+
+        var customerId = await GetRequiredCustomerIdAsync(cancellationToken);
+        ReservationDetailRecord reservation;
+        try {
+            // The procedure rechecks ownership, ACTIVE role and lifecycle under locks.
+            // Reason is an application note, not a new persisted Reservation field.
+            reservation = await repository.CancelAsync(
+                actor.UserAccountId, customerId, command.ReservationId, cancellationToken);
+        }
+        catch (StoredProcedureBusinessException ex) {
+            throw ex.Code switch {
+                "RESOURCE_NOT_FOUND" => new BusinessException(ex.Code, "Reservation was not found.", 404),
+                "ACCOUNT_INACTIVE" => new BusinessException(ex.Code, "The account is inactive.", 403),
+                "FORBIDDEN" => Forbidden(),
+                "RESERVATION_INVALID_STATUS" => new BusinessException(ex.Code, "Reservation cannot be cancelled from its current status.", 409),
+                "VISIT_INVALID_STATUS" => new BusinessException(ex.Code, "A checked-in Reservation cannot be cancelled.", 409),
+                _ => ex
+            };
+        }
+
+        return new ReservationCancellationResult(
+            reservation.ReservationId, reservation.FacilityId, reservation.UnitTypeId,
+            reservation.PolicyId, reservation.StartMonth, reservation.EndMonth,
+            reservation.LockedRentalPrice, reservation.DepositAmount, reservation.Status,
+            new ReservationDepositResult(reservation.DepositInvoice.InvoiceId,
+                reservation.DepositInvoice.Status, reservation.DepositInvoice.AmountDue,
+                ToUtcOffset(reservation.DepositInvoice.DueDate)),
+            reservation.ReservationVisit is { } visit
+                ? new CancelledReservationVisitResult(visit.VisitId, visit.VisitType, visit.VisitDate, visit.Status)
+                : null,
+            ToUtcOffset(reservation.CreatedAt));
+    }
+
+    private static DateTimeOffset ToUtcOffset(DateTime value) =>
+        new(DateTime.SpecifyKind(value, DateTimeKind.Utc));
 
     private void EnsureAuthenticated() {
         if (!currentUser.IsAuthenticated) {
