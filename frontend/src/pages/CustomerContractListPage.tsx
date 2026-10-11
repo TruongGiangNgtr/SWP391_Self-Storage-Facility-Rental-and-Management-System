@@ -29,7 +29,7 @@ export function CustomerContractListPage() {
   return (
     <main className="page-container flow-page">
       <section className="page-heading page-heading-actions">
-        <div><p className="eyebrow">Customer Portal</p><h1>My Contracts</h1><p className="muted">Choose an active contract to schedule a visit to your rented storage unit.</p></div>
+        <div><p className="eyebrow">Customer Portal</p><h1>My Contracts</h1><p className="muted">Choose an active contract to schedule an access visit or arrange your storage return.</p></div>
         <button className="button button-secondary" type="button" disabled={loading} onClick={() => setRetry((value) => value + 1)}>Refresh Contracts</button>
       </section>
       <ApiErrorAlert error={error} />
@@ -46,6 +46,7 @@ export function CustomerContractListPage() {
               <div className="action-row">
                 <Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(contract.contractId)}`}>View Contract</Link>
                 {contract.status === 'ACTIVE' && <Link className="button" to={`/customer/contracts/${encodeURIComponent(contract.contractId)}/access-visits/new`}>Schedule Access Visit</Link>}
+                {contract.status === 'ACTIVE' && <Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(contract.contractId)}/return-visits/new`}>Schedule Return Visit</Link>}
               </div>
             </article>)}
           </div>}
