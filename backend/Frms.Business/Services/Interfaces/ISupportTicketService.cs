@@ -1,7 +1,10 @@
+using Frms.Business.Models.Commands;
 using Frms.Business.Models.Results;
 namespace Frms.Business.Services.Interfaces;
 public interface ISupportTicketService
 {
+    Task<SupportTicketResult> CreateAsync(CreateSupportTicketCommand command, CancellationToken ct);
+    Task<SupportTicketResult> CompleteAsync(CompleteSupportTicketCommand command, CancellationToken ct);
     Task<(IReadOnlyList<SupportTicketResult> Items, int Total)> ListAccessibleAsync(int page, int pageSize, CancellationToken ct);
     Task<SupportTicketResult> GetAccessibleAsync(Guid ticketId, CancellationToken ct);
     Task<SupportTicketResult> AssignAsync(Guid ticketId, Guid staffEmployeeId, CancellationToken ct);
