@@ -1,5 +1,6 @@
 using Frms.Api.Authorization;
 using Frms.Business.Services.Interfaces;
+using Frms.Business.Models.Commands;
 using Frms.Business.Models.Results;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
@@ -11,13 +12,21 @@ namespace Frms.Api.Controllers;
 [Route("api/v1/support-tickets")]
 public sealed class SupportTicketsController(ISupportTicketService supportTicketService) : ScaffoldControllerBase
 {
-    /// <summary>SUP-001: Create a Contract-related SupportTicket scaffold.</summary>
+    /// <summary>SUP-001: Create a Customer-owned Contract support ticket.</summary>
     [Authorize(Roles = RoleNames.Customer)]
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<SupportTicketDetailResponse>), StatusCodes.Status201Created)]
-    public ActionResult<ApiErrorResponse> CreateSupportTicket(
+    public async Task<ActionResult<ApiResponse<SupportTicketDetailResponse>>> CreateSupportTicket(
         [FromBody] CreateSupportTicketRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("SUP-001");
+        CancellationToken cancellationToken)
+    {
+        var ticket = await supportTicketService.CreateAsync(
+            new CreateSupportTicketCommand(request.ContractId, request.Category, request.Description),
+            cancellationToken);
+        return CreatedAtAction(nameof(GetSupportTicket),
+            new { ticketId = ticket.SupportTicketId },
+            new ApiResponse<SupportTicketDetailResponse>(ToResponse(ticket)));
+    }
 
     /// <summary>SUP-002: List accessible SupportTickets scaffold.</summary>
     [Authorize(Roles = RoleNames.Customer + "," + RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
@@ -73,13 +82,20 @@ public sealed class SupportTicketsController(ISupportTicketService supportTicket
         return Ok(new ApiResponse<SupportTicketDetailResponse>(ToResponse(ticket), "SupportTicket assigned."));
     }
 
-    /// <summary>SUP-006: Complete an assigned SupportTicket scaffold.</summary>
+    /// <summary>SUP-006: Complete a ticket assigned to the current Facility Staff.</summary>
     [Authorize(Roles = RoleNames.FacilityStaff)]
     [HttpPost("{ticketId:guid}/complete")]
-    public ActionResult<ApiErrorResponse> CompleteSupportTicket(
+    [ProducesResponseType(typeof(ApiResponse<SupportTicketDetailResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<SupportTicketDetailResponse>>> CompleteSupportTicket(
         Guid ticketId,
         [FromBody] CompleteSupportTicketRequest request,
-        CancellationToken cancellationToken) => ScaffoldNotImplemented("SUP-006");
+        CancellationToken cancellationToken)
+    {
+        var ticket = await supportTicketService.CompleteAsync(
+            new CompleteSupportTicketCommand(ticketId, request.ResultNote), cancellationToken);
+        return Ok(new ApiResponse<SupportTicketDetailResponse>(ToResponse(ticket), "SupportTicket completed."));
+    }
+
     private static SupportTicketDetailResponse ToResponse(SupportTicketResult ticket) => new(
         ticket.SupportTicketId, ticket.ContractId, ticket.CustomerId, ticket.AssignedEmployeeId,
         ticket.Category, ticket.Description, ticket.Status, ticket.ResultNote,

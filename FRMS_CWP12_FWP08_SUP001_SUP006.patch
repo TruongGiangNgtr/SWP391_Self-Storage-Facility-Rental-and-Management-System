@@ -1,0 +1,303 @@
+diff --git a/backend/Frms.Api/Controllers/SupportTicketsController.cs b/backend/Frms.Api/Controllers/SupportTicketsController.cs
+--- a/backend/Frms.Api/Controllers/SupportTicketsController.cs
++++ b/backend/Frms.Api/Controllers/SupportTicketsController.cs
+@@ -1,6 +1,7 @@
+ using Frms.Api.Authorization;
+ using Frms.Business.Services.Interfaces;
++using Frms.Business.Models.Commands;
+ using Frms.Business.Models.Results;
+ using Frms.Api.DTOs.Requests;
+ using Frms.Api.DTOs.Responses;
+ using Microsoft.AspNetCore.Authorization;
+@@ -10,15 +11,23 @@
+ 
+ [Route("api/v1/support-tickets")]
+ public sealed class SupportTicketsController(ISupportTicketService supportTicketService) : ScaffoldControllerBase
+ {
+-    /// <summary>SUP-001: Create a Contract-related SupportTicket scaffold.</summary>
++    /// <summary>SUP-001: Create a Customer-owned Contract support ticket.</summary>
+     [Authorize(Roles = RoleNames.Customer)]
+     [HttpPost]
+     [ProducesResponseType(typeof(ApiResponse<SupportTicketDetailResponse>), StatusCodes.Status201Created)]
+-    public ActionResult<ApiErrorResponse> CreateSupportTicket(
++    public async Task<ActionResult<ApiResponse<SupportTicketDetailResponse>>> CreateSupportTicket(
+         [FromBody] CreateSupportTicketRequest request,
+-        CancellationToken cancellationToken) => ScaffoldNotImplemented("SUP-001");
++        CancellationToken cancellationToken)
++    {
++        var ticket = await supportTicketService.CreateAsync(
++            new CreateSupportTicketCommand(request.ContractId, request.Category, request.Description),
++            cancellationToken);
++        return CreatedAtAction(nameof(GetSupportTicket),
++            new { ticketId = ticket.SupportTicketId },
++            new ApiResponse<SupportTicketDetailResponse>(ToResponse(ticket)));
++    }
+ 
+     /// <summary>SUP-002: List accessible SupportTickets scaffold.</summary>
+     [Authorize(Roles = RoleNames.Customer + "," + RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
+     [HttpGet]
+@@ -72,15 +81,22 @@
+         var ticket = await supportTicketService.AssignAsync(ticketId, request.EmployeeId, cancellationToken);
+         return Ok(new ApiResponse<SupportTicketDetailResponse>(ToResponse(ticket), "SupportTicket assigned."));
+     }
+ 
+-    /// <summary>SUP-006: Complete an assigned SupportTicket scaffold.</summary>
++    /// <summary>SUP-006: Complete a ticket assigned to the current Facility Staff.</summary>
+     [Authorize(Roles = RoleNames.FacilityStaff)]
+     [HttpPost("{ticketId:guid}/complete")]
+-    public ActionResult<ApiErrorResponse> CompleteSupportTicket(
++    [ProducesResponseType(typeof(ApiResponse<SupportTicketDetailResponse>), StatusCodes.Status200OK)]
++    public async Task<ActionResult<ApiResponse<SupportTicketDetailResponse>>> CompleteSupportTicket(
+         Guid ticketId,
+         [FromBody] CompleteSupportTicketRequest request,
+-        CancellationToken cancellationToken) => ScaffoldNotImplemented("SUP-006");
++        CancellationToken cancellationToken)
++    {
++        var ticket = await supportTicketService.CompleteAsync(
++            new CompleteSupportTicketCommand(ticketId, request.ResultNote), cancellationToken);
++        return Ok(new ApiResponse<SupportTicketDetailResponse>(ToResponse(ticket), "SupportTicket completed."));
++    }
++
+     private static SupportTicketDetailResponse ToResponse(SupportTicketResult ticket) => new(
+         ticket.SupportTicketId, ticket.ContractId, ticket.CustomerId, ticket.AssignedEmployeeId,
+         ticket.Category, ticket.Description, ticket.Status, ticket.ResultNote,
+         new DateTimeOffset(DateTime.SpecifyKind(ticket.CreatedAt, DateTimeKind.Utc)),
+diff --git a/backend/Frms.Api/DTOs/Requests/SupportTicketRequests.cs b/backend/Frms.Api/DTOs/Requests/SupportTicketRequests.cs
+--- a/backend/Frms.Api/DTOs/Requests/SupportTicketRequests.cs
++++ b/backend/Frms.Api/DTOs/Requests/SupportTicketRequests.cs
+@@ -7,11 +7,13 @@
+ {
+     public required Guid ContractId { get; init; }
+ 
+     [Required]
++    [StringLength(50)]
+     public required string Category { get; init; }
+ 
+     [Required]
++    [StringLength(1000)]
+     public required string Description { get; init; }
+ }
+ 
+ /// <summary>Payload for cancelling a support ticket (SUP-004).</summary>
+@@ -30,6 +32,7 @@
+ /// <summary>Payload for completing a support ticket (SUP-006).</summary>
+ public sealed record CompleteSupportTicketRequest
+ {
+     [Required]
++    [StringLength(1000)]
+     public required string ResultNote { get; init; }
+ }
+diff --git a/backend/Frms.Business/Models/Commands/SupportTicketCommands.cs b/backend/Frms.Business/Models/Commands/SupportTicketCommands.cs
+new file mode 100644
+--- /dev/null
++++ b/backend/Frms.Business/Models/Commands/SupportTicketCommands.cs
+@@ -0,0 +1,4 @@
++namespace Frms.Business.Models.Commands;
++
++public sealed record CreateSupportTicketCommand(Guid ContractId, string Category, string Description);
++public sealed record CompleteSupportTicketCommand(Guid TicketId, string ResultNote);
+diff --git a/backend/Frms.Business/Services/Implementations/SupportTicketService.cs b/backend/Frms.Business/Services/Implementations/SupportTicketService.cs
+--- a/backend/Frms.Business/Services/Implementations/SupportTicketService.cs
++++ b/backend/Frms.Business/Services/Implementations/SupportTicketService.cs
+@@ -1,6 +1,7 @@
+ using Frms.Business.Abstractions.Security;
+ using Frms.Business.Exceptions;
++using Frms.Business.Models.Commands;
+ using Frms.Business.Models.Results;
+ using Frms.Business.Services.Interfaces;
+ using Frms.DataAccess.Persistence.Entities;
+ using Frms.DataAccess.Repositories.Interfaces;
+@@ -11,8 +12,76 @@
+     ISupportTicketRepository repository,
+     ICurrentUserContext currentUser,
+     IFacilityAuthorizationService facilityAuthorization) : ISupportTicketService
+ {
++    private static readonly HashSet<string> AllowedCategories = new(StringComparer.Ordinal)
++    {
++        "UNIT_ISSUE", "LOCK_KEY_ISSUE", "ACCESS_CARD_CODE_ISSUE", "PAYMENT_ISSUE",
++        "STORED_ITEM_ISSUE", "DAMAGE_ISSUE", "OTHER"
++    };
++
++    public async Task<SupportTicketResult> CreateAsync(CreateSupportTicketCommand command, CancellationToken ct)
++    {
++        EnsureAuthenticated();
++        if (currentUser.Role != "CUSTOMER") throw Forbidden();
++        if (command.ContractId == Guid.Empty ||
++            !AllowedCategories.Contains(command.Category) ||
++            string.IsNullOrWhiteSpace(command.Description) || command.Description.Length > 1000)
++            throw new BusinessException("VALIDATION_ERROR", "Invalid contractId, category or description.", 400);
++
++        var customerId = await repository.GetCustomerIdAsync(currentUser.UserAccountId, ct)
++            ?? throw Forbidden();
++        Guid ticketId;
++        try
++        {
++            ticketId = await repository.CreateAsync(
++                command.ContractId, customerId, command.Category, command.Description.Trim(), ct);
++        }
++        catch (StoredProcedureBusinessException ex) when (ex.Code == "SUPPORT_CONTRACT_NOT_OWNED")
++        {
++            // Do not disclose another customer's Contract existence.
++            throw new BusinessException("RESOURCE_NOT_FOUND", "Contract not found.", 404);
++        }
++
++        var created = await repository.GetAsync(ticketId, ct)
++            ?? throw new BusinessException("RESOURCE_NOT_FOUND", "Created SupportTicket not found.", 404);
++        return ServiceResultProjection.Map(created.Ticket);
++    }
++
++    public async Task<SupportTicketResult> CompleteAsync(CompleteSupportTicketCommand command, CancellationToken ct)
++    {
++        EnsureAuthenticated();
++        if (currentUser.Role != "FACILITY_STAFF") throw Forbidden();
++        if (command.TicketId == Guid.Empty ||
++            string.IsNullOrWhiteSpace(command.ResultNote) || command.ResultNote.Length > 1000)
++            throw new BusinessException("VALIDATION_ERROR", "Invalid ticketId or resultNote.", 400);
++
++        var record = await repository.GetAsync(command.TicketId, ct)
++            ?? throw new BusinessException("RESOURCE_NOT_FOUND", "SupportTicket not found.", 404);
++        await facilityAuthorization.EnsureSameFacilityAsync(record.FacilityId, ct);
++        var employee = await repository.GetEmployeeAsync(currentUser.UserAccountId, ct)
++            ?? throw Forbidden();
++        if (record.Ticket.AssignedEmployeeId != employee.EmployeeId) throw Forbidden();
++        if (record.Ticket.Status != "IN_PROGRESS")
++            throw new BusinessException("SUPPORT_TICKET_INVALID_STATUS", "SupportTicket must be IN_PROGRESS.", 409);
++
++        try
++        {
++            // The stored procedure enforces assignment and status atomically.
++            await repository.CompleteAsync(command.TicketId, employee.EmployeeId, command.ResultNote.Trim(), ct);
++        }
++        catch (StoredProcedureBusinessException ex)
++            when (ex.Code == "SUPPORT_TICKET_INVALID_STATUS_OR_ACTOR")
++        {
++            throw new BusinessException("SUPPORT_TICKET_INVALID_STATUS",
++                "SupportTicket is no longer completable by this Staff member.", 409);
++        }
++
++        var completed = await repository.GetAsync(command.TicketId, ct)
++            ?? throw new BusinessException("RESOURCE_NOT_FOUND", "Completed SupportTicket not found.", 404);
++        return ServiceResultProjection.Map(completed.Ticket);
++    }
++
+     public async Task<(IReadOnlyList<SupportTicketResult> Items, int Total)> ListAccessibleAsync(
+         int page, int pageSize, CancellationToken ct)
+     {
+         var result = await ListAccessibleCoreAsync(page, pageSize, ct);
+diff --git a/backend/Frms.Business/Services/Interfaces/ISupportTicketService.cs b/backend/Frms.Business/Services/Interfaces/ISupportTicketService.cs
+--- a/backend/Frms.Business/Services/Interfaces/ISupportTicketService.cs
++++ b/backend/Frms.Business/Services/Interfaces/ISupportTicketService.cs
+@@ -1,8 +1,11 @@
++using Frms.Business.Models.Commands;
+ using Frms.Business.Models.Results;
+ namespace Frms.Business.Services.Interfaces;
+ public interface ISupportTicketService
+ {
++    Task<SupportTicketResult> CreateAsync(CreateSupportTicketCommand command, CancellationToken ct);
++    Task<SupportTicketResult> CompleteAsync(CompleteSupportTicketCommand command, CancellationToken ct);
+     Task<(IReadOnlyList<SupportTicketResult> Items, int Total)> ListAccessibleAsync(int page, int pageSize, CancellationToken ct);
+     Task<SupportTicketResult> GetAccessibleAsync(Guid ticketId, CancellationToken ct);
+     Task<SupportTicketResult> AssignAsync(Guid ticketId, Guid staffEmployeeId, CancellationToken ct);
+     Task<SupportTicketResult> CancelAsync(Guid ticketId, string reason, CancellationToken ct);
+diff --git a/backend/Frms.DataAccess/Repositories/Implementations/SupportTicketRepository.cs b/backend/Frms.DataAccess/Repositories/Implementations/SupportTicketRepository.cs
+--- a/backend/Frms.DataAccess/Repositories/Implementations/SupportTicketRepository.cs
++++ b/backend/Frms.DataAccess/Repositories/Implementations/SupportTicketRepository.cs
+@@ -41,8 +41,65 @@
+          join contract in db.Contracts.AsNoTracking() on ticket.ContractId equals contract.ContractId
+          where ticket.SupportTicketId == ticketId
+          select new SupportTicketRecord(ticket, contract.FacilityId))
+         .SingleOrDefaultAsync(ct);
++
++    public async Task<Guid> CreateAsync(Guid contractId, Guid customerId, string category,
++        string description, CancellationToken ct)
++    {
++        var connection = db.Database.GetDbConnection();
++        var shouldClose = connection.State != ConnectionState.Open;
++        try
++        {
++            if (shouldClose) await connection.OpenAsync(ct);
++            await using var command = connection.CreateCommand();
++            command.CommandText = "dbo.usp_CreateSupportTicket";
++            command.CommandType = CommandType.StoredProcedure;
++            AddGuid(command, "@ContractId", contractId);
++            AddGuid(command, "@CustomerId", customerId);
++            AddString(command, "@Category", category, DbType.AnsiString, 50);
++            AddString(command, "@Description", description, DbType.String, 1000);
++            var result = await command.ExecuteScalarAsync(ct);
++            return result is Guid ticketId ? ticketId
++                : throw new InvalidOperationException("SupportTicket creation returned no identifier.");
++        }
++        catch (SqlException ex) when (ex.Number == 51152)
++        {
++            throw new StoredProcedureBusinessException("SUPPORT_CONTRACT_NOT_OWNED", "SUPPORT_CONTRACT_NOT_OWNED");
++        }
++        finally
++        {
++            if (shouldClose && connection.State == ConnectionState.Open)
++                await connection.CloseAsync();
++        }
++    }
++
++    public async Task CompleteAsync(Guid ticketId, Guid staffEmployeeId, string resultNote, CancellationToken ct)
++    {
++        var connection = db.Database.GetDbConnection();
++        var shouldClose = connection.State != ConnectionState.Open;
++        try
++        {
++            if (shouldClose) await connection.OpenAsync(ct);
++            await using var command = connection.CreateCommand();
++            command.CommandText = "dbo.usp_CompleteSupportTicket";
++            command.CommandType = CommandType.StoredProcedure;
++            AddGuid(command, "@SupportTicketId", ticketId);
++            AddGuid(command, "@StaffEmployeeId", staffEmployeeId);
++            AddString(command, "@ResultNote", resultNote, DbType.String, 1000);
++            await command.ExecuteNonQueryAsync(ct);
++        }
++        catch (SqlException ex) when (ex.Number == 51146)
++        {
++            throw new StoredProcedureBusinessException(
++                "SUPPORT_TICKET_INVALID_STATUS_OR_ACTOR", "SUPPORT_TICKET_INVALID_STATUS_OR_ACTOR");
++        }
++        finally
++        {
++            if (shouldClose && connection.State == ConnectionState.Open)
++                await connection.CloseAsync();
++        }
++    }
+ 
+     public async Task AssignAsync(Guid ticketId, Guid managerEmployeeId, Guid staffEmployeeId, CancellationToken ct)
+     {
+         var connection = db.Database.GetDbConnection();
+@@ -100,8 +157,19 @@
+                 await connection.CloseAsync();
+         }
+     }
+ 
++    private static void AddString(System.Data.Common.DbCommand command, string name,
++        string value, DbType type, int size)
++    {
++        var parameter = command.CreateParameter();
++        parameter.ParameterName = name;
++        parameter.DbType = type;
++        parameter.Size = size;
++        parameter.Value = value;
++        command.Parameters.Add(parameter);
++    }
++
+     private static void AddGuid(System.Data.Common.DbCommand command, string name, Guid value)
+     {
+         var p = command.CreateParameter();
+         p.ParameterName = name;
+diff --git a/backend/Frms.DataAccess/Repositories/Interfaces/ISupportTicketRepository.cs b/backend/Frms.DataAccess/Repositories/Interfaces/ISupportTicketRepository.cs
+--- a/backend/Frms.DataAccess/Repositories/Interfaces/ISupportTicketRepository.cs
++++ b/backend/Frms.DataAccess/Repositories/Interfaces/ISupportTicketRepository.cs
+@@ -7,7 +7,9 @@
+     Task<Employee?> GetEmployeeAsync(Guid userAccountId, CancellationToken ct);
+     Task<int> CountAsync(Guid? customerId, Guid? facilityId, Guid? assignedEmployeeId, CancellationToken ct);
+     Task<IReadOnlyList<SupportTicket>> ListAsync(Guid? customerId, Guid? facilityId, Guid? assignedEmployeeId, int skip, int take, CancellationToken ct);
+     Task<SupportTicketRecord?> GetAsync(Guid ticketId, CancellationToken ct);
++    Task<Guid> CreateAsync(Guid contractId, Guid customerId, string category, string description, CancellationToken ct);
++    Task CompleteAsync(Guid ticketId, Guid staffEmployeeId, string resultNote, CancellationToken ct);
+     Task AssignAsync(Guid ticketId, Guid managerEmployeeId, Guid staffEmployeeId, CancellationToken ct);
+     Task CancelAsync(Guid ticketId, Guid customerId, CancellationToken ct);
+ }

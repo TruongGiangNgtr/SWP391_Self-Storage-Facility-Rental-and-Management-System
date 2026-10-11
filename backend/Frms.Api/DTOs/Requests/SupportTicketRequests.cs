@@ -8,9 +8,11 @@ public sealed record CreateSupportTicketRequest
     public required Guid ContractId { get; init; }
 
     [Required]
+    [StringLength(50)]
     public required string Category { get; init; }
 
     [Required]
+    [StringLength(1000)]
     public required string Description { get; init; }
 }
 
@@ -31,5 +33,6 @@ public sealed record AssignSupportTicketRequest
 public sealed record CompleteSupportTicketRequest
 {
     [Required]
+    [StringLength(1000)]
     public required string ResultNote { get; init; }
 }

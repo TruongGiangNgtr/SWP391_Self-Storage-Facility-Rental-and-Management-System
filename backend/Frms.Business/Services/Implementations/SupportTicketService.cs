@@ -1,5 +1,6 @@
 using Frms.Business.Abstractions.Security;
 using Frms.Business.Exceptions;
+using Frms.Business.Models.Commands;
 using Frms.Business.Models.Results;
 using Frms.Business.Services.Interfaces;
 using Frms.DataAccess.Persistence.Entities;
@@ -12,6 +13,74 @@ internal sealed class SupportTicketService(
     ICurrentUserContext currentUser,
     IFacilityAuthorizationService facilityAuthorization) : ISupportTicketService
 {
+    private static readonly HashSet<string> AllowedCategories = new(StringComparer.Ordinal)
+    {
+        "UNIT_ISSUE", "LOCK_KEY_ISSUE", "ACCESS_CARD_CODE_ISSUE", "PAYMENT_ISSUE",
+        "STORED_ITEM_ISSUE", "DAMAGE_ISSUE", "OTHER"
+    };
+
+    public async Task<SupportTicketResult> CreateAsync(CreateSupportTicketCommand command, CancellationToken ct)
+    {
+        EnsureAuthenticated();
+        if (currentUser.Role != "CUSTOMER") throw Forbidden();
+        if (command.ContractId == Guid.Empty ||
+            !AllowedCategories.Contains(command.Category) ||
+            string.IsNullOrWhiteSpace(command.Description) || command.Description.Length > 1000)
+            throw new BusinessException("VALIDATION_ERROR", "Invalid contractId, category or description.", 400);
+
+        var customerId = await repository.GetCustomerIdAsync(currentUser.UserAccountId, ct)
+            ?? throw Forbidden();
+        Guid ticketId;
+        try
+        {
+            ticketId = await repository.CreateAsync(
+                command.ContractId, customerId, command.Category, command.Description.Trim(), ct);
+        }
+        catch (StoredProcedureBusinessException ex) when (ex.Code == "SUPPORT_CONTRACT_NOT_OWNED")
+        {
+            // Do not disclose another customer's Contract existence.
+            throw new BusinessException("RESOURCE_NOT_FOUND", "Contract not found.", 404);
+        }
+
+        var created = await repository.GetAsync(ticketId, ct)
+            ?? throw new BusinessException("RESOURCE_NOT_FOUND", "Created SupportTicket not found.", 404);
+        return ServiceResultProjection.Map(created.Ticket);
+    }
+
+    public async Task<SupportTicketResult> CompleteAsync(CompleteSupportTicketCommand command, CancellationToken ct)
+    {
+        EnsureAuthenticated();
+        if (currentUser.Role != "FACILITY_STAFF") throw Forbidden();
+        if (command.TicketId == Guid.Empty ||
+            string.IsNullOrWhiteSpace(command.ResultNote) || command.ResultNote.Length > 1000)
+            throw new BusinessException("VALIDATION_ERROR", "Invalid ticketId or resultNote.", 400);
+
+        var record = await repository.GetAsync(command.TicketId, ct)
+            ?? throw new BusinessException("RESOURCE_NOT_FOUND", "SupportTicket not found.", 404);
+        await facilityAuthorization.EnsureSameFacilityAsync(record.FacilityId, ct);
+        var employee = await repository.GetEmployeeAsync(currentUser.UserAccountId, ct)
+            ?? throw Forbidden();
+        if (record.Ticket.AssignedEmployeeId != employee.EmployeeId) throw Forbidden();
+        if (record.Ticket.Status != "IN_PROGRESS")
+            throw new BusinessException("SUPPORT_TICKET_INVALID_STATUS", "SupportTicket must be IN_PROGRESS.", 409);
+
+        try
+        {
+            // The stored procedure enforces assignment and status atomically.
+            await repository.CompleteAsync(command.TicketId, employee.EmployeeId, command.ResultNote.Trim(), ct);
+        }
+        catch (StoredProcedureBusinessException ex)
+            when (ex.Code == "SUPPORT_TICKET_INVALID_STATUS_OR_ACTOR")
+        {
+            throw new BusinessException("SUPPORT_TICKET_INVALID_STATUS",
+                "SupportTicket is no longer completable by this Staff member.", 409);
+        }
+
+        var completed = await repository.GetAsync(command.TicketId, ct)
+            ?? throw new BusinessException("RESOURCE_NOT_FOUND", "Completed SupportTicket not found.", 404);
+        return ServiceResultProjection.Map(completed.Ticket);
+    }
+
     public async Task<(IReadOnlyList<SupportTicketResult> Items, int Total)> ListAccessibleAsync(
         int page, int pageSize, CancellationToken ct)
     {

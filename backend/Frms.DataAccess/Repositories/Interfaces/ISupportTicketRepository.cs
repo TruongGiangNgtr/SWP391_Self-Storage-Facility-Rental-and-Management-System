@@ -8,6 +8,8 @@ public interface ISupportTicketRepository
     Task<int> CountAsync(Guid? customerId, Guid? facilityId, Guid? assignedEmployeeId, CancellationToken ct);
     Task<IReadOnlyList<SupportTicket>> ListAsync(Guid? customerId, Guid? facilityId, Guid? assignedEmployeeId, int skip, int take, CancellationToken ct);
     Task<SupportTicketRecord?> GetAsync(Guid ticketId, CancellationToken ct);
+    Task<Guid> CreateAsync(Guid contractId, Guid customerId, string category, string description, CancellationToken ct);
+    Task CompleteAsync(Guid ticketId, Guid staffEmployeeId, string resultNote, CancellationToken ct);
     Task AssignAsync(Guid ticketId, Guid managerEmployeeId, Guid staffEmployeeId, CancellationToken ct);
     Task CancelAsync(Guid ticketId, Guid customerId, CancellationToken ct);
 }

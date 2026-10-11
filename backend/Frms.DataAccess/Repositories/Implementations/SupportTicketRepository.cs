@@ -43,6 +43,63 @@ internal sealed class SupportTicketRepository(FrmsDbContext db) : ISupportTicket
          select new SupportTicketRecord(ticket, contract.FacilityId))
         .SingleOrDefaultAsync(ct);
 
+    public async Task<Guid> CreateAsync(Guid contractId, Guid customerId, string category,
+        string description, CancellationToken ct)
+    {
+        var connection = db.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        try
+        {
+            if (shouldClose) await connection.OpenAsync(ct);
+            await using var command = connection.CreateCommand();
+            command.CommandText = "dbo.usp_CreateSupportTicket";
+            command.CommandType = CommandType.StoredProcedure;
+            AddGuid(command, "@ContractId", contractId);
+            AddGuid(command, "@CustomerId", customerId);
+            AddString(command, "@Category", category, DbType.AnsiString, 50);
+            AddString(command, "@Description", description, DbType.String, 1000);
+            var result = await command.ExecuteScalarAsync(ct);
+            return result is Guid ticketId ? ticketId
+                : throw new InvalidOperationException("SupportTicket creation returned no identifier.");
+        }
+        catch (SqlException ex) when (ex.Number == 51152)
+        {
+            throw new StoredProcedureBusinessException("SUPPORT_CONTRACT_NOT_OWNED", "SUPPORT_CONTRACT_NOT_OWNED");
+        }
+        finally
+        {
+            if (shouldClose && connection.State == ConnectionState.Open)
+                await connection.CloseAsync();
+        }
+    }
+
+    public async Task CompleteAsync(Guid ticketId, Guid staffEmployeeId, string resultNote, CancellationToken ct)
+    {
+        var connection = db.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        try
+        {
+            if (shouldClose) await connection.OpenAsync(ct);
+            await using var command = connection.CreateCommand();
+            command.CommandText = "dbo.usp_CompleteSupportTicket";
+            command.CommandType = CommandType.StoredProcedure;
+            AddGuid(command, "@SupportTicketId", ticketId);
+            AddGuid(command, "@StaffEmployeeId", staffEmployeeId);
+            AddString(command, "@ResultNote", resultNote, DbType.String, 1000);
+            await command.ExecuteNonQueryAsync(ct);
+        }
+        catch (SqlException ex) when (ex.Number == 51146)
+        {
+            throw new StoredProcedureBusinessException(
+                "SUPPORT_TICKET_INVALID_STATUS_OR_ACTOR", "SUPPORT_TICKET_INVALID_STATUS_OR_ACTOR");
+        }
+        finally
+        {
+            if (shouldClose && connection.State == ConnectionState.Open)
+                await connection.CloseAsync();
+        }
+    }
+
     public async Task AssignAsync(Guid ticketId, Guid managerEmployeeId, Guid staffEmployeeId, CancellationToken ct)
     {
         var connection = db.Database.GetDbConnection();
@@ -99,6 +156,17 @@ internal sealed class SupportTicketRepository(FrmsDbContext db) : ISupportTicket
             if (shouldClose && connection.State == ConnectionState.Open)
                 await connection.CloseAsync();
         }
+    }
+
+    private static void AddString(System.Data.Common.DbCommand command, string name,
+        string value, DbType type, int size)
+    {
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = name;
+        parameter.DbType = type;
+        parameter.Size = size;
+        parameter.Value = value;
+        command.Parameters.Add(parameter);
     }
 
     private static void AddGuid(System.Data.Common.DbCommand command, string name, Guid value)
