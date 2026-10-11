@@ -1,5 +1,12 @@
 namespace Frms.Api.DTOs.Responses;
 
+/// <summary>CON-004: Owner-approved persisted billing/overdue read model.</summary>
+public sealed record ContractBillingSummaryResponse(
+    Guid ContractId, IReadOnlyList<InvoiceDetailResponse> Invoices, IReadOnlyList<LateFeeDetailResponse> LateFees);
+
+public sealed record LateFeeDetailResponse(
+    Guid LateFeeId, Guid InvoiceId, int OverdueDays, decimal Amount, DateTimeOffset CalculatedAt);
+
 /// <summary>Represents the canonical InvoiceDetail schema.</summary>
 public sealed record InvoiceDetailResponse(
     Guid InvoiceId,

@@ -1,0 +1,16 @@
+@baseUrl = http://localhost:5164
+# Set accessToken privately in your HTTP client's environment; never store a token here.
+@contractId = 00000000-0000-0000-0000-000000000000
+@invoiceId = 00000000-0000-0000-0000-000000000000
+
+### BIL-001: Server-scoped stored invoices
+GET {{baseUrl}}/api/v1/invoices?page=1&pageSize=20
+Authorization: Bearer {{accessToken}}
+
+### BIL-002: Stored snapshots, not repriced
+GET {{baseUrl}}/api/v1/invoices/{{invoiceId}}
+Authorization: Bearer {{accessToken}}
+
+### CON-004: Stored rental invoices and late fees only
+GET {{baseUrl}}/api/v1/contracts/{{contractId}}/billing
+Authorization: Bearer {{accessToken}}

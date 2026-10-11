@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Frms.Business.Models.Commands;
 using Frms.Business.Services.Interfaces;
+using Frms.Api.Mapping;
 
 namespace Frms.Api.Controllers;
 
@@ -13,7 +14,8 @@ namespace Frms.Api.Controllers;
 public sealed class ContractsController(
     IRenewalService renewalService,
     IContractService contractService,
-    IReturnProcessingService returnService)
+    IReturnProcessingService returnService,
+    IBillingService billingService)
     : ScaffoldControllerBase {
     /// <summary>CON-001: List own Contracts.</summary>
     [Authorize(
@@ -163,13 +165,22 @@ public sealed class ContractsController(
             "Contract renewed."));
     }
 
-    /// <summary>CON-004: Contract billing summary scaffold.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
+    /// <summary>CON-004: Authorized persisted Contract invoices and late fees, without recalculation.</summary>
+    [Authorize(Roles = RoleNames.Customer + "," + RoleNames.FacilityStaff + "," +
+        RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
     [HttpGet("{contractId:guid}/billing")]
-    public ActionResult<ApiErrorResponse> GetContractBilling(
+    [ProducesResponseType(typeof(ApiResponse<ContractBillingSummaryResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResponse<ContractBillingSummaryResponse>>> GetContractBilling(
         Guid contractId,
         CancellationToken cancellationToken)
-        => ScaffoldNotImplemented("CON-004");
+    {
+        var result = await billingService.GetContractBillingAsync(contractId, cancellationToken);
+        return Ok(new ApiResponse<ContractBillingSummaryResponse>(result.ToResponse()));
+    }
 
     /// <summary>CON-005: Contract return summary scaffold.</summary>
     [Authorize(Roles = RoleNames.Customer)]
