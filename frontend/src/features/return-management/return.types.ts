@@ -17,6 +17,7 @@ export interface DamageRecordDetail {
   damageRecordId: string
   inspectionId: string
   damageTypeId: string
+  damageTypeName?: string
   damageAmount: number
   note: string | null
   status: DamageDecisionStatus
@@ -101,3 +102,6 @@ export interface FinalizeReturnResult {
   storageUnitStatus: FinalStorageUnitStatus
   settlement: DepositSettlementResult
 }
+
+/** INS-001 intentionally returns summary rows without nested damage/evidence arrays. */
+export type InspectionListItem = Pick<InspectionDetail, 'inspectionId' | 'contractId' | 'storageUnitId' | 'visitId' | 'employeeId' | 'status' | 'conditionNote' | 'completedAt'> & { facilityId: string }

@@ -9,13 +9,14 @@ import type {
   FinalizeReturnRequest,
   FinalizeReturnResult,
   InspectionDetail,
+  InspectionListItem,
   InspectionEvidenceDetail,
   RecordDamageRequest,
   RecordExtraFeeRequest,
 } from '../features/return-management/return.types'
 
 export const inspectionApi = {
-  list(page = 1, pageSize = 20): Promise<ApiCollectionResponse<InspectionDetail>> {
+  list(page = 1, pageSize = 20): Promise<ApiCollectionResponse<InspectionListItem>> {
     return httpClient.get(`/inspections?page=${page}&pageSize=${pageSize}`)
   },
 
@@ -48,6 +49,10 @@ export const inspectionApi = {
 
   finalizeReturn(contractId: string, request: FinalizeReturnRequest): Promise<ApiResponse<FinalizeReturnResult>> {
     return httpClient.post(`/contracts/${encodeURIComponent(contractId)}/finalize-return`, request)
+  },
+
+  decideDamage(damageRecordId: string, decision: 'APPROVED' | 'REJECTED'): Promise<ApiResponse<{ damageRecordId: string; status: 'APPROVED' | 'REJECTED' }>> {
+    return httpClient.post(`/damage-records/${encodeURIComponent(damageRecordId)}/decision`, { decision })
   },
 
   listDamageTypes(): Promise<ApiResponse<DamageTypeDetail[]>> {

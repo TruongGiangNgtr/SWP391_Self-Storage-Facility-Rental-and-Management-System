@@ -31,6 +31,8 @@ import { UnitTypePricingPage } from '../features/unit-type-pricing/UnitTypePrici
 import { PolicyVersionManagementPage } from '../features/policy-version-management/PolicyVersionManagementPage'
 import { HandoverUnitSelectionPage } from '../features/handover-unit-selection/HandoverUnitSelectionPage'
 import { PhysicalUnitManagementPage } from '../features/physical-unit-management/PhysicalUnitManagementPage'
+import { FacilityOperationsPage } from '../features/manager-monitoring/FacilityOperationsPage'
+import { ReturnsInspectionsPage } from '../features/manager-returns/ReturnsInspectionsPage'
 import ManagerSupportTicketsPage from '../features/manager-support/pages/ManagerSupportTicketsPage'
 import UserAccountMonitoringPage from '../features/admin-user-monitoring/UserAccountMonitoringPage'
 import EmployeeAccountManagementPage from '../features/admin-employee-management/EmployeeAccountManagementPage'
@@ -243,20 +245,12 @@ export function AppRouter() {
 
         <Route
           path="operations"
-          element={
-            <PortalPlaceholderPage
-              title="Monitor Facility Operations"
-            />
-          }
+          element={<FacilityOperationsPage />}
         />
 
         <Route
           path="returns-inspections"
-          element={
-            <PortalPlaceholderPage
-              title="Returns & Inspections"
-            />
-          }
+          element={<ReturnsInspectionsPage />}
         />
 
         <Route
