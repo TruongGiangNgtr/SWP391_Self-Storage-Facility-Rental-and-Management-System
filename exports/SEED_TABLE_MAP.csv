@@ -1,0 +1,30 @@
+﻿Table,Module,Type
+UserRole,01_Master_Accounts_Units.sql,Main demo
+Policy,01_Master_Accounts_Units.sql,Main demo
+Facility,01_Master_Accounts_Units.sql,Main demo
+UnitType,01_Master_Accounts_Units.sql,Main demo
+UserAccount,01_Master_Accounts_Units.sql,Main demo
+Customer,01_Master_Accounts_Units.sql,Main demo
+Employee,01_Master_Accounts_Units.sql,Main demo
+Discount,01_Master_Accounts_Units.sql,Main demo
+StorageUnit,01_Master_Accounts_Units.sql,Main demo
+Reservation,02_Reservation_Contract_Visit.sql,Main demo
+Visit,02_Reservation_Contract_Visit.sql,Main demo
+Contract,02_Reservation_Contract_Visit.sql,Main demo
+ContractExtension,02_Reservation_Contract_Visit.sql,Main demo
+Invoice,03_Invoice_Payment_LateFee.sql,Main demo
+Payment,03_Invoice_Payment_LateFee.sql,Main demo
+LateFee,03_Invoice_Payment_LateFee.sql,Main demo
+SupportTicket,04_Support_Inspection_Audit.sql,Main demo
+Inspection,04_Support_Inspection_Audit.sql,Main demo
+DamageType,01_Master_Accounts_Units.sql,Main demo
+DamageRecord,04_Support_Inspection_Audit.sql,Main demo
+InspectionEvidence,04_Support_Inspection_Audit.sql,Main demo
+ExtraFeeType,01_Master_Accounts_Units.sql,Main demo
+ExtraFee,04_Support_Inspection_Audit.sql,Main demo
+DepositSettlement,04_Support_Inspection_Audit.sql,Main demo
+LoginHistory,04_Support_Inspection_Audit.sql,Main demo
+AuditLog,04_Support_Inspection_Audit.sql,Main demo
+NotificationLog,04_Support_Inspection_Audit.sql,Main demo
+"Reservation,Invoice,Payment,StorageUnit,Visit",05_Core_Demo_Reservation.sql,Additional core demo fixtures
+"Reservation,Invoice,Facility,Customer,UnitType,StorageUnit",06_EPS01_2000VND.sql,Extra 2000VND test fixture
