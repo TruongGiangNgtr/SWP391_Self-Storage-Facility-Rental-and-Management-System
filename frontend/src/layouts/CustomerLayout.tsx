@@ -10,6 +10,7 @@ const NAV_ITEMS: { to: string; label: string; icon: FlowIconName; end?: boolean 
   { to: '/customer/reservations', label: 'My Reservations', icon: 'reservations' },
   { to: '/customer/contracts', label: 'My Contracts', icon: 'unit' },
   { to: '/customer/invoices', label: 'Deposit & Invoices', icon: 'invoices' },
+  { to: '/customer/support-tickets', label: 'Support Tickets', icon: 'visits' },
 ]
 
 function Brand({ footer = false }: { footer?: boolean }) {

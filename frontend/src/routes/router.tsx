@@ -10,6 +10,9 @@ import { CustomerContractDetailPage } from '../pages/CustomerContractDetailPage'
 import { ContractRenewalPage } from '../pages/ContractRenewalPage'
 import { AccessVisitCreatePage } from '../pages/AccessVisitCreatePage'
 import { ReturnVisitCreatePage } from '../pages/ReturnVisitCreatePage'
+import { CustomerSupportListPage } from '../pages/CustomerSupportListPage'
+import { CustomerSupportCreatePage } from '../pages/CustomerSupportCreatePage'
+import { CustomerSupportDetailPage } from '../pages/CustomerSupportDetailPage'
 import { EmployeeLoginPage } from '../pages/EmployeeLoginPage'
 import { ForbiddenPage } from '../pages/ForbiddenPage'
 import { HomePage } from '../pages/HomePage'
@@ -163,6 +166,10 @@ export function AppRouter() {
           path="customer/contracts/:contractId/return-visits/new"
           element={<ReturnVisitCreatePage key={location.pathname} />}
         />
+
+        <Route path="customer/support-tickets" element={<CustomerSupportListPage />} />
+        <Route path="customer/support-tickets/new" element={<CustomerSupportCreatePage />} />
+        <Route path="customer/support-tickets/:ticketId" element={<CustomerSupportDetailPage key={location.pathname} />} />
 
         <Route
           path="customer/visits/:visitId"

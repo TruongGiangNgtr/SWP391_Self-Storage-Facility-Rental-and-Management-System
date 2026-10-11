@@ -54,6 +54,16 @@ export interface AssignSupportStaffRequest {
   employeeId: string;
 }
 
+export interface CreateSupportTicketRequest {
+  contractId: string;
+  category: SupportTicketCategory;
+  description: string;
+}
+
+export interface CancelSupportTicketRequest {
+  reason: string;
+}
+
 export interface SupportTicketListQuery {
   page?: number;
   pageSize?: number;

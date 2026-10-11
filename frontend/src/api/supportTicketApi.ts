@@ -1,12 +1,28 @@
 import type {
   ApiErrorShape,
   AssignSupportStaffRequest,
+  CreateSupportTicketRequest,
+  CancelSupportTicketRequest,
   CollectionEnvelope,
   DataEnvelope,
   SupportTicketDetail,
   SupportTicketListQuery,
 } from "../features/manager-support/models/supportTicket";
 import { ApiRequestError, httpClient } from "./httpClient";
+
+/** SUP-001: Customer identity is supplied by authentication, never the payload. */
+export function createSupportTicket(request: CreateSupportTicketRequest): Promise<DataEnvelope<SupportTicketDetail>> {
+  return httpClient.post('/support-tickets', {
+    contractId: request.contractId,
+    category: request.category,
+    description: request.description,
+  });
+}
+
+/** SUP-004: The server validates ownership and the current cancellation state. */
+export function cancelSupportTicket(ticketId: string, request: CancelSupportTicketRequest): Promise<DataEnvelope<SupportTicketDetail>> {
+  return httpClient.post(`/support-tickets/${encodeURIComponent(ticketId)}/cancel`, { reason: request.reason });
+}
 
 /**
  * MWP-05 API surface from SRS V10 FINAL:
