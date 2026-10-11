@@ -242,7 +242,8 @@ internal sealed class VisitRepository(
 
             await using var command = connection.CreateCommand();
 
-            command.CommandText = "dbo.usp_CheckInVisit";
+            //command.CommandText = "dbo.usp_CheckInVisit";
+            command.CommandText = "dbo.usp_CheckInVisitDemo"; // For demo only, change to usp_CheckInVisit when release
             command.CommandType = CommandType.StoredProcedure;
 
             var visitParameter = command.CreateParameter();
