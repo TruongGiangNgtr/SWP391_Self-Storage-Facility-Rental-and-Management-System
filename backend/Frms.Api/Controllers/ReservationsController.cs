@@ -60,7 +60,6 @@ public sealed class ReservationsController(
     [Authorize(
         Roles =
             RoleNames.Customer + "," +
-            RoleNames.FacilityStaff + "," +
             RoleNames.FacilityManager + "," +
             RoleNames.BusinessOperationsManager)]
     [ProducesResponseType(

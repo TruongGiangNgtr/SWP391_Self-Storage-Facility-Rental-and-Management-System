@@ -116,7 +116,6 @@ internal sealed class ReservationService(
                     cancellationToken);
             }
 
-            case FacilityStaffRole:
             case FacilityManagerRole: {
                 var facilityId =
                     await facilityAuthorization

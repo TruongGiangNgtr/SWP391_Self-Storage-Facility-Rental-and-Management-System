@@ -88,7 +88,7 @@ public sealed class ReservationCancellationTests
             Assert.That(repository.LastCustomer, Is.EqualTo(CustomerId));
             Assert.That(repository.LastReservation, Is.EqualTo(ReservationId));
             Assert.That(data.TryGetProperty("reason", out _), Is.False);
-            Assert.That(data.TryGetProperty("customerId", out _), Is.False);
+            Assert.That(data.GetProperty("customerId").GetGuid(), Is.EqualTo(CustomerId));
         });
         if (hasVisit)
         {
@@ -173,7 +173,7 @@ public sealed class ReservationCancellationTests
     }
 
     [Test]
-    public async Task CTL_RES005_009_OpenApiKeepsExistingReservationDetailContract()
+    public async Task CTL_RES005_009_OpenApiIncludesReservationCustomerId()
     {
         using var response = await client.GetAsync("/openapi/v1.json");
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
@@ -182,7 +182,22 @@ public sealed class ReservationCancellationTests
         var schema = action.GetProperty("responses").GetProperty("200")
             .GetProperty("content").GetProperty("application/json").GetProperty("schema");
         Assert.That(schema.GetProperty("$ref").GetString(), Does.Contain("ReservationDetailResponse"));
+        var detailSchema = json.RootElement.GetProperty("components").GetProperty("schemas")
+            .GetProperty("ReservationDetailResponse");
+        Assert.That(detailSchema.GetProperty("properties").TryGetProperty("customerId", out _), Is.True);
         Assert.That(action.GetProperty("requestBody").GetProperty("required").GetBoolean(), Is.True);
+    }
+
+    [Test]
+    public async Task API_RES003_015_ReturnsAuthoritativeCustomerId()
+    {
+        using var response = await client.GetAsync($"/api/v1/reservations/{ReservationId}");
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Multiple(() =>
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(json.RootElement.GetProperty("data").GetProperty("customerId").GetGuid(), Is.EqualTo(CustomerId));
+        });
     }
 
     [Test]
@@ -225,8 +240,19 @@ public sealed class ReservationCancellationTests
             Assert.That(json.RootElement.GetProperty("pagination").GetProperty("pageSize").GetInt32(), Is.EqualTo(5));
             Assert.That(json.RootElement.GetProperty("pagination").GetProperty("totalItems").GetInt32(), Is.EqualTo(6));
             Assert.That(json.RootElement.GetProperty("data")[0].GetProperty("reservationId").GetGuid(), Is.EqualTo(ReservationId));
+            Assert.That(json.RootElement.GetProperty("data")[0].GetProperty("customerId").GetGuid(), Is.EqualTo(CustomerId));
             Assert.That(repository.CancelCalls, Is.Zero);
         });
+    }
+
+    [Test]
+    public async Task SEC_RES002_016_FacilityStaffCannotListReservations()
+    {
+        client.DefaultRequestHeaders.Remove("X-Test-Role");
+        client.DefaultRequestHeaders.Add("X-Test-Role", "FACILITY_STAFF");
+        using var response = await client.GetAsync("/api/v1/reservations?page=1&pageSize=20");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+        Assert.That(repository.ListCustomer, Is.EqualTo(Guid.Empty));
     }
 
     [Test]

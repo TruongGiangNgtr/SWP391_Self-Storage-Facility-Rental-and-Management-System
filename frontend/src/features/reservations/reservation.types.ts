@@ -22,6 +22,7 @@ export interface ReservationVisitSummary {
 
 export interface ReservationDetail {
   reservationId: string
+  customerId: string
   facilityId: string
   unitTypeId: string
   policyId: string
