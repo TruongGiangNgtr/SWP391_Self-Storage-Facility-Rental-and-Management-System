@@ -1,3 +1,4 @@
+
 namespace Frms.Api.DTOs.Responses;
 
 /// <summary>Represents the canonical Contract renewal result.</summary>
@@ -18,7 +19,9 @@ public sealed record ContractSummaryResponse(
     string UnitTypeMode,
     string StartMonth,
     string EndMonth,
-    string Status);
+    string Status) {
+    public Guid CustomerId { get; init; }
+}
 
 public sealed record ContractExtensionResponse(
     Guid ContractExtensionId,
@@ -63,7 +66,10 @@ public sealed record ContractDetailResponse(
     ContractStorageUnitResponse StorageUnit,
     IReadOnlyList<ContractExtensionResponse> Extensions,
     IReadOnlyList<ContractVisitResponse> Visits,
-    IReadOnlyList<ContractInvoiceStatusResponse> RentalInvoices);
+    IReadOnlyList<ContractInvoiceStatusResponse> RentalInvoices) {
+    public Guid CustomerId { get; init; }
+    public Guid StorageUnitId { get; init; }
+}
 
 public sealed record ContractPaginationResponse(
     int Page,

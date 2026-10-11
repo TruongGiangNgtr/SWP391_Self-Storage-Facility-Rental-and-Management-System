@@ -1,3 +1,4 @@
+
 using System.Globalization;
 using Frms.Api.Authorization;
 using Frms.Api.DTOs.Requests;
@@ -25,67 +26,43 @@ public sealed class ReservationsController(
         CreateReservation(
             [FromBody] CreateReservationRequest request,
             CancellationToken cancellationToken) {
-        var startMonth =
-            DateOnly.ParseExact(
-                $"{request.StartMonth}-01",
-                "yyyy-MM-dd",
-                CultureInfo.InvariantCulture);
+        var startMonth = DateOnly.ParseExact(
+            $"{request.StartMonth}-01",
+            "yyyy-MM-dd",
+            CultureInfo.InvariantCulture);
 
-        var endMonth =
-            DateOnly.ParseExact(
-                $"{request.EndMonth}-01",
-                "yyyy-MM-dd",
-                CultureInfo.InvariantCulture);
+        var endMonth = DateOnly.ParseExact(
+            $"{request.EndMonth}-01",
+            "yyyy-MM-dd",
+            CultureInfo.InvariantCulture);
 
-        var result =
-            await reservationService.CreateAsync(
-                new CreateReservationCommand(
-                    request.FacilityId,
-                    request.UnitTypeId,
-                    startMonth,
-                    endMonth),
-                cancellationToken);
+        var result = await reservationService.CreateAsync(
+            new CreateReservationCommand(
+                request.FacilityId,
+                request.UnitTypeId,
+                startMonth,
+                endMonth),
+            cancellationToken);
 
-        var response =
-            new ReservationDetailResponse(
-                result.ReservationId,
-                result.FacilityId,
-                result.UnitTypeId,
-                result.PolicyId,
-                result.StartMonth.ToString(
-                    "yyyy-MM"),
-                result.EndMonth.ToString(
-                    "yyyy-MM"),
-                result.LockedRentalPrice,
-                result.DepositAmount,
-                result.Status,
-                new DepositInvoiceSummaryResponse(
-                    result.DepositInvoice.InvoiceId,
-                    result.DepositInvoice.Status,
-                    result.DepositInvoice.AmountDue,
-                    ToUtcOffset(
-                        result.DepositInvoice.DueDate)),
-                null,
-                ToUtcOffset(
-                    result.CreatedAt));
+        var detail = await reservationService.GetByIdAsync(
+            result.ReservationId,
+            cancellationToken);
 
         return StatusCode(
             StatusCodes.Status201Created,
             new ApiResponse<ReservationDetailResponse>(
-                response,
+                MapReservationDetail(detail),
                 "Reservation created."));
     }
 
-    /// <summary>
-    /// RES-002: List Customer own / Manager Facility / BOM system Reservations.
-    /// </summary>
+    /// <summary>RES-002: List authorized Reservations.</summary>
     [HttpGet]
     [Authorize(
-    Roles =
-        RoleNames.Customer + "," +
-        RoleNames.FacilityStaff + "," +
-        RoleNames.FacilityManager + "," +
-        RoleNames.BusinessOperationsManager)]
+        Roles =
+            RoleNames.Customer + "," +
+            RoleNames.FacilityStaff + "," +
+            RoleNames.FacilityManager + "," +
+            RoleNames.BusinessOperationsManager)]
     [ProducesResponseType(
         typeof(PaginatedResponse<ReservationDetailResponse>),
         StatusCodes.Status200OK)]
@@ -93,43 +70,27 @@ public sealed class ReservationsController(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default) {
-        var result =
-            await reservationService.ListAsync(
-                page,
-                pageSize,
-                cancellationToken);
+        var result = await reservationService.ListAsync(
+            page,
+            pageSize,
+            cancellationToken);
 
-        var data =
-            result.Items
-                .Select(MapReservationDetail)
-                .ToArray();
+        var data = result.Items
+            .Select(MapReservationDetail)
+            .ToArray();
 
-        /*
-         * Giữ đúng JSON collection envelope của SRS,
-         * không phụ thuộc constructor cụ thể của PaginatedResponse<T>.
-         */
-        return Ok(
-            new {
-                data,
-                pagination = new {
-                    page =
-                        result.Page,
-
-                    pageSize =
-                        result.PageSize,
-
-                    totalItems =
-                        result.TotalItems,
-
-                    totalPages =
-                        result.TotalPages
-                }
-            });
+        return Ok(new {
+            data,
+            pagination = new {
+                page = result.Page,
+                pageSize = result.PageSize,
+                totalItems = result.TotalItems,
+                totalPages = result.TotalPages
+            }
+        });
     }
 
-    /// <summary>
-    /// RES-003: Authorized Reservation detail.
-    /// </summary>
+    /// <summary>RES-003: Authorized Reservation detail.</summary>
     [HttpGet("{reservationId:guid}")]
     [Authorize(
         Roles =
@@ -141,20 +102,16 @@ public sealed class ReservationsController(
         GetReservation(
             Guid reservationId,
             CancellationToken cancellationToken) {
-        var result =
-            await reservationService.GetByIdAsync(
-                reservationId,
-                cancellationToken);
+        var result = await reservationService.GetByIdAsync(
+            reservationId,
+            cancellationToken);
 
-        return Ok(
-            new ApiResponse<ReservationDetailResponse>(
-                MapReservationDetail(result),
-                "Reservation retrieved."));
+        return Ok(new ApiResponse<ReservationDetailResponse>(
+            MapReservationDetail(result),
+            "Reservation retrieved."));
     }
 
-    /// <summary>
-    /// RES-004: Confirm Reservation after successful Deposit payment.
-    /// </summary>
+    /// <summary>RES-004: Confirm Reservation after Deposit payment.</summary>
     [HttpPost("{reservationId:guid}/confirm")]
     [Authorize(Roles = "CUSTOMER")]
     [ProducesResponseType(
@@ -165,58 +122,71 @@ public sealed class ReservationsController(
             Guid reservationId,
             [FromBody] ConfirmReservationRequest request,
             CancellationToken cancellationToken) {
-        var result =
-            await reservationService.ConfirmAsync(
-                new ConfirmReservationCommand(
-                    reservationId,
-                    request.ReservationVisitDate),
-                cancellationToken);
+        var result = await reservationService.ConfirmAsync(
+            new ConfirmReservationCommand(
+                reservationId,
+                request.ReservationVisitDate),
+            cancellationToken);
 
-        var response =
-            new ConfirmReservationResponse(
-                result.ReservationId,
-                result.Status,
-                new ReservationVisitSummaryResponse(
-                    result.ReservationVisit.VisitId,
-                    result.ReservationVisit.VisitType,
-                    result.ReservationVisit.VisitDate,
-                    result.ReservationVisit.Status));
+        var response = new ConfirmReservationResponse(
+            result.ReservationId,
+            result.Status,
+            new ReservationVisitSummaryResponse(
+                result.ReservationVisit.VisitId,
+                result.ReservationVisit.VisitType,
+                result.ReservationVisit.VisitDate,
+                result.ReservationVisit.Status));
 
-        return Ok(
-            new ApiResponse<ConfirmReservationResponse>(
-                response,
-                "Reservation confirmed."));
+        return Ok(new ApiResponse<ConfirmReservationResponse>(
+            response,
+            "Reservation confirmed."));
     }
 
-    /// <summary>RES-005: Atomically cancel an eligible own Reservation and scheduled Visit.</summary>
+    /// <summary>
+    /// RES-005: Cancel eligible Reservation and scheduled Visit.
+    /// </summary>
     [HttpPost("{reservationId:guid}/cancel")]
     [Authorize(Roles = "CUSTOMER")]
-    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status404NotFound)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status409Conflict)]
     [ProducesResponseType(
         typeof(ApiResponse<ReservationDetailResponse>),
         StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<ReservationDetailResponse>>> CancelReservation(
-        Guid reservationId,
-        [FromBody] CancelReservationRequest request,
-        CancellationToken cancellationToken) {
+    public async Task<ActionResult<ApiResponse<ReservationDetailResponse>>>
+        CancelReservation(
+            Guid reservationId,
+            [FromBody] CancelReservationRequest request,
+            CancellationToken cancellationToken) {
+        // CancelAsync returns ReservationCancellationResult,
+        // not ReservationDetailRecord.
         var result = await reservationService.CancelAsync(
-            new CancelReservationCommand(reservationId, request.Reason), cancellationToken);
-        var response = new ReservationDetailResponse(
-            result.ReservationId, result.FacilityId, result.UnitTypeId, result.PolicyId,
-            result.StartMonth.ToString("yyyy-MM", CultureInfo.InvariantCulture),
-            result.EndMonth.ToString("yyyy-MM", CultureInfo.InvariantCulture),
-            result.LockedRentalPrice, result.DepositAmount, result.Status,
-            new DepositInvoiceSummaryResponse(result.DepositInvoice.InvoiceId,
-                result.DepositInvoice.Status, result.DepositInvoice.AmountDue, result.DepositInvoice.DueDate),
-            result.ReservationVisit is { } visit
-                ? new ReservationVisitSummaryResponse(visit.VisitId, visit.VisitType, visit.VisitDate, visit.Status)
-                : null,
-            result.CreatedAt);
-        return Ok(new ApiResponse<ReservationDetailResponse>(response, "Reservation cancelled."));
+            new CancelReservationCommand(
+                reservationId,
+                request.Reason),
+            cancellationToken);
+
+        // Read authorized persisted detail after cancellation.
+        // This provides CustomerId from the Reservation record.
+        var detail = await reservationService.GetByIdAsync(
+            result.ReservationId,
+            cancellationToken);
+
+        return Ok(new ApiResponse<ReservationDetailResponse>(
+            MapReservationDetail(detail),
+            "Reservation cancelled."));
     }
 
     private static ReservationDetailResponse MapReservationDetail(
@@ -227,9 +197,11 @@ public sealed class ReservationsController(
             result.UnitTypeId,
             result.PolicyId,
             result.StartMonth.ToString(
-                "yyyy-MM"),
+                "yyyy-MM",
+                CultureInfo.InvariantCulture),
             result.EndMonth.ToString(
-                "yyyy-MM"),
+                "yyyy-MM",
+                CultureInfo.InvariantCulture),
             result.LockedRentalPrice,
             result.DepositAmount,
             result.Status,
@@ -237,8 +209,7 @@ public sealed class ReservationsController(
                 result.DepositInvoice.InvoiceId,
                 result.DepositInvoice.Status,
                 result.DepositInvoice.AmountDue,
-                ToUtcOffset(
-                    result.DepositInvoice.DueDate)),
+                ToUtcOffset(result.DepositInvoice.DueDate)),
             result.ReservationVisit is null
                 ? null
                 : new ReservationVisitSummaryResponse(
@@ -246,12 +217,12 @@ public sealed class ReservationsController(
                     result.ReservationVisit.VisitType,
                     result.ReservationVisit.VisitDate,
                     result.ReservationVisit.Status),
-            ToUtcOffset(
-                result.CreatedAt));
+            ToUtcOffset(result.CreatedAt)) {
+            CustomerId = result.CustomerId
+        };
     }
 
-    private static DateTimeOffset ToUtcOffset(
-        DateTime value) {
+    private static DateTimeOffset ToUtcOffset(DateTime value) {
         return new DateTimeOffset(
             DateTime.SpecifyKind(
                 value,

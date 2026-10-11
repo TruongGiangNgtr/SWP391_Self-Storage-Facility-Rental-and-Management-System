@@ -1,3 +1,4 @@
+
 using Frms.DataAccess.Persistence;
 using Frms.DataAccess.Repositories.Interfaces;
 using Frms.DataAccess.Repositories.Models;
@@ -7,12 +8,10 @@ namespace Frms.DataAccess.Repositories.Implementations;
 
 internal sealed class ContractRepository(
     FrmsDbContext dbContext)
-    : IContractRepository
-{
+    : IContractRepository {
     public Task<Guid?> GetCustomerIdByUserAccountIdAsync(
         Guid userAccountId,
-        CancellationToken cancellationToken)
-    {
+        CancellationToken cancellationToken) {
         return dbContext.Customers
             .AsNoTracking()
             .Where(x => x.UserAccountId == userAccountId)
@@ -22,8 +21,7 @@ internal sealed class ContractRepository(
 
     public Task<int> CountByCustomerAsync(
         Guid customerId,
-        CancellationToken cancellationToken)
-    {
+        CancellationToken cancellationToken) {
         return dbContext.Contracts
             .AsNoTracking()
             .CountAsync(
@@ -35,8 +33,7 @@ internal sealed class ContractRepository(
         Guid customerId,
         int skip,
         int take,
-        CancellationToken cancellationToken)
-    {
+        CancellationToken cancellationToken) {
         return ListAsync(
             customerId,
             facilityId: null,
@@ -46,9 +43,9 @@ internal sealed class ContractRepository(
     }
 
     public Task<ContractDetailRecord?> GetDetailAsync(
-    Guid customerId,
-    Guid contractId,
-    CancellationToken cancellationToken) {
+        Guid customerId,
+        Guid contractId,
+        CancellationToken cancellationToken) {
         return GetDetailCoreAsync(
             contractId,
             customerId,
@@ -65,9 +62,9 @@ internal sealed class ContractRepository(
     }
 
     private async Task<ContractDetailRecord?> GetDetailCoreAsync(
-    Guid contractId,
-    Guid? customerId,
-    CancellationToken cancellationToken) {
+        Guid contractId,
+        Guid? customerId,
+        CancellationToken cancellationToken) {
         var contract = await (
                 from c in dbContext.Contracts.AsNoTracking()
                 join unit in dbContext.StorageUnits.AsNoTracking()
@@ -152,12 +149,14 @@ internal sealed class ContractRepository(
             contract.UnitType.Size,
             extensions,
             visits,
-            invoices);
+            invoices) {
+            CustomerId = contract.Contract.CustomerId
+        };
     }
 
     public Task<int> CountByFacilityAsync(
-    Guid facilityId,
-    CancellationToken cancellationToken) {
+        Guid facilityId,
+        CancellationToken cancellationToken) {
         return dbContext.Contracts
             .AsNoTracking()
             .CountAsync(
@@ -203,9 +202,7 @@ internal sealed class ContractRepository(
         int skip,
         int take,
         CancellationToken cancellationToken) {
-        var contracts =
-            dbContext.Contracts.AsNoTracking();
-
+        var contracts = dbContext.Contracts.AsNoTracking();
         var scoped = contracts.AsQueryable();
 
         if (customerId.HasValue) {
@@ -237,7 +234,9 @@ internal sealed class ContractRepository(
                     unitType.Mode,
                     contract.StartMonth,
                     contract.EndMonth,
-                    contract.Status))
+                    contract.Status) {
+                    CustomerId = contract.CustomerId
+                })
             .Skip(skip)
             .Take(take)
             .ToListAsync(cancellationToken);
