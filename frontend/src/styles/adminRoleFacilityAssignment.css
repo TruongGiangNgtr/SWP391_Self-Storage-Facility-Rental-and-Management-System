@@ -98,3 +98,19 @@
   color: #526174;
   font-size: 11px;
 }
+
+.awp04-facility-load-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 7px;
+}
+
+.awp04-facility-load-error small {
+  color: #b42318;
+}
+
+.awp04-facility-load-error button {
+  flex-shrink: 0;
+}
