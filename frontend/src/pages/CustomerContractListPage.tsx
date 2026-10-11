@@ -45,6 +45,7 @@ export function CustomerContractListPage() {
               </dl>
               <div className="action-row">
                 <Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(contract.contractId)}`}>View Contract</Link>
+                <Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(contract.contractId)}/fees-return`}>Fees &amp; Return Tracking</Link>
                 {contract.status === 'ACTIVE' && <Link className="button" to={`/customer/contracts/${encodeURIComponent(contract.contractId)}/access-visits/new`}>Schedule Access Visit</Link>}
                 {contract.status === 'ACTIVE' && <Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(contract.contractId)}/return-visits/new`}>Schedule Return Visit</Link>}
               </div>

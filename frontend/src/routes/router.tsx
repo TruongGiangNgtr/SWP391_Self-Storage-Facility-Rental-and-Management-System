@@ -15,6 +15,7 @@ import { ForbiddenPage } from '../pages/ForbiddenPage'
 import { HomePage } from '../pages/HomePage'
 import { InvoiceDetailPage } from '../pages/InvoiceDetailPage'
 import { InvoiceListPage } from '../pages/InvoiceListPage'
+import { CustomerFeeReturnPage } from '../pages/CustomerFeeReturnPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PaymentResultPage } from '../pages/PaymentResultPage'
 import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
@@ -153,6 +154,8 @@ export function AppRouter() {
           path="customer/contracts/:contractId/renew"
           element={<ContractRenewalPage key={location.pathname} />}
         />
+
+        <Route path="customer/contracts/:contractId/fees-return" element={<CustomerFeeReturnPage key={location.pathname} />} />
 
         <Route
           path="customer/contracts/:contractId/access-visits/new"
