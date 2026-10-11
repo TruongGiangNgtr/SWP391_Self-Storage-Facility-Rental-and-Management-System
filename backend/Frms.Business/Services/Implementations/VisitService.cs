@@ -518,6 +518,12 @@ internal sealed class VisitService(
                         "Only a scheduled Visit may be cancelled.",
                         409);
 
+                case "RESERVATION_VISIT_CANCEL_NOT_ALLOWED":
+                    throw new BusinessException(
+                        "RESERVATION_VISIT_CANCEL_NOT_ALLOWED",
+                        "Reservation Visit cannot be cancelled independently. Cancel the Reservation instead.",
+                        409);
+
                 default:
                     throw;
             }
