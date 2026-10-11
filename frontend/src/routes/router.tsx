@@ -9,6 +9,7 @@ import { CustomerContractListPage } from '../pages/CustomerContractListPage'
 import { CustomerContractDetailPage } from '../pages/CustomerContractDetailPage'
 import { ContractRenewalPage } from '../pages/ContractRenewalPage'
 import { AccessVisitCreatePage } from '../pages/AccessVisitCreatePage'
+import { ReturnVisitCreatePage } from '../pages/ReturnVisitCreatePage'
 import { EmployeeLoginPage } from '../pages/EmployeeLoginPage'
 import { ForbiddenPage } from '../pages/ForbiddenPage'
 import { HomePage } from '../pages/HomePage'
@@ -156,6 +157,11 @@ export function AppRouter() {
         <Route
           path="customer/contracts/:contractId/access-visits/new"
           element={<AccessVisitCreatePage />}
+        />
+
+        <Route
+          path="customer/contracts/:contractId/return-visits/new"
+          element={<ReturnVisitCreatePage key={location.pathname} />}
         />
 
         <Route

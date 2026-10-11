@@ -1,6 +1,7 @@
 import type {
   CancelVisitRequest,
   CreateAccessVisitRequest,
+  CreateReturnVisitRequest,
   RescheduleVisitRequest,
   VisitDetail,
 } from '../features/visits/visit.types'
@@ -15,6 +16,12 @@ import type { ConfirmActualReturnResult } from '../features/return-management/re
 import { httpClient } from './httpClient'
 
 export const visitApi = {
+  createReturn(contractId: string, request: CreateReturnVisitRequest): Promise<ApiResponse<VisitDetail>> {
+    return httpClient.post(`/contracts/${encodeURIComponent(contractId)}/return-visits`, {
+      visitDate: request.visitDate,
+    })
+  },
+
   createAccess(contractId: string, request: CreateAccessVisitRequest): Promise<ApiResponse<VisitDetail>> {
     return httpClient.post(`/contracts/${encodeURIComponent(contractId)}/access-visits`, {
       visitDate: request.visitDate,

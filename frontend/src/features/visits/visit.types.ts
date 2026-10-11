@@ -19,6 +19,10 @@ export interface CreateAccessVisitRequest {
   visitDate: string
 }
 
+export interface CreateReturnVisitRequest {
+  visitDate: string
+}
+
 export interface CancelVisitRequest {
   reason: string
 }
