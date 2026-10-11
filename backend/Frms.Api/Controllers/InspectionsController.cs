@@ -40,16 +40,47 @@ public sealed class InspectionsController(
         Guid inspectionId,
         CancellationToken cancellationToken)
     {
-        var result = await inspectionService.GetAccessibleAsync(inspectionId, cancellationToken);
-        return Ok(new ApiResponse<InspectionMonitoringDetailResponse>(new InspectionMonitoringDetailResponse(
-            ToSummaryResponse(result.Inspection),
-            result.Damages.Select(x => new InspectionMonitoringDamageResponse(
-                x.DamageRecordId, x.DamageTypeId, x.DamageTypeName,
-                x.DamageAmount, x.Note, x.Status, x.CreatedAt)).ToArray(),
-            result.ExtraFees.Select(x => new InspectionMonitoringExtraFeeResponse(
-                x.ExtraFeeId, x.ExtraFeeTypeId, x.Amount, x.Reason, x.CreatedAt)).ToArray(),
-            result.Evidence.Select(x => new InspectionEvidenceMetadataResponse(
-                x.InspectionEvidenceId, x.EvidenceType, x.CreatedAt)).ToArray())));
+
+        var result = await inspectionService.GetAccessibleAsync(
+            inspectionId, cancellationToken);
+
+        var i = result.Inspection;
+
+        var response = new InspectionMonitoringDetailResponse(
+            i.InspectionId,
+            i.ContractId,
+            i.StorageUnitId,
+            i.VisitId,
+            i.EmployeeId,
+            i.Status,
+            i.ConditionNote,
+            result.Damages.Select(x =>
+                new InspectionMonitoringDamageResponse(
+                    x.DamageRecordId,
+                    x.DamageTypeId,
+                    x.DamageTypeName,
+                    x.DamageAmount,
+                    x.Note,
+                    x.Status,
+                    x.CreatedAt)).ToArray(),
+            result.ExtraFees.Select(x =>
+                new InspectionMonitoringExtraFeeResponse(
+                    x.ExtraFeeId,
+                    x.ExtraFeeTypeId,
+                    x.Amount,
+                    x.Reason,
+                    x.CreatedAt)).ToArray(),
+            result.Evidence.Select(x =>
+                new InspectionEvidenceMetadataResponse(
+                    x.InspectionEvidenceId,
+                    x.EvidenceType,
+                    x.CreatedAt)).ToArray(),
+            i.CompletedAt);
+
+        return Ok(
+            new ApiResponse<InspectionMonitoringDetailResponse>(
+                response));
+
     }
 
     [Authorize(Roles = RoleNames.FacilityStaff)]

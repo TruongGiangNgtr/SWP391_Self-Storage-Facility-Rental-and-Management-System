@@ -18,8 +18,17 @@ public sealed record InspectionMonitoringExtraFeeResponse(
 public sealed record InspectionEvidenceMetadataResponse(
     Guid InspectionEvidenceId, string EvidenceType, DateTime CreatedAt);
 
+
 public sealed record InspectionMonitoringDetailResponse(
-    InspectionMonitoringSummaryResponse Inspection,
+    Guid InspectionId,
+    Guid ContractId,
+    Guid StorageUnitId,
+    Guid? VisitId,
+    Guid? EmployeeId,
+    string Status,
+    string? ConditionNote,
     IReadOnlyList<InspectionMonitoringDamageResponse> Damages,
     IReadOnlyList<InspectionMonitoringExtraFeeResponse> ExtraFees,
-    IReadOnlyList<InspectionEvidenceMetadataResponse> Evidence);
+    IReadOnlyList<InspectionEvidenceMetadataResponse> Evidence,
+    DateTime? CompletedAt);
+
