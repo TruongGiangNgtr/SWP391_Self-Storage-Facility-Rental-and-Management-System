@@ -188,18 +188,36 @@ public sealed class ReservationsController(
                 "Reservation confirmed."));
     }
 
-    /// <summary>RES-005: Cancel eligible Reservation scaffold.</summary>
+    /// <summary>RES-005: Atomically cancel an eligible own Reservation and scheduled Visit.</summary>
     [HttpPost("{reservationId:guid}/cancel")]
     [Authorize(Roles = "CUSTOMER")]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(
         typeof(ApiResponse<ReservationDetailResponse>),
         StatusCodes.Status200OK)]
-    public ActionResult<ApiErrorResponse> CancelReservation(
+    public async Task<ActionResult<ApiResponse<ReservationDetailResponse>>> CancelReservation(
         Guid reservationId,
         [FromBody] CancelReservationRequest request,
-        CancellationToken cancellationToken)
-        => ScaffoldNotImplemented(
-            "RES-005");
+        CancellationToken cancellationToken) {
+        var result = await reservationService.CancelAsync(
+            new CancelReservationCommand(reservationId, request.Reason), cancellationToken);
+        var response = new ReservationDetailResponse(
+            result.ReservationId, result.FacilityId, result.UnitTypeId, result.PolicyId,
+            result.StartMonth.ToString("yyyy-MM", CultureInfo.InvariantCulture),
+            result.EndMonth.ToString("yyyy-MM", CultureInfo.InvariantCulture),
+            result.LockedRentalPrice, result.DepositAmount, result.Status,
+            new DepositInvoiceSummaryResponse(result.DepositInvoice.InvoiceId,
+                result.DepositInvoice.Status, result.DepositInvoice.AmountDue, result.DepositInvoice.DueDate),
+            result.ReservationVisit is { } visit
+                ? new ReservationVisitSummaryResponse(visit.VisitId, visit.VisitType, visit.VisitDate, visit.Status)
+                : null,
+            result.CreatedAt);
+        return Ok(new ApiResponse<ReservationDetailResponse>(response, "Reservation cancelled."));
+    }
 
     private static ReservationDetailResponse MapReservationDetail(
         ReservationDetailRecord result) {

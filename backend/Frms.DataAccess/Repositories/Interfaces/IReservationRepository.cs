@@ -41,4 +41,10 @@ public interface IReservationRepository {
         Guid reservationId,
         DateOnly reservationVisitDate,
         CancellationToken cancellationToken);
+
+    Task<ReservationDetailRecord> CancelAsync(
+        Guid userAccountId,
+        Guid customerId,
+        Guid reservationId,
+        CancellationToken cancellationToken);
 }

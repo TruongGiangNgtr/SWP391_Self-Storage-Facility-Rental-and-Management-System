@@ -15,10 +15,10 @@ public sealed partial class PaymentPersistenceTests
     private PaymentRepository repository = null!;
 
     [OneTimeSetUp]
-    public async Task MigrateApprovedTestDatabase()
+    public async Task PrepareApprovedTestDatabase()
     {
-        await using var migrationDb = Open();
-        await migrationDb.Database.MigrateAsync();
+        await using var sqlDb = Open();
+        await SqlScriptTestDatabase.EnsureAsync(sqlDb);
     }
 
     [SetUp]

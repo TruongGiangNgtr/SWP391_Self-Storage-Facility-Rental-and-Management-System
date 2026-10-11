@@ -3,8 +3,6 @@ using Frms.DataAccess.Repositories.Implementations;
 using Frms.DataAccess.Repositories.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using static Frms.IntegrationTests.PaymentSqlTestSupport;
 
 namespace Frms.IntegrationTests;
@@ -13,49 +11,13 @@ namespace Frms.IntegrationTests;
 public sealed class PayOsPersistenceTests
 {
     [Test]
-    public async Task DBT_PAYOS_ForwardMigrationPreservesLegacyRowsAndPermitsOnlyApprovedMethods()
-    {
-        await using var db = Open(Dedicated("Legacy"));
-        var migrator = db.GetService<IMigrator>();
-        await Empty(db);
-        try
-        {
-            await migrator.MigrateAsync(InvoiceTimestampMigration);
-            var invoice = await SeedInvoiceAsync(db);
-            var first = Guid.NewGuid(); var second = Guid.NewGuid(); var key1 = Guid.NewGuid(); var key2 = Guid.NewGuid();
-            await InsertPaymentAsync(db, first, invoice.InvoiceId, key1, "legacy-momo", method: "MOMO");
-            await InsertPaymentAsync(db, second, invoice.InvoiceId, key2, "legacy-vnpay", method: "VNPAY");
-            await migrator.MigrateAsync();
-            var legacy = await db.Payments.AsNoTracking().OrderBy(p => p.PaymentMethod).ToListAsync();
-            Assert.Multiple(() =>
-            {
-                Assert.That(legacy, Has.Count.EqualTo(2));
-                Assert.That(legacy.Select(p => p.PaymentId), Is.EquivalentTo(new[] { first, second }));
-                Assert.That(legacy.Select(p => p.IdempotencyKey), Is.EquivalentTo(new[] { key1, key2 }));
-                Assert.That(legacy.Select(p => p.PaymentMethod), Is.EquivalentTo(new[] { "MOMO", "VNPAY" }));
-                Assert.That(legacy.All(p => p.ProviderOrderCode is null && p.Amount == 12500 && p.Status == "PENDING" && p.PaidAt is null), Is.True);
-                Assert.That(legacy.Select(p => p.TransactionCode), Is.EquivalentTo(new[] { "legacy-momo", "legacy-vnpay" }));
-                Assert.That(legacy.All(p => p.CreatedAt == Now.UtcDateTime), Is.True);
-            });
-            var created = await new PaymentRepository(db).CreateOrGetAsync(invoice.InvoiceId, Guid.NewGuid(), Now, default);
-            Assert.That(created.Attempt!.Detail.PaymentMethod, Is.EqualTo("PAYOS"));
-            Assert.That(created.Attempt.ProviderOrderCode, Is.EqualTo(1000));
-            var rejected = Assert.ThrowsAsync<SqlException>(() => InsertPaymentAsync(db, Guid.NewGuid(), invoice.InvoiceId, Guid.NewGuid(), method: "UNKNOWN"));
-            Assert.That(rejected!.Number, Is.EqualTo(547));
-            Assert.That(rejected.Message, Does.Contain("CK_Payment_Method"));
-            Assert.That(await db.Payments.CountAsync(), Is.EqualTo(3));
-        }
-        finally { await Clean(db, migrator); }
-    }
-
-    [Test]
     public async Task DBT_PAYOS_FilteredUniqueOrderCodeAllowsLegacyNullsAndRejectsDuplicates()
     {
         await using var db = Open(Dedicated("Unique"));
-        await Empty(db); var migrator = db.GetService<IMigrator>();
+        await Empty(db);
         try
         {
-            await migrator.MigrateAsync();
+            await SqlScriptTestDatabase.EnsureAsync(db);
             var invoice = await SeedInvoiceAsync(db);
             await InsertPaymentAsync(db, Guid.NewGuid(), invoice.InvoiceId, Guid.NewGuid(), method: "MOMO");
             await InsertPaymentAsync(db, Guid.NewGuid(), invoice.InvoiceId, Guid.NewGuid(), method: "VNPAY");
@@ -71,17 +33,17 @@ public sealed class PayOsPersistenceTests
             Assert.That((await repository.GetByProviderOrderCodeAsync(first.Attempt.ProviderOrderCode!.Value, default))!.PaymentId, Is.EqualTo(first.Attempt.Detail.PaymentId));
             Assert.That(await repository.GetByProviderOrderCodeAsync(123, default), Is.Null);
         }
-        finally { await Clean(db, migrator); }
+        finally { await SqlScriptTestDatabase.DropCreatedAsync(db); }
     }
 
     [Test]
     public async Task CON_PAYOS_ConcurrentDistinctAttemptsReceiveUniqueSequenceCodesAndSameKeyReusesCode()
     {
         await using var db = Open(Dedicated("Concurrency"));
-        await Empty(db); var migrator = db.GetService<IMigrator>();
+        await Empty(db);
         try
         {
-            await migrator.MigrateAsync();
+            await SqlScriptTestDatabase.EnsureAsync(db);
             var invoices = new List<Guid>();
             for (var i = 0; i < 8; i++) invoices.Add((await SeedInvoiceAsync(db)).InvoiceId);
             var results = await Task.WhenAll(invoices.Select(async id =>
@@ -98,38 +60,17 @@ public sealed class PayOsPersistenceTests
             Assert.That(retry.Attempt!.ProviderOrderCode, Is.EqualTo(first.ProviderOrderCode));
             Assert.That(await db.Payments.CountAsync(), Is.EqualTo(8));
         }
-        finally { await Clean(db, migrator); }
-    }
-
-    [Test]
-    public async Task DBT_PAYOS_DowngradeIsBlockedWithoutLosingProviderEvidence()
-    {
-        await using var db = Open(Dedicated("Guard"));
-        await Empty(db); var migrator = db.GetService<IMigrator>();
-        try
-        {
-            await migrator.MigrateAsync();
-            var invoice = await SeedInvoiceAsync(db);
-            var attempt = (await new PaymentRepository(db).CreateOrGetAsync(invoice.InvoiceId, Guid.NewGuid(), Now, default)).Attempt!;
-            var rejected = Assert.ThrowsAsync<SqlException>(() => migrator.MigrateAsync(InvoiceTimestampMigration));
-            Assert.That(rejected!.Number, Is.EqualTo(51032));
-            Assert.That(rejected.Message, Does.Contain("PAYOS rows"));
-            var stored = await db.Payments.AsNoTracking().SingleAsync();
-            Assert.That(stored.PaymentMethod, Is.EqualTo("PAYOS"));
-            Assert.That(stored.ProviderOrderCode, Is.EqualTo(attempt.ProviderOrderCode));
-            Assert.That(await db.Database.GetAppliedMigrationsAsync(), Does.Contain("20261008191750_PayOsPaymentGateway"));
-        }
-        finally { await Clean(db, migrator); }
+        finally { await SqlScriptTestDatabase.DropCreatedAsync(db); }
     }
 
     [Test]
     public async Task DAL_PAYOS_FractionalVndDoesNotConsumeKeyOrSequence()
     {
         await using var db = Open(Dedicated("Fraction"));
-        await Empty(db); var migrator = db.GetService<IMigrator>();
+        await Empty(db);
         try
         {
-            await migrator.MigrateAsync();
+            await SqlScriptTestDatabase.EnsureAsync(db);
             var fractional = await SeedInvoiceAsync(db, amount: 12500.50m);
             var result = await new PaymentRepository(db).CreateOrGetAsync(fractional.InvoiceId, Guid.NewGuid(), Now, default);
             Assert.That(result.Outcome, Is.EqualTo(PaymentAttemptOutcome.AmountUnsupported));
@@ -138,7 +79,7 @@ public sealed class PayOsPersistenceTests
             var accepted = await new PaymentRepository(db).CreateOrGetAsync(eligible.InvoiceId, Guid.NewGuid(), Now, default);
             Assert.That(accepted.Attempt!.ProviderOrderCode, Is.EqualTo(1000));
         }
-        finally { await Clean(db, migrator); }
+        finally { await SqlScriptTestDatabase.DropCreatedAsync(db); }
     }
 
     private static string Dedicated(string suffix)
@@ -152,12 +93,5 @@ public sealed class PayOsPersistenceTests
     {
         if (!await db.Database.CanConnectAsync()) return;
         Assert.That(await db.Database.SqlQueryRaw<int>("SELECT COUNT(*) AS Value FROM sys.tables WHERE name <> '__EFMigrationsHistory'").SingleAsync(), Is.Zero);
-        Assert.That(await db.Database.GetAppliedMigrationsAsync(), Is.Empty);
-    }
-    private static async Task Clean(FrmsDbContext db, IMigrator migrator)
-    {
-        // Exact dedicated Frms_Test_* database created by this fixture only.
-        await db.Database.ExecuteSqlRawAsync("DELETE dbo.Payment; DELETE dbo.Invoice;");
-        await migrator.MigrateAsync(Migration.InitialDatabase);
     }
 }

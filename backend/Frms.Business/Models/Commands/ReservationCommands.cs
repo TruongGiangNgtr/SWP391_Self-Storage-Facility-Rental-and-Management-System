@@ -9,3 +9,7 @@ public sealed record CreateReservationCommand(
 public sealed record ConfirmReservationCommand(
     Guid ReservationId,
     DateOnly ReservationVisitDate);
+
+public sealed record CancelReservationCommand(
+    Guid ReservationId,
+    string Reason);

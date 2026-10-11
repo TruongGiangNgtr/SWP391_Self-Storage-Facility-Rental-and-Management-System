@@ -11,6 +11,57 @@ namespace Frms.DataAccess.Repositories.Implementations;
 
 internal sealed class ReservationRepository(
     FrmsDbContext dbContext) : IReservationRepository {
+    public async Task<ReservationDetailRecord> CancelAsync(
+        Guid userAccountId,
+        Guid customerId,
+        Guid reservationId,
+        CancellationToken cancellationToken) {
+        var connection = dbContext.Database.GetDbConnection();
+        var shouldCloseConnection = connection.State != ConnectionState.Open;
+        try {
+            if (shouldCloseConnection) {
+                await connection.OpenAsync(cancellationToken);
+            }
+
+            await using var command = connection.CreateCommand();
+            command.CommandText = "dbo.usp_CancelReservation";
+            command.CommandType = CommandType.StoredProcedure;
+            foreach (var (name, value) in new[] {
+                ("@UserAccountId", userAccountId),
+                ("@CustomerId", customerId),
+                ("@ReservationId", reservationId)
+            }) {
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = name;
+                parameter.DbType = DbType.Guid;
+                parameter.Value = value;
+                command.Parameters.Add(parameter);
+            }
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+        catch (SqlException ex) when (ex.Number is >= 51201 and <= 51205) {
+            var code = ex.Number switch {
+                51201 => "RESOURCE_NOT_FOUND",
+                51202 => "ACCOUNT_INACTIVE",
+                51203 => "FORBIDDEN",
+                51204 => "RESERVATION_INVALID_STATUS",
+                51205 => "VISIT_INVALID_STATUS",
+                _ => throw new InvalidOperationException()
+            };
+            throw new StoredProcedureBusinessException(code, code);
+        }
+        finally {
+            if (shouldCloseConnection && connection.State == ConnectionState.Open) {
+                await connection.CloseAsync();
+            }
+        }
+
+        // Reuse canonical detail projection; do not recalculate or mutate Deposit data.
+        return await GetByIdAsync(reservationId, cancellationToken)
+            ?? throw new InvalidOperationException("Cancelled Reservation was not found.");
+    }
+
     public Task<Guid?> GetCustomerIdByUserAccountIdAsync(
         Guid userAccountId,
         CancellationToken cancellationToken) {

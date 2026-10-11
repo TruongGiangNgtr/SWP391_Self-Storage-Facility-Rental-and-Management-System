@@ -8,6 +8,7 @@ using Frms.Business.Models.Results;
 using Frms.Business.Services.Interfaces;
 using Frms.DataAccess.Repositories.Interfaces;
 using Frms.DataAccess.Repositories.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Frms.Business.Services.Implementations;
 
@@ -16,7 +17,8 @@ public sealed class PaymentService(
     IPaymentGateway gateway,
     ICurrentUserContext currentUser,
     IAuthenticationService authentication,
-    IClock clock) : IPaymentService
+    IClock clock,
+    ILogger<PaymentService>? logger = null) : IPaymentService
 {
     public async Task<InvoicePaymentStartResult> StartInvoicePaymentAsync(
         Guid invoiceId, StartPaymentCommand command, CancellationToken cancellationToken = default)
@@ -61,8 +63,10 @@ public sealed class PaymentService(
             provider = await gateway.CreatePaymentAsync(request, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
-        catch (Exception)
+        catch (Exception ex)
         {
+            LogSessionFailure("gateway_exception", attempt.Detail.PaymentId,
+                attempt.ProviderOrderCode, ex.GetType().Name);
             return await ReloadAttemptAsync(invoiceId, command.IdempotencyKey, cancellationToken);
         }
 
@@ -77,8 +81,10 @@ public sealed class PaymentService(
                     clock.UtcNow, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
-            catch (Exception)
+            catch (Exception ex)
             {
+                LogSessionFailure("persistence_exception", attempt.Detail.PaymentId,
+                    attempt.ProviderOrderCode, ex.GetType().Name);
                 return await ReloadAttemptAsync(invoiceId, command.IdempotencyKey, cancellationToken);
             }
             if (saved.Outcome != PaymentAttemptOutcome.ReferenceConflict)
@@ -90,8 +96,19 @@ public sealed class PaymentService(
             return current.Outcome == PaymentStartOutcome.Terminal ? current
                 : current with { Outcome = PaymentStartOutcome.ReferenceConflict, PaymentUrl = null, PaymentUrlExpiresAt = null };
         }
+        LogSessionFailure(
+            provider.Outcome == PaymentGatewayCreationOutcome.SessionCreated
+                ? "invalid_gateway_session"
+                : "gateway_outcome_unknown",
+            attempt.Detail.PaymentId,
+            attempt.ProviderOrderCode);
         return await ReloadAttemptAsync(invoiceId, command.IdempotencyKey, cancellationToken);
     }
+
+    private void LogSessionFailure(string stage, Guid paymentId, long? providerOrderCode,
+        string? exceptionType = null) => logger?.LogWarning(
+            "Payment session unavailable at stage {Stage} for Payment {PaymentId}, provider order {ProviderOrderCode}, exception type {ExceptionType}.",
+            stage, paymentId, providerOrderCode, exceptionType);
 
     public async Task<PaymentResult> GetByIdAsync(Guid paymentId, CancellationToken cancellationToken = default)
     {
