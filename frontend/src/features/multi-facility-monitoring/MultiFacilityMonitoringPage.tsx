@@ -39,7 +39,7 @@ const vnd = (value: number) => new Intl.NumberFormat('vi-VN', {
 }).format(value)
 const shortId = (value: string | null | undefined) => value ? `${value.slice(0, 8)}…` : '—'
 const textDate = (value: string | null | undefined) => value?.slice(0, 10) ?? '—'
-const readableStatus = (value: string) => value.replaceAll('_', ' ')
+const readableStatus = (value: string | null | undefined) => typeof value === 'string' ? value.replaceAll('_', ' ') : 'UNKNOWN'
 const scopedTab = (tab: ActivityTab) => tab === 'reservations' || tab === 'contracts'
 
 function readableError(error: unknown): string {
@@ -92,9 +92,10 @@ function activityDescription(tab: ActivityTab, item: ActivityRecord, facilityNam
   }
 }
 
-function statusBadge(status: string) {
-  return <span className={`mfm-status mfm-status--${status.toLowerCase().replaceAll('_', '-')}`}>
-    {readableStatus(status)}
+function statusBadge(status: string | null | undefined) {
+  const safeStatus = typeof status === 'string' ? status : 'UNKNOWN'
+  return <span className={`mfm-status mfm-status--${safeStatus.toLowerCase().replaceAll('_', '-')}`}>
+    {readableStatus(safeStatus)}
   </span>
 }
 
@@ -281,7 +282,21 @@ export function MultiFacilityMonitoringPage() {
   const activeFacilities = facilities.filter(item => item.status === 'ACTIVE').length
 
   const chooseFacility = (id: string) => { setFacilityId(id); setPage(1); setSearch(''); setDetail(null) }
-  const chooseTab = (next: ActivityTab) => { setTab(next); setPage(1); setSearch(''); setDetail(null) }
+  const chooseTab = (next: ActivityTab) => {
+    if (next === tab) return
+    // Clear records in the click batch, BEFORE React renders the new tab.
+    // useEffect runs after render: without this reset, the new Visit/Invoice
+    // renderer receives stale Reservation/Contract rows and may throw.
+    setRows([])
+    setActivityLoading(true)
+    setActivityError('')
+    setPagination({ totalItems: 0, totalPages: 0 })
+    setTab(next)
+    setPage(1)
+    setSearch('')
+    setDetail(null)
+    setDetailError('')
+  }
   const refresh = () => { setRevision(value => value + 1); setDetail(null); setDetailError('') }
   const openRecord = async (item: ActivityRecord) => {
     if (openingDetail) return
