@@ -27,6 +27,7 @@ import { FacilityManagerLayout } from '../layouts/FacilityManagerLayout'
 import { SystemAdministratorLayout } from '../layouts/SystemAdministratorLayout'
 import { FacilityStaffLayout } from '../layouts/FacilityStaffLayout'
 import { FacilityManagementPage } from '../features/facility-management/FacilityManagementPage'
+import { MultiFacilityMonitoringPage } from '../features/multi-facility-monitoring/MultiFacilityMonitoringPage'
 import { UnitTypePricingPage } from '../features/unit-type-pricing/UnitTypePricingPage'
 import { PolicyVersionManagementPage } from '../features/policy-version-management/PolicyVersionManagementPage'
 import { HandoverUnitSelectionPage } from '../features/handover-unit-selection/HandoverUnitSelectionPage'
@@ -295,6 +296,11 @@ export function AppRouter() {
         <Route
           path="facilities"
           element={<FacilityManagementPage />}
+        />
+
+        <Route
+          path="monitoring"
+          element={<MultiFacilityMonitoringPage />}
         />
 
         <Route

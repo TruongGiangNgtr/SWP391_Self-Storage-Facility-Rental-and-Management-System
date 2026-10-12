@@ -3,6 +3,7 @@ import {
   AtSign,
   Building2,
   ChartNoAxesCombined,
+  Activity,
   LogOut,
   Percent,
   ReceiptText,
@@ -67,6 +68,18 @@ export function BusinessOperationsLayout({
           >
             <Building2 size={19} />
             <span>Facilities</span>
+          </NavLink>
+
+          <NavLink
+            to={`${basePath}/monitoring`}
+            className={({ isActive }) =>
+              isActive
+                ? 'bo-nav-link bo-nav-link-active'
+                : 'bo-nav-link'
+            }
+          >
+            <Activity size={19} />
+            <span>Multi-Facility Monitoring</span>
           </NavLink>
 
           <NavLink
