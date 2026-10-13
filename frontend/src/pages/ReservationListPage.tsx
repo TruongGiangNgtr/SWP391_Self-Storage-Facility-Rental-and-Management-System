@@ -4,6 +4,8 @@ import { presentApiError } from '../api/apiErrorPresentation'
 import type { ApiErrorPresentation } from '../api/apiErrorPresentation'
 import type { Pagination } from '../api/api.types'
 import { reservationApi } from '../api/reservationApi'
+import { CustomerListToolbar } from '../components/CustomerListToolbar'
+import { useCustomerListFilter } from '../features/customer-list/useCustomerListFilter'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState, PaginationControls } from '../components/PageStates'
 import { StatusBadge } from '../components/StatusBadge'
@@ -19,6 +21,7 @@ const EMPTY_PAGINATION: Pagination = {
 }
 
 export function ReservationListPage() {
+  const filter = useCustomerListFilter()
   const location = useLocation()
   const [page, setPage] = useState(1)
   const [reservations, setReservations] = useState<ReservationDetail[]>([])
@@ -57,7 +60,6 @@ export function ReservationListPage() {
     <main className="page-container flow-page">
       <section className="page-heading page-heading-actions">
         <div>
-          <nav className="flow-breadcrumb" aria-label="Breadcrumb"><Link to="/customer">Customer Portal</Link><span>/</span><span>My Reservations</span></nav>
           <p className="eyebrow">Reservation Management</p>
           <h1>My Reservations</h1>
           <p className="muted">Track your reservations, settle deposits and manage handover visits.</p>
@@ -74,8 +76,8 @@ export function ReservationListPage() {
       ) : error ? null : reservations.length === 0 ? (
         <EmptyState message="You do not have any reservations yet." />
       ) : (
-        <div className="reservation-list">
-          {reservations.map((reservation) => (
+        <><CustomerListToolbar {...filter.controls} statuses={["PENDING_DEPOSIT","CONFIRMED","COMPLETED","CANCELLED"]} visibleCount={reservations.filter(reservation => filter.matches(`${reservation.reservationId} ${reservation.unitTypeId} ${reservation.startMonth} ${reservation.endMonth}`, reservation.status)).length} /><div className="reservation-list">
+          {reservations.filter(reservation => filter.matches(`${reservation.reservationId} ${reservation.unitTypeId} ${reservation.startMonth} ${reservation.endMonth}`, reservation.status)).map((reservation) => (
             <article className={`reservation-card reservation-card-${reservation.status.toLowerCase().replaceAll('_', '-')}`} key={reservation.reservationId}>
               <div className="card-heading-row">
                 <h2>Reservation {reservation.reservationId.slice(0, 8)}</h2>
@@ -111,7 +113,7 @@ export function ReservationListPage() {
               </div>
             </article>
           ))}
-        </div>
+        </div></>
       )}
 
       <PaginationControls

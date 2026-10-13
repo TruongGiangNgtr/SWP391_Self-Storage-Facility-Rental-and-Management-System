@@ -85,7 +85,7 @@ export function InvoiceDetailPage() {
               </div>
               <div>
                 <dt>Paid At</dt>
-                <dd>{invoice.paidAt ? formatUtcDateTime(invoice.paidAt) : 'Not Paid'}</dd>
+                <dd>{invoice.paidAt ? formatUtcDateTime(invoice.paidAt) : 'Not Recorded'}</dd>
               </div>
             </dl>
             {invoice.invoiceType === 'DEPOSIT' && (

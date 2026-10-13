@@ -5,6 +5,10 @@ import { CustomerLayout } from './CustomerLayout'
 export function RootLayout() {
   const location = useLocation()
 
+  if (location.pathname.startsWith('/auth/customer/')) {
+    return <CustomerLayout publicPage><Outlet /></CustomerLayout>
+  }
+
   if (
     location.pathname === '/customer' ||
     location.pathname.startsWith('/customer/')

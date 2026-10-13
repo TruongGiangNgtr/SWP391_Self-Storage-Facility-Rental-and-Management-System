@@ -27,7 +27,7 @@ interface SearchForm {
 
 const INITIAL_MONTH = getNextBusinessMonth()
 
-export function StorageSearchPage() {
+export function StorageSearchPage({ embedded = false }: { embedded?: boolean }) {
   const location = useLocation()
   const searchVersion = useRef(0)
   const [facilities, setFacilities] = useState<FacilitySummary[]>([])
@@ -182,14 +182,15 @@ export function StorageSearchPage() {
     }
   }
 
+  const Container = embedded ? 'section' : 'main'
   return (
-    <main className="page-container flow-page">
+    <Container className={`page-container flow-page ${embedded ? 'panel dashboard-search' : ''}`} aria-label={embedded ? 'Find your next storage' : undefined}>
       <section className="page-heading">
-        <nav className="flow-breadcrumb" aria-label="Breadcrumb">
+        {!embedded && <nav className="flow-breadcrumb" aria-label="Breadcrumb">
           <Link to="/customer">Customer Portal</Link><span>/</span><span>Find Storage</span>
-        </nav>
-        <p className="eyebrow">Find and Reserve Storage</p>
-        <h1>Find Storage</h1>
+        </nav>}
+        {!embedded && <p className="eyebrow">Find and Reserve Storage</p>}
+        {embedded ? <h2>Find Your Next Storage</h2> : <h1>Find Storage</h1>}
         <p className="muted">
           Select a location, unit type and rental period to find available storage.
         </p>
@@ -296,7 +297,7 @@ export function StorageSearchPage() {
               disabled={searching || loadingCatalog || facilities.length === 0}
               type="submit"
             >
-              {searching ? 'Checking availability...' : 'Search'}
+              {searching ? 'Checking availability...' : 'Find Storage'}
             </button>
           </form>
         )}
@@ -305,7 +306,7 @@ export function StorageSearchPage() {
         )}
       </section>
 
-      {results === null && !searching && !error && !loadingFacilities && facilities.length > 0 && (
+      {!embedded && results === null && !searching && !error && !loadingFacilities && facilities.length > 0 && (
         <EmptyState message="Select your search criteria and click Search to view available storage." />
       )}
 
@@ -324,7 +325,7 @@ export function StorageSearchPage() {
           ) : (
             <section className="flow-facility">
               <div className="flow-facility-heading">
-                <div className="facility-thumbnail" aria-hidden="true" />
+                <div className="facility-thumbnail" aria-hidden="true"><FlowIcon name="unit" /></div>
                 <div>
                   <p className="eyebrow">Storage Facility</p>
                   <h2>{selectedFacility?.name}</h2>
@@ -369,7 +370,7 @@ export function StorageSearchPage() {
           )}
         </section>
       )}
-      <div className="notice"><FlowIcon name="info" />Reservations hold capacity for a unit type and rental period. Your physical storage unit will be selected at handover.</div>
-    </main>
+      <div className="notice"><FlowIcon name="info" />Your specific storage unit will be selected when you arrive for handover.</div>
+    </Container>
   )
 }
