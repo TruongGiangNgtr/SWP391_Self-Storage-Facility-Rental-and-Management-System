@@ -8,6 +8,8 @@ export interface ApiErrorPresentation {
 
 const ERROR_MESSAGES: Record<string, string> = {
   AUTH_INVALID_CREDENTIALS: 'Incorrect sign-in details.',
+  EMAIL_ALREADY_EXISTS: 'This email address is already registered. Sign in or use another email address.',
+  PHONE_NUMBER_ALREADY_EXISTS: 'This phone number is already registered. Sign in to your existing account.',
   ACCOUNT_INACTIVE: 'Your account is inactive. Please contact support.',
   VALIDATION_ERROR: 'Some information is invalid. Please check your input.',
   UNAUTHORIZED: 'Your session is invalid or has expired.',

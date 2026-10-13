@@ -7,6 +7,8 @@ import {
 } from 'react'
 import { authApi } from '../api/authApi'
 import { authToken } from '../api/authToken'
+import { ApiRequestError } from '../api/httpClient'
+import { abandonCustomerContinuation, clearCustomerContinuation } from './customerContinuation'
 import { AuthContext, type AuthContextValue } from './auth.context'
 import type { AuthUser, CustomerLoginRequest, EmployeeLoginRequest } from './auth.types'
 
@@ -30,6 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isInitializing, setIsInitializing] = useState(true)
 
   const logout = useCallback(() => {
+    abandonCustomerContinuation()
     authToken.clear()
     setUser(null)
   }, [])
@@ -37,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadCurrentAccount = useCallback(async (): Promise<AuthUser> => {
     const response = await authApi.getCurrentAccount()
     const currentUser = mapCurrentAccount(response.data)
+    if (currentUser.status !== 'ACTIVE') throw new ApiRequestError(403, { code: 'ACCOUNT_INACTIVE', message: 'Account is inactive.' })
     setUser(currentUser)
     return currentUser
   }, [])
@@ -67,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginCustomer = useCallback(
     async (request: CustomerLoginRequest): Promise<AuthUser> => {
+      if (authToken.get()) clearCustomerContinuation()
       const response = await authApi.loginCustomer(request)
       authToken.set(response.data.accessToken)
 
@@ -82,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginEmployee = useCallback(
     async (request: EmployeeLoginRequest): Promise<AuthUser> => {
+      clearCustomerContinuation()
       const response = await authApi.loginEmployee(request)
       authToken.set(response.data.accessToken)
 

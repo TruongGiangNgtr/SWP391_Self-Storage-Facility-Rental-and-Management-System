@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Bell, ChevronDown, Menu } from 'lucide-react'
 import { useAuth } from '../auth/auth.context'
 import { FlowIcon } from '../components/FlowIcon'
@@ -8,6 +8,7 @@ import { CUSTOMER_NAV_ITEMS, CUSTOMER_NOTIFICATIONS, getCustomerNavigationItem }
 import '../styles/customer.css'
 import '../styles/customer-design.css'
 import '../styles/public.css'
+import '../styles/customer-auth.css'
 
 function Brand({ footer = false, signedIn = true, publicPage = false }: { footer?: boolean; signedIn?: boolean; publicPage?: boolean }) {
   return <Link className={`flow-brand ${footer ? 'flow-brand-footer' : ''}`} to={signedIn && !publicPage ? '/customer' : '/'} aria-label="FStoRent Home">
@@ -21,7 +22,13 @@ function StorageNavigation() {
 }
 
 export function CustomerLayout({ children, publicPage = false }: { children: ReactNode; publicPage?: boolean }) {
-  const { user, logout } = useAuth()
+  const { user, logout: endSession } = useAuth()
+  const navigate = useNavigate()
+  function logout() {
+    endSession()
+    // Explicit sign-out is abandonment, not a newly interrupted operation.
+    navigate('/auth/customer/login', { replace: true, state: null })
+  }
   const { pathname } = useLocation()
   const signedIn = user?.role === 'CUSTOMER'
   const [drawerOpen, setDrawerOpen] = useState(false)

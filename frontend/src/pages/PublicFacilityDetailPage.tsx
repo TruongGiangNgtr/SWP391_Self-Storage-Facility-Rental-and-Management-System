@@ -26,7 +26,7 @@ function FacilityDetail() {
       <section className="panel public-facility-summary"><div className="public-facility-image" aria-hidden="true" /><div><h2>{facility.data.data.name}</h2><p className="flow-facility-address"><img src="/figma/gwp-01/imgIcon12.svg" alt="" aria-hidden="true" />{facility.data.data.address}</p>{facility.data.data.description && <p className="public-description">{facility.data.data.description}</p>}<h3>Contact Information</h3><p>{facility.data.data.contactInfo || 'Contact information is not currently provided for this facility.'}</p><p className="public-field-note">Availability depends on your selected storage type and rental months.</p></div></section>
       <PublicStorageSearchForm initialValues={hasPeriod ? filters : { ...filters, startMonth: initialPublicFilters().startMonth, endMonth: initialPublicFilters().endMonth }} pinnedFacility={facility.data.data} onDirtyChange={setDirty} onSearch={next => navigate(`/facilities/${encodeURIComponent(facilityId)}?${publicSearchQuery(next)}`)} />
       {dirty && <p className="notice">Filters changed. Select Find Storage to check the updated period.</p>}
-      {!query.error && <PublicUnitTypeList key={search} facilityId={facilityId} filters={filters} disabled={dirty} detail />}
+      {!query.error && <PublicUnitTypeList key={search} facilityId={facilityId} facilityName={facility.data.data.name} filters={filters} disabled={dirty} detail />}
     </>}
     {facility.error && <button className="button button-secondary" type="button" onClick={facility.refresh}>Retry Facility</button>}
     <Link className="button button-secondary" to={`/facilities?${publicSearchQuery({ ...query.filters, facilityId: '' })}`}>Search All Facilities</Link>
