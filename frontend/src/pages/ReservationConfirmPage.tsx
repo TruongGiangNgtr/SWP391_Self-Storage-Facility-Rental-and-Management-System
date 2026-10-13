@@ -5,7 +5,7 @@ import type { ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { reservationApi } from '../api/reservationApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { LoadingState } from '../components/PageStates'
-import { FlowDialog } from '../components/FlowDialog'
+import { CustomerActionFrame } from '../components/CustomerActionFrame'
 import { FlowIcon } from '../components/FlowIcon'
 import { CalendarDateField } from '../components/CalendarDateField'
 import type { ReservationDetail } from '../features/reservations/reservation.types'
@@ -68,23 +68,16 @@ export function ReservationConfirmPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <main className="page-container flow-page">
-        <LoadingState label="Checking deposit status..." />
-      </main>
-    )
-  }
-
   return (
-    <FlowDialog
+    <CustomerActionFrame
       category="Handover Visit"
       title="Confirm Reservation and Schedule Handover"
       subtitle="Select a date to collect your storage unit after paying the deposit."
       busy={submitting}
-      onClose={() => navigate(`/customer/reservations/${reservationId}`, { replace: true })}
+      returnTo={`/customer/reservations/${reservationId}`}
+      backLabel="Back to Reservation"
     >
-
+      {loading ? <LoadingState label="Checking deposit status..." /> :
       <section className="panel stack">
         <ApiErrorAlert error={error} />
         {reservation && (
@@ -136,7 +129,7 @@ export function ReservationConfirmPage() {
             )}
           </>
         )}
-      </section>
-    </FlowDialog>
+      </section>}
+    </CustomerActionFrame>
   )
 }

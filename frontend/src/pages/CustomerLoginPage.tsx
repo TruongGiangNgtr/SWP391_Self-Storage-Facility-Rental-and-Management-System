@@ -49,8 +49,9 @@ export function CustomerLoginPage() {
   }
 
   return (
-    <main className="page-container">
+    <main className="page-container customer-auth-page">
       <section className="auth-card">
+        <p className="eyebrow">Welcome to FStoRent</p>
         <h1>Customer Sign In</h1>
         <p className="muted">Sign in with your phone number and password.</p>
         <form className="form-grid" onSubmit={handleSubmit}>
@@ -83,7 +84,7 @@ export function CustomerLoginPage() {
           <button className="button" type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Signing in...' : 'Sign In'}
           </button>
-          <Link to="/auth/customer/register">New to FStoRent? Create an account</Link>
+          <Link className="auth-switch" to="/auth/customer/register">New to FStoRent? Create an account</Link>
         </form>
       </section>
     </main>

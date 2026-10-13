@@ -4,6 +4,8 @@ import { presentApiError } from '../api/apiErrorPresentation'
 import type { ApiErrorPresentation } from '../api/apiErrorPresentation'
 import type { Pagination } from '../api/api.types'
 import { billingApi } from '../api/billingApi'
+import { CustomerListToolbar } from '../components/CustomerListToolbar'
+import { useCustomerListFilter } from '../features/customer-list/useCustomerListFilter'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState, PaginationControls } from '../components/PageStates'
 import { StatusBadge } from '../components/StatusBadge'
@@ -18,6 +20,7 @@ const EMPTY_PAGINATION: Pagination = {
 }
 
 export function InvoiceListPage() {
+  const filter = useCustomerListFilter()
   const [page, setPage] = useState(1)
   const [invoices, setInvoices] = useState<InvoiceDetail[]>([])
   const [pagination, setPagination] = useState(EMPTY_PAGINATION)
@@ -55,7 +58,8 @@ export function InvoiceListPage() {
     <main className="page-container flow-page">
       <section className="page-heading">
         <p className="eyebrow">Payment</p>
-        <h1>My Invoices</h1>
+        <h1>Deposit &amp; Invoices</h1>
+        <p className="muted">Review deposit and rental invoices, payment deadlines and recorded status.</p>
       </section>
 
       <ApiErrorAlert error={error} />
@@ -64,8 +68,8 @@ export function InvoiceListPage() {
       ) : error ? null : invoices.length === 0 ? (
         <EmptyState message="You do not have any invoices yet." />
       ) : (
-        <div className="card-grid list-grid">
-          {invoices.map((invoice) => (
+        <><CustomerListToolbar {...filter.controls} statuses={["UNPAID","PAID","OVERDUE","CANCELLED"]} visibleCount={invoices.filter(invoice => filter.matches(`${invoice.invoiceId} ${invoice.invoiceType} ${invoice.billingMonth ?? ''}`, invoice.status)).length} /><div className="card-grid list-grid">
+          {invoices.filter(invoice => filter.matches(`${invoice.invoiceId} ${invoice.invoiceType} ${invoice.billingMonth ?? ''}`, invoice.status)).map((invoice) => (
             <article className="summary-card" key={invoice.invoiceId}>
               <div className="card-heading-row">
                 <h2>{invoice.invoiceType === 'DEPOSIT' ? 'Deposit' : 'Rental Fee'}</h2>
@@ -78,7 +82,7 @@ export function InvoiceListPage() {
               </Link>
             </article>
           ))}
-        </div>
+        </div></>
       )}
 
       <PaginationControls

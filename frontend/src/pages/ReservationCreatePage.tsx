@@ -6,7 +6,7 @@ import { catalogApi } from '../api/catalogApi'
 import { reservationApi } from '../api/reservationApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { LoadingState } from '../components/PageStates'
-import { FlowDialog } from '../components/FlowDialog'
+import { CustomerActionFrame } from '../components/CustomerActionFrame'
 import { FlowIcon } from '../components/FlowIcon'
 import type {
   FacilitySummary,
@@ -88,12 +88,13 @@ export function ReservationCreatePage() {
   }
 
   return (
-    <FlowDialog
+    <CustomerActionFrame
       title="Confirm Your Reservation"
       category="Reservation"
       subtitle="Review your selection before creating a reservation and paying the deposit."
       busy={submitting}
-      onClose={() => navigate('/customer/storage-search', { replace: true })}
+      returnTo="/customer/storage-search"
+      backLabel="Back to Find Storage"
     >
 
       {loading ? (
@@ -162,6 +163,6 @@ export function ReservationCreatePage() {
           )}
         </section>
       )}
-    </FlowDialog>
+    </CustomerActionFrame>
   )
 }

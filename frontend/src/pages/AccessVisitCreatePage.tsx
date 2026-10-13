@@ -77,8 +77,8 @@ export function AccessVisitCreatePage() {
           <h2>Visit Date</h2>
           <form className="form-grid" onSubmit={handleCreate}>
             <CalendarDateField id="accessVisitDate" label="Access Visit Date (GMT+7)" value={visitDate} disabled={working} onChange={setVisitDate} />
-            <p className="notice">A pending return visit for this contract blocks new access visits. The backend checks the current contract and return state when you submit.</p>
-            <p className="muted">This page does not confirm that there is no pending return visit. Date eligibility is checked by the backend; no handover-specific day window is applied here.</p>
+            <p className="notice">You cannot schedule a new access visit while a return visit is pending. Your eligibility is checked when you submit.</p>
+            <p className="muted">Choose a date to visit your rented unit. This does not create a new reservation or change your rental period.</p>
             <button className="button" type="submit" disabled={working}>{working ? 'Scheduling...' : 'Confirm Access Visit'}</button>
           </form>
         </section> : <p className="notice">This contract is not ACTIVE. You cannot schedule an access visit.</p>}

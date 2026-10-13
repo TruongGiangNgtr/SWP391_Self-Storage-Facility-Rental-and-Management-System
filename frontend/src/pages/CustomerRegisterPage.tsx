@@ -36,9 +36,11 @@ export function CustomerRegisterPage() {
   }
 
   return (
-    <main className="page-container">
+    <main className="page-container customer-auth-page">
       <section className="auth-card">
-        <h1>Customer Registration</h1>
+        <p className="eyebrow">Start Your Storage Journey</p>
+        <h1>Create Your Account</h1>
+        <p className="muted">Register to reserve storage and manage your rentals.</p>
         <form className="form-grid" onSubmit={handleSubmit}>
           <div className="form-field">
             <label htmlFor="fullName">Full Name</label>
@@ -70,18 +72,18 @@ export function CustomerRegisterPage() {
             />
           </div>
           <div className="form-field">
-            <label htmlFor="address">Address</label>
+            <label htmlFor="address">Address (optional)</label>
             <input id="address" name="address" autoComplete="street-address" />
           </div>
           <div className="form-field">
-            <label htmlFor="cccd">National ID (CCCD)</label>
+            <label htmlFor="cccd">National ID / CCCD (optional)</label>
             <input id="cccd" name="cccd" />
           </div>
           <ApiErrorAlert error={error} />
           <button className="button" type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Creating your account...' : 'Create Account'}
           </button>
-          <Link to="/auth/customer/login">Already have an account? Sign in</Link>
+          <Link className="auth-switch" to="/auth/customer/login">Already have an account? Sign in</Link>
         </form>
       </section>
     </main>

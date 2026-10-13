@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { ApiRequestError } from '../api/httpClient'
 import { visitApi } from '../api/visitApi'
+import { CustomerActionFrame } from '../components/CustomerActionFrame'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { CalendarDateField } from '../components/CalendarDateField'
 import { LoadingState } from '../components/PageStates'
@@ -60,11 +61,8 @@ export function ReturnVisitCreatePage() {
   }
 
   return (
-    <main className="page-container flow-page narrow-page">
-      <section className="page-heading page-heading-actions">
-        <div><p className="eyebrow">Storage Return</p><h1>Schedule Return Visit</h1><p className="muted">Choose a date to visit the facility and return your rented storage unit.</p></div>
-        <Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(contractId)}`}>View Contract</Link>
-      </section>
+    <CustomerActionFrame contractId={contractId} title="Schedule Return Visit" category="Storage Return" subtitle="Choose a date to return your rented storage unit at the facility." busy={working}>
+
       <ApiErrorAlert error={actionError ?? error} />
       <button className="button button-secondary" type="button" disabled={loading || working} onClick={() => { setActionError(null); refresh() }}>Refresh Contract</button>
       {loading ? <LoadingState label="Loading your contract..." /> : contract && <>
@@ -79,15 +77,15 @@ export function ReturnVisitCreatePage() {
           <h2>Return Visit Date</h2>
           <form className="form-grid" onSubmit={handleCreate} noValidate>
             <CalendarDateField id="returnVisitDate" label="Return Visit Date (GMT+7)" value={visitDate} disabled={working} onChange={setVisitDate} />
-            <p className="notice">A RETURN Visit that is SCHEDULED or CHECKED_IN blocks new access visits and contract renewal.</p>
-            <p className="muted">The backend validates the date, Contract ownership and current return state. This page does not confirm that no return visit is already pending.</p>
-            <p className="muted">Scheduling does not end your Contract or release the Storage Unit. Staff records the actual return date, and return finalization follows inspection and settlement.</p>
+            <p className="notice">While a return visit is pending, you cannot schedule new access visits or renew this contract.</p>
+            <p className="muted">Your selected date and return eligibility will be checked when you submit.</p>
+            <p className="muted">Scheduling a visit does not end your contract. The facility records your actual return date, then completes inspection and settlement.</p>
             <button className="button" type="submit" disabled={working}>{working ? 'Scheduling...' : 'Confirm Return Visit'}</button>
           </form>
         </section> : <p className="notice">This contract is not ACTIVE. You cannot schedule a return visit.</p>}
       </>}
       {actionError && <p className="muted">If the request may already have been processed, check My Visits before retrying to avoid scheduling a duplicate return visit.</p>}
       <Link className="button button-secondary" to="/customer/visits">My Visits</Link>
-    </main>
+    </CustomerActionFrame>
   )
 }

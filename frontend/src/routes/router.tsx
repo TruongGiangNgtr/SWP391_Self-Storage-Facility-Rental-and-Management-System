@@ -60,7 +60,8 @@ export function AppRouter() {
   const location = useLocation()
   const state = location.state as { backgroundLocation?: Location } | null
   const isDialog = location.pathname === '/customer/reservations/new' ||
-    /^\/customer\/reservations\/[^/]+\/confirm$/.test(location.pathname)
+    /^\/customer\/reservations\/[^/]+\/confirm$/.test(location.pathname) ||
+    /^\/customer\/contracts\/[^/]+\/(renew|return-visits\/new)$/.test(location.pathname)
   const backgroundLocation = isDialog ? state?.backgroundLocation : undefined
 
   return (
@@ -385,6 +386,8 @@ export function AppRouter() {
           <Route element={<RequireRole allowedRoles={['CUSTOMER']} />}>
             <Route path="customer/reservations/new" element={<ReservationCreatePage />} />
             <Route path="customer/reservations/:reservationId/confirm" element={<ReservationConfirmPage />} />
+            <Route path="customer/contracts/:contractId/renew" element={<ContractRenewalPage key={location.pathname} />} />
+            <Route path="customer/contracts/:contractId/return-visits/new" element={<ReturnVisitCreatePage key={location.pathname} />} />
           </Route>
         </Route>
       </Routes>
