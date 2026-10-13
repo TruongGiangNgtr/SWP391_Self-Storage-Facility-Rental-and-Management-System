@@ -9,6 +9,7 @@
 **Operational Consistency Revision Date:** 2026-10-07 — REV-2026-10-07-OP-READ
 **Payment Gateway Revision Date:** 2026-10-09 — REV-2026-10-09-PAYOS
 **Payment Idempotency Clarification Date:** 2026-10-10 — REV-2026-10-10-PAY-IDEMPOTENCY
+**Public Guest Requirements Revision Date:** 2026-10-13 — REV-2026-10-13-GUEST (team review pending)
 **Status:** Final Implementation Baseline — EPS-01 Implementation Gates Passed; Limited payOS Live Payment Verified
 **Architecture:** 3 Logical Layers + Repository Pattern + Infrastructure Adapters
 **Backend:** ASP.NET Core Web API / C#
@@ -44,6 +45,7 @@
 | **V10 FINAL — 2026-10-09 payOS revision** | Owner-approved provider replacement (code/mock only) | REV-2026-10-09-PAYOS; preserve MOMO/VNPAY history, numeric order-code sequence, signed JSON webhook; live acceptance pending. |
 | **V10 FINAL — 2026-10-08 payment timestamp clarification** | Owner-approved persisted Invoice payment timestamp | Invoice.PaidAt is nullable UTC, set from the verified provider timestamp only on the first UNPAID/OVERDUE -> PAID transition. Duplicate webhook, subsequent successful attempts and cancelled invoices preserve the Invoice timestamp. Existing historical timestamps are not fabricated. |
 | **V10 FINAL — 2026-10-10 payment idempotency clarification** | Owner-requested alignment with the approved PAY-001 contract | REV-2026-10-10-PAY-IDEMPOTENCY makes the frontend UUID, required persisted uniqueidentifier, global uniqueness, lifetime retention, retry/concurrency and non-disclosure rules explicit in the SRS and Data Dictionary. No new Payment status, recovery workflow or live-provider authorization. |
+| **V10 FINAL — 2026-10-13 public Guest requirements proposal** | Owner-authorized specification update; team baseline approval pending | REV-2026-10-13-GUEST proposes common public catalog, requested-period availability, sizing/rental-process guidance and public help/policies; permits optional anonymous AI recommendations; defines authentication continuation. Visual design and page/component implementation are excluded. Five business roles, seven flows, 27 entities and existing private-resource/financial lifecycles remain unchanged. |
 
 ## V5 Review Summary
 
@@ -72,7 +74,7 @@ V5 performs a consistency review rather than adding a new business flow.
 - Replace ambiguous “recommended” wording with either a mandatory rule, an explicitly equivalent alternative, or a Deferred Decision.
 - Distinguish source-derived rule, SRS technical decision, and unresolved source gap.
 
-> V10 FINAL with REV-2026-10-09-PAYOS is the current implementation baseline. Earlier MoMo/VNPay revision entries are historical only; payOS is the sole active gateway. Offline first-month and operational-read semantics remain unchanged.
+> V10 FINAL with its previously approved revisions remains the current implementation baseline. REV-2026-10-13-GUEST is an owner-authorized requirements proposal pending team approval and incorporation into the shared baseline. Its normative statements define the proposed target after approval; they do not claim that Guest APIs or functions are implemented. Earlier MoMo/VNPay revision entries are historical only; payOS is the sole active gateway. Offline first-month and operational-read semantics remain unchanged.
 
 ---
 
@@ -213,6 +215,24 @@ The owner permits checking the existing FRMS baseline and applying forward EPS-0
 
 **Implementation verification (2026-10-10, integrated with origin/main d7cc1a5):** Backend Release build passed with zero errors/warnings; frontend production build passed with only a bundle-size warning. Unit tests: 142 passed; API tests: 64 passed; architecture tests: 13 passed; real SQL Server PaymentSql/PaymentMigration/PaymentServiceSql/PayOsSql tests: 65 passed. All four test runs had zero failures and zero skips. The SQL suites include empty-database migration, payment constraints, authorization, idempotency and concurrent result processing. Limited live evidence covers the Deposit payment above; a separate live later Rental Fee payment and the seven unrelated FRMS browser journeys are not claimed as verified.
 
+## 0.0.6 Proposed Change Record — REV-2026-10-13-GUEST
+
+**Status:** Owner-authorized requirements drafting on 2026-10-13; team approval and shared-baseline adoption are pending. On the owner's instruction, this proposal contains common project requirements only, not the owner's separate visual design or page/component specification. After team approval, record that approval and adopt the revision in the shared SRS before implementation is treated as governed by it.
+
+**Proposed scope:**
+
+- Guest/Anonymous is an unauthenticated access mode, not a sixth business role or persisted account.
+- Anonymous and Customer share Facility/UnitType browsing, current public prices, server-authoritative capacity for a requested month range, Size Guide, How It Works, Help Center and current public policies. Optional AI recommendation accepts user input without using personal rental/account history and remains non-blocking/non-authoritative.
+- A Facility matches a complete search only when its location matches and at least one offered UnitType satisfies all supplied mode/type/size filters and has positive capacity in every month from StartMonth through EndMonth inclusive. Only matching UnitTypes are shown in that search result; filtering precedes pagination/counting.
+- CAT-001..004 gain a public projection; CAT-005 supplies the shared UnitType list for Size Guide. PUB-POL-001/002 supply read-only public policy content/current-policy projection without a new persisted content entity or CMS workflow.
+- Anonymous cannot create/read Reservation, Contract, Visit, Invoice, Payment, Discount, SupportTicket or return/settlement business data, or read an account's profile/personal notification/history. Existing AUTH-001 self-registration remains permitted without login. PAY-004 remains a separately validated provider webhook, not Guest access.
+- Ordinary Customer login enters the authenticated Customer area. Authentication prompted by a protected action resumes its validated pending operation and non-sensitive selection. Login alone does not require identity verification, create/confirm Reservation, schedule Visit or initiate Payment.
+- Customer retains all public capabilities available to Anonymous; public content/data contracts remain independent of account identity. Page structure, component reuse, navigation placement and visual style are outside this requirements proposal.
+
+**Affected requirements:** sections 2/3, Flow 1, GWP-01..05, CWP-01/02, BR-PUB-01..07, sections 10/13/14/15, catalog/policy schemas and endpoint index, public API/security tests, E2E-F01, traceability, Release 1 gates and acceptance.
+
+**Implementation boundary:** This task changes only this SRS. Backend authorization/query contracts, Swagger, frontend API models, approved public article copy and automated functional/security tests require follow-up alignment after team approval. Existing code must not be represented as already supporting the revised behavior. Visual style, layout, header/footer/sidebar, component design, specific public-page URLs and UI prototypes belong to the owner's separate frontend design work and are not defined by this proposal. Public policy content is a deployment-owned read model, not a new Policy entity, approval workflow or financial rule. Operational Facility scope and private ownership checks remain enforced; public projection never grants operational reads or commands. No new role, business flow, persisted entity/attribute/status, stored procedure, personal-data publication, reservation hold at browsing time or payment obligation is introduced. Email OTP, password reset/change and Google login remain outside current Release 1.
+
 ## 0.1 Authority Order
 
 For implementation, review, testing, and conflict resolution:
@@ -325,6 +345,8 @@ After approval:
 - no team member may resolve a Deferred Decision only in code, database migration, Swagger, UI, or test fixture;
 - any semantic change requires a new SRS revision and traceability update.
 
+A proposal explicitly marked as pending team approval, such as section 0.0.6, does not replace the previously approved implementation baseline until approval/adoption is recorded. Its added/changed requirements, contracts and acceptance gates are review targets, not evidence that current code has implemented them.
+
 # 1. Normative Keywords
 
 
@@ -376,8 +398,9 @@ The design remains month-based: Reservation holds capacity by `Facility + UnitTy
 Current FRMS Release 1 business scope includes:
 
 - customer self-registration and account use;
-- Facility and Unit Type browsing;
+- shared Anonymous/Customer public Facility and Unit Type browsing and filtered storage search;
 - available-capacity display for a requested month range;
+- public Size Guide, How It Works, Help Center/current public policies and Guest-to-Customer login continuation;
 - Reservation creation using future `StartMonth` / `EndMonth`;
 - Deposit invoice/payment through payOS Payment;
 - Reservation Visit scheduling in the captured Policy window;
@@ -472,6 +495,7 @@ SYSTEM_ADMINISTRATOR
 
 Customer may:
 
+- use all public Guest capabilities in section 3.8 under the same public data/access contracts;
 - browse active Facilities;
 - view Unit Types, size/mode, current price and requested-period capacity;
 - create Reservation;
@@ -595,15 +619,37 @@ Internal system responsibilities include:
 - **Runtime AI service** — optional Size Guide recommendation.
 - **Future Google Identity Provider** — Employee external login only; Future Work.
 
+## 3.8 Anonymous Visitor / Guest — Public Access Mode
+
+`PROPOSED — REV-2026-10-13-GUEST — TEAM APPROVAL PENDING`
+
+Anonymous means no authenticated FRMS account context. It is not a UserRole, UserAccount, Customer entity or an additional business actor/flow.
+
+Anonymous may:
+
+- browse/search ACTIVE Facilities by location and offered UnitTypes;
+- read public Facility information, UnitType mode/size/description/current RentalPrice and requested-period availableCapacity;
+- read Private/Public Size Guide and choose a UnitType for subsequent search;
+- read How It Works, Help Center/current public policy articles and public contact information;
+- request optional AI Size Guide recommendations from input supplied for that request;
+- keep a non-sensitive Facility + UnitType + month-range selection and enter existing Customer registration/login before a protected action.
+
+For the same query and authoritative data snapshot, public catalog/policy content is the same for Anonymous and Customer; it MUST NOT depend on CustomerId, owned Contracts, personal Discount or account history. Capacity/price/policy can change over time and filters can produce different results. AI suggestions depend on submitted description/mode, not account identity, and are not guaranteed to be byte-identical across provider calls.
+
+Anonymous MUST NOT access personal Reservation/Contract/Visit lists or detail, physical-unit assignment/access credentials, Invoice/Payment/settlement, owned Discount, SupportTicket, account/profile, personal notifications/history or administrative/operational data. Public contact information does not authorize creation of a SupportTicket without the existing authenticated Contract relationship.
+
 # 4. Business Flow Overview
 
 
 ## 4.1 Flow 1 — Storage Unit Reservation
 
 ```text
-Browse active Facility / UnitType
+Browse/search public active Facility / UnitType (Anonymous or Customer)
 -> choose StartMonth + EndMonth
 -> calculate capacity for every requested month
+-> authenticate as Customer if the user is Anonymous, then resume the selection
+-> validate the current selection and required account/Reservation data
+-> Customer explicitly submits the Reservation
 -> create Reservation(PENDING_DEPOSIT)
 -> create Deposit Invoice
 -> payOS payment
@@ -613,6 +659,8 @@ Browse active Facility / UnitType
 
 Rules:
 
+- Browsing, recommendation and the sign-in gate are read/selection steps only; they do not hold capacity or create Reservation/Invoice/Visit/Payment.
+- Ordinary Customer login enters the authenticated Customer area; only an interrupted protected action carries a pending operation. Required identity/account fields are handled at the relevant business step, never as an unconditional post-login workflow.
 - `StartMonth > CurrentMonth`.
 - `EndMonth >= StartMonth`.
 - Reservation holds capacity, not a concrete StorageUnit.
@@ -916,6 +964,7 @@ All business features are completed by Release 1. Core Demo priority is the end-
 
 | Feature family | Core Demo | Release 1 |
 |---|---:|---:|
+| Public Guest discovery / login continuation | Entry to Flow 1 | Complete; AI remains optional |
 | Customer lifecycle | Required | Complete |
 | Staff operational lifecycle | Required | Complete |
 | Manager facility operation | Required | Complete |
@@ -1782,6 +1831,8 @@ ASP.NET Core Identity: NOT USED
 
 Authentication and authorization are separate concerns:
 
+The following pipeline applies to authenticated private/operational access and business commands. The public allowlist in section 10.6.1 is intentionally accessible without account authentication and does not grant access to this protected pipeline.
+
 ```text
 Authenticate identity
 -> validate UserAccount ACTIVE
@@ -1896,7 +1947,7 @@ This resolves token behavior without inventing an unsupported numeric SLA.
 
 ## 10.6 Role Authorization Matrix
 
-The following is the API-level authorization baseline.
+The following is the API-level authorization baseline for the five business roles. Anonymous is a separate public access mode, specified below, not a sixth matrix role. Endpoint-specific access in section 13.11 controls operational reads.
 
 | Capability | Customer | Facility Staff | Facility Manager | BOM | Administrator |
 |---|---:|---:|---:|---:|---:|
@@ -1912,7 +1963,7 @@ The following is the API-level authorization baseline.
 | Contract read/list | Own | Same Facility detail | Same Facility list/detail | System list/detail | No |
 | Contract renewal | Own request | No | Monitor | Monitor | No |
 | Invoice/Payment | Own view/pay | Same Facility read/verify only | Same Facility read/monitor | System read/report | No manual PAID |
-| Policy | Read if exposed | Read | Read | Create version | No |
+| Policy | Current public articles/projection | Read | Read | Create version | Public projection only; no business mutation |
 | UnitType price/master | Read | Read | Read | Manage | No |
 | Discount | Own read/eligible usage | Read for Customer with same-Facility Reservation/Contract | Same-Facility Customer read | Manage | No |
 | ExtraFeeType catalogue | No | ACTIVE types read | ACTIVE types read | Read/manage | No |
@@ -1922,11 +1973,25 @@ The following is the API-level authorization baseline.
 | Employee/account administration | No | No | No | No | Yes |
 | LoginHistory/AuditLog | No requirement | No | No | No | View |
 
+### 10.6.1 Public Access Allowlist
+
+| Capability | Anonymous access | Boundary |
+|---|---|---|
+| CAT-001..005 catalog | Yes | Public ACTIVE-Facility/offered-UnitType projection; current price and requested-period capacity only |
+| PUB-POL-001/002 | Yes | Current public article/policy projection; no management/history/customer view |
+| How It Works / Help / manual Size Guide | Yes | Approved public content; no dedicated API required for static explanatory content |
+| AI-001 | Yes, when optional AI is implemented | Description/mode supplied in that request; no account-derived personalization |
+| AUTH-001..003 | Existing anonymous auth entry points | Existing registration/login contract; no new identity-verification workflow |
+| Reservation/Contract/Visit/Invoice/Payment/Discount/SupportTicket/profile/history/settlement | No | Missing authentication -> 401 UNAUTHORIZED; authenticated private access retains role/ownership/state checks |
+| PAY-004 | Not a Guest capability | Provider authenticity and webhook validation remain mandatory |
+
+Public access grants only the documented projection. A logged-in employee may consume that same projection as any visitor, but extra operational data still requires the endpoint's original role/current ACTIVE account/Facility checks. An inactive account can view public information available without an account; it gains no authenticated private access or mutation permission. Do not silently downgrade a denied operational request to a wider public result.
+
 ## 10.7 Facility Authorization
 
 Facility Staff and Facility Manager MUST be scoped to exactly their assigned Facility.
 
-For every facility-scoped read or command:
+For every protected facility-scoped operational read or command (not the identity-independent public projection):
 
 ```text
 actor.Employee.FacilityId
@@ -2072,7 +2137,7 @@ Acceptance Criteria:
 | `CWP-11` | Fee & Return Tracking | Flow 6 |
 | `CWP-12` | Customer Support | Flow 7 |
 
-`CWP-02` is optional and is not a core release blocker unless explicitly promoted.
+`CWP-01` shares its public catalog with GWP-01/02. `CWP-02` shares optional AI with Anonymous and remains optional, not a core release blocker unless explicitly promoted.
 
 ## 11.3 Facility Staff Features
 
@@ -2161,6 +2226,20 @@ Used for:
 
 It is not the settlement mechanism for LateFee, ExtraFee, Damage, RefundAmount or AdditionalAmountDue in FRMS Release 1.
 
+## 11.9 Public Guest Features
+
+GWP denotes a public functional capability, not a business role or new end-to-end flow. These features are also available to Customer; catalog/booking entry remains part of Flow 1. The feature names describe information and behavior, not required page layouts, component boundaries or navigation labels. Their proposed acceptance obligations take effect upon approval of section 0.0.6.
+
+| ID | Feature | Normative behavior / acceptance |
+|---|---|---|
+| `GWP-01` | Public Facility & UnitType Search | Anonymous/Customer search location + mode/type/size + inclusive month range; return matching ACTIVE Facilities and only matching UnitTypes with capacity > 0 in every requested month; identical public projection without personal data or holds |
+| `GWP-02` | Storage Sizing Guidance (Size Guide) | Read offered Private/Public UnitTypes, existing size/description/current price; use the selected type/size in subsequent search; optional AI uses AI-001 and failure leaves manual selection available |
+| `GWP-03` | How It Works | Explain Reservation, Deposit, scheduled handover/offline first-month receipt, Contract, visits and return using approved semantics; static content introduces no new lifecycle/API |
+| `GWP-04` | Public Help / Policies / Contact | Read current public policy articles and contact information; no raw BOM policy/history, ticket creation or personal settlement; numerical policy text agrees with authoritative current Policy |
+| `GWP-05` | Authentication Continuation | Ordinary Customer login enters the authenticated Customer area; interrupted action resumes the validated pending operation with preserved non-sensitive selection; re-read current data; no automatic business submission or global identity gate |
+
+GWP-01..05 are required supporting Release 1 capabilities. The optional AI portion of GWP-02/CWP-02 is not promoted to a blocker by this revision. New ownership assignments are not inferred; delivery ownership is allocated by the existing project process.
+
 # 12. Business Rules and Lifecycle Specification
 
 
@@ -2170,10 +2249,20 @@ The following rule IDs are canonical for FRMS Release 1:
 
 ### Account / Employee / Facility
 
-- `BR-ACC-01` Inactive account cannot log in or initiate new actions.
+- `BR-ACC-01` Inactive account cannot log in or initiate authenticated business actions; identity-independent public access follows section 10.6.1 and grants no private/operational authority.
 - `BR-ACC-02` Customer with CONFIRMED Reservation or ACTIVE Contract cannot be deactivated.
 - `BR-EMP-01` Facility Staff/Manager require one Facility; global employee roles do not.
 - `BR-FAC-01` INACTIVE Facility cannot accept new Reservation.
+
+### Public Discovery / Continuation
+
+- `BR-PUB-01` Guest is anonymous access, not a persisted role/account/entity; shared public output is independent of account identity.
+- `BR-PUB-02` Public discovery exposes ACTIVE Facilities and UnitTypes offered at ACTIVE Facilities, current public prices and aggregate capacity only. Private/operational/history data is excluded.
+- `BR-PUB-03` A Facility matches location and has at least one offered UnitType matching all supplied mode/size/type filters and positive available capacity for every inclusive requested month. The same UnitType must satisfy the full range; capacity from different UnitTypes/months MUST NOT be combined. Filter before pagination/counting.
+- `BR-PUB-04` Public browsing/AI/draft selection/login never holds capacity, assigns a physical unit or creates a Reservation, Invoice, Payment, Contract or Visit. Existing atomic RES-001 remains authoritative.
+- `BR-PUB-05` Authentication continuation preserves only a validated pending operation and non-sensitive selection; authoritative data/role/state are rechecked, and the Customer explicitly performs the next protected action. Ordinary Customer login enters the authenticated Customer area.
+- `BR-PUB-06` Public policy articles describe the current Policy, not a Customer's captured terms. Existing Reservation/Contract continues using captured PolicyId. Publishing public copy does not change Policy or financial rules.
+- `BR-PUB-07` Anonymous may not access any account-specific/private read or command. Shared public endpoints do not waive protected role/Facility/ownership checks or provider-webhook validation.
 
 ### Reservation
 
@@ -2364,6 +2453,8 @@ Invariant:
 > Reservation holds + Contract occupancy MUST NOT exceed eligible StorageUnit capacity for Facility + UnitType in any month.
 
 Reservation creation and Renewal capacity checks require concurrency protection.
+
+For public requested-period display/search, `availableCapacity` is the minimum of the existing authoritative per-month AvailableCapacity across all months from StartMonth through EndMonth inclusive. A UnitType is available for that requested range only when this minimum is greater than zero. This projection reuses the existing capacity algorithm and eligible-unit rules; it does not redefine eligibility or allocate/hold a Unit. Browse results are a point-in-time indication and MUST be checked again by atomic Reservation creation.
 
 ## 12.4 Financial Calculations
 
@@ -2737,6 +2828,47 @@ Business codes from Section 12.8 remain authoritative for business failures.
 
 `availableCapacity` is server-authoritative.
 
+For a requested period it is the minimum per-month capacity defined in section 12.3. With no month range, `requestedPeriod` and `availableCapacity` are null, not a fabricated availability result.
+
+### 13.10.3a Public UnitTypeSummary
+
+CAT-004/005 reuse existing UnitType fields; no additional persisted dimensions/image/amenity/stock-history attribute is introduced by public access.
+
+```json
+{
+  "unitTypeId": "uuid",
+  "name": "Medium Private",
+  "mode": "PRIVATE",
+  "size": "string",
+  "rentalPrice": 1500000.00,
+  "description": "string"
+}
+```
+
+### 13.10.3b PublicPolicySummary / PublicPolicyDetail
+
+This is a non-persisted read projection of approved explanatory content plus the current ACTIVE Policy. It is not a new Policy master/history schema. PUB-POL-001 items have the fields below except `sections`; PUB-POL-002 includes `sections`.
+
+```json
+{
+  "policyKey": "reservation-cancellation",
+  "title": "Reservation and cancellation",
+  "summary": "Public explanation of the current reservation and cancellation rules.",
+  "policyId": "uuid",
+  "version": 1,
+  "effectiveFrom": "2026-10-01T00:00:00Z",
+  "effectiveTo": null,
+  "sections": [
+    {
+      "heading": "Before making a reservation",
+      "body": "Choose a facility, unit type and rental period. Sign in before creating your reservation."
+    }
+  ]
+}
+```
+
+Policy identity/version/effective values come from the current ACTIVE Policy, not from hard-coded article metadata. `body` is plain text; embedded executable HTML is not accepted. Text examples are illustrative, not deployment-approved policy copy. No Customer/Contract identifier, personalized amount, administrator identity or historical Policy row is included.
+
 ### 13.10.4 ReservationDetail
 
 ```json
@@ -2867,18 +2999,23 @@ For `RENTAL_FEE`, the configured `MonthlyPaymentDueDay` is the final non-overdue
 
 ## 13.11 Endpoint Registry
 
-| API ID | Method | Endpoint | Description | Allowed role(s) | Feature |
+The CAT-001..005 public access/filter/view changes, PUB-POL-001/002 and Anonymous AI access below are proposed under section 0.0.6 and become governing contracts after team approval/adoption. Previously approved protected business/authentication contracts remain unchanged while this proposal is pending.
+
+| API ID | Method | Endpoint | Description | Allowed access / role(s) | Feature |
 |---|---|---|---|---|---|
 | `AUTH-001` | `POST` | `/api/v1/auth/customer/register` | Customer self-registration | Anonymous | Supporting / CWP |
 | `AUTH-002` | `POST` | `/api/v1/auth/customer/login` | Customer login by PhoneNumber | Anonymous | Auth |
 | `AUTH-003` | `POST` | `/api/v1/auth/employee/login` | Employee login by Email | Anonymous | Auth |
 | `AUTH-004` | `GET` | `/api/v1/auth/me` | Get current authenticated account/profile | Authenticated | Auth |
 | `AUTH-005` | `PATCH` | `/api/v1/customers/me/profile` | Update limited Customer profile fields | CUSTOMER | Supporting |
-| `CAT-001` | `GET` | `/api/v1/facilities` | Browse active Facilities | CUSTOMER | CWP-01 |
-| `CAT-002` | `GET` | `/api/v1/facilities/{facilityId}` | Facility detail | CUSTOMER | CWP-01 |
-| `CAT-003` | `GET` | `/api/v1/facilities/{facilityId}/unit-types` | Unit Types and optional requested-period capacity | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER | CWP-01 / operational read |
-| `CAT-004` | `GET` | `/api/v1/unit-types/{unitTypeId}` | Unit Type detail | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER | CWP-01 / operational read |
-| `AI-001` | `POST` | `/api/v1/ai/unit-type-recommendations` | Optional AI Size Guide | CUSTOMER | CWP-02 |
+| `CAT-001` | `GET` | `/api/v1/facilities` | Public active Facility search with matching UnitType/range filters | Public (Anonymous and authenticated same projection) | GWP-01 / CWP-01 |
+| `CAT-002` | `GET` | `/api/v1/facilities/{facilityId}` | Public active Facility detail | Public | GWP-01 / CWP-01 |
+| `CAT-003` | `GET` | `/api/v1/facilities/{facilityId}/unit-types` | Public UnitTypes and optional requested-period capacity; explicit protected operational view | Public; operational view: CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER | GWP-01 / CWP-01 / operational read |
+| `CAT-004` | `GET` | `/api/v1/unit-types/{unitTypeId}` | Public offered UnitType detail; explicit protected operational view | Public; operational view: CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER | GWP-01/02 / CWP-01 / operational read |
+| `CAT-005` | `GET` | `/api/v1/unit-types` | Public offered UnitType list for shared Size Guide | Public | GWP-02 / CWP-01 |
+| `PUB-POL-001` | `GET` | `/api/v1/public/policies` | Current public Help Center policy summaries | Public | GWP-04 |
+| `PUB-POL-002` | `GET` | `/api/v1/public/policies/{policyKey}` | Current public policy article/detail | Public | GWP-04 |
+| `AI-001` | `POST` | `/api/v1/ai/unit-type-recommendations` | Optional shared anonymous/Customer AI Size Guide | Public | GWP-02 / CWP-02 |
 | `RES-001` | `POST` | `/api/v1/reservations` | Create Reservation + Deposit Invoice | CUSTOMER | CWP-03 |
 | `RES-002` | `GET` | `/api/v1/reservations` | Customer own / Manager Facility / BOM system Reservation list | CUSTOMER,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-04 / operational monitoring |
 | `RES-003` | `GET` | `/api/v1/reservations/{reservationId}` | Authorized own / Facility / system Reservation detail | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-04 / FWP-02/03 / operational monitoring |
@@ -2959,7 +3096,7 @@ For `RENTAL_FEE`, the configured `MonthlyPaymentDueDay` is the final non-overdue
 
 ### 13.11.1 Shared Operational Read Authorization
 
-The role sets in section 13.11 are authoritative for each endpoint; a broad role in the actor matrix does not grant access to an unlisted endpoint. In particular, Staff cannot call RES-002, CON-001 or VIS-003; OPS-001 supplies the Staff work list. Manager and BOM can use those lists and their detail endpoints. SYSTEM_ADMINISTRATOR receives no business-read access through this revision.
+The access/role sets in section 13.11 are authoritative for each endpoint; a broad role in the actor matrix does not grant access to an unlisted endpoint. Public means the identity-independent projection in sections 3.8/10.6.1, not general operational access. In particular, Staff cannot call RES-002, CON-001 or VIS-003; OPS-001 supplies the Staff work list. Manager and BOM can use those lists and their detail endpoints. SYSTEM_ADMINISTRATOR receives only the same public catalog/policy information as any visitor, not new private/operational business-read authority through the Guest revision.
 
 For the revised reads:
 
@@ -2978,7 +3115,9 @@ Collection filtering MUST occur server-side before pagination/counting so neithe
 
 Invoice Facility/ownership is resolved by InvoiceType: DEPOSIT -> Invoice.EntityId -> Reservation; RENTAL_FEE -> Invoice.EntityId -> Contract. Payment read resolves Payment.InvoiceId -> Invoice -> the same resource scope. A legacy unlinked Payment must not be granted Customer/Facility access by guessing an association; preservation/deployment handling remains governed by section 0.0.
 
-All reads require ACTIVE account and authoritative current role/assignment. Wrong Facility or endpoint role -> 403 FORBIDDEN; nonexistent detail resource -> 404 RESOURCE_NOT_FOUND. Customer ownership denial retains section 10.8's consistent security design. Employees do not inherit Customer create/cancel/reschedule/renew/payment commands from GET access. Immutable money/status remains server-owned. Listing Discount or ExtraFeeType rows does not grant their write endpoints.
+All protected operational/private reads require ACTIVE account and authoritative current role/assignment; this requirement does not apply to the public allowlist. Wrong Facility or endpoint role -> 403 FORBIDDEN; nonexistent accessible detail resource -> 404 RESOURCE_NOT_FOUND. Customer ownership denial retains section 10.8's consistent security design. Employees do not inherit Customer create/cancel/reschedule/renew/payment commands from GET access. Immutable money/status remains server-owned. Listing Discount or ExtraFeeType rows does not grant their write endpoints.
+
+CAT-003/004 use an explicit `view=public|operational` query, default `public`, to distinguish the projection. `view=operational` retains the listed Customer/Staff/Manager role gate and current ACTIVE account checks. Staff/Manager CAT-003 additionally requires assignment to the path Facility; CAT-004 retains existing operational UnitType read semantics and does not grant Unit management. Anonymous operational requests -> 401; authenticated unlisted role -> 403. A denied operational request MUST NOT fall back to public results. `view=public` never contains operational fields, even for employees. BOM-006/008 and UNIT-* remain protected; do not mark an entire catalog/business controller anonymous without endpoint/view-specific enforcement.
 
 ## 13.12 Authentication API Contracts
 
@@ -3102,42 +3241,110 @@ Request:
 
 V9 does not allow this endpoint to change login `PhoneNumber` or account `Email`; credential-identifier change is governed by `DD-07`.
 
-## 13.13 Catalog / AI API Contracts
+## 13.13 Public Catalog / Policy / AI API Contracts
 
-### CAT-001 — Browse Facilities
+`PROPOSED — REV-2026-10-13-GUEST — TEAM APPROVAL PENDING`
+
+These contracts define the target implementation; Swagger/DTOs/FE are updated in the owning implementation tasks. Public GETs require no account, return the same catalog/policy projection for the same data snapshot/query and never create business rows. Standard success/error envelopes and pagination from sections 13.3..7 apply.
+
+### CAT-001 — Browse / Search Active Facilities
+
+Unfiltered browse remains supported:
 
 ```text
 GET /api/v1/facilities?page=1&pageSize=20
 ```
 
-Response: collection of `FacilitySummary`. Only `ACTIVE` Facilities are exposed to Customer browsing.
-
-### CAT-003 — Unit Types and Capacity
+Example complete search:
 
 ```text
-GET /api/v1/facilities/{facilityId}/unit-types
-    ?startMonth=2026-11
-    &endMonth=2027-01
-    &page=1
-    &pageSize=20
+GET /api/v1/facilities?location=Hanoi&mode=PRIVATE&size=Medium
+    &startMonth=2026-11&endMonth=2027-01&page=1&pageSize=20
 ```
 
-When both month parameters are supplied, each item includes server-authoritative `availableCapacity`.
+| Query | Contract |
+|---|---|
+| `location` | Optional trimmed text; case-insensitive literal substring match against existing Facility.Name or Facility.Address; no new City/Location entity or inferred geographic coordinates |
+| `facilityId` | Optional UUID for an exact existing Facility selection; combined with other filters using AND |
+| `mode` | Optional `PRIVATE` or `PUBLIC`; applies to UnitType.Mode |
+| `size` | Optional exact existing UnitType.Size value, trimmed and compared case-insensitively; UI obtains available values from CAT-005 rather than inventing size enums |
+| `unitTypeId` | Optional UUID for an exact UnitType selection, combined with mode/size using AND |
+| `startMonth`, `endMonth` | Both omitted for general browsing or both supplied as `YYYY-MM`; public reservation search requires StartMonth > current business month and EndMonth >= StartMonth |
+| `sortBy`, `sortDirection` | `sortBy=name` only, default name ascending; FacilityId is a stable tie-breaker; no unsupported "recommended" or revenue/usage ranking |
+| `page`, `pageSize` | Common pagination limits |
 
-Authorization:
+Blank location/size means no corresponding filter. Unsupported enum/sort/UUID/pagination -> 400 VALIDATION_ERROR. A single month parameter, malformed month, non-future public StartMonth or EndMonth < StartMonth -> 400 INVALID_MONTH_RANGE. A valid nonexistent Facility/UnitType filter returns an empty collection, not private detail.
 
-- Customer may read active Facility/UnitType catalogue.
-- Facility Staff/Manager may use this endpoint for operational UnitType read; Facility scope MUST be enforced for the path Facility.
-- BOM uses the business catalogue endpoint (`BOM-006`) for global management views.
+Return paginated `FacilitySummary`, one item per matching ACTIVE Facility. The location/Facility filters apply first. With mode/size/UnitType/range filters, an offered UnitType must satisfy all of them together. With a range it must have availableCapacity > 0 for the entire inclusive range, using section 12.3; one unavailable month excludes that UnitType. A Facility is included only if at least one such UnitType exists. Facility filtering and totalItems are computed server-side before pagination; FE MUST NOT fetch an unfiltered Facility page and filter it after pagination.
 
-Errors:
+With no UnitType/range filters, CAT-001 remains a general ACTIVE-Facility browse, including Facilities whose units are currently full. Existence of matching UnitTypes is required when the user supplies UnitType/range filters. No customer-specific price/Discount, UnitCode, tenant, occupancy history or future booking detail is returned.
+
+### CAT-002 — Public Active Facility Detail
 
 ```text
-INVALID_MONTH_RANGE -> 400
-FACILITY_INACTIVE   -> 409 when operation requires active Facility
+GET /api/v1/facilities/{facilityId}
 ```
 
-### AI-001 — AI Size Guide
+Return `data: FacilitySummary` for an ACTIVE Facility. Absent/INACTIVE Facility -> 404 RESOURCE_NOT_FOUND for public detail. Staff contacts beyond the existing public ContactInfo, internal operation metrics and physical-unit/access details are excluded. Use CAT-003 for offered UnitTypes; the existing Facility data schema is preserved.
+
+### CAT-003 — Offered UnitTypes / Requested-Period Capacity
+
+```text
+GET /api/v1/facilities/{facilityId}/unit-types?view=public
+    &mode=PRIVATE&size=Medium&startMonth=2026-11&endMonth=2027-01
+    &availableOnly=true&page=1&pageSize=20
+```
+
+- Return paginated `UnitTypeAvailability` using existing eligible-capacity logic. An offered UnitType is linked through existing StorageUnits at the target Facility; offering does not require capacity > 0 unless `availableOnly` is true.
+- Public Facility must be ACTIVE. Absent/INACTIVE Facility -> 404 RESOURCE_NOT_FOUND; preserve 409 FACILITY_INACTIVE where a protected operation requires activation.
+- Accept optional `mode`, `size`, `unitTypeId`, month pair and pagination with CAT-001 semantics. With no range the two availability fields are null. Operational period reads keep their existing valid-month rules and do not acquire the public future-booking constraint.
+- `availableOnly` defaults false for catalog browsing; true requires both months and includes only UnitTypes with positive full-period availableCapacity. Invalid boolean or true without a range -> 400 VALIDATION_ERROR.
+- A Facility search-result expansion MUST pass the same UnitType filters/months as CAT-001 and `availableOnly=true` when a range was searched. It MUST NOT show non-matching/full UnitTypes as available search results. If capacity changes between calls, show updated/empty results and refresh; search is not a hold.
+- Public list ordering is name ascending then UnitTypeId; supported sortBy values are `name` and `rentalPrice`, with common sortDirection; apply filters before pagination/counting.
+- `view` defaults public. Operational view applies section 13.11.1, including same-Facility employee authorization before querying; no anonymous operational fallback. Invalid view -> 400 VALIDATION_ERROR.
+
+### CAT-004 / CAT-005 — Public UnitType Detail / Shared Size Guide Catalog
+
+```text
+GET /api/v1/unit-types/{unitTypeId}?view=public
+GET /api/v1/unit-types?mode=PRIVATE&page=1&pageSize=20
+```
+
+CAT-004 returns `data: Public UnitTypeSummary`. Public detail must belong to the offered catalog: a UnitType linked through existing StorageUnits to at least one ACTIVE Facility. Absent or non-public UnitType -> 404 RESOURCE_NOT_FOUND. Explicit operational view preserves the original authenticated role contract; invalid view -> 400 VALIDATION_ERROR.
+
+CAT-005 returns a paginated, deduplicated collection of the same summary; it supports optional mode/size/unitTypeId filters and name/rentalPrice sorting as CAT-003. Each UnitType appears once even if offered at multiple Facilities. It does not assert current stock or accept a month range; use CAT-001/003 for location/period availability. No UnitType status or separate FacilityUnitType table is added. Sizing guidance uses existing size/description/price data; public access does not add dimensions/amenities to the persisted model.
+
+### PUB-POL-001 / PUB-POL-002 — Current Public Policies
+
+```text
+GET /api/v1/public/policies?page=1&pageSize=20
+GET /api/v1/public/policies/{policyKey}
+```
+
+Read-only projection for these Help Center topics, in the listed order:
+
+```text
+reservation-cancellation
+identity-verification
+deposit-payment-refund
+storage-access-handover-contract
+facility-rules-prohibited-items
+account-privacy
+```
+
+PUB-POL-001 returns paginated PublicPolicySummary; PUB-POL-002 returns PublicPolicyDetail, with schemas in section 13.10.3b. No current ACTIVE Policy -> 404 RESOURCE_NOT_FOUND for either endpoint. With a current Policy, the list includes only published topics (possibly empty); unknown/unpublished policyKey or missing article content -> 404 RESOURCE_NOT_FOUND for detail. Never fabricate a policy version, success article or threshold. All six required GWP-04 topics must have approved published content before acceptance can pass.
+
+Article text is reviewed/version-controlled deployment content, exposed through a Business-owned read service/provider and API response mapping. Current numerical thresholds/version/effective dates are sourced through the existing Policy service/repository. Use a single current Policy snapshot per response; no new table, content-editor CRUD endpoint, policy approval workflow or historical-publication capability is introduced. Explanatory copy must be finalized by the team before publishing; SAMPLE POLICY, OTP/Google/password-reset promises, arbitrary fee/currency values and unsupported prohibited-item rules are not authoritative content.
+
+Current public policy describes new rentals. Existing Reservation/Contract rules remain governed by captured PolicyId, accessible only through authorized private-resource APIs. A policy topic is not a persisted Policy row and the public API does not return BOM-008 policy history, CustomerId, captured Contract terms or internal management fields.
+
+Rental-process guidance (How It Works), general contact information and non-numerical sizing explanations are public informational content consistent with this SRS. They require no additional domain API, persisted entity or CMS workflow. Their presentation is specified separately by the frontend owner. Public contact information does not authorize creating a SupportTicket.
+
+### AI-001 — Shared Optional AI Size Guide
+
+```text
+POST /api/v1/ai/unit-type-recommendations
+```
 
 Request:
 
@@ -3165,13 +3372,13 @@ Response:
 }
 ```
 
-AI response MUST be validated against existing UnitTypes. If provider fails:
+Anonymous and Customer use the same request/response contract; no CustomerId/ContractId/history is inferred or required. Input must be non-empty and bounded by documented DTO validation. AI receives only submitted description/mode and public offered UnitType metadata. Output MUST be validated against CAT-005's public offered UnitTypes and requested mode; it cannot expose hidden operational/master data. If provider fails:
 
 ```text
 EXTERNAL_PROVIDER_UNAVAILABLE -> 503
 ```
 
-Customer can continue manual selection.
+Anonymous/Customer can continue manual selection. AI-001 remains a stateless recommendation capability; this proposal requires neither a specific conversation interface nor persisted ChatSession/message history or a new AI workflow. No provider/model/session identifier or secret is accepted as a domain field. Existing provider isolation remains in force; public abuse controls and their environment limits must be documented during implementation, without inventing a business payment obligation or numeric SLA.
 
 ## 13.14 Reservation API Contracts
 
@@ -4270,6 +4477,8 @@ Material mismatch is a defect.
 - Administrator role does not grant business-operation mutation authority.
 - FE may hide controls but backend remains authoritative.
 - Request DTO MUST NOT accept server-owned status/actor/audit/timestamp fields unless that endpoint explicitly represents the corresponding command.
+- Only the explicit public allowlist may execute without an account. Private list/count/detail/command requests without authentication return 401 UNAUTHORIZED before any personal data is read/returned; authenticated role/Facility/ownership denials retain the existing contract.
+- Public catalog, policy and AI DTOs MUST NOT accept CustomerId or expose tenant identity, UnitCode/access credentials, personal Discount/history or private resource references. Anonymous draft/search is not a database business command.
 
 ## 13.26 API Time Rules
 
@@ -4347,7 +4556,7 @@ Feature code MUST use the shared HTTP client abstraction rather than creating ad
 
 For protected/API requests, the common client MUST:
 
-- attach JWT Bearer token;
+- attach JWT Bearer token for authenticated requests; public allowlisted browsing must also work without a token/account;
 - serialize query parameters consistently;
 - deserialize common envelopes;
 - expose `traceId` on errors;
@@ -4394,6 +4603,8 @@ interface AuthUser {
 
 JWT content is not the only authorization authority; backend checks account/resource state on every protected operation.
 
+The absence of AuthUser selects Anonymous public access, not an extra UserRole value. Public capability must not require a login/session solely to obtain identity-independent public data. Account-specific operations remain guarded.
+
 ## 14.6 Route Groups
 
 Route-group baseline:
@@ -4407,6 +4618,8 @@ Route-group baseline:
 ```
 
 Role-aware routes are UX boundaries only.
+
+The public functional capabilities in section 11.9 are available without authenticated Customer membership; their exact frontend URLs and presentation are defined by the frontend owner. Authentication/authorization requirements are governed by sections 10 and 13, independent of route visibility or naming. Existing protected route groups remain in force.
 
 ## 14.7 Canonical FE Domain Types
 
@@ -4503,6 +4716,7 @@ For a `409`, FE MUST surface the business conflict and MUST refresh authoritativ
 |---|---|
 | AUTH-* | `authApi.ts` |
 | CAT-* / AI-* | `catalogApi.ts` / AI feature API |
+| PUB-POL-* | Public Help/policy read module; no reuse of privileged BOM policy-history DTO |
 | RES-* | `reservationApi.ts` |
 | BIL-* / PAY-* | `billingApi.ts` |
 | CON-* | `contractApi.ts` |
@@ -4539,6 +4753,47 @@ SRS JSON example
 ```
 
 Any mismatch must be resolved before Release 1 acceptance.
+
+## 14.15 Public Capabilities and Authentication Continuation
+
+`PROPOSED — REV-2026-10-13-GUEST — TEAM APPROVAL PENDING`
+
+This section specifies functional behavior and security boundaries shared by the project. Visual design, page layout, component structure, navigation placement and frontend presentation mechanisms are specified separately by the frontend owner.
+
+- Customer retains every public capability available to Anonymous under section 11.9. Public Facility/UnitType/price/capacity/policy output is independent of account identity for the same filters/data snapshot.
+- Search inputs are location/Facility, Private/Public mode, size/UnitType and Check-in/Check-out Month under section 13.13; access mode does not change their meaning or the server's matching rules.
+- Public policy/help/contact information does not grant access to personal records or create SupportTickets. SUP-001 continues requiring authenticated Customer and an authorized Contract relationship.
+- Public content does not introduce email OTP, password reset/change, Google login, physical-unit preassignment or financial rules excluded by this SRS.
+
+**Ordinary Customer login:** Without a valid pending protected operation, successful login enters the authenticated Customer area. The specific landing page is a frontend design decision. Customer uses PhoneNumber under AUTH-002; Employee login retains the existing role-specific access rules and cannot assume Customer continuation.
+
+**Authentication prompted by a protected operation:** Preserve the pending operation and non-sensitive booking selection, including FacilityId, UnitTypeId and StartMonth/EndMonth when applicable, through the existing registration/login process. This selection is not a Reservation, capacity hold or Payment. AUTH-001/002 contracts remain unchanged; no new verification stage is introduced.
+
+After successful Customer authentication:
+
+```text
+Validate the intended operation and authenticated role
+-> restore the valid non-sensitive selection
+-> re-read authoritative public data and required account/resource context
+-> validate current Facility/UnitType/months, ownership and business preconditions
+-> allow the Customer to continue the applicable operation
+-> require explicit submission of the next business command
+```
+
+Missing identity/account data is required only when the current business operation requires it. Login does not unconditionally require Identity Verification, Reservation confirmation, Deposit or Visit scheduling, and MUST NOT automatically replay RES-001/RES-004/PAY-001 or another mutation. A stale selection/current-state conflict must be explained and current valid options re-evaluated before submission.
+
+Continuation MUST NOT accept an external/privileged destination, treat a client CustomerId or stored price/capacity as authority, or expose another account's information. Resource-reference paths/IDs already defined by the API and protected route groups remain permitted, but server role/ownership/state checks are mandatory; a reference is not proof of access.
+
+Password/JWT/CCCD/document/payment secrets and raw personal-resource payloads MUST NOT be placed in a continuation URL or selection record. Selection/intent retention must not survive completion, abandonment, logout or account change in a way that causes cross-account reuse. Its storage and presentation mechanism is owned by frontend implementation; no server session/draft table, persisted Booking entity or new auth response field is required.
+
+## 14.16 Public Discovery Acceptance
+
+- For the same filters/data snapshot, Anonymous and Customer receive the same public Facility/UnitType/price/capacity/policy fields; authentication does not add personal fields to the public DTO.
+- Public discovery, selection and requesting authentication produce zero Reservation/Invoice/Payment/Visit/Contract writes and no capacity hold. Atomic RES-001 rechecks capacity after the Customer submits.
+- A complete search returns only Facilities with a single matching UnitType available in every inclusive requested month; non-matching UnitTypes are excluded from search-result expansions.
+- Size Guide can lead to filtered search. AI failure does not block manual selection; optional AI has no Release 1 completion claim unless implemented/tested.
+- Ordinary Customer login enters the authenticated Customer area; authentication during a pending operation preserves and revalidates the selection before continuation, without exposing another account's data or submitting a command automatically.
+- Personal lists/detail/payments/support remain server-protected even when their URL or API is called directly by Anonymous.
 
 # 15. External Integration and System Services
 
@@ -4588,9 +4843,9 @@ Time-based rules use captured Policy where applicable.
 
 ## 15.5 AI Size Guide
 
-Optional capability.
+Optional shared Anonymous/Customer capability in Size Guide. It remains non-authoritative and not a Release 1 blocker.
 
-AI receives existing UnitType metadata and may return:
+AI receives only public offered UnitType metadata and the description/mode submitted for the request, not Customer profile/Contract/Visit/payment history, and may return:
 
 - recommended UnitType;
 - short reason;
@@ -4614,7 +4869,7 @@ Failure behavior:
 ```text
 AI unavailable
 -> return controlled recommendation-unavailable result
--> customer may continue normal UnitType selection
+-> Anonymous/Customer may continue normal UnitType selection
 ```
 
 ## 15.7 Employee Initial-Credential Email
@@ -5544,6 +5799,8 @@ E2E-F06 Renewal / Overdue / Return
 E2E-F07 Support
 ```
 
+E2E-F01 MUST cover Guest discovery -> protected action -> existing registration/login -> resumed Customer Reservation/Deposit/Visit flow, plus ordinary login with no automatic booking/payment action. These are variants of Flow 1, not E2E-F08 or an eighth business flow; specific pages and visual arrangements are not acceptance requirements of this revision.
+
 ## 19.8 Test Data
 
 Test data MUST support:
@@ -5551,6 +5808,9 @@ Test data MUST support:
 - all five roles;
 - at least two Facilities for scope/isolation tests;
 - multiple UnitTypes;
+- anonymous sessions and two Customer accounts with different private resources but the same public projection;
+- matching/non-matching location/mode/size/UnitType combinations, zero capacity in an intermediate month and positive capacity in every requested month;
+- a UnitType offered at multiple ACTIVE Facilities, and an unoffered/inactive-Facility-only type for public non-disclosure;
 - capacity = 1 scenario for race tests;
 - ACTIVE/INACTIVE Facility;
 - active and historical Policy versions;
@@ -5592,6 +5852,29 @@ A mandatory requirement is not complete until its required automated tests pass.
 
 Critical transaction/concurrency rules require integration/concurrency proof, not only unit tests.
 
+## 19.11 Public Guest / Continuation Required Scenarios
+
+These are required tests for the revised implementation, not evidence that they have already run. Existing protected-path and SQL/concurrency gates remain unchanged.
+
+| Test ID | Scenario | Expected |
+|---|---|---|
+| `API-PUB-001` | CAT-001..005 without JWT | Public allowlist succeeds with documented envelopes; public detail hides INACTIVE/unoffered resources |
+| `API-PUB-002` | Full search location + mode + size/type + month range | Facility matches only if the same UnitType satisfies every filter and every month; result expansion excludes non-matches |
+| `API-PUB-003` | Intermediate month has zero capacity; alternatives cover different months/types | Exclude unavailable UnitType; do not sum/swap different types/months to fabricate one valid result |
+| `API-PUB-004` | Filtered pagination/count/sort; repeated multi-Facility UnitType | Filter before page/count; stable order; CAT-005 deduplicates; valid no-match -> empty list |
+| `API-PUB-005` | Invalid/missing paired months, mode/UUID/sort/page or availableOnly | Documented 400 stable error/traceId; no business writes |
+| `API-PUB-006` | Current public policy list/detail, unknown/unpublished topic, no ACTIVE Policy | Current metadata and approved content; missing -> documented 404; no history/customer/BOM fields |
+| `SEC-PUB-001` | Same public request by Anonymous, Customer A and Customer B | Equal identity-independent fields for same data snapshot; no Discount/private personalization |
+| `SEC-PUB-002` | Anonymous private lists/detail/create/payment/support/profile, including modified URLs/IDs | 401 and no personal data/counts/business mutation; webhook still requires provider validation |
+| `SEC-PUB-003` | Anonymous operational view; wrong-role/wrong-Facility employee operational view | 401/403 as applicable; no public fallback or role/Facility bypass; default public returns only public fields |
+| `SEC-PUB-004` | Continuation URL tampering, other role, logout/account change | No external/privileged redirect, no cross-account data/draft reuse and no replayed mutation |
+| `DAL-PUB-001` | Multi-month query, public offering and matching Facility pagination against real SQL Server | Same authoritative capacity/eligibility as reservation logic; no N+1 per Facility/month and no capacity hold |
+| `REG-PUB-001` | Normal vs interrupted login; register/login/back/refresh; stale capacity/price | Correct destination/selection; explicit submission and server revalidation; no unconditional identity/payment gate |
+| `ACC-PUB-001` | Public capability/access equivalence and sizing/process/help information | Anonymous and Customer can obtain the same public information and use the same search inputs; explanations match SRS semantics; private actions remain protected |
+| `INT-AI-PUB-001` | Optional anonymous AI success/failure/hidden UnitType suggestion | Public offered types only; no personal/provider secrets; controlled failure keeps manual search usable |
+
+UT/CTL filter/DTO tests supplement API-PUB/DAL-PUB. E2E-F01 covers the above booking-entry variants; rental-process/sizing/help information and anonymous isolation also receive functional acceptance/regression coverage. Optional AI tests are required when that capability is delivered, without promoting it to a blocker. Visual comparisons and implementation-specific page/component tests belong to the separate frontend design work, not this Guest requirements acceptance catalogue.
+
 # 20. Requirements Traceability
 
 
@@ -5613,8 +5896,13 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 
 | Feature | Name | Owner | API / Execution | Main Rule(s) | Required Test Families | R1 Blocker |
 |---|---|---|---|---|---|---|
-| `CWP-01` | Facility & Unit Type Browsing | Triển / Long | CAT-001..004 | BR-FAC-01; CALC-CAP-01 | API-CAT, SEC, E2E-F01 | Yes |
-| `CWP-02` | AI Size Guide Recommendation | Triển / Giang | AI-001 | AI non-authoritative rules | INT-AI, API-AI | No |
+| `GWP-01` | Shared Public Facility / UnitType Search | Delivery owner assigned by project; shares CWP-01 platform | CAT-001..004 | BR-PUB-01..04/07; CALC-CAP-01 | API-PUB-001..005; SEC-PUB-001..003; DAL-PUB-001; E2E-F01 | Yes |
+| `GWP-02` | Storage Sizing Guidance | Delivery owner assigned by project; shares CWP-01/02 platform | CAT-004..005; optional AI-001 | BR-PUB-01/02/04; AI non-authoritative rules | API-PUB; SEC-PUB; ACC-PUB-001; optional INT-AI-PUB-001 | Yes for manual guide; AI optional |
+| `GWP-03` | Public How It Works | Delivery owner assigned by project | Approved static content; no new API | BR-PUB-04; existing seven-flow/financial semantics | ACC-PUB-001; browser content/regression | Yes |
+| `GWP-04` | Public Help / Policy / Contact | Delivery owner assigned by project | PUB-POL-001..002; approved static contact | BR-PUB-06/07; BR-POL-01..02; BR-SUP-01 | API-PUB-006; SEC-PUB-001..002; ACC-PUB-001 | Yes |
+| `GWP-05` | Guest-to-Customer Login Continuation | Delivery owner assigned by project; shares AUTH/CWP-03 | AUTH-001/002; client navigation; existing protected destination | BR-PUB-04/05/07; BR-RES-03 | SEC-PUB-004; REG-PUB-001; E2E-F01 | Yes |
+| `CWP-01` | Facility & Unit Type Browsing | Triển / Long | CAT-001..005; common public data contracts | BR-FAC-01; BR-PUB-01..04; CALC-CAP-01 | API-CAT/PUB, SEC-PUB, DAL-PUB, E2E-F01 | Yes |
+| `CWP-02` | Shared Optional AI Size Guide Recommendation | Triển / Giang | AI-001 | Public-only inputs/types; AI non-authoritative rules | INT-AI, API-AI, INT-AI-PUB-001 | No |
 | `CWP-03` | Storage Reservation | Triển / Khoa | RES-001 | BR-RES-01..05 | UT-RES, DBT-01/02, CON-RES, API-RES, E2E-F01 | Yes |
 | `CWP-04` | Reservation & Deposit Management | Triển / Khoa+Giang | RES-002..005, BIL-001..002, PAY-001, PAY-003 | BR-RES-06..08; BR-PAY-01 | UT/API/DBT/E2E-F01 | Yes |
 | `CWP-05` | Reservation Visit Management | Triển / Khoa | RES-004, VIS-003..006 | BR-RES-07; BR-VIS-01..02 | UT-VIS, API-VIS, E2E-F01/F02 | Yes |
@@ -5653,8 +5941,8 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 | `AWP-05` | Access Management | Mẫn / Long | Authorization policies | SSP-17 | SEC-* | Yes |
 | `AWP-06` | Login History | Mẫn / Long | ADM-010 | append-only rules | DAL/API/SEC | Yes |
 | `AWP-07` | Activity Log Management | Mẫn / Long | ADM-011 | BR-AUD-01 | DAL/API/SEC | Yes |
-| `SSP-01` | Unit Type Catalog | System / Long | CAT-003..004, BOM-006 | catalog rules | UT/DAL/API | Yes |
-| `SSP-02` | Capacity Management | System / Khoa | CAT-003, RES-001, CON-003 | BR-RES-02..03; BR-REN-03 | DBT-01/11, CON-RES/REN | Yes |
+| `SSP-01` | Unit Type Catalog | System / Long | CAT-003..005, BOM-006 | public offered-catalog vs protected management rules | UT/DAL/API/SEC-PUB | Yes |
+| `SSP-02` | Capacity Management | System / Khoa | CAT-001/003, RES-001, CON-003 | BR-PUB-03/04; BR-RES-02..03; BR-REN-03 | DAL-PUB-001, DBT-01/11, CON-RES/REN | Yes |
 | `SSP-03` | Deposit Calculation | System / Khoa | RES-001 | BR-RES-04..05; CALC-DEP-01 | UT/DBT/API | Yes |
 | `SSP-04` | Reservation Deposit Expiration | System / Khoa | job_ExpirePendingReservations | Policy timeout | JOB/DBT | Yes |
 | `SSP-05` | Handover Window Expiration | System / Khoa | job_ProcessReservationNoShow | Policy visit window | JOB/DBT | Yes |
@@ -5717,7 +6005,7 @@ Every API has applicable:
 ```text
 CTL-*  request/response contract
 API-*  HTTP behavior
-SEC-*  if protected
+SEC-*  if protected or public projection/continuation has a non-disclosure boundary
 DAL-*  if persistence/query behavior matters
 DBT-*  when DB state machine/invariant matters
 CON-*  when concurrency/idempotency matters
@@ -5802,6 +6090,7 @@ Core Demo requires:
 [ ] Migration from empty DB succeeds
 [ ] Production-like seed succeeds
 [ ] SRS / Swagger / FE contract synchronization verified
+[ ] GWP-01..05 public discovery, privacy and login-continuation acceptance passes (AI remains optional)
 [ ] No unresolved Release 1 blocker defect
 [ ] Deferred Decisions are not silently implemented
 ```
@@ -6438,7 +6727,7 @@ Future Work is not automatically Release 1 scope.
 
 # 25. Final Locked Design Summary
 
-V10 FINAL consolidates the following implementation baseline, including the owner-approved offline-first-month and operational-consistency revisions; V9 decisions not explicitly superseded by those revisions remain in force:
+V10 FINAL consolidates the following implementation baseline, including the owner-approved offline-first-month, operational-consistency and payOS revisions; V9 decisions not explicitly superseded remain in force. Items 110–115 summarize the proposed Guest requirements and become shared-baseline obligations only upon the team approval/adoption in section 0.0.6:
 1. Authority order is `SRS V10 FINAL > Data Dictionary V2.1 > Scope V8`.
 2. This SRS is the FRMS Release 1 implementation source of truth.
 3. Five roles are fixed: CUSTOMER, FACILITY_STAFF, FACILITY_MANAGER, BUSINESS_OPERATIONS_MANAGER, SYSTEM_ADMINISTRATOR.
@@ -6548,6 +6837,12 @@ V10 FINAL consolidates the following implementation baseline, including the owne
 107. BIL-001/002, PAY-003 and CON-004/005 support authorized operational verification/monitoring, not employee payment initiation or manual PAID/SUCCESS mutation.
 108. INS-007 completes Inspection but keeps Unit INSPECTION. Required storageUnitStatus moves to INS-008, whose transaction atomically finalizes settlement/Contract and releases Unit AVAILABLE/MAINTENANCE.
 109. usageRate = IN_USE / all StorageUnits in authorized report scope, including INSPECTION/MAINTENANCE; zero denominator -> 0. Rental capacity remains a separate calculation.
+110. Anonymous Guest is public access mode, not a sixth role or persisted account; public output is independent of account identity.
+111. Public catalog/policies and optional AI use an explicit allowlist; private reads/commands and operational views remain authenticated/scoped.
+112. A searched Facility needs a matching offered UnitType with positive capacity in every inclusive requested month; public search/selection does not hold capacity.
+113. Ordinary Customer login enters the authenticated Customer area; authentication during a pending operation resumes the validated selection/operation without automatic identity/payment/lifecycle submission.
+114. Customer retains all Anonymous public capabilities under common data/access contracts; visual design, frontend page URLs/layout and components are specified separately by the frontend owner.
+115. CAT-005 and PUB-POL-001/002 are read-only projections without a new entity/table/CMS or personal-policy history; implementation acceptance remains separate from this SRS revision.
 
 # 26. Whole-System Acceptance Criteria
 
@@ -6562,6 +6857,7 @@ FRMS Release 1 is accepted only when all applicable conditions below are true.
 [ ] Scope exclusions are not silently implemented as conflicting workflows
 [ ] Data Dictionary overrides incorporated by SRS are respected
 [ ] Explicit overrides in the current SRS are respected
+[ ] GWP-01..05 operate as shared public entry/support capabilities within the existing flows, with AI still optional
 ```
 
 ## 26.2 Data / Lifecycle Acceptance
@@ -6618,6 +6914,8 @@ FRMS Release 1 is accepted only when all applicable conditions below are true.
 [ ] Manager/BOM operational reads and BOM-010/BOM-013 catalogue reads match the role/Facility contracts
 [ ] INS-007 has no storageUnitStatus; INS-008 requires AVAILABLE/MAINTENANCE and reports committed Unit state
 [ ] usageRate includes every scoped Unit and returns 0 for an empty denominator
+[ ] CAT-001..005 public search/guide and PUB-POL-001/002 match the approved public schemas, filters and access allowlist
+[ ] Anonymous/Customer public data and search semantics agree; ordinary login vs pending-operation continuation follows section 14.15
 ```
 
 ## 26.5 Security Acceptance
@@ -6627,13 +6925,15 @@ FRMS Release 1 is accepted only when all applicable conditions below are true.
 [ ] Employee login by Email
 [ ] BCrypt verification
 [ ] JWT expiry enabled
-[ ] Account ACTIVE enforced
+[ ] Account ACTIVE enforced for authenticated private/operational access and business commands
 [ ] RBAC enforced
 [ ] Facility scope enforced
 [ ] Customer ownership enforced
 [ ] Staff same-Facility operational detail and work-item reads pass positive/cross-Facility tests
 [ ] Operational read access does not grant Customer mutation or expose unrelated profiles
 [ ] Manager/BOM and financial/catalogue GET scopes pass role, Facility, ownership and pagination-leak tests
+[ ] Anonymous catalog/policy reads expose only common public fields; private/operational endpoints reject unauthenticated access
+[ ] Protected operational view cannot fall back to public after authorization denial; continuation resists redirect/role/account tampering
 [ ] Unknown identifier does not fabricate LoginHistory.UserAccountId
 [ ] PasswordHash/token/secret not exposed/logged
 ```
@@ -6687,7 +6987,10 @@ A build that fails any applicable Release Blocker criterion is not aligned with 
 Core lifecycle summary:
 
 ```text
-Browse Facility / UnitType
+Browse/search public Facility / UnitType (Anonymous or Customer)
+-> select valid future month range
+-> Customer authentication when needed; resume validated selection
+-> Customer explicitly creates Reservation
 -> Reservation(PENDING_DEPOSIT)
 -> Deposit Invoice
 -> Deposit Payment SUCCESS
@@ -6728,6 +7031,9 @@ RETURN Visit
 
 | Term | Meaning |
 |---|---|
+| Anonymous / Guest | Unauthenticated public access mode; not a UserRole or Customer/account entity |
+| Public projection | Shared booking/help information independent of account identity; excludes private and operational data |
+| Login continuation | Resume a validated internal selection/step after Customer login; no hold or automatic mutation |
 | Facility | Physical storage service location |
 | UnitType | Global storage-type master with current RentalPrice |
 | StorageUnit | Physical rentable unit/position |
@@ -6835,6 +7141,9 @@ Quick index:
 | `CAT-002` | `GET` | `/api/v1/facilities/{facilityId}` |
 | `CAT-003` | `GET` | `/api/v1/facilities/{facilityId}/unit-types` |
 | `CAT-004` | `GET` | `/api/v1/unit-types/{unitTypeId}` |
+| `CAT-005` | `GET` | `/api/v1/unit-types` |
+| `PUB-POL-001` | `GET` | `/api/v1/public/policies` |
+| `PUB-POL-002` | `GET` | `/api/v1/public/policies/{policyKey}` |
 | `AI-001` | `POST` | `/api/v1/ai/unit-type-recommendations` |
 | `RES-001` | `POST` | `/api/v1/reservations` |
 | `RES-002` | `GET` | `/api/v1/reservations` |
