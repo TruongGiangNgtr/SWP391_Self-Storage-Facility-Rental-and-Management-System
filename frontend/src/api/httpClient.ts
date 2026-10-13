@@ -49,9 +49,9 @@ async function parseResponse(response: Response): Promise<unknown> {
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(path: string, options: RequestInit = {}, authenticated = true): Promise<T> {
   const headers = new Headers(options.headers)
-  const token = authToken.get()
+  const token = authenticated ? authToken.get() : null
 
   if (token) {
     headers.set('Authorization', `Bearer ${token}`)
@@ -87,6 +87,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const httpClient = {
+  // Public projections are independent of the session; a public 401 must not
+  // clear a Customer's valid private session while BE alignment is pending.
+  getPublic<T>(path: string, signal?: AbortSignal): Promise<T> {
+    return request<T>(path, { signal }, false)
+  },
+
   get<T>(path: string): Promise<T> {
     return request<T>(path)
   },

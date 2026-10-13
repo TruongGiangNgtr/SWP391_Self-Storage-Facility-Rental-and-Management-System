@@ -18,6 +18,9 @@ import { CustomerSupportDetailPage } from '../pages/CustomerSupportDetailPage'
 import { EmployeeLoginPage } from '../pages/EmployeeLoginPage'
 import { ForbiddenPage } from '../pages/ForbiddenPage'
 import { HomePage } from '../pages/HomePage'
+import { PublicStorageSearchPage } from '../pages/PublicStorageSearchPage'
+import { PublicFacilityDetailPage } from '../pages/PublicFacilityDetailPage'
+import { PublicUnavailablePage } from '../pages/PublicUnavailablePage'
 import { InvoiceDetailPage } from '../pages/InvoiceDetailPage'
 import { InvoiceListPage } from '../pages/InvoiceListPage'
 import { CustomerFeeReturnPage } from '../pages/CustomerFeeReturnPage'
@@ -72,6 +75,13 @@ export function AppRouter() {
   {/* ROOT LAYOUT + CUSTOMER */}
   <Route element={<RootLayout />}>
     <Route index element={<HomePage />} />
+    <Route path="facilities" element={<PublicStorageSearchPage />} />
+    <Route path="facilities/:facilityId" element={<PublicFacilityDetailPage />} />
+    <Route path="customer/storage-search" element={<StorageSearchPage />} />
+    <Route path="how-it-works" element={<PublicUnavailablePage title="How It Works" />} />
+    <Route path="size-guide" element={<PublicUnavailablePage title="Size Guide" />} />
+    <Route path="help" element={<PublicUnavailablePage title="Help Center" />} />
+    <Route path="help/policies/:policyKey" element={<PublicUnavailablePage title="Policy Details" />} />
 
     <Route
       path="auth/customer/login"
@@ -102,11 +112,6 @@ export function AppRouter() {
         <Route
           path="customer"
           element={<CustomerPortalPage />}
-        />
-
-        <Route
-          path="customer/storage-search"
-          element={<StorageSearchPage />}
         />
 
         <Route

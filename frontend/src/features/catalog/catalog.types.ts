@@ -25,3 +25,29 @@ export interface UnitTypeAvailability {
   requestedPeriod: RequestedPeriod | null
   availableCapacity: number | null
 }
+
+export type PublicUnitTypeSummary = Pick<UnitTypeAvailability,
+  'unitTypeId' | 'name' | 'mode' | 'size' | 'rentalPrice' | 'description'>
+
+export interface PublicCatalogFilters {
+  location: string
+  facilityId: string
+  mode: UnitMode | ''
+  size: string
+  unitTypeId: string
+  startMonth: string
+  endMonth: string
+}
+
+export interface PublicFacilityQuery extends Partial<PublicCatalogFilters> {
+  page?: number
+  pageSize?: number
+  sortBy?: 'name'
+  sortDirection?: 'asc' | 'desc'
+}
+
+export interface PublicUnitTypeQuery extends Pick<PublicFacilityQuery,
+  'mode' | 'size' | 'unitTypeId' | 'startMonth' | 'endMonth' | 'page' | 'pageSize' | 'sortDirection'> {
+  sortBy?: 'name' | 'rentalPrice'
+  availableOnly?: boolean
+}
