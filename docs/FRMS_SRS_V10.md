@@ -9,7 +9,8 @@
 **Operational Consistency Revision Date:** 2026-10-07 — REV-2026-10-07-OP-READ
 **Payment Gateway Revision Date:** 2026-10-09 — REV-2026-10-09-PAYOS
 **Payment Idempotency Clarification Date:** 2026-10-10 — REV-2026-10-10-PAY-IDEMPOTENCY
-**Public Guest Requirements Revision Date:** 2026-10-13 — REV-2026-10-13-GUEST (team review pending)
+**Public Guest Requirements Revision Date:** 2026-10-13 — REV-2026-10-13-GUEST
+**Public Guest Requirements Approval:** Team approved on 2026-10-13; confirmed by the project owner
 **Status:** Final Implementation Baseline — EPS-01 Implementation Gates Passed; Limited payOS Live Payment Verified
 **Architecture:** 3 Logical Layers + Repository Pattern + Infrastructure Adapters
 **Backend:** ASP.NET Core Web API / C#
@@ -45,7 +46,7 @@
 | **V10 FINAL — 2026-10-09 payOS revision** | Owner-approved provider replacement (code/mock only) | REV-2026-10-09-PAYOS; preserve MOMO/VNPAY history, numeric order-code sequence, signed JSON webhook; live acceptance pending. |
 | **V10 FINAL — 2026-10-08 payment timestamp clarification** | Owner-approved persisted Invoice payment timestamp | Invoice.PaidAt is nullable UTC, set from the verified provider timestamp only on the first UNPAID/OVERDUE -> PAID transition. Duplicate webhook, subsequent successful attempts and cancelled invoices preserve the Invoice timestamp. Existing historical timestamps are not fabricated. |
 | **V10 FINAL — 2026-10-10 payment idempotency clarification** | Owner-requested alignment with the approved PAY-001 contract | REV-2026-10-10-PAY-IDEMPOTENCY makes the frontend UUID, required persisted uniqueidentifier, global uniqueness, lifetime retention, retry/concurrency and non-disclosure rules explicit in the SRS and Data Dictionary. No new Payment status, recovery workflow or live-provider authorization. |
-| **V10 FINAL — 2026-10-13 public Guest requirements proposal** | Owner-authorized specification update; team baseline approval pending | REV-2026-10-13-GUEST proposes common public catalog, requested-period availability, sizing/rental-process guidance and public help/policies; permits optional anonymous AI recommendations; defines authentication continuation. Visual design and page/component implementation are excluded. Five business roles, seven flows, 27 entities and existing private-resource/financial lifecycles remain unchanged. |
+| **V10 FINAL — 2026-10-13 public Guest requirements revision** | Team-approved shared implementation baseline; approval confirmed by project owner | REV-2026-10-13-GUEST defines common public catalog, requested-period availability, sizing/rental-process guidance and public help/policies; permits optional anonymous AI recommendations; defines authentication continuation. Visual design and page/component implementation are excluded. Five business roles, seven flows, 27 entities and existing private-resource/financial lifecycles remain unchanged. Approval does not imply implementation acceptance. |
 
 ## V5 Review Summary
 
@@ -74,7 +75,7 @@ V5 performs a consistency review rather than adding a new business flow.
 - Replace ambiguous “recommended” wording with either a mandatory rule, an explicitly equivalent alternative, or a Deferred Decision.
 - Distinguish source-derived rule, SRS technical decision, and unresolved source gap.
 
-> V10 FINAL with its previously approved revisions remains the current implementation baseline. REV-2026-10-13-GUEST is an owner-authorized requirements proposal pending team approval and incorporation into the shared baseline. Its normative statements define the proposed target after approval; they do not claim that Guest APIs or functions are implemented. Earlier MoMo/VNPay revision entries are historical only; payOS is the sole active gateway. Offline first-month and operational-read semantics remain unchanged.
+> V10 FINAL including the team-approved REV-2026-10-13-GUEST is the current shared implementation baseline. Its normative Guest requirements and contracts are governing requirements; approval does not claim that Guest APIs or functions are implemented or tested. Earlier MoMo/VNPay revision entries are historical only; payOS is the sole active gateway. Offline first-month and operational-read semantics remain unchanged.
 
 ---
 
@@ -215,11 +216,13 @@ The owner permits checking the existing FRMS baseline and applying forward EPS-0
 
 **Implementation verification (2026-10-10, integrated with origin/main d7cc1a5):** Backend Release build passed with zero errors/warnings; frontend production build passed with only a bundle-size warning. Unit tests: 142 passed; API tests: 64 passed; architecture tests: 13 passed; real SQL Server PaymentSql/PaymentMigration/PaymentServiceSql/PayOsSql tests: 65 passed. All four test runs had zero failures and zero skips. The SQL suites include empty-database migration, payment constraints, authorization, idempotency and concurrent result processing. Limited live evidence covers the Deposit payment above; a separate live later Rental Fee payment and the seven unrelated FRMS browser journeys are not claimed as verified.
 
-## 0.0.6 Proposed Change Record — REV-2026-10-13-GUEST
+## 0.0.6 Approved Change Record — REV-2026-10-13-GUEST
 
-**Status:** Owner-authorized requirements drafting on 2026-10-13; team approval and shared-baseline adoption are pending. On the owner's instruction, this proposal contains common project requirements only, not the owner's separate visual design or page/component specification. After team approval, record that approval and adopt the revision in the shared SRS before implementation is treated as governed by it.
+**Approval:** On 2026-10-13 the project owner confirms that the team has approved REV-2026-10-13-GUEST and requests its adoption into the shared governing SRS. The revision is approved and effective as an implementation baseline. It contains common project requirements only; the owner's separate visual design and page/component specification remain outside the SRS.
 
-**Proposed scope:**
+**Change history:** The requirements draft was published for team review in commit `9eaec86`. This approval record supersedes its pending-review status while preserving the reviewed functional/API scope. Requirement approval is separate from implementation completion and test/release acceptance.
+
+**Approved scope:**
 
 - Guest/Anonymous is an unauthenticated access mode, not a sixth business role or persisted account.
 - Anonymous and Customer share Facility/UnitType browsing, current public prices, server-authoritative capacity for a requested month range, Size Guide, How It Works, Help Center and current public policies. Optional AI recommendation accepts user input without using personal rental/account history and remains non-blocking/non-authoritative.
@@ -227,11 +230,11 @@ The owner permits checking the existing FRMS baseline and applying forward EPS-0
 - CAT-001..004 gain a public projection; CAT-005 supplies the shared UnitType list for Size Guide. PUB-POL-001/002 supply read-only public policy content/current-policy projection without a new persisted content entity or CMS workflow.
 - Anonymous cannot create/read Reservation, Contract, Visit, Invoice, Payment, Discount, SupportTicket or return/settlement business data, or read an account's profile/personal notification/history. Existing AUTH-001 self-registration remains permitted without login. PAY-004 remains a separately validated provider webhook, not Guest access.
 - Ordinary Customer login enters the authenticated Customer area. Authentication prompted by a protected action resumes its validated pending operation and non-sensitive selection. Login alone does not require identity verification, create/confirm Reservation, schedule Visit or initiate Payment.
-- Customer retains all public capabilities available to Anonymous; public content/data contracts remain independent of account identity. Page structure, component reuse, navigation placement and visual style are outside this requirements proposal.
+- Customer retains all public capabilities available to Anonymous; public content/data contracts remain independent of account identity. Page structure, component reuse, navigation placement and visual style are outside this requirements revision.
 
 **Affected requirements:** sections 2/3, Flow 1, GWP-01..05, CWP-01/02, BR-PUB-01..07, sections 10/13/14/15, catalog/policy schemas and endpoint index, public API/security tests, E2E-F01, traceability, Release 1 gates and acceptance.
 
-**Implementation boundary:** This task changes only this SRS. Backend authorization/query contracts, Swagger, frontend API models, approved public article copy and automated functional/security tests require follow-up alignment after team approval. Existing code must not be represented as already supporting the revised behavior. Visual style, layout, header/footer/sidebar, component design, specific public-page URLs and UI prototypes belong to the owner's separate frontend design work and are not defined by this proposal. Public policy content is a deployment-owned read model, not a new Policy entity, approval workflow or financial rule. Operational Facility scope and private ownership checks remain enforced; public projection never grants operational reads or commands. No new role, business flow, persisted entity/attribute/status, stored procedure, personal-data publication, reservation hold at browsing time or payment obligation is introduced. Email OTP, password reset/change and Google login remain outside current Release 1.
+**Implementation boundary:** This approval update changes only this SRS. Backend authorization/query contracts, Swagger, frontend API models, approved public article copy and automated functional/security tests require follow-up alignment with this approved baseline. Existing code must not be represented as already supporting the revised behavior. Visual style, layout, header/footer/sidebar, component design, specific public-page URLs and UI prototypes belong to the owner's separate frontend design work and are not defined by this revision. Public policy content is a deployment-owned read model, not a new Policy entity, approval workflow or financial rule. Operational Facility scope and private ownership checks remain enforced; public projection never grants operational reads or commands. No new role, business flow, persisted entity/attribute/status, stored procedure, personal-data publication, reservation hold at browsing time or payment obligation is introduced. Email OTP, password reset/change and Google login remain outside current Release 1.
 
 ## 0.1 Authority Order
 
@@ -345,7 +348,7 @@ After approval:
 - no team member may resolve a Deferred Decision only in code, database migration, Swagger, UI, or test fixture;
 - any semantic change requires a new SRS revision and traceability update.
 
-A proposal explicitly marked as pending team approval, such as section 0.0.6, does not replace the previously approved implementation baseline until approval/adoption is recorded. Its added/changed requirements, contracts and acceptance gates are review targets, not evidence that current code has implemented them.
+An unapproved future change does not replace this implementation baseline until its approval/adoption is recorded. REV-2026-10-13-GUEST has been approved under section 0.0.6 and is part of this baseline; requirement approval never substitutes for implementation or test evidence.
 
 # 1. Normative Keywords
 
@@ -621,7 +624,7 @@ Internal system responsibilities include:
 
 ## 3.8 Anonymous Visitor / Guest — Public Access Mode
 
-`PROPOSED — REV-2026-10-13-GUEST — TEAM APPROVAL PENDING`
+`TEAM-APPROVED — REV-2026-10-13-GUEST`
 
 Anonymous means no authenticated FRMS account context. It is not a UserRole, UserAccount, Customer entity or an additional business actor/flow.
 
@@ -2228,7 +2231,7 @@ It is not the settlement mechanism for LateFee, ExtraFee, Damage, RefundAmount o
 
 ## 11.9 Public Guest Features
 
-GWP denotes a public functional capability, not a business role or new end-to-end flow. These features are also available to Customer; catalog/booking entry remains part of Flow 1. The feature names describe information and behavior, not required page layouts, component boundaries or navigation labels. Their proposed acceptance obligations take effect upon approval of section 0.0.6.
+GWP denotes a public functional capability, not a business role or new end-to-end flow. These features are also available to Customer; catalog/booking entry remains part of Flow 1. The feature names describe information and behavior, not required page layouts, component boundaries or navigation labels. Their acceptance obligations are effective under the team approval recorded in section 0.0.6.
 
 | ID | Feature | Normative behavior / acceptance |
 |---|---|---|
@@ -2999,7 +3002,7 @@ For `RENTAL_FEE`, the configured `MonthlyPaymentDueDay` is the final non-overdue
 
 ## 13.11 Endpoint Registry
 
-The CAT-001..005 public access/filter/view changes, PUB-POL-001/002 and Anonymous AI access below are proposed under section 0.0.6 and become governing contracts after team approval/adoption. Previously approved protected business/authentication contracts remain unchanged while this proposal is pending.
+The CAT-001..005 public access/filter/view changes, PUB-POL-001/002 and Anonymous AI access below are approved governing contracts under section 0.0.6. Previously approved protected business/authentication contracts remain unchanged. Endpoint implementation and Swagger/frontend synchronization must be verified separately before feature acceptance.
 
 | API ID | Method | Endpoint | Description | Allowed access / role(s) | Feature |
 |---|---|---|---|---|---|
@@ -3243,7 +3246,7 @@ V9 does not allow this endpoint to change login `PhoneNumber` or account `Email`
 
 ## 13.13 Public Catalog / Policy / AI API Contracts
 
-`PROPOSED — REV-2026-10-13-GUEST — TEAM APPROVAL PENDING`
+`TEAM-APPROVED — REV-2026-10-13-GUEST`
 
 These contracts define the target implementation; Swagger/DTOs/FE are updated in the owning implementation tasks. Public GETs require no account, return the same catalog/policy projection for the same data snapshot/query and never create business rows. Standard success/error envelopes and pagination from sections 13.3..7 apply.
 
@@ -3378,7 +3381,7 @@ Anonymous and Customer use the same request/response contract; no CustomerId/Con
 EXTERNAL_PROVIDER_UNAVAILABLE -> 503
 ```
 
-Anonymous/Customer can continue manual selection. AI-001 remains a stateless recommendation capability; this proposal requires neither a specific conversation interface nor persisted ChatSession/message history or a new AI workflow. No provider/model/session identifier or secret is accepted as a domain field. Existing provider isolation remains in force; public abuse controls and their environment limits must be documented during implementation, without inventing a business payment obligation or numeric SLA.
+Anonymous/Customer can continue manual selection. AI-001 remains a stateless recommendation capability; this revision requires neither a specific conversation interface nor persisted ChatSession/message history or a new AI workflow. No provider/model/session identifier or secret is accepted as a domain field. Existing provider isolation remains in force; public abuse controls and their environment limits must be documented during implementation, without inventing a business payment obligation or numeric SLA.
 
 ## 13.14 Reservation API Contracts
 
@@ -4756,7 +4759,7 @@ Any mismatch must be resolved before Release 1 acceptance.
 
 ## 14.15 Public Capabilities and Authentication Continuation
 
-`PROPOSED — REV-2026-10-13-GUEST — TEAM APPROVAL PENDING`
+`TEAM-APPROVED — REV-2026-10-13-GUEST`
 
 This section specifies functional behavior and security boundaries shared by the project. Visual design, page layout, component structure, navigation placement and frontend presentation mechanisms are specified separately by the frontend owner.
 
@@ -6727,7 +6730,7 @@ Future Work is not automatically Release 1 scope.
 
 # 25. Final Locked Design Summary
 
-V10 FINAL consolidates the following implementation baseline, including the owner-approved offline-first-month, operational-consistency and payOS revisions; V9 decisions not explicitly superseded remain in force. Items 110–115 summarize the proposed Guest requirements and become shared-baseline obligations only upon the team approval/adoption in section 0.0.6:
+V10 FINAL consolidates the following implementation baseline, including the approved offline-first-month, operational-consistency, payOS and team-approved Guest revisions; V9 decisions not explicitly superseded remain in force. Items 110–115 summarize the approved Guest requirements adopted under section 0.0.6:
 1. Authority order is `SRS V10 FINAL > Data Dictionary V2.1 > Scope V8`.
 2. This SRS is the FRMS Release 1 implementation source of truth.
 3. Five roles are fixed: CUSTOMER, FACILITY_STAFF, FACILITY_MANAGER, BUSINESS_OPERATIONS_MANAGER, SYSTEM_ADMINISTRATOR.
