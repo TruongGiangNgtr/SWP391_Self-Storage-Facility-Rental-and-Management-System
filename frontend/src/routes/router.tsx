@@ -5,6 +5,8 @@ import { RootLayout } from '../layouts/RootLayout'
 import { CustomerLoginPage } from '../pages/CustomerLoginPage'
 import { CustomerRegisterPage } from '../pages/CustomerRegisterPage'
 import { CustomerPortalPage } from '../pages/CustomerPortalPage'
+import { CustomerUnavailablePage } from '../pages/CustomerUnavailablePage'
+import { CUSTOMER_UNAVAILABLE_PAGES } from '../features/customer-navigation/customerNavigation'
 import { CustomerContractListPage } from '../pages/CustomerContractListPage'
 import { CustomerContractDetailPage } from '../pages/CustomerContractDetailPage'
 import { ContractRenewalPage } from '../pages/ContractRenewalPage'
@@ -177,6 +179,8 @@ export function AppRouter() {
         <Route path="customer/support-tickets" element={<CustomerSupportListPage />} />
         <Route path="customer/support-tickets/new" element={<CustomerSupportCreatePage />} />
         <Route path="customer/support-tickets/:ticketId" element={<CustomerSupportDetailPage key={location.pathname} />} />
+
+        {CUSTOMER_UNAVAILABLE_PAGES.map(page => <Route key={page.to} path={page.to.slice(1)} element={<CustomerUnavailablePage title={page.title} historyTabs={page.historyTabs} />} />)}
 
         <Route
           path="customer/visits/:visitId"
