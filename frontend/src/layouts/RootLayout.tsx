@@ -16,7 +16,7 @@ export function RootLayout() {
     return (
       <CustomerLayout>
         <Outlet
-          key={`${location.pathname}${location.search}`}
+          key={location.pathname === '/customer/notifications' ? location.pathname : `${location.pathname}${location.search}`}
         />
       </CustomerLayout>
     )

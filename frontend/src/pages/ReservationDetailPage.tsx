@@ -10,6 +10,8 @@ import { StatusBadge } from '../components/StatusBadge'
 import { FirstMonthHandoverInfo } from '../components/FirstMonthHandoverInfo'
 import { paymentReturnState } from '../features/billing/paymentReturnState'
 import type { ReservationDetail } from '../features/reservations/reservation.types'
+import { getReservationStatusLabel } from '../features/reservations/reservationPresentation'
+import { useReservationUnitTypes } from '../features/reservations/useReservationUnitTypes'
 import { formatMoney, formatMonthRange, formatUtcDateTime } from '../utils/formatters'
 
 function getSafePaymentUrl(value: string): string | null {
@@ -30,6 +32,7 @@ export function ReservationDetailPage() {
   const [cancelReason, setCancelReason] = useState('')
   const [showCancelForm, setShowCancelForm] = useState(false)
   const [error, setError] = useState<ApiErrorPresentation | null>(null)
+  const unitTypes = useReservationUnitTypes(reservation ? [reservation.unitTypeId] : [])
 
   useEffect(() => {
     let active = true
@@ -132,14 +135,17 @@ export function ReservationDetailPage() {
       </section>
 
       <ApiErrorAlert error={error} />
+      <ApiErrorAlert error={unitTypes.error} />
+      {unitTypes.error && <button className="button button-secondary" type="button" disabled={unitTypes.loading} onClick={unitTypes.retry}>Retry Unit Type Name</button>}
       {reservation && (
         <>
           <section className="panel stack">
             <div className="card-heading-row">
-              <h2>Reservation {reservation.reservationId}</h2>
-              <StatusBadge status={reservation.status} />
+              <h2>Storage Reservation</h2>
+              <StatusBadge status={reservation.status} label={getReservationStatusLabel(reservation)} />
             </div>
             <dl className="detail-list">
+              <div><dt>Unit Type</dt><dd>{unitTypes.reads[reservation.unitTypeId]?.data?.name ?? (unitTypes.reads[reservation.unitTypeId]?.error ? 'Unit type unavailable' : 'Loading unit type…')}</dd></div>
               <div>
                 <dt>Rental Period</dt>
                 <dd>{formatMonthRange(reservation.startMonth, reservation.endMonth)}</dd>

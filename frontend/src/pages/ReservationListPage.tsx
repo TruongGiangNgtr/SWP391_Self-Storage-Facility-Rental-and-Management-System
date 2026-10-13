@@ -11,6 +11,8 @@ import { EmptyState, LoadingState, PaginationControls } from '../components/Page
 import { StatusBadge } from '../components/StatusBadge'
 import { FlowIcon } from '../components/FlowIcon'
 import type { ReservationDetail } from '../features/reservations/reservation.types'
+import { getReservationStatusLabel, RESERVATION_FILTER_LABELS } from '../features/reservations/reservationPresentation'
+import { useReservationUnitTypes } from '../features/reservations/useReservationUnitTypes'
 import { formatMoney, formatMonthRange, formatUtcDateTime } from '../utils/formatters'
 
 const EMPTY_PAGINATION: Pagination = {
@@ -28,6 +30,11 @@ export function ReservationListPage() {
   const [pagination, setPagination] = useState(EMPTY_PAGINATION)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<ApiErrorPresentation | null>(null)
+  const unitTypes = useReservationUnitTypes(reservations.map(reservation => reservation.unitTypeId))
+  const visibleReservations = reservations.filter(reservation => filter.matches(
+    `${unitTypes.reads[reservation.unitTypeId]?.data?.name ?? ''} ${reservation.startMonth} ${reservation.endMonth}`,
+    reservation.status,
+  ))
 
   useEffect(() => {
     let active = true
@@ -71,21 +78,23 @@ export function ReservationListPage() {
       </section>
 
       <ApiErrorAlert error={error} />
+      <ApiErrorAlert error={unitTypes.error} />
+      {unitTypes.error && <button className="button button-secondary" type="button" disabled={unitTypes.loading} onClick={unitTypes.retry}>Retry Unit Type Names</button>}
       {loading ? (
         <LoadingState />
       ) : error ? null : reservations.length === 0 ? (
         <EmptyState message="You do not have any reservations yet." />
       ) : (
-        <><CustomerListToolbar {...filter.controls} statuses={["PENDING_DEPOSIT","CONFIRMED","COMPLETED","CANCELLED"]} visibleCount={reservations.filter(reservation => filter.matches(`${reservation.reservationId} ${reservation.unitTypeId} ${reservation.startMonth} ${reservation.endMonth}`, reservation.status)).length} /><div className="reservation-list">
-          {reservations.filter(reservation => filter.matches(`${reservation.reservationId} ${reservation.unitTypeId} ${reservation.startMonth} ${reservation.endMonth}`, reservation.status)).map((reservation) => (
+        <><CustomerListToolbar {...filter.controls} statuses={["PENDING_DEPOSIT","CONFIRMED","COMPLETED","CANCELLED"]} statusLabels={RESERVATION_FILTER_LABELS} searchPlaceholder="Search by unit type or rental period" visibleCount={visibleReservations.length} /><div className="reservation-list">
+          {visibleReservations.map((reservation) => (
             <article className={`reservation-card reservation-card-${reservation.status.toLowerCase().replaceAll('_', '-')}`} key={reservation.reservationId}>
               <div className="card-heading-row">
-                <h2>Reservation {reservation.reservationId.slice(0, 8)}</h2>
-                <StatusBadge status={reservation.status} />
+                <h2>Storage Reservation</h2>
+                <StatusBadge status={reservation.status} label={getReservationStatusLabel(reservation)} />
               </div>
               <p className="reservation-meta">Created {formatUtcDateTime(reservation.createdAt)}</p>
               <dl className="detail-list">
-                <div><dt>Unit Type ID</dt><dd title={reservation.unitTypeId}>{reservation.unitTypeId}</dd></div>
+                <div><dt>Unit Type</dt><dd>{unitTypes.reads[reservation.unitTypeId]?.data?.name ?? (unitTypes.reads[reservation.unitTypeId]?.error ? 'Unit type unavailable' : 'Loading unit type…')}</dd></div>
                 <div><dt>Rental Period</dt><dd>{formatMonthRange(reservation.startMonth, reservation.endMonth)}</dd></div>
                 <div><dt>Locked Monthly Rent</dt><dd>{formatMoney(reservation.lockedRentalPrice)}/month</dd></div>
                 <div><dt>Deposit Invoice · {reservation.depositInvoice.status}</dt><dd>{formatMoney(reservation.depositInvoice.amountDue)}</dd></div>

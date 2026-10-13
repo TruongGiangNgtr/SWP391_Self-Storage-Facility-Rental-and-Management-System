@@ -5,8 +5,8 @@ const STATUS_ICONS: Record<string, FlowIconName> = {
   CONFIRMED: 'calendar', SCHEDULED: 'calendar',
 }
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status, label }: { status: string; label?: string }) {
   const normalized = status.toLowerCase().replaceAll('_', '-')
   const icon = STATUS_ICONS[status]
-  return <span className={`status-badge status-${normalized}`}>{icon && <FlowIcon name={icon} />}{status}</span>
+  return <span className={`status-badge status-${normalized}`}>{icon && <FlowIcon name={icon} />}{label ?? status}</span>
 }

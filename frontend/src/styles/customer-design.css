@@ -16,6 +16,7 @@
 .frms-customer .flow-header { position: fixed; inset: 0 0 auto; z-index: 30; height: 80px; border-bottom: 1px solid var(--flow-border); }
 .frms-customer .flow-header-inner { height: 100%; max-width: 1240px; padding: 0 24px; flex-wrap: nowrap; gap: 24px; }
 .frms-customer .flow-brand { font-weight: 700; }
+.frms-customer .flow-brand { min-height: 44px; }
 .frms-customer .flow-top-nav { flex: 1; justify-content: center; gap: 24px; font-size: 14px; }
 .frms-customer .flow-top-nav a { display: inline-flex; align-items: center; min-height: 44px; }
 .frms-customer .flow-top-nav [aria-disabled] { color: var(--flow-muted); cursor: default; }
@@ -42,6 +43,9 @@
 .frms-customer .profile-role { font-size: 12px; }
 .frms-customer .customer-sidebar nav { display: grid; gap: 4px; margin: 16px 0 0; }
 .frms-customer .customer-sidebar nav a { min-height: 44px; padding: 10px 12px; border-radius: 12px; font-size: 14px; }
+.frms-customer :is(.customer-sidebar, .customer-drawer-nav) nav a > svg { flex-shrink: 0; color: inherit; }
+.frms-customer .customer-nav-label { display: grid; min-width: 0; gap: 2px; }
+.frms-customer .customer-nav-label small { font-size: 11px; font-weight: 400; color: #64748b; }
 .frms-customer .customer-sidebar nav a:hover:not(.active) { background: #f8fafc; }
 .frms-customer .sidebar-logout { margin-top: 12px; padding: 12px; min-height: 44px; font-size: 14px; border-top: 1px solid var(--flow-border); }
 .frms-customer .flow-breadcrumb { font-size: 12px; flex-wrap: wrap; margin: 0 0 16px; }
@@ -88,6 +92,11 @@
 .frms-customer .facility-thumbnail { display: flex; align-items: center; justify-content: center; background: #eff6ff; }
 .frms-customer .flow-footer { margin-top: 0; }
 .frms-customer .flow-footer-inner { max-width: 1160px; padding: 48px 24px; gap: 32px; }
+.frms-customer .flow-footer .flow-brand { font-size: 24px; gap: 12px; font-weight: 700; color: #fff; }
+.frms-customer .flow-footer .flow-brand-mark { background: var(--flow-brand); width: 40px; height: 40px; border-radius: 12px; box-shadow: 0 1px 2px #2563eb33; }
+.frms-customer .flow-footer .brand-accent { color: var(--flow-brand); }
+.frms-customer .customer-notifications { text-decoration: none; }
+.frms-customer .customer-notifications.active { color: var(--flow-brand); background: #eff6ff; }
 .frms-customer .flow-footer :is(a:not(.flow-brand), button) { min-height: 44px; margin: 0; display: flex; align-items: center; width: fit-content; }
 .frms-customer .flow-footer a:hover, .frms-customer .flow-footer button:hover { color: #fff; }
 .frms-customer .customer-footer-unavailable { display: block; padding: 12px 0; font-size: 12px; }
@@ -95,6 +104,7 @@
 .frms-customer .customer-skip-link:focus { top: 12px; }
 .frms-customer .customer-drawer-nav { display: grid; gap: 24px; }
 .frms-customer .customer-drawer-nav nav { display: grid; gap: 8px; }
+.frms-customer .customer-drawer-nav a { color: #334155; }
 .frms-customer .customer-drawer-nav :is(a, [aria-disabled]) { display: flex; gap: 12px; align-items: center; min-height: 44px; padding: 10px 12px; border-radius: 12px; text-decoration: none; }
 .frms-customer .customer-drawer-nav a.active { background: #eff6ff; color: #1d4ed8; }
 .frms-customer .customer-drawer-nav [aria-disabled] { color: #64748b; }
@@ -191,7 +201,7 @@
   .frms-customer .flow-brand { font-size: 20px; gap: 8px; }
   .frms-customer .flow-brand-mark { width: 36px; height: 36px; }
   .frms-customer .customer-header-actions { gap: 4px; }
-  .frms-customer .customer-notifications { display: none; }
+  .frms-customer .customer-notifications { display: inline-flex; }
   .frms-customer .flow-account { gap: 4px; }
   .frms-customer .customer-body { padding: 24px 16px 32px; }
   .frms-customer h1 { font-size: 24px; }
@@ -199,6 +209,8 @@
   .frms-customer .flow-search-panel { padding: 20px !important; }
   .frms-customer .flow-footer-inner { padding: 48px 24px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
   .frms-customer .flow-footer-about { grid-column: 1 / -1; }
+  .frms-customer .flow-footer .flow-brand { font-size: 20px; gap: 8px; }
+  .frms-customer .flow-footer .flow-brand-mark { width: 36px; height: 36px; }
   .frms-customer .auth-card { padding: 24px; }
   .frms-customer.flow-dialog { padding: 24px; }
 }
