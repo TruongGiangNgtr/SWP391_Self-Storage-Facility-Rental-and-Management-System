@@ -7,19 +7,17 @@ import { FlowDialog } from '../components/FlowDialog'
 import { CUSTOMER_NAV_ITEMS, CUSTOMER_NOTIFICATIONS, getCustomerNavigationItem } from '../features/customer-navigation/customerNavigation'
 import '../styles/customer.css'
 import '../styles/customer-design.css'
+import '../styles/public.css'
 
-function Brand({ footer = false, signedIn = true }: { footer?: boolean; signedIn?: boolean }) {
-  return <Link className={`flow-brand ${footer ? 'flow-brand-footer' : ''}`} to={signedIn ? '/customer' : '/'} aria-label="FStoRent Home">
+function Brand({ footer = false, signedIn = true, publicPage = false }: { footer?: boolean; signedIn?: boolean; publicPage?: boolean }) {
+  return <Link className={`flow-brand ${footer ? 'flow-brand-footer' : ''}`} to={signedIn && !publicPage ? '/customer' : '/'} aria-label="FStoRent Home">
     <span className="flow-brand-mark"><FlowIcon name="logo" /></span>
     <span>FSto<span className="brand-accent">Rent</span></span>
   </Link>
 }
 
-function StorageNavigation({ signedIn }: { signedIn: boolean }) {
-  return <>
-    {signedIn ? <NavLink to="/customer/storage-search">Find Storage</NavLink> : <span aria-disabled="true" title="Sign in to search storage; public search will be added in a later task">Find Storage</span>}
-    {['How It Works', 'Size Guide', 'Help'].map((label) => <span key={label} aria-disabled="true" title="Not available yet">{label}</span>)}
-  </>
+function StorageNavigation() {
+  return <><NavLink to="/facilities">Find Storage</NavLink><NavLink to="/how-it-works">How It Works</NavLink><NavLink to="/size-guide">Size Guide</NavLink><NavLink to="/help">Help</NavLink></>
 }
 
 export function CustomerLayout({ children, publicPage = false }: { children: ReactNode; publicPage?: boolean }) {
@@ -60,12 +58,12 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
     </nav>
   }
 
-  return <div className={`frms-customer customer-shell ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? 'customer-auth' : ''}`}>
+  return <div className={`frms-customer customer-shell ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
     <a className="customer-skip-link" href="#customer-main">Skip to content</a>
     <header className="flow-header">
       <div className="flow-header-inner">
-        <Brand signedIn={signedIn} />
-        <nav className="flow-top-nav" aria-label="Storage navigation"><StorageNavigation signedIn={signedIn} /></nav>
+        <Brand signedIn={signedIn} publicPage={publicPage} />
+        <nav className="flow-top-nav" aria-label="Storage navigation"><StorageNavigation /></nav>
         <div className="customer-header-actions">
           {signedIn ? <>
             <NavLink className="customer-icon-button customer-notifications" to={CUSTOMER_NOTIFICATIONS.to} aria-label="Notifications" title="Notifications & Transaction History"><Bell size={20} aria-hidden="true" /></NavLink>
@@ -77,7 +75,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
                 <Link to="/customer">Overview</Link><Link to="/customer/contracts">My Contracts</Link><Link to="/customer/support-tickets">Support Tickets</Link><Link to="/customer/account-settings">Account Settings</Link><button type="button" onClick={logout}>Sign Out</button>
               </nav>
             </details>
-          </> : <Link className="button button-secondary" to="/auth/customer/login">Sign In</Link>}
+          </> : <Link className="button" to="/auth/customer/login">Sign In</Link>}
           <button className="customer-icon-button customer-menu-trigger" type="button" onClick={() => setDrawerOpen(true)} aria-label="Open navigation" aria-haspopup="dialog"><Menu size={22} /></button>
         </div>
       </div>
@@ -96,14 +94,14 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
       </div>
     </div>
     <footer className="flow-footer"><div className="flow-footer-inner">
-      <div className="flow-footer-about"><Brand footer signedIn={signedIn} /><p>Find, reserve and manage your self-storage with FStoRent.</p></div>
-      <div><h2>Storage</h2>{signedIn && <Link to="/customer/storage-search">Find Storage</Link>}<span className="customer-footer-unavailable">Size Guide · Not available yet</span><span className="customer-footer-unavailable">How It Works · Not available yet</span></div>
-      <div><h2>Support</h2>{signedIn && <Link to="/customer/support-tickets">Support Tickets</Link>}<span className="customer-footer-unavailable">Help Center · Not available yet</span><span className="customer-footer-unavailable">Contact Us · Not available yet</span></div>
-      <div><h2>Account</h2>{signedIn ? <><Link to="/customer/account-settings">My Account</Link><button type="button" onClick={logout}>Sign Out</button></> : <><Link to="/auth/customer/login">Sign In</Link><Link to="/auth/customer/register">Create Account</Link></>}</div>
+      <div className="flow-footer-about"><Brand footer signedIn={signedIn} publicPage={publicPage} /><p>Find, reserve and manage your self-storage with FStoRent.</p></div>
+      <div><h2>Storage</h2><Link to="/facilities">Find Storage</Link><Link to="/size-guide">Size Guide</Link><Link to="/how-it-works">How It Works</Link></div>
+      <div><h2>Support</h2>{signedIn && <Link to="/customer/support-tickets">Support Tickets</Link>}<Link to="/help">Help Center</Link><Link to="/#public-contact">Contact Us</Link></div>
+      <div><h2>Account</h2>{signedIn ? <><Link to="/customer/account-settings">My Account</Link><button type="button" onClick={logout}>Sign Out</button></> : <><Link to="/auth/customer/login">Sign In</Link><Link to="/auth/customer/register">Create Account</Link><Link to="/auth/employee/login">Employee Sign In</Link></>}</div>
       <p className="flow-copyright">© {copyrightYear} FStoRent. All rights reserved.</p>
     </div></footer>
     {drawerOpen && <FlowDialog title="Navigation" subtitle="Choose where you would like to go." category="FStoRent" onClose={() => setDrawerOpen(false)}>
-      <div className="customer-drawer-nav"><nav aria-label="Storage navigation" onClick={() => setDrawerOpen(false)}><StorageNavigation signedIn={signedIn} /></nav>{signedIn ? portalNavigation(() => setDrawerOpen(false)) : <Link className="button" to="/auth/customer/register" onClick={() => setDrawerOpen(false)}>Create Account</Link>}</div>
+      <div className="customer-drawer-nav"><nav aria-label="Storage navigation" onClick={() => setDrawerOpen(false)}><StorageNavigation /></nav>{signedIn && withSidebar ? portalNavigation(() => setDrawerOpen(false)) : signedIn ? <Link className="button button-secondary" to="/customer" onClick={() => setDrawerOpen(false)}>Customer Portal</Link> : <Link className="button" to="/auth/customer/register" onClick={() => setDrawerOpen(false)}>Create Account</Link>}</div>
     </FlowDialog>}
   </div>
 }
