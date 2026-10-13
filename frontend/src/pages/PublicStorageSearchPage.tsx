@@ -15,7 +15,7 @@ function FacilitySearchGroup({ facility, filters, search, dirty, initiallyOpen }
   const id = useId()
   return <section className="flow-facility public-result-facility">
     <div className="flow-facility-heading"><div className="facility-thumbnail" aria-hidden="true" /><div className="public-facility-heading-text"><p className="eyebrow">Storage Facility</p><h2>{facility.name}</h2><p className="flow-facility-address"><img src="/figma/gwp-01/imgIcon12.svg" alt="" aria-hidden="true" />{facility.address}</p>{facility.description && <p className="muted">{facility.description}</p>}<div className="action-row"><Link className="public-text-link" to={`/facilities/${encodeURIComponent(facility.facilityId)}?${publicSearchQuery(filters)}`}>View Facility Details →</Link><button className="button button-secondary" type="button" aria-expanded={open} aria-controls={id} onClick={() => setOpen(value => !value)}>{open ? 'Hide Storage Options' : 'View Storage Options'}</button></div></div></div>
-    <div id={id}>{open && <PublicUnitTypeList key={`${facility.facilityId}:${search}`} facilityId={facility.facilityId} filters={filters} disabled={dirty} />}</div>
+    <div id={id}>{open && <PublicUnitTypeList key={`${facility.facilityId}:${search}`} facilityId={facility.facilityId} facilityName={facility.name} filters={filters} disabled={dirty} />}</div>
   </section>
 }
 

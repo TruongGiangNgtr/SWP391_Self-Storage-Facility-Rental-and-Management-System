@@ -7,11 +7,12 @@ interface FlowDialogProps {
   subtitle: string
   category: string
   busy?: boolean
+  trapFocus?: boolean
   onClose(): void
   children: ReactNode
 }
 
-export function FlowDialog({ title, subtitle, category, busy = false, onClose, children }: FlowDialogProps) {
+export function FlowDialog({ title, subtitle, category, busy = false, trapFocus = false, onClose, children }: FlowDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const restoreTarget = useRef<{ element: HTMLElement; href: string | null } | null>(null)
   const titleId = useId()
@@ -49,6 +50,19 @@ export function FlowDialog({ title, subtitle, category, busy = false, onClose, c
       className="frms-customer flow-dialog"
       ref={dialogRef}
       aria-labelledby={titleId}
+      onKeyDown={(event) => {
+        if (!trapFocus || event.key !== 'Tab') return
+        const dialog = event.currentTarget
+        const controls = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]'))
+          .filter(element => element.tabIndex >= 0 && element.getClientRects().length > 0)
+        const first = controls[0], last = controls.at(-1)
+        if (!first) { event.preventDefault(); dialog.focus(); return }
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+          event.preventDefault(); last?.focus()
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault(); first.focus()
+        }
+      }}
       onCancel={(event) => {
         event.preventDefault()
         if (!busy) onClose()

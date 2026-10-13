@@ -1,0 +1,31 @@
+.frms-customer .customer-auth-feature { display: grid; gap: 32px; align-content: start; }
+.frms-customer .customer-auth-feature > .flow-breadcrumb { width: 100%; justify-self: start; }
+.frms-customer .customer-auth-feature > .auth-card { width: min(480px, 100%); margin: 0 auto; }
+.frms-customer .customer-auth-heading { text-align: center; }
+.frms-customer .customer-auth-heading h1 { font-size: 24px; margin: 8px 0; }
+.frms-customer .customer-auth-heading p { margin: 8px 0 0; }
+.frms-customer .customer-auth-heading .eyebrow { display: inline-block; background: #eff6ff; padding: 4px 10px; border-radius: 6px; }
+.frms-customer .customer-auth-input { position: relative; display: flex; align-items: center; min-width: 0; }
+.frms-customer .customer-auth-input > svg { position: absolute; left: 12px; color: #64748b; pointer-events: none; }
+.frms-customer .customer-auth-input input { width: 100%; padding-left: 38px; padding-right: 48px; }
+.frms-customer .customer-password-toggle { position: absolute; right: 0; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 12px; color: #64748b; background: transparent; cursor: pointer; }
+.frms-customer .customer-password-toggle:hover { color: #2563eb; background: #eff6ff; }
+.frms-customer .customer-auth-divider { display: flex; align-items: center; gap: 12px; color: #64748b; font-size: 11px; text-transform: uppercase; text-align: center; }
+.frms-customer .customer-auth-divider::before, .frms-customer .customer-auth-divider::after { content: ''; height: 1px; background: #e2e8f0; flex: 1; }
+.frms-customer .customer-auth-small { font-size: 12px; margin: 0; text-align: center; }
+.frms-customer .customer-auth-optional { border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; }
+.frms-customer .customer-auth-optional summary { cursor: pointer; min-height: 24px; }
+.frms-customer .customer-auth-optional .form-grid { margin-top: 16px; }
+.frms-customer .customer-continuation-notice { margin-top: 24px; }
+.frms-customer .customer-continuation-notice p { margin: 8px 0; }
+.frms-customer .customer-sign-in-gate { display: grid; gap: 16px; }
+.frms-customer .customer-sign-in-gate .dialog-selection strong { font-size: 16px; }
+.frms-customer .customer-sign-in-gate .dialog-selection small { font-size: 12px; }
+.frms-customer .customer-sign-in-gate .detail-list { grid-template-columns: 1fr; margin: 0; }
+.frms-customer .customer-sign-in-gate .panel { padding: 16px; }
+.frms-customer .customer-sign-in-gate .detail-list > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+.frms-customer .customer-sign-in-gate .detail-list dd { margin: 0; text-align: right; }
+@media (max-width: 767px) {
+  .frms-customer .customer-auth-heading h1 { font-size: 22px; }
+  .frms-customer .customer-auth-feature > .auth-card { padding: 24px; }
+}
