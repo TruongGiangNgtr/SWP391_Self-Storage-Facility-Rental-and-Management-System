@@ -34,4 +34,5 @@ const readFacilityTypes = (key: string, signal: AbortSignal) => {
 export const usePublicFacilities = (query: PublicFacilityQuery, enabled = true) => usePublicRead(JSON.stringify(query), readFacilities, enabled)
 export const usePublicFacility = (facilityId: string, enabled = true) => usePublicRead(facilityId, readFacility, enabled)
 export const usePublicSizes = (mode: string, page = 1) => usePublicRead(JSON.stringify({ ...(mode ? { mode } : {}), page, pageSize: 100 }), readSizes, ['', 'PRIVATE', 'PUBLIC'].includes(mode))
+export const usePublicUnitTypes = (query: NonNullable<Parameters<typeof publicCatalogApi.listUnitTypes>[0]>, enabled = true) => usePublicRead(JSON.stringify(query), readSizes, enabled)
 export const usePublicFacilityTypes = (facilityId: string, query: PublicUnitTypeQuery, enabled = true) => usePublicRead(JSON.stringify({ facilityId, query }), readFacilityTypes, enabled)
