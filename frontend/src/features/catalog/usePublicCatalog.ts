@@ -10,7 +10,7 @@ export function publicCatalogError(error: unknown): ApiErrorPresentation {
   if (error instanceof ApiRequestError && error.status === 401) return { message: 'Public storage browsing is not available from the server yet. Please try again later.', traceId: error.traceId, details: [] }
   return presentApiError(error)
 }
-function usePublicRead<T>(key: string, read: (key: string, signal: AbortSignal) => Promise<T>, enabled = true) {
+export function usePublicRead<T>(key: string, read: (key: string, signal: AbortSignal) => Promise<T>, enabled = true, presentError = publicCatalogError) {
   const [revision, setRevision] = useState(0)
   const current = `${key}:${revision}`
   const [snapshot, setSnapshot] = useState<{ key: string; data: T | null; error: ApiErrorPresentation | null } | null>(null)
@@ -19,9 +19,9 @@ function usePublicRead<T>(key: string, read: (key: string, signal: AbortSignal) 
     if (!enabled) return
     const controller = new AbortController()
     read(key, controller.signal).then(data => { if (!controller.signal.aborted) setSnapshot({ key: current, data, error: null }) })
-      .catch((error: unknown) => { if (!controller.signal.aborted) setSnapshot({ key: current, data: null, error: publicCatalogError(error) }) })
+      .catch((error: unknown) => { if (!controller.signal.aborted) setSnapshot({ key: current, data: null, error: presentError(error) }) })
     return () => controller.abort()
-  }, [key, current, read, enabled])
+  }, [key, current, read, enabled, presentError])
   return { data: enabled && !loading ? snapshot?.data ?? null : null, error: enabled && !loading ? snapshot?.error ?? null : null, loading, refresh: () => setRevision(value => value + 1) }
 }
 const readFacilities = (key: string, signal: AbortSignal) => publicCatalogApi.listFacilities(JSON.parse(key) as PublicFacilityQuery, signal)

@@ -1,0 +1,83 @@
+/* GWP-04 shares Public/Customer tokens, Brand, header/footer and controls. */
+.frms-customer.customer-public .customer-content > .page-container.public-help-center { display: block; max-width: none; padding: 0; }
+.frms-customer .help-hero { padding: 32px 0 48px; background: #fff; }
+.frms-customer .help-hero-copy { max-width: 640px; margin: 40px auto 0; text-align: center; }
+.frms-customer .help-hero-copy .eyebrow { margin: 0; }
+.frms-customer .help-hero-copy h1 { margin: 8px 0 16px; }
+.frms-customer .help-hero-copy > p:last-child { margin: 0; color: #64748b; font-size: 16px; }
+.frms-customer .help-policies { padding: 48px 0; background: var(--customer-canvas); }
+.frms-customer .help-section-heading { max-width: 720px; margin: 0 auto 32px; text-align: center; }
+.frms-customer .help-section-heading h2 { margin: 8px 0 12px; }
+.frms-customer .help-section-heading p { margin: 0; color: #64748b; }
+.frms-customer .help-section-heading .eyebrow { color: var(--flow-brand); }
+.frms-customer .help-policy-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.frms-customer .help-policy-card { display: flex; flex-direction: column; min-width: 0; padding: 24px; border: 1px solid var(--flow-border); border-radius: 16px; background: #fff; box-shadow: var(--customer-shadow); }
+.frms-customer .help-card-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.frms-customer .help-icon-tile { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; color: var(--flow-brand); background: #eff6ff; }
+.frms-customer .help-public-label { color: #475569; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; background: #f1f5f9; }
+.frms-customer .help-policy-card h3 { font-size: 16px; margin: 0 0 12px; overflow-wrap: anywhere; }
+.frms-customer .help-policy-card > p { margin: 0 0 20px; color: #64748b; }
+.frms-customer .help-policy-metadata { display: flex; flex-wrap: wrap; gap: 12px 24px; padding: 0; margin: 0 0 20px; font-size: 12px; }
+.frms-customer .help-policy-metadata > div { min-width: 0; }
+.frms-customer .help-policy-metadata dt { color: #64748b; }
+.frms-customer .help-policy-metadata dd { margin: 4px 0 0; color: #475569; overflow-wrap: anywhere; }
+.frms-customer .help-read-link, .frms-customer .help-back-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--flow-brand); font-weight: 600; text-underline-offset: 4px; }
+.frms-customer .help-policy-card .help-read-link, .frms-customer .help-unpublished { align-self: flex-start; margin-top: auto; }
+.frms-customer .help-unpublished { display: inline-flex; align-items: center; min-height: 44px; color: #64748b; font-size: 12px; }
+.frms-customer .help-snapshot-note { margin: 24px 0 0; font-size: 12px; color: #64748b; }
+.frms-customer .help-contact { padding: 48px 0; background: #fff; scroll-margin-top: 96px; }
+.frms-customer .help-contact-panel { max-width: 720px; margin: 0 auto; padding: 24px; border: 1px solid var(--flow-border); border-radius: 16px; }
+.frms-customer .help-contact-panel .form-field { display: grid; }
+.frms-customer .help-facility-contact { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--flow-border); }
+.frms-customer .help-facility-contact h3 { margin: 0 0 8px; overflow-wrap: anywhere; }
+.frms-customer .help-facility-contact p { color: #475569; }
+.frms-customer .help-facility-contact h4 { margin: 20px 0 8px; font: inherit; font-weight: 600; }
+.frms-customer .help-contact-note { margin: 20px 0 0; color: #64748b; font-size: 12px; }
+.frms-customer .help-contact-panel .pagination { flex-wrap: wrap; gap: 12px; }
+.frms-customer .help-support-section { padding: 0 0 48px; background: #fff; }
+.frms-customer .help-support-banner { display: flex; align-items: center; gap: 20px; padding: 24px; border: 1px solid #bfdbfe; border-radius: 16px; background: #eff6ff; }
+.frms-customer .help-support-icon { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; width: 48px; height: 48px; background: var(--flow-brand); color: #fff; border-radius: 12px; }
+.frms-customer .help-support-banner > div { flex: 1; min-width: 0; }
+.frms-customer .help-support-banner h2 { margin: 0 0 8px; font-size: 16px; }
+.frms-customer .help-support-banner p { margin: 0; color: #475569; }
+.frms-customer .help-support-banner > .button { flex-shrink: 0; }
+.frms-customer .help-support-note { margin: 16px 0 0; color: #64748b; text-align: center; font-size: 12px; }
+.frms-customer .public-policy-detail { display: grid; gap: 24px; }
+.frms-customer .public-policy-detail .flow-breadcrumb { margin: 0; }
+.frms-customer .help-back-link { justify-self: start; }
+.frms-customer .help-article-heading h1 { margin: 8px 0 16px; overflow-wrap: anywhere; }
+.frms-customer .help-article-summary { font-size: 16px; color: #475569; margin: 0 0 24px; white-space: pre-line; }
+.frms-customer .help-article-heading .help-policy-metadata { margin: 0; }
+.frms-customer .help-article-grid { display: grid; grid-template-columns: minmax(200px, 248px) minmax(0, 1fr); gap: 32px; align-items: start; }
+.frms-customer .help-contents { position: sticky; top: 104px; padding: 24px; border: 1px solid var(--flow-border); border-radius: 16px; background: #fff; }
+.frms-customer .help-contents h2 { margin: 0 0 12px; font-size: 16px; }
+.frms-customer .help-contents ol { padding-left: 20px; margin: 0; }
+.frms-customer .help-contents a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 0; color: var(--flow-brand); overflow-wrap: anywhere; }
+.frms-customer .help-article { padding: 32px; border: 1px solid var(--flow-border); border-radius: 16px; background: #fff; min-width: 0; }
+.frms-customer .help-article > section + section { padding-top: 32px; margin-top: 32px; border-top: 1px solid var(--flow-border); }
+.frms-customer .help-article h2 { margin: 0 0 16px; scroll-margin-top: 104px; overflow-wrap: anywhere; }
+.frms-customer .help-plain-text { white-space: pre-line; overflow-wrap: anywhere; }
+.frms-customer .help-article p { margin: 0; color: #334155; line-height: 1.75; }
+.frms-customer .help-existing-terms { padding: 24px; border: 1px solid #bfdbfe; border-radius: 16px; background: #eff6ff; }
+.frms-customer .help-existing-terms h2 { margin: 0 0 12px; font-size: 18px; }
+.frms-customer .help-existing-terms p { margin: 0 0 12px; color: #475569; }
+.frms-customer .help-article-actions { display: flex; flex-wrap: wrap; gap: 16px; }
+@media (max-width: 1023px) {
+  .frms-customer .help-policy-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .frms-customer .help-support-banner { flex-wrap: wrap; }
+  .frms-customer .help-support-banner > .button { margin-left: 68px; }
+}
+@media (max-width: 767px) {
+  .frms-customer .help-hero { padding: 24px 0 32px; }
+  .frms-customer .help-hero-copy { margin-top: 32px; }
+  .frms-customer .help-hero-copy h1 { font-size: 24px; }
+  .frms-customer .help-hero-copy > p:last-child { font-size: 14px; }
+  .frms-customer .help-policies, .frms-customer .help-contact { padding: 32px 0; }
+  .frms-customer .help-support-section { padding-bottom: 32px; }
+  .frms-customer .help-policy-grid, .frms-customer .help-article-grid { grid-template-columns: 1fr; }
+  .frms-customer .help-support-banner { gap: 16px; }
+  .frms-customer .help-support-banner > div { flex-basis: calc(100% - 64px); }
+  .frms-customer .help-support-banner > .button { width: 100%; margin-left: 0; flex-shrink: 1; }
+  .frms-customer .help-contents { position: static; }
+  .frms-customer .help-article { padding: 24px; }
+}

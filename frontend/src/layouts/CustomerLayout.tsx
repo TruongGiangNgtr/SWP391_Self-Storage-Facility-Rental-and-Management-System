@@ -103,7 +103,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
     <footer className="flow-footer"><div className="flow-footer-inner">
       <div className="flow-footer-about"><Brand footer signedIn={signedIn} publicPage={publicPage} /><p>Find, reserve and manage your self-storage with FStoRent.</p></div>
       <div><h2>Storage</h2><Link to="/facilities">Find Storage</Link><Link to="/size-guide">Size Guide</Link><Link to="/how-it-works">How It Works</Link></div>
-      <div><h2>Support</h2>{signedIn && <Link to="/customer/support-tickets">Support Tickets</Link>}<Link to="/help">Help Center</Link><Link to="/#public-contact">Contact Us</Link></div>
+      <div><h2>Support</h2>{signedIn && <Link to="/customer/support-tickets">Support Tickets</Link>}<Link to="/help">Help Center</Link><Link to="/help#contact">Contact Us</Link></div>
       <div><h2>Account</h2>{signedIn ? <><Link to="/customer/account-settings">My Account</Link><button type="button" onClick={logout}>Sign Out</button></> : <><Link to="/auth/customer/login">Sign In</Link><Link to="/auth/customer/register">Create Account</Link><Link to="/auth/employee/login">Employee Sign In</Link></>}</div>
       <p className="flow-copyright">© {copyrightYear} FStoRent. All rights reserved.</p>
     </div></footer>
