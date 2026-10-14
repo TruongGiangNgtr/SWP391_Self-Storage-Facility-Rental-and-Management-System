@@ -7,7 +7,7 @@ namespace Frms.Api.Controllers;
 
 [Authorize(Roles = RoleNames.SystemAdministrator)]
 [Route("api/v1/admin")]
-public sealed class AdminSupplementScaffoldController : ScaffoldControllerBase
+public sealed class AdminSupplementController : ScaffoldControllerBase
 {
     [HttpPost("customers/{customerId:guid}/activate")]
     public ActionResult<ApiErrorResponse> ActivateCustomer(Guid customerId) =>

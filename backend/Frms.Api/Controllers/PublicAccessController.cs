@@ -6,7 +6,7 @@ namespace Frms.Api.Controllers;
 
 /// <summary>Release 1 public read contracts pending a public-safe projection implementation.</summary>
 [Route("api/v1")]
-public sealed class PublicAccessScaffoldController : ScaffoldControllerBase
+public sealed class PublicAccessController : ScaffoldControllerBase
 {
     [AllowAnonymous]
     [HttpGet("unit-types")]

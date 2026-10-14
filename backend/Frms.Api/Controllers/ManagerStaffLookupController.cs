@@ -7,7 +7,7 @@ namespace Frms.Api.Controllers;
 
 [Authorize(Roles = RoleNames.FacilityManager)]
 [Route("api/v1/facilities/{facilityId:guid}/staff/lookup")]
-public sealed class ManagerStaffLookupScaffoldController : ScaffoldControllerBase
+public sealed class ManagerStaffLookupController : ScaffoldControllerBase
 {
     // UX-RBAC-09: only Staff in current Manager's assigned Facility.
     [HttpGet]

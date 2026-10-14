@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Frms.Api.Controllers;
 
 [Route("api/v1/business/extra-fee-types")]
-public sealed class ExtraFeeTypeReadScaffoldController : ScaffoldControllerBase
+public sealed class ExtraFeeTypeReadController : ScaffoldControllerBase
 {
     [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
     [HttpGet]

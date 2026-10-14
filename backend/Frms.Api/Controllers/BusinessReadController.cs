@@ -8,17 +8,9 @@ namespace Frms.Api.Controllers;
 // All endpoints in this controller are read-only. BOM does not inherit Admin writes.
 [Authorize(Roles = RoleNames.BusinessOperationsManager)]
 [Route("api/v1/business")]
-public sealed class BusinessReadScaffoldController : ScaffoldControllerBase
+public sealed class BusinessReadController : ScaffoldControllerBase
 {
-    // UX-RBAC-14 and UX-RBAC-16: exclude credentials/secrets; field-level PII awaits SRS.
-    [HttpGet("customers")]
-    public ActionResult<ApiErrorResponse> ListCustomers() =>
-        ScaffoldNotImplemented("UX-RBAC-14-LIST");
-
-    [HttpGet("customers/{customerId:guid}")]
-    public ActionResult<ApiErrorResponse> GetCustomer(Guid customerId) =>
-        ScaffoldNotImplemented("UX-RBAC-14-DETAIL");
-
+    // UX-RBAC-16: exclude credentials/secrets; field-level PII awaits SRS.
     [HttpGet("employees")]
     public ActionResult<ApiErrorResponse> ListEmployees() =>
         ScaffoldNotImplemented("UX-RBAC-16-LIST");
