@@ -1,0 +1,72 @@
+/* GWP-03 composes the shared public shell, controls and Customer tokens. */
+.frms-customer.customer-public .customer-content > .page-container.public-how-it-works { display: block; max-width: none; padding: 0; }
+.frms-customer .how-hero { padding: 32px 0 64px; background: #fff; }
+.frms-customer .how-hero-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 64px; align-items: center; padding-top: 40px; }
+.frms-customer .how-hero h1 { font-size: 48px; line-height: 1.18; letter-spacing: -.025em; margin: 12px 0 20px; }
+.frms-customer .how-intro { max-width: 560px; color: #475569; font-size: 16px; margin: 0 0 24px; }
+.frms-customer .how-hero .eyebrow { margin: 0; }
+.frms-customer .how-hero-media { display: flex; align-items: center; justify-content: center; min-height: 280px; border: 1px solid #dbeafe; border-radius: 16px; background: #eff6ff; color: var(--flow-brand); }
+.frms-customer .how-section { padding: 64px 0; background: #fff; }
+.frms-customer .how-tint { background: var(--customer-canvas); }
+.frms-customer .how-section-heading { max-width: 720px; margin: 0 auto 32px; text-align: center; }
+.frms-customer .how-section-heading .eyebrow { margin: 0 0 8px; }
+.frms-customer .how-section-heading h2 { margin: 0; }
+.frms-customer .how-narrow { max-width: 960px; }
+.frms-customer .how-steps { display: grid; gap: 24px; max-width: 960px; padding: 0; margin: 0 auto; list-style: none; }
+.frms-customer .how-step { display: flex; gap: 20px; align-items: flex-start; padding: 24px; border: 1px solid var(--flow-border); border-radius: 16px; background: #fff; box-shadow: var(--customer-shadow); }
+.frms-customer .how-step-number { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; min-width: 48px; min-height: 48px; border: 1px solid #dbeafe; border-radius: 12px; color: var(--flow-brand); background: #eff6ff; font-weight: 700; }
+.frms-customer .how-step-copy { flex: 1; min-width: 0; }
+.frms-customer .how-step-copy h3 { margin: 0 0 8px; }
+.frms-customer .how-step-copy p { margin: 0; color: #475569; }
+.frms-customer .how-step-copy .how-step-note { margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 12px; color: #475569; background: var(--customer-canvas); }
+.frms-customer .how-icon-tile { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 40px; height: 40px; border-radius: 10px; background: #eff6ff; color: var(--flow-brand); }
+.frms-customer .how-account-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.frms-customer .how-account-card { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; padding: 24px; border: 1px solid var(--flow-border); border-radius: 16px; box-shadow: var(--customer-shadow); }
+.frms-customer .how-label { padding: 4px 8px; border-radius: 6px; background: #eff6ff; color: #1d4ed8; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+.frms-customer .how-label-returning { background: #ecfdf5; color: #047857; }
+.frms-customer .how-account-card h3 { margin: 16px 0 12px; }
+.frms-customer .how-account-card p { margin: 0; color: #475569; }
+.frms-customer .how-checklist { display: grid; gap: 12px; padding: 0; margin: 24px 0; list-style: none; color: #475569; }
+.frms-customer .how-checklist li { display: flex; align-items: flex-start; gap: 8px; }
+.frms-customer .how-checklist svg { flex-shrink: 0; color: var(--flow-brand); margin-top: 2px; }
+.frms-customer .how-account-card .button { width: 100%; margin-top: auto; }
+.frms-customer .how-account-note, .frms-customer .how-rental-note { margin: 24px 0 0; color: #64748b; font-size: 12px; }
+.frms-customer .how-preparation-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; padding: 0; margin: 0; list-style: none; }
+.frms-customer .how-preparation-grid li, .frms-customer .how-rental-grid article { min-width: 0; padding: 24px; border: 1px solid var(--flow-border); border-radius: 16px; background: #fff; box-shadow: var(--customer-shadow); }
+.frms-customer .how-preparation-grid h3 { margin: 16px 0 8px; font-size: 16px; }
+.frms-customer .how-preparation-grid p, .frms-customer .how-rental-grid p { margin: 0; color: #475569; }
+.frms-customer .how-important { display: flex; align-items: center; gap: 16px; margin-top: 32px; padding: 24px; border: 1px solid #bfdbfe; border-radius: 12px; background: #eff6ff; }
+.frms-customer .how-important > div { flex: 1; min-width: 0; }
+.frms-customer .how-important h3 { font-size: 14px; margin: 0 0 4px; }
+.frms-customer .how-important p { margin: 0; color: #475569; }
+.frms-customer .how-important > a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 600; color: var(--flow-brand); }
+.frms-customer .how-rental-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.frms-customer .how-rental-grid h3 { margin: 16px 0 12px; }
+.frms-customer .how-ready { padding: 48px 0; text-align: center; background: var(--customer-canvas); }
+.frms-customer .how-ready h2 { margin: 0; }
+.frms-customer .how-ready p { color: #64748b; margin: 12px 0 24px; }
+@media (max-width: 1023px) {
+  .frms-customer .how-hero-grid { gap: 32px; }
+  .frms-customer .how-hero h1 { font-size: 36px; }
+  .frms-customer .how-preparation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .frms-customer .how-rental-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 767px) {
+  .frms-customer .how-hero { padding: 24px 0 32px; }
+  .frms-customer .how-hero-grid { grid-template-columns: 1fr; padding-top: 24px; gap: 24px; }
+  .frms-customer .how-hero h1 { font-size: 32px; }
+  .frms-customer .how-hero-media { min-height: 176px; }
+  .frms-customer .how-section { padding: 32px 0; }
+  .frms-customer .how-step { padding: 20px; gap: 12px; }
+  .frms-customer .how-step-number { min-width: 36px; min-height: 36px; border-radius: 8px; }
+  .frms-customer .how-step > .how-icon-tile { display: none; }
+  .frms-customer .how-account-grid { grid-template-columns: 1fr; }
+  .frms-customer .how-preparation-grid { gap: 16px; }
+  .frms-customer .how-preparation-grid li { padding: 16px; }
+  .frms-customer .how-important { flex-wrap: wrap; }
+  .frms-customer .how-important > div { flex-basis: calc(100% - 56px); }
+  .frms-customer .how-important > a { margin-left: 56px; }
+}
+@media (max-width: 389px) {
+  .frms-customer .how-preparation-grid { grid-template-columns: 1fr; }
+}

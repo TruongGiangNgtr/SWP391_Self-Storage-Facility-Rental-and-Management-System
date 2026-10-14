@@ -22,6 +22,7 @@ import { PublicStorageSearchPage } from '../pages/PublicStorageSearchPage'
 import { PublicFacilityDetailPage } from '../pages/PublicFacilityDetailPage'
 import { PublicUnavailablePage } from '../pages/PublicUnavailablePage'
 import { SizeGuidePage } from '../pages/SizeGuidePage'
+import { HowItWorksPage } from '../pages/HowItWorksPage'
 import { InvoiceDetailPage } from '../pages/InvoiceDetailPage'
 import { InvoiceListPage } from '../pages/InvoiceListPage'
 import { CustomerFeeReturnPage } from '../pages/CustomerFeeReturnPage'
@@ -79,7 +80,7 @@ export function AppRouter() {
     <Route path="facilities" element={<PublicStorageSearchPage />} />
     <Route path="facilities/:facilityId" element={<PublicFacilityDetailPage />} />
     <Route path="customer/storage-search" element={<StorageSearchPage />} />
-    <Route path="how-it-works" element={<PublicUnavailablePage title="How It Works" />} />
+    <Route path="how-it-works" element={<HowItWorksPage />} />
     <Route path="size-guide" element={<SizeGuidePage />} />
     <Route path="help" element={<PublicUnavailablePage title="Help Center" />} />
     <Route path="help/policies/:policyKey" element={<PublicUnavailablePage title="Policy Details" />} />
