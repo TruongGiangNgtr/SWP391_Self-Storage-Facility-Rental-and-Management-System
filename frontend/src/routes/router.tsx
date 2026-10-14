@@ -20,7 +20,8 @@ import { ForbiddenPage } from '../pages/ForbiddenPage'
 import { HomePage } from '../pages/HomePage'
 import { PublicStorageSearchPage } from '../pages/PublicStorageSearchPage'
 import { PublicFacilityDetailPage } from '../pages/PublicFacilityDetailPage'
-import { PublicUnavailablePage } from '../pages/PublicUnavailablePage'
+import { HelpCenterPage } from '../pages/HelpCenterPage'
+import { PublicPolicyDetailPage } from '../pages/PublicPolicyDetailPage'
 import { SizeGuidePage } from '../pages/SizeGuidePage'
 import { HowItWorksPage } from '../pages/HowItWorksPage'
 import { InvoiceDetailPage } from '../pages/InvoiceDetailPage'
@@ -82,8 +83,8 @@ export function AppRouter() {
     <Route path="customer/storage-search" element={<StorageSearchPage />} />
     <Route path="how-it-works" element={<HowItWorksPage />} />
     <Route path="size-guide" element={<SizeGuidePage />} />
-    <Route path="help" element={<PublicUnavailablePage title="Help Center" />} />
-    <Route path="help/policies/:policyKey" element={<PublicUnavailablePage title="Policy Details" />} />
+    <Route path="help" element={<HelpCenterPage />} />
+    <Route path="help/policies/:policyKey" element={<PublicPolicyDetailPage />} />
 
     <Route
       path="auth/customer/login"
