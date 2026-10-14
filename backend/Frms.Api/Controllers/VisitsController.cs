@@ -1,4 +1,5 @@
 using Frms.Api.Authorization;
+using Frms.Api.Mapping;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
@@ -32,7 +33,7 @@ public sealed class VisitsController(
             cancellationToken);
 
         var data = result.Items
-            .Select(ToResponse)
+            .Select(x => x.ToVisitResponse())
             .ToArray();
 
         var totalPages = result.TotalItems == 0
@@ -71,7 +72,7 @@ public sealed class VisitsController(
 
         return Ok(
             new ApiResponse<VisitDetailResponse>(
-                ToResponse(visit)));
+                visit.ToVisitResponse()));
     }
 
     /// <summary>VIS-005: Reschedule an eligible Visit.</summary>
@@ -92,7 +93,7 @@ public sealed class VisitsController(
 
         return Ok(
             new ApiResponse<VisitDetailResponse>(
-                ToResponse(visit),
+                visit.ToVisitResponse(),
                 "Visit rescheduled."));
     }
 
@@ -114,7 +115,7 @@ public sealed class VisitsController(
 
         return Ok(
             new ApiResponse<VisitDetailResponse>(
-                ToResponse(visit),
+                visit.ToVisitResponse(),
                 "Visit cancelled."));
     }
 
@@ -135,7 +136,7 @@ public sealed class VisitsController(
 
         return Ok(
             new ApiResponse<VisitDetailResponse>(
-                ToResponse(visit),
+                visit.ToVisitResponse(),
                 "Visit checked in."));
     }
 
@@ -156,7 +157,7 @@ public sealed class VisitsController(
 
         return Ok(
             new ApiResponse<VisitDetailResponse>(
-                ToResponse(visit),
+                visit.ToVisitResponse(),
                 "Visit checked out."));
     }
 
@@ -172,19 +173,5 @@ public sealed class VisitsController(
         return Ok(new ApiResponse<ConfirmActualReturnResponse>(new(
             r.VisitId, r.ActualReturnDate, r.InspectionId,
             r.InspectionStatus, r.StorageUnitStatus, r.ReturnClassification)));
-    }
-
-    private static VisitDetailResponse ToResponse(VisitResult visit)
-    {
-        return new VisitDetailResponse(
-            visit.VisitId,
-            visit.EntityId,
-            visit.VisitType,
-            visit.VisitDate,
-            visit.ActualReturnDate is null
-                ? null
-                : DateOnly.FromDateTime(visit.ActualReturnDate.Value),
-            visit.Status,
-            visit.EmployeeId);
     }
 }

@@ -1,4 +1,5 @@
 using Frms.Api.Authorization;
+using Frms.Api.Mapping;
 using Frms.Business.Services.Interfaces;
 using Frms.Business.Models.Commands;
 using Frms.Business.Models.Results;
@@ -25,7 +26,7 @@ public sealed class SupportTicketsController(ISupportTicketService supportTicket
             cancellationToken);
         return CreatedAtAction(nameof(GetSupportTicket),
             new { ticketId = ticket.SupportTicketId },
-            new ApiResponse<SupportTicketDetailResponse>(ToResponse(ticket)));
+            new ApiResponse<SupportTicketDetailResponse>(ticket.ToResponse()));
     }
 
     /// <summary>SUP-002: List accessible SupportTickets scaffold.</summary>
@@ -40,7 +41,7 @@ public sealed class SupportTicketsController(ISupportTicketService supportTicket
         if (User.IsInRole(RoleNames.BusinessOperationsManager))
             return ScaffoldNotImplemented("SUP-002-BOM");
         var result = await supportTicketService.ListAccessibleAsync(page, pageSize, cancellationToken);
-        var response = result.Items.Select(ToResponse).ToArray();
+        var response = result.Items.Select(x => x.ToResponse()).ToArray();
         return Ok(new PaginatedResponse<SupportTicketDetailResponse>(
             response, new PaginationResponse(page, pageSize, result.Total,
                 result.Total == 0 ? 0 : (int)Math.Ceiling(result.Total / (double)pageSize))));
@@ -57,7 +58,7 @@ public sealed class SupportTicketsController(ISupportTicketService supportTicket
         if (User.IsInRole(RoleNames.BusinessOperationsManager))
             return ScaffoldNotImplemented("SUP-003-BOM");
         var ticket = await supportTicketService.GetAccessibleAsync(ticketId, cancellationToken);
-        return Ok(new ApiResponse<SupportTicketDetailResponse>(ToResponse(ticket)));
+        return Ok(new ApiResponse<SupportTicketDetailResponse>(ticket.ToResponse()));
     }
 
     /// <summary>SUP-004: Cancel an eligible Customer-owned SupportTicket scaffold.</summary>
@@ -70,7 +71,7 @@ public sealed class SupportTicketsController(ISupportTicketService supportTicket
         CancellationToken cancellationToken)
     {
         var ticket = await supportTicketService.CancelAsync(ticketId, request.Reason, cancellationToken);
-        return Ok(new ApiResponse<SupportTicketDetailResponse>(ToResponse(ticket), "SupportTicket cancelled."));
+        return Ok(new ApiResponse<SupportTicketDetailResponse>(ticket.ToResponse(), "SupportTicket cancelled."));
     }
 
     /// <summary>SUP-005: Assign same-Facility Staff scaffold.</summary>
@@ -83,7 +84,7 @@ public sealed class SupportTicketsController(ISupportTicketService supportTicket
         CancellationToken cancellationToken)
     {
         var ticket = await supportTicketService.AssignAsync(ticketId, request.EmployeeId, cancellationToken);
-        return Ok(new ApiResponse<SupportTicketDetailResponse>(ToResponse(ticket), "SupportTicket assigned."));
+        return Ok(new ApiResponse<SupportTicketDetailResponse>(ticket.ToResponse(), "SupportTicket assigned."));
     }
 
     /// <summary>SUP-006: Complete a ticket assigned to the current Facility Staff.</summary>
@@ -97,7 +98,7 @@ public sealed class SupportTicketsController(ISupportTicketService supportTicket
     {
         var ticket = await supportTicketService.CompleteAsync(
             new CompleteSupportTicketCommand(ticketId, request.ResultNote), cancellationToken);
-        return Ok(new ApiResponse<SupportTicketDetailResponse>(ToResponse(ticket), "SupportTicket completed."));
+        return Ok(new ApiResponse<SupportTicketDetailResponse>(ticket.ToResponse(), "SupportTicket completed."));
     }
 
     private static SupportTicketDetailResponse ToResponse(SupportTicketResult ticket) => new(

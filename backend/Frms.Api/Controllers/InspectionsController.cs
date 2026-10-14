@@ -1,4 +1,5 @@
 using Frms.Api.Authorization;
+using Frms.Api.Mapping;
 using Frms.Business.Services.Interfaces;
 using Frms.DataAccess.Repositories.Models;
 using Frms.Api.DTOs.Requests;
@@ -14,10 +15,6 @@ public sealed class InspectionsController(
     IInspectionService inspectionService,
     IInspectionWorkflowService workflow) : ScaffoldControllerBase
 {
-    private static InspectionSummaryResponse ToSummary(InspectionResult r)
-        => new(r.InspectionId, r.ContractId, r.StorageUnitId, r.VisitId,
-            r.EmployeeId, r.Status, r.ConditionNote, r.CompletedAt);
-
     [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
     [HttpGet("inspections")]
     public async Task<IActionResult> ListInspections(
@@ -28,7 +25,7 @@ public sealed class InspectionsController(
         if (User.IsInRole(RoleNames.BusinessOperationsManager))
             return ScaffoldNotImplemented("INS-001-BOM");
         var result = await inspectionService.ListAccessibleAsync(page, pageSize, cancellationToken);
-        var data = result.Items.Select(ToSummaryResponse).ToArray();
+        var data = result.Items.Select(x => x.ToSummary()).ToArray();
         var totalPages = result.TotalItems == 0 ? 0 : (int)Math.Ceiling(result.TotalItems / (double)pageSize);
         return Ok(new {
             data,
@@ -48,38 +45,7 @@ public sealed class InspectionsController(
         var result = await inspectionService.GetAccessibleAsync(
             inspectionId, cancellationToken);
 
-        var i = result.Inspection;
-
-        var response = new InspectionMonitoringDetailResponse(
-            i.InspectionId,
-            i.ContractId,
-            i.StorageUnitId,
-            i.VisitId,
-            i.EmployeeId,
-            i.Status,
-            i.ConditionNote,
-            result.Damages.Select(x =>
-                new InspectionMonitoringDamageResponse(
-                    x.DamageRecordId,
-                    x.DamageTypeId,
-                    x.DamageTypeName,
-                    x.DamageAmount,
-                    x.Note,
-                    x.Status,
-                    x.CreatedAt)).ToArray(),
-            result.ExtraFees.Select(x =>
-                new InspectionMonitoringExtraFeeResponse(
-                    x.ExtraFeeId,
-                    x.ExtraFeeTypeId,
-                    x.Amount,
-                    x.Reason,
-                    x.CreatedAt)).ToArray(),
-            result.Evidence.Select(x =>
-                new InspectionEvidenceMetadataResponse(
-                    x.InspectionEvidenceId,
-                    x.EvidenceType,
-                    x.CreatedAt)).ToArray(),
-            i.CompletedAt);
+        var response = result.ToMonitoringDetail();
 
         return Ok(
             new ApiResponse<InspectionMonitoringDetailResponse>(
@@ -94,7 +60,7 @@ public sealed class InspectionsController(
         Guid inspectionId, CancellationToken cancellationToken)
     {
         var r = await workflow.ClaimAsync(inspectionId, cancellationToken);
-        return Ok(new ApiResponse<InspectionSummaryResponse>(ToSummary(r)));
+        return Ok(new ApiResponse<InspectionSummaryResponse>(r.ToSummary()));
     }
 
     [Authorize(Roles = RoleNames.FacilityStaff)]
@@ -152,7 +118,7 @@ public sealed class InspectionsController(
         CancellationToken cancellationToken)
     {
         var r = await workflow.CompleteAsync(inspectionId, request.ConditionNote, cancellationToken);
-        return Ok(new ApiResponse<InspectionSummaryResponse>(ToSummary(r)));
+        return Ok(new ApiResponse<InspectionSummaryResponse>(r.ToSummary()));
     }
 
     // MWP-04 only. Intentionally not implemented in FWP-05/06/07 scope.
@@ -178,12 +144,7 @@ public sealed class InspectionsController(
         CancellationToken cancellationToken)
     {
         var types = await inspectionService.ListActiveDamageTypesAsync(cancellationToken);
-        var response = types.Select(x => new DamageTypeResponse(
-            x.DamageTypeId, x.Name, x.DefaultAmount, x.Status)).ToArray();
+        var response = types.Select(x => x.ToResponse()).ToArray();
         return Ok(new ApiResponse<IReadOnlyList<DamageTypeResponse>>(response));
     }
-
-    private static InspectionMonitoringSummaryResponse ToSummaryResponse(InspectionSummaryRecord x) => new(
-        x.InspectionId, x.ContractId, x.StorageUnitId, x.VisitId,
-        x.EmployeeId, x.FacilityId, x.Status, x.ConditionNote, x.CompletedAt);
 }

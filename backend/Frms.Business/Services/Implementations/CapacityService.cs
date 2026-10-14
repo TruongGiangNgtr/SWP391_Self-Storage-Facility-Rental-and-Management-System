@@ -1,4 +1,5 @@
 using System.Globalization;
+using Frms.Business.Rules;
 using Frms.Business.Abstractions.Security;
 using Frms.Business.Exceptions;
 using Frms.Business.Models.Results;
@@ -89,7 +90,7 @@ internal sealed class CapacityService(
                 403);
         }
 
-        var range = ParseRequestedPeriod(
+        var range = RequestedPeriodRule.Parse(
             startMonth,
             endMonth);
 

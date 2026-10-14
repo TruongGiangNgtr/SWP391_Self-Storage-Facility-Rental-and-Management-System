@@ -1,4 +1,5 @@
 using Frms.Business.Models.Results;
+using Frms.Business.Mapping;
 using Frms.Business.Services.Interfaces;
 using Frms.DataAccess.Persistence.Entities;
 using Frms.DataAccess.Repositories.Interfaces;
@@ -17,7 +18,7 @@ internal sealed class PolicyService(
             cancellationToken);
 
         var results = items
-            .Select(Map)
+            .Select(x => x.ToResult())
             .ToList();
 
         return (results, totalItems);
@@ -42,22 +43,6 @@ internal sealed class PolicyService(
             earlyReturnWaiveFeeUntilDay,
             cancellationToken);
 
-        return Map(policy);
+        return policy.ToResult();
     }
-
-    private static PolicyResult Map(Policy policy)
-        => new(
-            policy.PolicyId,
-            policy.Version,
-            policy.Status,
-            policy.EffectiveFrom,
-            policy.EffectiveTo,
-            policy.DepositTimeoutHours,
-            policy.ReservationVisitStartDay,
-            policy.ReservationVisitEndDay,
-            policy.MonthlyPaymentDueDay,
-            policy.OverdueStartDay,
-            policy.LateFeeDivisorDays,
-            policy.EarlyReturnWaiveFeeUntilDay,
-            policy.CreatedAt);
 }

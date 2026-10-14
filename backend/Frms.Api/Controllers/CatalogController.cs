@@ -1,5 +1,6 @@
 using Frms.Business.Models.Results;
 using Frms.Api.Authorization;
+using Frms.Api.Mapping;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -47,7 +48,7 @@ public sealed class CatalogController(
                 cancellationToken);
 
         var data = result.Items
-            .Select(MapFacility)
+            .Select(x => x.ToSummary())
             .ToArray();
 
         var totalPages =
@@ -84,7 +85,7 @@ public sealed class CatalogController(
 
         return Ok(
             new ApiResponse<FacilitySummaryResponse>(
-                MapFacility(result)));
+                result.ToSummary()));
     }
 
     /// <summary>
@@ -116,19 +117,9 @@ public sealed class CatalogController(
         }
 
         return Ok(new {
-            data = Map(unitType)
+            data = unitType.ToSummary()
         });
     }
-
-    private static UnitTypeSummary Map(
-        UnitTypeResult unitType)
-        => new(
-            unitType.UnitTypeId,
-            unitType.Name,
-            unitType.Mode,
-            unitType.Size,
-            unitType.RentalPrice,
-            unitType.Description);
 
     /// <summary>
     /// CAT-003: Unit Types offered at a Facility
@@ -184,20 +175,7 @@ public sealed class CatalogController(
             cancellationToken);
 
         var data = result.Items
-            .Select(x =>
-                new UnitTypeAvailabilityResponse(
-                    x.UnitTypeId,
-                    x.Name,
-                    x.Mode,
-                    x.Size,
-                    x.RentalPrice,
-                    x.Description,
-                    x.RequestedStartMonth is null
-                        ? null
-                        : new RequestedPeriodResponse(
-                            x.RequestedStartMonth.Value.ToString("yyyy-MM"),
-                            x.RequestedEndMonth!.Value.ToString("yyyy-MM")),
-                    x.AvailableCapacity))
+            .Select(x => x.ToAvailabilityResponse())
             .ToArray();
 
         var totalPages =
@@ -216,14 +194,4 @@ public sealed class CatalogController(
             }
         });
     }
-
-    private static FacilitySummaryResponse MapFacility(
-        Frms.Business.Models.Results.FacilityCatalogResult facility)
-        => new(
-            facility.FacilityId,
-            facility.Name,
-            facility.Address,
-            facility.ContactInfo,
-            facility.Description,
-            facility.Status);
 }

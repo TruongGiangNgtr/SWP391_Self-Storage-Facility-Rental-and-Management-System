@@ -1,4 +1,5 @@
 using Frms.Api.Authorization;
+using Frms.Api.Mapping;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Models.Commands;
@@ -42,7 +43,7 @@ public sealed class StorageUnitsController(
                 cancellationToken);
 
         var data = items
-            .Select(ToResponse)
+            .Select(x => x.ToResponse())
             .ToList();
 
         var totalPages = totalCount == 0
@@ -107,7 +108,7 @@ public sealed class StorageUnitsController(
 
         return Ok(
             new ApiResponse<StorageUnitDetailResponse>(
-                ToResponse(result)));
+                result.ToResponse()));
     }
 
     /// <summary>UNIT-004: Update allowed StorageUnit fields.</summary>
@@ -132,7 +133,7 @@ public sealed class StorageUnitsController(
 
         return Ok(
             new ApiResponse<StorageUnitDetailResponse>(
-                ToResponse(result),
+                result.ToResponse(),
                 "StorageUnit updated."));
     }
 
@@ -157,17 +158,7 @@ public sealed class StorageUnitsController(
 
         return Ok(
             new ApiResponse<StorageUnitDetailResponse>(
-                ToResponse(result),
+                result.ToResponse(),
                 "StorageUnit status updated."));
     }
-
-    private static StorageUnitDetailResponse ToResponse(
-        StorageUnitResult result) =>
-        new(
-            result.StorageUnitId,
-            result.FacilityId,
-            result.UnitTypeId,
-            result.UnitCode,
-            result.LocationInfo,
-            result.Status);
 }

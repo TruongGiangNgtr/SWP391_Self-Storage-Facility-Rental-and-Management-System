@@ -1,6 +1,8 @@
 using Frms.Api.DTOs.Requests;
+using Frms.Api.Mapping;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Services.Interfaces;
+using Frms.Business.Validators;
 using Frms.Business.Models.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,7 +34,7 @@ public sealed class BusinessPoliciesController(
             cancellationToken);
 
         var data = items
-            .Select(Map)
+            .Select(x => x.ToSummary())
             .ToList();
 
         var totalPages = totalItems == 0
@@ -57,54 +59,16 @@ public sealed class BusinessPoliciesController(
     public async Task<IActionResult> CreatePolicyVersion(
         [FromBody] CreatePolicyVersionRequest request,
         CancellationToken cancellationToken = default) {
-        if (request.DepositTimeoutHours <= 0) {
-            return ValidationError(
-                "depositTimeoutHours",
-                "Deposit timeout hours must be greater than 0.");
-        }
-
-        if (!IsValidDay(request.ReservationVisitStartDay)) {
-            return ValidationError(
-                "reservationVisitStartDay",
-                "Reservation visit start day must be between 1 and 31.");
-        }
-
-        if (!IsValidDay(request.ReservationVisitEndDay)) {
-            return ValidationError(
-                "reservationVisitEndDay",
-                "Reservation visit end day must be between 1 and 31.");
-        }
-
-        if (request.ReservationVisitStartDay >
-            request.ReservationVisitEndDay) {
-            return ValidationError(
-                "reservationVisitEndDay",
-                "Reservation visit end day must be greater than or equal to start day.");
-        }
-
-        if (!IsValidDay(request.MonthlyPaymentDueDay)) {
-            return ValidationError(
-                "monthlyPaymentDueDay",
-                "Monthly payment due day must be between 1 and 31.");
-        }
-
-        if (!IsValidDay(request.OverdueStartDay)) {
-            return ValidationError(
-                "overdueStartDay",
-                "Overdue start day must be between 1 and 31.");
-        }
-
-        if (request.LateFeeDivisorDays <= 0) {
-            return ValidationError(
-                "lateFeeDivisorDays",
-                "Late fee divisor days must be greater than 0.");
-        }
-
-        if (!IsValidDay(request.EarlyReturnWaiveFeeUntilDay)) {
-            return ValidationError(
-                "earlyReturnWaiveFeeUntilDay",
-                "Early return waive fee cutoff must be between 1 and 31.");
-        }
+        var validation = PolicyVersionValidator.Validate(
+            request.DepositTimeoutHours,
+            request.ReservationVisitStartDay,
+            request.ReservationVisitEndDay,
+            request.MonthlyPaymentDueDay,
+            request.OverdueStartDay,
+            request.LateFeeDivisorDays,
+            request.EarlyReturnWaiveFeeUntilDay);
+        if (validation is { } error)
+            return ValidationError(error.Field, error.Message);
 
         var policy = await policyService.CreateVersionAsync(
             request.DepositTimeoutHours,
@@ -119,29 +83,10 @@ public sealed class BusinessPoliciesController(
         return StatusCode(
             StatusCodes.Status201Created,
             new {
-                data = Map(policy),
+                data = policy.ToSummary(),
                 message = "Policy version created."
             });
     }
-
-    private static bool IsValidDay(int value)
-        => value is >= 1 and <= 31;
-
-    private static PolicySummary Map(PolicyResult policy)
-        => new(
-            policy.PolicyId,
-            policy.Version,
-            policy.Status,
-            policy.EffectiveFrom,
-            policy.EffectiveTo,
-            policy.DepositTimeoutHours,
-            policy.ReservationVisitStartDay,
-            policy.ReservationVisitEndDay,
-            policy.MonthlyPaymentDueDay,
-            policy.OverdueStartDay,
-            policy.LateFeeDivisorDays,
-            policy.EarlyReturnWaiveFeeUntilDay,
-            policy.CreatedAt);
 
     private BadRequestObjectResult ValidationError(
         string field,
