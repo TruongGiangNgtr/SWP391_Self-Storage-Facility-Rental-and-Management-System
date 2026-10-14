@@ -33,7 +33,7 @@ public sealed class CustomerControllerConsolidationTests
     [Test]
     public void RemainingBusinessScaffolds_KeepExistingBusinessRole()
     {
-        var business = typeof(BusinessReadScaffoldController);
+        var business = typeof(BusinessReadController);
         Assert.That(business.GetCustomAttribute<AuthorizeAttribute>()?.Roles,
             Is.EqualTo("BUSINESS_OPERATIONS_MANAGER"));
         Assert.That(business.GetMethod("ListCustomers"), Is.Null);
