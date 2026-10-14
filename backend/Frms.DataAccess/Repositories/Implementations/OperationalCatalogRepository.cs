@@ -31,6 +31,28 @@ internal sealed class OperationalCatalogRepository(FrmsDbContext db) : IOperatio
         return new ExtraFeeTypeRecord(entity.ExtraFeeTypeId, entity.Name, entity.DefaultAmount, entity.Status);
     }
 
+    public async Task<(IReadOnlyList<PublicUnitTypeRecord> Items, int Total)> ListFacilityOfferedUnitTypesAsync(
+        Guid facilityId, string? mode, string? size, Guid? unitTypeId,
+        string sortBy, bool descending, int? skip, int? take, CancellationToken ct)
+    {
+        IQueryable<UnitType> query = db.UnitTypes.AsNoTracking().Where(x =>
+            db.StorageUnits.Any(u => u.FacilityId == facilityId && u.UnitTypeId == x.UnitTypeId));
+        if (mode is not null) query = query.Where(x => x.Mode == mode);
+        if (size is not null) query = query.Where(x => x.Size.ToLower() == size);
+        if (unitTypeId.HasValue) query = query.Where(x => x.UnitTypeId == unitTypeId.Value);
+        var total = await query.CountAsync(ct);
+        query = sortBy == "rentalPrice"
+            ? (descending ? query.OrderByDescending(x => x.RentalPrice).ThenBy(x => x.UnitTypeId)
+                          : query.OrderBy(x => x.RentalPrice).ThenBy(x => x.UnitTypeId))
+            : (descending ? query.OrderByDescending(x => x.Name).ThenBy(x => x.UnitTypeId)
+                          : query.OrderBy(x => x.Name).ThenBy(x => x.UnitTypeId));
+        if (skip.HasValue) query = query.Skip(skip.Value);
+        if (take.HasValue) query = query.Take(take.Value);
+        var rows = await query.Select(x => new PublicUnitTypeRecord(x.UnitTypeId,
+            x.Name, x.Mode, x.Size, x.RentalPrice, x.Description)).ToArrayAsync(ct);
+        return (rows, total);
+    }
+
     public async Task<(IReadOnlyList<PublicUnitTypeRecord> Items, int Total)> ListPublicUnitTypesAsync(
         string? mode, string? size, Guid? unitTypeId, string sortBy, bool descending,
         int page, int pageSize, CancellationToken ct)

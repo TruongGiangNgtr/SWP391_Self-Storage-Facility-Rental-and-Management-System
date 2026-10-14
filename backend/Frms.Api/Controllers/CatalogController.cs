@@ -18,8 +18,7 @@ public sealed class CatalogController(
     IOperationalCatalogService publicCatalog)
     : ScaffoldControllerBase {
 
-    /// <summary>CAT-001: Browse active Facilities scaffold.</summary>
-    /// <summary>CAT-001: Browse active Facilities.</summary>
+    /// <summary>CAT-001: Browse/search active Facilities with server-side filters.</summary>
     [AllowAnonymous]
     [HttpGet("facilities")]
     [ProducesResponseType(
@@ -38,15 +37,9 @@ public sealed class CatalogController(
         [FromQuery] string? endMonth = null,
         [FromQuery] string? sortBy = null,
         [FromQuery] string? sortDirection = null) {
-        if (location is not null || facilityId.HasValue || mode is not null ||
-            size is not null || unitTypeId.HasValue || startMonth is not null ||
-            endMonth is not null || sortBy is not null || sortDirection is not null)
-            return ScaffoldNotImplemented("CAT-001-SEARCH");
-        var result =
-            await facilityCatalogService.GetActiveFacilitiesAsync(
-                page,
-                pageSize,
-                cancellationToken);
+        var result = await facilityCatalogService.SearchActiveFacilitiesAsync(
+            location, facilityId, mode, size, unitTypeId, startMonth, endMonth,
+            sortBy, sortDirection, page, pageSize, cancellationToken);
 
         var data = result.Items
             .Select(x => x.ToSummary())
@@ -154,7 +147,13 @@ public sealed class CatalogController(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default,
-        [FromQuery] string? view = null) {
+        [FromQuery] string? view = null,
+        [FromQuery] string? mode = null,
+        [FromQuery] string? size = null,
+        [FromQuery] Guid? unitTypeId = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] string? sortDirection = null,
+        [FromQuery] string? availableOnly = null) {
         if (page < 1 || pageSize < 1 || pageSize > 100) {
             return BadRequest(new {
                 code = "VALIDATION_ERROR",
@@ -170,7 +169,16 @@ public sealed class CatalogController(
                 traceId = HttpContext.TraceIdentifier
             });
         if (view != "operational")
-            return ScaffoldNotImplemented("CAT-003-PUBLIC");
+        {
+            var publicResult = await publicCatalog.ListFacilityPublicUnitTypesAsync(
+                facilityId, mode, size, unitTypeId, startMonth, endMonth,
+                sortBy, sortDirection, availableOnly, page, pageSize, cancellationToken);
+            var publicData = publicResult.Items.Select(x => x.ToAvailabilityResponse()).ToArray();
+            var publicPages = publicResult.TotalItems == 0 ? 0 :
+                (int)Math.Ceiling(publicResult.TotalItems / (double)pageSize);
+            return Ok(new PaginatedResponse<UnitTypeAvailabilityResponse>(publicData,
+                new PaginationResponse(page, pageSize, publicResult.TotalItems, publicPages)));
+        }
         if (User.Identity?.IsAuthenticated != true)
             return Unauthorized();
         if (!User.IsInRole(RoleNames.Customer) &&
@@ -181,6 +189,12 @@ public sealed class CatalogController(
             await facilityAuthorizationService.EnsureSameFacilityAsync(
                 facilityId, cancellationToken);
         }
+
+        if (mode is not null || size is not null || unitTypeId.HasValue ||
+            sortBy is not null || sortDirection is not null || availableOnly is not null)
+            return BadRequest(new ApiErrorResponse("VALIDATION_ERROR",
+                "Public catalogue filters are not supported in operational view.",
+                HttpContext.TraceIdentifier));
 
         var result = await capacityService.ListUnitTypesAsync(
             facilityId,
