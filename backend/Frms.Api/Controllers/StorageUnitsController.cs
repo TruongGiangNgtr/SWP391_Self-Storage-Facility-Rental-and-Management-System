@@ -10,12 +10,13 @@ using Frms.Business.Models;
 
 namespace Frms.Api.Controllers;
 
-[Authorize(Roles = RoleNames.FacilityManager)]
+[Authorize]
 [Route("api/v1")]
 public sealed class StorageUnitsController(
     IStorageUnitService storageUnitService)
     : ScaffoldControllerBase {
     /// <summary>UNIT-001: List Facility StorageUnits.</summary>
+    [Authorize(Roles = RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
     [HttpGet("facilities/{facilityId:guid}/storage-units")]
     [ProducesResponseType(
         typeof(PaginatedResponse<StorageUnitDetailResponse>),
@@ -29,6 +30,8 @@ public sealed class StorageUnitsController(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
             CancellationToken cancellationToken = default) {
+        if (User.IsInRole(RoleNames.BusinessOperationsManager))
+            return ScaffoldNotImplemented("UNIT-001-BOM");
         var (items, totalCount) =
             await storageUnitService.ListByFacilityAsync(
                 facilityId,
@@ -58,6 +61,7 @@ public sealed class StorageUnitsController(
     }
 
     /// <summary>UNIT-002: Create StorageUnit.</summary>
+    [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpPost("facilities/{facilityId:guid}/storage-units")]
     [ProducesResponseType(
         typeof(ApiResponse<Guid>),
@@ -84,6 +88,7 @@ public sealed class StorageUnitsController(
     }
 
     /// <summary>UNIT-003: StorageUnit detail.</summary>
+    [Authorize(Roles = RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
     [HttpGet("storage-units/{storageUnitId:guid}")]
     [ProducesResponseType(
         typeof(ApiResponse<StorageUnitDetailResponse>),
@@ -93,6 +98,8 @@ public sealed class StorageUnitsController(
         GetStorageUnit(
             Guid storageUnitId,
             CancellationToken cancellationToken) {
+        if (User.IsInRole(RoleNames.BusinessOperationsManager))
+            return ScaffoldNotImplemented("UNIT-003-BOM");
         var result =
             await storageUnitService.GetByIdAsync(
                 storageUnitId,
@@ -104,6 +111,7 @@ public sealed class StorageUnitsController(
     }
 
     /// <summary>UNIT-004: Update allowed StorageUnit fields.</summary>
+    [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpPatch("storage-units/{storageUnitId:guid}")]
     [ProducesResponseType(
         typeof(ApiResponse<StorageUnitDetailResponse>),
@@ -129,6 +137,7 @@ public sealed class StorageUnitsController(
     }
 
     /// <summary>UNIT-005: Operational StorageUnit status transition.</summary>
+    [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpPost("storage-units/{storageUnitId:guid}/status")]
     [ProducesResponseType(
         typeof(ApiResponse<StorageUnitDetailResponse>),

@@ -18,7 +18,7 @@ public sealed class CatalogController(
 
     /// <summary>CAT-001: Browse active Facilities scaffold.</summary>
     /// <summary>CAT-001: Browse active Facilities.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
+    [AllowAnonymous]
     [HttpGet("facilities")]
     [ProducesResponseType(
         typeof(PaginatedResponse<FacilitySummaryResponse>),
@@ -26,7 +26,20 @@ public sealed class CatalogController(
     public async Task<IActionResult> BrowseFacilities(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default) {
+        CancellationToken cancellationToken = default,
+        [FromQuery] string? location = null,
+        [FromQuery] Guid? facilityId = null,
+        [FromQuery] string? mode = null,
+        [FromQuery] string? size = null,
+        [FromQuery] Guid? unitTypeId = null,
+        [FromQuery] string? startMonth = null,
+        [FromQuery] string? endMonth = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] string? sortDirection = null) {
+        if (location is not null || facilityId.HasValue || mode is not null ||
+            size is not null || unitTypeId.HasValue || startMonth is not null ||
+            endMonth is not null || sortBy is not null || sortDirection is not null)
+            return ScaffoldNotImplemented("CAT-001-SEARCH");
         var result =
             await facilityCatalogService.GetActiveFacilitiesAsync(
                 page,
@@ -56,7 +69,7 @@ public sealed class CatalogController(
     }
 
     /// <summary>CAT-002: Active Facility detail.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
+    [AllowAnonymous]
     [HttpGet("facilities/{facilityId:guid}")]
     [ProducesResponseType(
         typeof(ApiResponse<FacilitySummaryResponse>),
@@ -78,16 +91,18 @@ public sealed class CatalogController(
     /// CAT-004: Unit Type detail.
     /// UnitType catalogue metadata is owned by SSP-01.
     /// </summary>
-    [Authorize(
-        Roles =
-            RoleNames.Customer + "," +
-            RoleNames.FacilityStaff + "," +
-            RoleNames.FacilityManager)]
+    [AllowAnonymous]
     [HttpGet("unit-types/{unitTypeId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<UnitTypeSummary>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUnitType(
         Guid unitTypeId,
         CancellationToken cancellationToken = default) {
+        if (User.Identity?.IsAuthenticated != true)
+            return ScaffoldNotImplemented("CAT-004-PUBLIC");
+        if (!User.IsInRole(RoleNames.Customer) &&
+            !User.IsInRole(RoleNames.FacilityStaff) &&
+            !User.IsInRole(RoleNames.FacilityManager))
+            return Forbid();
         var unitType = await unitTypeService.GetByIdAsync(
             unitTypeId,
             cancellationToken);
@@ -120,11 +135,7 @@ public sealed class CatalogController(
     /// with optional requested-period capacity.
     /// Capacity calculation is owned by SSP-02.
     /// </summary>
-    [Authorize(
-        Roles =
-            RoleNames.Customer + "," +
-            RoleNames.FacilityStaff + "," +
-            RoleNames.FacilityManager)]
+    [AllowAnonymous]
     [HttpGet("facilities/{facilityId:guid}/unit-types")]
     [ProducesResponseType(
         typeof(PaginatedResponse<UnitTypeAvailabilityResponse>),
@@ -135,7 +146,8 @@ public sealed class CatalogController(
         [FromQuery] string? endMonth = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default) {
+        CancellationToken cancellationToken = default,
+        [FromQuery] string? view = null) {
         if (page < 1 || pageSize < 1 || pageSize > 100) {
             return BadRequest(new {
                 code = "VALIDATION_ERROR",
@@ -144,12 +156,23 @@ public sealed class CatalogController(
             });
         }
 
-        // Customer may browse ACTIVE facilities.
-        // Staff/Manager must be assigned to the path Facility.
+        if (view is not null && view != "public" && view != "operational")
+            return BadRequest(new {
+                code = "VALIDATION_ERROR",
+                message = "Unsupported view; choose public or operational.",
+                traceId = HttpContext.TraceIdentifier
+            });
+        if (view != "operational")
+            return ScaffoldNotImplemented("CAT-003-PUBLIC");
+        if (User.Identity?.IsAuthenticated != true)
+            return Unauthorized();
+        if (!User.IsInRole(RoleNames.Customer) &&
+            !User.IsInRole(RoleNames.FacilityStaff) &&
+            !User.IsInRole(RoleNames.FacilityManager))
+            return Forbid();
         if (!User.IsInRole(RoleNames.Customer)) {
             await facilityAuthorizationService.EnsureSameFacilityAsync(
-                facilityId,
-                cancellationToken);
+                facilityId, cancellationToken);
         }
 
         var result = await capacityService.ListUnitTypesAsync(

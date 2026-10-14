@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Frms.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = "BUSINESS_OPERATIONS_MANAGER,SYSTEM_ADMINISTRATOR")]
+[Authorize(Roles = "BUSINESS_OPERATIONS_MANAGER")]
 [Route("api/v1/business/facilities")]
 public sealed class BusinessFacilitiesController(
     IFacilityService facilityService) : ControllerBase {

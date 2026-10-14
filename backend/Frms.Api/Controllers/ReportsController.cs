@@ -10,13 +10,15 @@ namespace Frms.Api.Controllers;
 public sealed class ReportsController(IFacilityOperationsReportService facilityOperationsReportService) : ScaffoldControllerBase
 {
     /// <summary>REP-001: Facility Operations report scaffold.</summary>
-    [Authorize(Roles = RoleNames.FacilityManager)]
+    [Authorize(Roles = RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
     [HttpGet("facilities/{facilityId:guid}/operations")]
     [ProducesResponseType(typeof(ApiResponse<FacilityOperationsReportResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<FacilityOperationsReportResponse>>> GetFacilityOperationsReport(
         Guid facilityId,
         CancellationToken cancellationToken)
     {
+        if (User.IsInRole(RoleNames.BusinessOperationsManager))
+            return ScaffoldNotImplemented("REP-001-BOM");
         var result = await facilityOperationsReportService.GetAsync(facilityId, cancellationToken);
         var data = result.Operations;
         return Ok(new ApiResponse<FacilityOperationsReportResponse>(
@@ -27,7 +29,7 @@ public sealed class ReportsController(IFacilityOperationsReportService facilityO
     }
 
     /// <summary>REP-002: Facility revenue report scaffold.</summary>
-    [Authorize(Roles = RoleNames.FacilityManager)]
+    [Authorize(Roles = RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
     [HttpGet("facilities/{facilityId:guid}/revenue")]
     public ActionResult<ApiErrorResponse> GetFacilityRevenueReport(
         Guid facilityId,

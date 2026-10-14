@@ -18,13 +18,15 @@ public sealed class InspectionsController(
         => new(r.InspectionId, r.ContractId, r.StorageUnitId, r.VisitId,
             r.EmployeeId, r.Status, r.ConditionNote, r.CompletedAt);
 
-    [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
+    [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
     [HttpGet("inspections")]
     public async Task<IActionResult> ListInspections(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
+        if (User.IsInRole(RoleNames.BusinessOperationsManager))
+            return ScaffoldNotImplemented("INS-001-BOM");
         var result = await inspectionService.ListAccessibleAsync(page, pageSize, cancellationToken);
         var data = result.Items.Select(ToSummaryResponse).ToArray();
         var totalPages = result.TotalItems == 0 ? 0 : (int)Math.Ceiling(result.TotalItems / (double)pageSize);
@@ -34,12 +36,14 @@ public sealed class InspectionsController(
         });
     }
 
-    [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
+    [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
     [HttpGet("inspections/{inspectionId:guid}")]
     public async Task<ActionResult<ApiResponse<InspectionMonitoringDetailResponse>>> GetInspection(
         Guid inspectionId,
         CancellationToken cancellationToken)
     {
+        if (User.IsInRole(RoleNames.BusinessOperationsManager))
+            return ScaffoldNotImplemented("INS-002-BOM");
 
         var result = await inspectionService.GetAccessibleAsync(
             inspectionId, cancellationToken);

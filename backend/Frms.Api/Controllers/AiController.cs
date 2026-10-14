@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Frms.Api.Controllers;
 
-[Authorize(Roles = RoleNames.Customer)]
+[AllowAnonymous]
 [Route("api/v1/ai")]
 public sealed class AiController : ScaffoldControllerBase
 {

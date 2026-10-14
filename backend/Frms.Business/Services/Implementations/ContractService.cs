@@ -52,6 +52,7 @@ internal sealed class ContractService(
                 break;
             }
 
+            case FacilityStaffRole:
             case FacilityManagerRole: {
                 var facilityId =
                     await facilityAuthorizationService
