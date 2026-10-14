@@ -1,4 +1,5 @@
 using Frms.Api.Authorization;
+using Frms.Api.Mapping;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Services.Interfaces;
@@ -33,7 +34,7 @@ public sealed class AdminController(
                 cancellationToken);
 
         var data = items
-            .Select(Map)
+            .Select(x => x.ToResponse())
             .ToList();
 
         var totalPages = totalItems == 0
@@ -67,45 +68,8 @@ public sealed class AdminController(
             return ResourceNotFound();
 
         return Ok(new {
-            data = Map(row.Value)
+            data = row.Value.ToResponse()
         });
-    }
-
-    private static AdminUserAccountResponse Map(
-        (
-            AccountProfileResult Account,
-            string RoleName,
-            CustomerProfileResult? Customer,
-            EmployeeProfileResult? Employee) row) {
-        AdminUserProfileResponse? profile = null;
-
-        if (row.Customer is not null) {
-            profile = new AdminUserProfileResponse(
-                CustomerId: row.Customer.CustomerId,
-                EmployeeId: null,
-                FullName: row.Customer.FullName,
-                Address: row.Customer.Address,
-                Cccd: row.Customer.Cccd,
-                FacilityId: null);
-        }
-        else if (row.Employee is not null) {
-            profile = new AdminUserProfileResponse(
-                CustomerId: null,
-                EmployeeId: row.Employee.EmployeeId,
-                FullName: row.Employee.FullName,
-                Address: null,
-                Cccd: null,
-                FacilityId: row.Employee.FacilityId);
-        }
-
-        return new AdminUserAccountResponse(
-            row.Account.UserAccountId,
-            row.RoleName,
-            row.Account.Status,
-            row.Account.Email,
-            row.Account.PhoneNumber,
-            row.Account.CreatedAt,
-            profile);
     }
 
     private ObjectResult ResourceNotFound()

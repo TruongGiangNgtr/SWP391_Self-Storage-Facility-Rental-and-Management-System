@@ -1,4 +1,5 @@
 using Frms.Api.Authorization;
+using Frms.Api.Mapping;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Models.Commands;
@@ -10,12 +11,13 @@ using Frms.Business.Models;
 
 namespace Frms.Api.Controllers;
 
-[Authorize(Roles = RoleNames.FacilityManager)]
+[Authorize]
 [Route("api/v1")]
 public sealed class StorageUnitsController(
     IStorageUnitService storageUnitService)
     : ScaffoldControllerBase {
     /// <summary>UNIT-001: List Facility StorageUnits.</summary>
+    [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpGet("facilities/{facilityId:guid}/storage-units")]
     [ProducesResponseType(
         typeof(PaginatedResponse<StorageUnitDetailResponse>),
@@ -39,7 +41,7 @@ public sealed class StorageUnitsController(
                 cancellationToken);
 
         var data = items
-            .Select(ToResponse)
+            .Select(x => x.ToResponse())
             .ToList();
 
         var totalPages = totalCount == 0
@@ -58,6 +60,7 @@ public sealed class StorageUnitsController(
     }
 
     /// <summary>UNIT-002: Create StorageUnit.</summary>
+    [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpPost("facilities/{facilityId:guid}/storage-units")]
     [ProducesResponseType(
         typeof(ApiResponse<Guid>),
@@ -84,6 +87,7 @@ public sealed class StorageUnitsController(
     }
 
     /// <summary>UNIT-003: StorageUnit detail.</summary>
+    [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpGet("storage-units/{storageUnitId:guid}")]
     [ProducesResponseType(
         typeof(ApiResponse<StorageUnitDetailResponse>),
@@ -100,10 +104,11 @@ public sealed class StorageUnitsController(
 
         return Ok(
             new ApiResponse<StorageUnitDetailResponse>(
-                ToResponse(result)));
+                result.ToResponse()));
     }
 
     /// <summary>UNIT-004: Update allowed StorageUnit fields.</summary>
+    [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpPatch("storage-units/{storageUnitId:guid}")]
     [ProducesResponseType(
         typeof(ApiResponse<StorageUnitDetailResponse>),
@@ -124,11 +129,12 @@ public sealed class StorageUnitsController(
 
         return Ok(
             new ApiResponse<StorageUnitDetailResponse>(
-                ToResponse(result),
+                result.ToResponse(),
                 "StorageUnit updated."));
     }
 
     /// <summary>UNIT-005: Operational StorageUnit status transition.</summary>
+    [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpPost("storage-units/{storageUnitId:guid}/status")]
     [ProducesResponseType(
         typeof(ApiResponse<StorageUnitDetailResponse>),
@@ -148,17 +154,7 @@ public sealed class StorageUnitsController(
 
         return Ok(
             new ApiResponse<StorageUnitDetailResponse>(
-                ToResponse(result),
+                result.ToResponse(),
                 "StorageUnit status updated."));
     }
-
-    private static StorageUnitDetailResponse ToResponse(
-        StorageUnitResult result) =>
-        new(
-            result.StorageUnitId,
-            result.FacilityId,
-            result.UnitTypeId,
-            result.UnitCode,
-            result.LocationInfo,
-            result.Status);
 }

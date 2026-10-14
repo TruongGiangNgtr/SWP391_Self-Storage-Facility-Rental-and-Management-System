@@ -1,4 +1,5 @@
 using Frms.Api.DTOs.Requests;
+using Frms.Api.Mapping;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Services.Interfaces;
 using Frms.Business.Models.Results;
@@ -32,7 +33,7 @@ public sealed class BusinessUnitTypesController(
             cancellationToken);
 
         var data = items
-            .Select(Map)
+            .Select(x => x.ToSummary())
             .ToList();
 
         var totalPages = totalItems == 0
@@ -73,19 +74,10 @@ public sealed class BusinessUnitTypesController(
             return ResourceNotFound();
 
         return Ok(new {
-            data = Map(unitType),
+            data = unitType.ToSummary(),
             message = "UnitType rental price updated."
         });
     }
-
-    private static UnitTypeSummary Map(UnitTypeResult unitType)
-        => new(
-            unitType.UnitTypeId,
-            unitType.Name,
-            unitType.Mode,
-            unitType.Size,
-            unitType.RentalPrice,
-            unitType.Description);
 
     private ObjectResult ResourceNotFound()
         => NotFound(new {

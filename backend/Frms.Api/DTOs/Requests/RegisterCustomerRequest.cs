@@ -1,23 +1,26 @@
 using System.ComponentModel.DataAnnotations;
+using Frms.Api.Validation;
 
 namespace Frms.Api.DTOs.Requests;
 
-/// <summary>Contract-only payload for the unimplemented AUTH-001 registration endpoint.</summary>
+/// <summary>AUTH-001: public Customer self-registration payload.</summary>
 public sealed record RegisterCustomerRequest
 {
-    [Required]
+    [Required, MaxLength(150)]
     public required string FullName { get; init; }
 
-    [Required]
+    [Required, MaxLength(30)]
     public required string PhoneNumber { get; init; }
 
-    [Required, EmailAddress]
+    [Required, EmailAddress, MaxLength(254)]
     public required string Email { get; init; }
 
-    [Required, StringLength(64, MinimumLength = 8)]
+    [Required, FrmsPassword]
     public required string Password { get; init; }
 
+    [MaxLength(1000)]
     public string? Address { get; init; }
 
+    [MaxLength(20)]
     public string? Cccd { get; init; }
 }

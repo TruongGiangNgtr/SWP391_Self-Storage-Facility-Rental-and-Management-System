@@ -12,32 +12,11 @@ namespace Frms.ApiTests;
 public sealed class ScaffoldEndpointTests
 {
     [Test]
-    public async Task RegisterCustomerReturnsNotImplemented()
+    public void RegisterCustomerIsAnImplementedAction()
     {
-        await using var factory = new FrmsWebApplicationFactory();
-        using var client = factory.CreateClient();
-
-        using var response = await client.PostAsJsonAsync(
-            "/api/v1/auth/customer/register",
-            new
-            {
-                fullName = "Scaffold User",
-                phoneNumber = "0900000000",
-                email = "scaffold@example.invalid",
-                password = "not-a-real-password",
-                address = "Ho Chi Minh City",
-                cccd = (string?)null,
-            });
-        var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotImplemented));
-            Assert.That(error, Is.Not.Null);
-            Assert.That(error!.Code, Is.EqualTo("ENDPOINT_NOT_IMPLEMENTED"));
-            Assert.That(error.Message, Does.Contain("AUTH-001"));
-            Assert.That(error.TraceId, Is.Not.Empty);
-        });
+        var action = typeof(AuthController).GetMethod(nameof(AuthController.RegisterCustomer));
+        Assert.That(action, Is.Not.Null);
+        Assert.That(action!.ReturnType, Is.Not.EqualTo(typeof(ActionResult<ApiErrorResponse>)));
     }
 
     [Test]

@@ -4,6 +4,7 @@ using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Frms.Api.Mapping;
 using Frms.Business.Exceptions;
+using Frms.Business.Models.Commands;
 using Frms.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,19 +13,26 @@ namespace Frms.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/auth")]
-public sealed class AuthController(IAuthenticationService authenticationService) : ControllerBase
+public sealed class AuthController(
+    IAuthenticationService authenticationService,
+    ICustomerRegistrationService customerRegistrationService) : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost("customer/register")]
-    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status501NotImplemented)]
-    public ActionResult<ApiErrorResponse> RegisterCustomer(RegisterCustomerRequest request)
+    [ProducesResponseType(typeof(ApiResponse<RegisterCustomerResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ApiResponse<RegisterCustomerResponse>>> RegisterCustomer(
+        [FromBody] RegisterCustomerRequest request,
+        CancellationToken cancellationToken)
     {
-        return StatusCode(
-            StatusCodes.Status501NotImplemented,
-            new ApiErrorResponse(
-                "ENDPOINT_NOT_IMPLEMENTED",
-                "AUTH-001 is a contract scaffold and has not been implemented.",
-                HttpContext.TraceIdentifier));
+        var result = await customerRegistrationService.RegisterAsync(
+            new RegisterCustomerCommand(request.FullName, request.PhoneNumber, request.Email,
+                request.Password, request.Address, request.Cccd), cancellationToken);
+        return StatusCode(StatusCodes.Status201Created,
+            new ApiResponse<RegisterCustomerResponse>(
+                new RegisterCustomerResponse(result.UserAccountId, result.CustomerId),
+                "Customer registered."));
     }
 
     [AllowAnonymous]

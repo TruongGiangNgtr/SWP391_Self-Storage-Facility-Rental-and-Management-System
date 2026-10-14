@@ -1,6 +1,7 @@
 
 using System.Globalization;
 using Frms.Api.Authorization;
+using Frms.Api.Mapping;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Models.Commands;
@@ -51,7 +52,7 @@ public sealed class ReservationsController(
         return StatusCode(
             StatusCodes.Status201Created,
             new ApiResponse<ReservationDetailResponse>(
-                MapReservationDetail(detail),
+                detail.ToResponse(),
                 "Reservation created."));
     }
 
@@ -75,7 +76,7 @@ public sealed class ReservationsController(
             cancellationToken);
 
         var data = result.Items
-            .Select(MapReservationDetail)
+            .Select(x => x.ToResponse())
             .ToArray();
 
         return Ok(new {
@@ -106,7 +107,7 @@ public sealed class ReservationsController(
             cancellationToken);
 
         return Ok(new ApiResponse<ReservationDetailResponse>(
-            MapReservationDetail(result),
+            result.ToResponse(),
             "Reservation retrieved."));
     }
 
@@ -184,47 +185,7 @@ public sealed class ReservationsController(
             cancellationToken);
 
         return Ok(new ApiResponse<ReservationDetailResponse>(
-            MapReservationDetail(detail),
+            detail.ToResponse(),
             "Reservation cancelled."));
-    }
-
-    private static ReservationDetailResponse MapReservationDetail(
-        ReservationDetailRecord result) {
-        return new ReservationDetailResponse(
-            result.ReservationId,
-            result.FacilityId,
-            result.UnitTypeId,
-            result.PolicyId,
-            result.StartMonth.ToString(
-                "yyyy-MM",
-                CultureInfo.InvariantCulture),
-            result.EndMonth.ToString(
-                "yyyy-MM",
-                CultureInfo.InvariantCulture),
-            result.LockedRentalPrice,
-            result.DepositAmount,
-            result.Status,
-            new DepositInvoiceSummaryResponse(
-                result.DepositInvoice.InvoiceId,
-                result.DepositInvoice.Status,
-                result.DepositInvoice.AmountDue,
-                ToUtcOffset(result.DepositInvoice.DueDate)),
-            result.ReservationVisit is null
-                ? null
-                : new ReservationVisitSummaryResponse(
-                    result.ReservationVisit.VisitId,
-                    result.ReservationVisit.VisitType,
-                    result.ReservationVisit.VisitDate,
-                    result.ReservationVisit.Status),
-            ToUtcOffset(result.CreatedAt)) {
-            CustomerId = result.CustomerId
-        };
-    }
-
-    private static DateTimeOffset ToUtcOffset(DateTime value) {
-        return new DateTimeOffset(
-            DateTime.SpecifyKind(
-                value,
-                DateTimeKind.Utc));
     }
 }

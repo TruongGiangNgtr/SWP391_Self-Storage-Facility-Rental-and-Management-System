@@ -26,6 +26,8 @@ public static class DataAccessServiceCollectionExtensions
         services.AddDbContext<FrmsDbContext>(options => options.UseSqlServer(connectionString));
         services.AddHealthChecks().AddDbContextCheck<FrmsDbContext>("sqlserver");
         services.AddScoped<IUserAccountRepository, UserAccountRepository>();
+        services.AddScoped<ICustomerRegistrationRepository, CustomerRegistrationRepository>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<IStorageUnitRepository, StorageUnitRepository>();
         services.AddScoped<IFacilityRepository, FacilityRepository>();
@@ -46,6 +48,11 @@ public static class DataAccessServiceCollectionExtensions
         services.AddScoped<IAdminUserRepository, AdminUserRepository>();
         services.AddScoped<IAdminEmployeeRepository, AdminEmployeeRepository>();
         services.AddScoped<IDiscountRepository, DiscountRepository>();
+        services.AddScoped<IOperationalCatalogRepository, OperationalCatalogRepository>();
+        services.AddScoped<IEmployeeDirectoryRepository, EmployeeDirectoryRepository>();
+        services.AddScoped<IAdminReadRepository, AdminReadRepository>();
+        services.AddScoped<IAdminCustomerStatusRepository, AdminCustomerStatusRepository>();
+        services.AddScoped<IBusinessDiscountRepository, BusinessDiscountRepository>();
         services.AddScoped<IFacilityCatalogRepository,FacilityCatalogRepository>();
         services.AddScoped<IStaffWorkItemRepository,StaffWorkItemRepository>();
 

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Frms.Api.Mapping;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Services.Interfaces;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Frms.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = "BUSINESS_OPERATIONS_MANAGER,SYSTEM_ADMINISTRATOR")]
+[Authorize(Roles = "BUSINESS_OPERATIONS_MANAGER")]
 [Route("api/v1/business/facilities")]
 public sealed class BusinessFacilitiesController(
     IFacilityService facilityService) : ControllerBase {
@@ -33,7 +34,7 @@ public sealed class BusinessFacilitiesController(
             cancellationToken);
 
         var data = items
-            .Select(Map)
+            .Select(x => x.ToSummary())
             .ToList();
 
         var totalPages = totalItems == 0
@@ -82,7 +83,7 @@ public sealed class BusinessFacilitiesController(
         return StatusCode(
             StatusCodes.Status201Created,
             new {
-                data = Map(facility),
+                data = facility.ToSummary(),
                 message = "Facility created."
             });
     }
@@ -191,7 +192,7 @@ public sealed class BusinessFacilitiesController(
             return ResourceNotFound();
 
         return Ok(new {
-            data = Map(facility),
+            data = facility.ToSummary(),
             message = "Facility updated."
         });
     }
@@ -212,7 +213,7 @@ public sealed class BusinessFacilitiesController(
             return ResourceNotFound();
 
         return Ok(new {
-            data = Map(facility),
+            data = facility.ToSummary(),
             message = "Facility activated."
         });
     }
@@ -233,19 +234,10 @@ public sealed class BusinessFacilitiesController(
             return ResourceNotFound();
 
         return Ok(new {
-            data = Map(facility),
+            data = facility.ToSummary(),
             message = "Facility deactivated."
         });
     }
-
-    private static FacilitySummary Map(FacilityResult facility)
-        => new(
-            facility.FacilityId,
-            facility.Name,
-            facility.Address,
-            facility.ContactInfo,
-            facility.Description,
-            facility.Status);
 
     private ObjectResult ResourceNotFound()
         => NotFound(new {
