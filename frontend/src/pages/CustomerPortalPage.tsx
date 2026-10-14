@@ -8,7 +8,9 @@ import { useAuth } from '../auth/auth.context'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState } from '../components/PageStates'
 import { FlowIcon, type FlowIconName } from '../components/FlowIcon'
-import { StatusBadge } from '../components/StatusBadge'
+import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
+import { CustomerInvoiceContext } from '../components/CustomerInvoiceContext'
+import { contractTitle, contractUnit, customerLabel } from '../utils/customerPresentation'
 import { useOverviewCollection } from '../features/customer-overview/useOverviewCollection'
 import { isOverviewContract, isOverviewInvoice, isOverviewVisit } from '../features/customer-overview/overviewValidation'
 import { isSupportTicket } from '../features/customer-support/supportValidation'
@@ -55,8 +57,8 @@ export function CustomerPortalPage() {
       <PreviewPanel title="Active Contracts" to="/customer/contracts">
         <ApiErrorAlert error={contracts.error} />
         {contracts.loading ? <LoadingState label="Loading contracts..." /> : contracts.response && (activeContracts.length === 0 ? <EmptyState message="No active contracts in this page. Find storage or open all contracts." /> : activeContracts.slice(0, 2).map(contract => <article className="dashboard-record" key={contract.contractId}>
-          <div className="card-heading-row"><h3>{contract.unitTypeName || 'Storage Contract'}</h3><StatusBadge status={contract.status} /></div>
-          <p className="record-id">Contract: {contract.contractId}</p><dl className="detail-list"><div><dt>Storage Unit</dt><dd>{contract.unitCode || contract.storageUnitId}</dd></div><div><dt>Rental Period</dt><dd>{formatMonthRange(contract.startMonth, contract.endMonth)}</dd></div></dl>
+          <div className="card-heading-row"><h3>{contractTitle(contract)}</h3><StatusBadge status={contract.status} /></div>
+          <dl className="detail-list"><div><dt>Storage Unit</dt><dd>{contractUnit(contract)}</dd></div><div><dt>Rental Period</dt><dd>{formatMonthRange(contract.startMonth, contract.endMonth)}</dd></div></dl>
           <div className="action-row"><Link className="button" to={`/customer/contracts/${contract.contractId}`}>View Contract</Link><Link className="button button-secondary" to={`/customer/contracts/${contract.contractId}/fees-return`}>Fees & Return</Link></div>
         </article>))}
       </PreviewPanel>
@@ -66,12 +68,12 @@ export function CustomerPortalPage() {
       </PreviewPanel>
       <PreviewPanel title="Deposit & Invoices" to="/customer/invoices">
         <ApiErrorAlert error={invoices.error} />
-        {invoices.loading ? <LoadingState label="Loading invoices..." /> : invoices.response && (invoices.response.data.length === 0 ? <EmptyState message="No invoices have been returned." /> : invoices.response.data.slice(0, 3).map(invoice => <article className="dashboard-record" key={invoice.invoiceId}><div className="card-heading-row"><h3>{invoice.invoiceType === 'DEPOSIT' ? 'Deposit Invoice' : 'Rental Invoice'}</h3><StatusBadge status={invoice.status} /></div><p className="record-id">Invoice: {invoice.invoiceId}</p><strong>{formatMoney(invoice.amountDue)}</strong><Link className="button button-secondary" to={`/customer/invoices/${invoice.invoiceId}`}>View Invoice</Link></article>))}
+        {invoices.loading ? <LoadingState label="Loading invoices..." /> : invoices.response && (invoices.response.data.length === 0 ? <EmptyState message="No invoices have been returned." /> : invoices.response.data.slice(0, 3).map(invoice => <article className="dashboard-record" key={invoice.invoiceId}><div className="card-heading-row"><h3>{invoice.invoiceType === 'DEPOSIT' ? 'Deposit Invoice' : 'Rental Invoice'}</h3><StatusBadge status={invoice.status} /></div><CustomerInvoiceContext invoice={invoice} /><strong>{formatMoney(invoice.amountDue)}</strong><Link className="button button-secondary" to={`/customer/invoices/${invoice.invoiceId}`}>View Invoice</Link></article>))}
         <p className="muted">For deductions and recorded settlement amounts, open Fees & Return on the relevant contract.</p>
       </PreviewPanel>
       <PreviewPanel title="Recent Support Tickets" to="/customer/support-tickets">
         <ApiErrorAlert error={tickets.error} />
-        {tickets.loading ? <LoadingState label="Loading tickets..." /> : tickets.response && (tickets.response.data.length === 0 ? <EmptyState message="You do not have any tickets in this page." /> : tickets.response.data.slice(0, 3).map(ticket => <article className="dashboard-record" key={ticket.supportTicketId}><div className="card-heading-row"><h3>{ticket.category.replaceAll('_', ' ')}</h3><StatusBadge status={ticket.status} /></div><p>{ticket.description}</p><Link className="button button-secondary" to={`/customer/support-tickets/${ticket.supportTicketId}`}>View Ticket</Link></article>))}
+        {tickets.loading ? <LoadingState label="Loading tickets..." /> : tickets.response && (tickets.response.data.length === 0 ? <EmptyState message="You do not have any tickets in this page." /> : tickets.response.data.slice(0, 3).map(ticket => <article className="dashboard-record" key={ticket.supportTicketId}><div className="card-heading-row"><h3>{customerLabel(ticket.category)}</h3><StatusBadge status={ticket.status} /></div><p>{ticket.description}</p><Link className="button button-secondary" to={`/customer/support-tickets/${ticket.supportTicketId}`}>View Ticket</Link></article>))}
       </PreviewPanel>
     </div>
     <section className="panel dashboard-support"><span className="unit-icon-tile"><FlowIcon name="visits" /></span><div><h2>Need help with your storage?</h2><p className="muted">Create a support ticket for one of your contracts and track the response.</p></div><Link className="button" to="/customer/support-tickets/new">Create Support Ticket</Link></section>

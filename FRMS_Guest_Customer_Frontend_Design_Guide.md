@@ -1,10 +1,12 @@
 # FRMS — Hướng dẫn thiết kế Frontend thống nhất Guest & Customer
 
-**Phiên bản:** 1.1 · **Ngày:** 13/10/2026\
+**Phiên bản:** 1.2 · **Ngày:** 14/10/2026\
 **Mục đích:** Sử dụng tài liệu này cùng hai bộ mẫu Guest Page và Customer Portal để dựng một trải nghiệm liên tục, dễ sử dụng và nhất quán.\
 **Phạm vi:** Thiết kế giao diện, bố cục, component dùng chung, điều hướng và tiêu chí nghiệm thu UX. Tài liệu không thay thế SRS, không tự cấp quyền API và không xác nhận các chức năng đã được triển khai.
 
 **Cập nhật UX 1.1 theo yêu cầu chủ dự án:** Navigation Customer phải hiển thị đủ các mục đã thiết kế, kể cả mục chưa triển khai chức năng; khi mở mục chưa triển khai phải có trang thông báo rõ. Icon sidebar kế thừa màu mục menu thay vì xanh cố định. Logo footer dùng cùng icon, ô xanh, typography và kích thước với header; chỉ đổi màu chữ FSto để đọc được trên nền tối. Đây là quyết định trình bày, không bổ sung nghiệp vụ hoặc quyền API.
+
+**Cập nhật UX 1.2 theo phê duyệt chủ dự án ngày 14/10/2026:** Đợt đồng bộ này ưu tiên web trên máy tính/laptop cho Guest và Customer, nghiệm thu tại 1024, 1280, 1440 và 1920 CSS px. Mobile không là điều kiện hoàn tất của đợt này; giữ hỗ trợ co giãn/drawer đã có, không ép toàn trang có chiều rộng tối thiểu hoặc xóa responsive. Không thay đổi nghiệp vụ SRS, backend, database hoặc portal nhân viên. Các yêu cầu keyboard, modal, zoom và trạng thái lỗi vẫn áp dụng trên desktop.
 
 ## 1. Nguồn tham chiếu và thứ tự ưu tiên
 
@@ -230,7 +232,7 @@ Các quy tắc sau là đề xuất kỹ thuật cho việc dựng UI, không ph
 - Có label thật cho input, focus nhìn thấy, heading theo thứ tự, skip link tới nội dung chính.
 - Modal có tên, focus được giữ trong modal và trả về nút mở khi đóng; Escape đóng khi không có tác vụ đang gửi.
 - Hover không phải cách duy nhất để mở thông tin/hành động.
-- Kiểm tra ở 360, 390, 768, 1024, 1280 và 1440px; đồng thời kiểm tra zoom 200%.
+- Nghiệm thu đợt desktop ở 1024, 1280, 1440 và 1920 CSS px; đồng thời kiểm tra zoom 200% và cửa sổ thấp/thu nhỏ. Các viewport 360, 390 và 768px là kiểm tra hồi quy hỗ trợ hiện có, không phải điều kiện hoàn tất đợt desktop.
 
 ## 7. Component dùng chung và quy tắc tái sử dụng
 
@@ -318,7 +320,7 @@ Chưa gọi lệnh tạo reservation chỉ để hiện gate; gate không giữ 
 - Nếu đích/lựa chọn không còn hợp lệ, đưa về kết quả phù hợp, giữ bộ lọc còn dùng được và giải thích nguyên nhân.
 - Mở URL chi tiết trực tiếp phải có page hoàn chỉnh; modal overlay không được là cách duy nhất để truy cập bước đó.
 
-**Hiện trạng đã kiểm tra:** `RequireAuth` đã lưu `state.from`, nhưng `CustomerLoginPage` vẫn chuyển Customer về `/customer`. Khả năng tiếp tục thao tác là yêu cầu UX đã thống nhất, chưa thể coi là đã triển khai.
+**Hiện trạng sau các task Guest:** `CustomerLoginPage` dùng continuation đã kiểm tra để trở lại thao tác bị gián đoạn; login thông thường về `/customer`. Sau login vẫn đọc lại catalog và chờ người dùng xác nhận, không tự tạo Reservation. Kiểm thử UI giả lập không thay thế kiểm thử tích hợp auth/catalog/backend thật.
 
 ### 9.3 Identity và bước xác nhận
 
@@ -444,6 +446,8 @@ Mỗi page/component tải dữ liệu cần có loading, empty, validation, for
 - Số dư deposit dự kiến phải ghi rõ là dự kiến; kết quả refund cuối cùng theo settlement.
 - Empty/null là chưa có dữ liệu, không tự hiển thị thành 0 hoặc Paid.
 - Status hiển thị được dịch sang nhãn dễ hiểu nhưng giữ đúng trạng thái từ API; không thêm trạng thái lưu trữ từ mockup.
+- Không dùng UUID của Contract/Reservation/Invoice/Staff làm nhãn chính cho Customer. Dùng tên UnitType, mã StorageUnit, kỳ thuê và liên kết về tài nguyên liên quan khi dữ liệu có sẵn. Không rút gọn UUID để giả thành mã hợp đồng, tự đặt tên/mã hoặc suy diễn dữ liệu thiếu; hiển thị chưa có thông tin khi API chưa cung cấp.
+- Invoice phải nêu kỳ thuê khi có và có liên kết về đúng Reservation (DEPOSIT) hoặc Contract (RENTAL_FEE) theo `entityId`; không tính lại tiền hoặc gán tên kho không được API xác nhận. Các khoản phí trong trang tracking giữ ngữ cảnh Contract đang xem.
 
 ## 13. Những chỗ trong mẫu phải đối chiếu SRS trước khi dựng chức năng
 
@@ -535,7 +539,7 @@ Không sửa đồng loạt HTML nguồn chỉ để có cảm giác thống nh�
 
 - [ ] Keyboard dùng được header, drawer, form, tab và modal.
 - [ ] Focus rõ, label đủ, contrast đạt mức AA khi đo, status có chữ/icon.
-- [ ] Mobile touch target đủ; modal và bảng không che mất hành động.
+- [ ] Desktop control đúng kích thước guide; modal và bảng không che mất hành động. Giữ khả năng truy cập mobile đã có, không lấy mobile làm release gate của đợt desktop.
 - [ ] Đối chiếu screenshot ở cùng viewport; kiểm tra thêm tên dài/nhiều contract/không có dữ liệu.
 - [ ] Khi sửa code, chạy scripts typecheck/build/lint và kiểm tra hành trình liên quan theo repository; ghi rõ kết quả thật.
 - [ ] Không coi screenshot đẹp hoặc build pass là bằng chứng nghiệp vụ đã hoàn tất.

@@ -9,18 +9,21 @@
 }
 .frms-customer.customer-shell { display: flex; flex-direction: column; min-height: 100dvh; padding-top: 80px; background: var(--customer-canvas); }
 .frms-customer :is(h1, h2, h3) { color: var(--flow-text); font-weight: 700; }
+.frms-customer :is(h1, h2, h3, h4, dd, li) { overflow-wrap: anywhere; }
+.frms-customer .sidebar-profile :is(strong, small) { max-width: 100%; overflow-wrap: anywhere; }
 .frms-customer h1 { font-size: 30px; }
 .frms-customer h2 { font-size: 20px; }
 .frms-customer h3 { font-size: 18px; }
 .frms-customer p { overflow-wrap: anywhere; }
 .frms-customer .flow-header { position: fixed; inset: 0 0 auto; z-index: 30; height: 80px; border-bottom: 1px solid var(--flow-border); }
-.frms-customer .flow-header-inner { height: 100%; max-width: 1240px; padding: 0 24px; flex-wrap: nowrap; gap: 24px; }
+.frms-customer .flow-header-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); height: 100%; max-width: 1240px; padding: 0 24px; gap: 24px; }
 .frms-customer .flow-brand { font-weight: 700; }
-.frms-customer .flow-brand { min-height: 44px; }
-.frms-customer .flow-top-nav { flex: 1; justify-content: center; gap: 24px; font-size: 14px; }
+.frms-customer .flow-brand { min-height: 44px; justify-self: start; }
+.frms-customer .flow-top-nav { justify-content: center; gap: 32px; font-size: 14px; }
 .frms-customer .flow-top-nav a { display: inline-flex; align-items: center; min-height: 44px; }
 .frms-customer .flow-top-nav [aria-disabled] { color: var(--flow-muted); cursor: default; }
-.frms-customer .customer-header-actions { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.frms-customer .customer-header-actions { display: flex; align-items: center; justify-self: end; gap: 12px; min-width: 0; }
+.frms-customer .customer-account-menu { border-left: 1px solid var(--flow-border); padding-left: 16px; }
 .frms-customer .customer-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 12px; color: #475569; background: transparent; cursor: pointer; }
 .frms-customer .customer-icon-button:hover:not(:disabled) { background: #eff6ff; }
 .frms-customer .customer-icon-button:disabled { cursor: not-allowed; color: var(--flow-muted); }
@@ -43,6 +46,7 @@
 .frms-customer .profile-role { font-size: 12px; }
 .frms-customer .customer-sidebar nav { display: grid; gap: 4px; margin: 16px 0 0; }
 .frms-customer .customer-sidebar nav a { min-height: 44px; padding: 10px 12px; border-radius: 12px; font-size: 14px; }
+.frms-customer .customer-sidebar nav a.active { box-shadow: inset 4px 0 var(--flow-brand); }
 .frms-customer :is(.customer-sidebar, .customer-drawer-nav) nav a > svg { flex-shrink: 0; color: inherit; }
 .frms-customer .customer-nav-label { display: grid; min-width: 0; gap: 2px; }
 .frms-customer .customer-nav-label small { font-size: 11px; font-weight: 400; color: #64748b; }
@@ -68,7 +72,10 @@
 .frms-customer .action-row { justify-content: flex-start; gap: 12px; }
 .frms-customer .button { border-radius: 12px; min-height: 44px; padding: 10px 16px; font-size: 14px; text-align: center; max-width: 100%; white-space: normal; transition: background-color 160ms, border-color 160ms; }
 .frms-customer .button-secondary { color: #1d4ed8; border-color: #cbd5e1; }
-.frms-customer :is(input, select, textarea) { min-height: 44px; width: 100%; min-width: 0; padding: 10px 12px; border-radius: 12px; font-size: 14px; color: #334155; }
+.frms-customer .form-field :is(input, select, textarea) { min-height: 44px; width: 100%; min-width: 0; padding: 10px 12px; border-radius: 12px; font-size: 14px; color: #334155; border-color: var(--flow-border); }
+.frms-customer :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+.frms-customer .form-field [aria-invalid='true'] { border-color: #b91c1c; }
+.frms-customer .field-error { margin: 0; color: #b91c1c; font-size: 12px; line-height: 1.5; }
 .frms-customer .form-field { min-width: 0; gap: 8px; }
 .frms-customer .form-field label { font-size: 12px; color: #334155; }
 .frms-customer .form-field :is(input, select, textarea):focus { border-color: #2563eb; outline-color: #93c5fd; }
@@ -78,6 +85,10 @@
 .frms-customer .detail-list dd { font-size: 14px; }
 .frms-customer :is(.notice, .form-error, .danger-zone) { border-radius: 12px; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
 .frms-customer .page-state { border-radius: 16px; box-shadow: none; }
+.frms-customer .page-state[role='status'] { min-height: 144px; }
+.frms-customer .page-state[role='status']::after { content: ''; display: block; width: min(100%, 420px); height: 48px; margin: 16px auto 0; border-radius: 8px; background: linear-gradient(#e2e8f0 0 12px, transparent 12px 24px, #f1f5f9 24px 36px, transparent 36px); }
+.frms-customer .rental-context { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 0; font-size: 12px; color: var(--flow-muted); }
+.frms-customer .rental-context a { display: inline-flex; align-items: center; min-height: 44px; color: #1d4ed8; }
 .frms-customer .status-badge { font-size: 11px; align-items: center; }
 .frms-customer :is(.status-active, .status-paid, .status-success, .status-completed, .status-finalized) { color: #047857; background: #ecfdf5; }
 .frms-customer :is(.status-confirmed, .status-scheduled, .status-checked-in, .status-in-progress) { color: #1d4ed8; background: #eff6ff; }
@@ -188,6 +199,7 @@
   .frms-customer .customer-account-name { display: none; }
 }
 @media (max-width: 1023px) {
+  .frms-customer .flow-header-inner { grid-template-columns: minmax(0, 1fr) auto; }
   .frms-customer .flow-top-nav { display: none; }
   .frms-customer .customer-menu-trigger { display: inline-flex; }
   .frms-customer .customer-sidebar { display: none; }

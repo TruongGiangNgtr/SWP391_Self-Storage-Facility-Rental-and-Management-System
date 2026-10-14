@@ -6,7 +6,8 @@ import { CustomerListToolbar } from '../components/CustomerListToolbar'
 import { useCustomerListFilter } from '../features/customer-list/useCustomerListFilter'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState, PaginationControls } from '../components/PageStates'
-import { StatusBadge } from '../components/StatusBadge'
+import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
+import { customerLabel } from '../utils/customerPresentation'
 import { isSupportPagination, isSupportTicket } from '../features/customer-support/supportValidation'
 import type { CollectionEnvelope, SupportTicketDetail } from '../features/manager-support/models/supportTicket'
 import { formatUtcDateTime } from '../utils/formatters'
@@ -42,10 +43,10 @@ export function CustomerSupportListPage() {
     {loading ? <LoadingState label="Loading your support tickets..." /> : response && <>
       {response.data.length === 0 ? <EmptyState message="You do not have any support tickets yet." /> : <><CustomerListToolbar {...filter.controls} statuses={["OPEN","IN_PROGRESS","COMPLETED","CANCELLED"]} visibleCount={response.data.filter(ticket => filter.matches(`${ticket.supportTicketId} ${ticket.category.replaceAll('_', ' ')} ${ticket.description}`, ticket.status)).length} /><div className="reservation-list">
         {response.data.filter(ticket => filter.matches(`${ticket.supportTicketId} ${ticket.category.replaceAll('_', ' ')} ${ticket.description}`, ticket.status)).map(ticket => <article className="reservation-card" key={ticket.supportTicketId}>
-          <div className="card-heading-row"><h2>{ticket.category.replaceAll('_', ' ')}</h2><StatusBadge status={ticket.status} /></div>
+          <div className="card-heading-row"><h2>{customerLabel(ticket.category)}</h2><StatusBadge status={ticket.status} /></div>
           <p>{ticket.description}</p>
           <p className="notice">{ticket.resultNote ? `Staff Response: ${ticket.resultNote}` : ticket.status === 'COMPLETED' ? 'This ticket has been completed. Open it to review the details.' : 'No Staff response recorded yet.'}</p>
-          <dl className="detail-list compact"><div><dt>Contract ID</dt><dd>{ticket.contractId}</dd></div><div><dt>Created (GMT+7)</dt><dd>{formatUtcDateTime(ticket.createdAt)}</dd></div></dl>
+          <dl className="detail-list compact"><div><dt>Related Contract</dt><dd><Link to={`/customer/contracts/${encodeURIComponent(ticket.contractId)}`}>View Contract</Link></dd></div><div><dt>Created (GMT+7)</dt><dd>{formatUtcDateTime(ticket.createdAt)}</dd></div></dl>
           <Link className="button button-secondary" to={`/customer/support-tickets/${encodeURIComponent(ticket.supportTicketId)}`}>View Ticket</Link>
         </article>)}
       </div></>}

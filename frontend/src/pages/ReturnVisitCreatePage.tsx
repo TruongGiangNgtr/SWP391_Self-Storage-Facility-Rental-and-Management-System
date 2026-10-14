@@ -7,7 +7,8 @@ import { CustomerActionFrame } from '../components/CustomerActionFrame'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { CalendarDateField } from '../components/CalendarDateField'
 import { LoadingState } from '../components/PageStates'
-import { StatusBadge } from '../components/StatusBadge'
+import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
+import { contractTitle, contractUnit } from '../utils/customerPresentation'
 import { isUuid } from '../features/handover/handoverValidation'
 import { isCalendarDate } from '../features/visits/accessValidation'
 import { useAccessContract } from '../features/visits/useAccessContract'
@@ -17,6 +18,7 @@ export function ReturnVisitCreatePage() {
   const { contractId = '' } = useParams()
   const { contract, loading, error, refresh } = useAccessContract(contractId)
   const [visitDate, setVisitDate] = useState('')
+  const [dateError, setDateError] = useState<string | null>(null)
   const [working, setWorking] = useState(false)
   const [actionError, setActionError] = useState<ApiErrorPresentation | null>(null)
   const submitBusy = useRef(false)
@@ -32,11 +34,12 @@ export function ReturnVisitCreatePage() {
     event.preventDefault()
     if (submitBusy.current || loading || !contract || contract.status !== 'ACTIVE') return
     if (!isCalendarDate(visitDate)) {
-      setActionError(presentValidationError('Please select a valid return visit date.'))
+      setDateError('Please select a valid return visit date.')
       return
     }
 
     submitBusy.current = true
+    setDateError(null)
     setWorking(true)
     setActionError(null)
     try {
@@ -69,14 +72,15 @@ export function ReturnVisitCreatePage() {
         <section className="panel stack" aria-label="Return contract">
           <div className="card-heading-row"><h2>Selected Contract</h2><StatusBadge status={contract.status} /></div>
           <dl className="detail-list compact">
-            <div><dt>Contract ID</dt><dd>{contract.contractId}</dd></div>
+            <div><dt>Unit Type</dt><dd>{contractTitle(contract)}</dd></div>
+            <div><dt>Storage Unit</dt><dd>{contractUnit(contract)}</dd></div>
             <div><dt>Rental Period</dt><dd>{formatMonthRange(contract.startMonth, contract.endMonth)}</dd></div>
           </dl>
         </section>
         {contract.status === 'ACTIVE' ? <section className="panel stack" aria-label="Schedule return visit">
           <h2>Return Visit Date</h2>
           <form className="form-grid" onSubmit={handleCreate} noValidate>
-            <CalendarDateField id="returnVisitDate" label="Return Visit Date (GMT+7)" value={visitDate} disabled={working} onChange={setVisitDate} />
+            <CalendarDateField id="returnVisitDate" label="Return Visit Date (GMT+7)" value={visitDate} disabled={working} error={dateError} onChange={value => { setVisitDate(value); setDateError(null) }} />
             <p className="notice">While a return visit is pending, you cannot schedule new access visits or renew this contract.</p>
             <p className="muted">Your selected date and return eligibility will be checked when you submit.</p>
             <p className="muted">Scheduling a visit does not end your contract. The facility records your actual return date, then completes inspection and settlement.</p>

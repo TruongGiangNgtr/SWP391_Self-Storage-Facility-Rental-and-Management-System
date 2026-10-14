@@ -8,7 +8,7 @@ import { CustomerListToolbar } from '../components/CustomerListToolbar'
 import { useCustomerListFilter } from '../features/customer-list/useCustomerListFilter'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState, PaginationControls } from '../components/PageStates'
-import { StatusBadge } from '../components/StatusBadge'
+import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
 import { FlowIcon } from '../components/FlowIcon'
 import type { VisitDetail } from '../features/visits/visit.types'
 

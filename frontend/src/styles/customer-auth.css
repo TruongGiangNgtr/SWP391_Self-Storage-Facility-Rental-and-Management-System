@@ -14,7 +14,7 @@
 .frms-customer .customer-auth-divider::before, .frms-customer .customer-auth-divider::after { content: ''; height: 1px; background: #e2e8f0; flex: 1; }
 .frms-customer .customer-auth-small { font-size: 12px; margin: 0; text-align: center; }
 .frms-customer .customer-auth-optional { border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; }
-.frms-customer .customer-auth-optional summary { cursor: pointer; min-height: 24px; }
+.frms-customer .customer-auth-optional summary { cursor: pointer; min-height: 44px; padding: 10px 0; }
 .frms-customer .customer-auth-optional .form-grid { margin-top: 16px; }
 .frms-customer .customer-continuation-notice { margin-top: 24px; }
 .frms-customer .customer-continuation-notice p { margin: 8px 0; }

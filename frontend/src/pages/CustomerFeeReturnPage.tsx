@@ -5,7 +5,8 @@ import { contractApi } from '../api/contractApi'
 import { CustomerTabs } from '../components/CustomerTabs'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState } from '../components/PageStates'
-import { StatusBadge } from '../components/StatusBadge'
+import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
+import { contractOption } from '../utils/customerPresentation'
 import type { ContractBillingSummary, ContractReturnSummary } from '../features/fee-return-tracking/tracking.types'
 import { isBillingSummary, isReturnSummary } from '../features/fee-return-tracking/trackingValidation'
 import { useAccessContract } from '../features/visits/useAccessContract'
@@ -50,7 +51,7 @@ export function CustomerFeeReturnPage() {
     <ApiErrorAlert error={contractReader.error} />
     <button className="button button-secondary" disabled={busy} type="button" onClick={() => { contractReader.refresh(); setRetry(value => value + 1) }}>Refresh Tracking</button>
     {contractReader.loading ? <LoadingState label="Loading your contract..." /> : contract && <>
-      <section className="panel stack"><div className="card-heading-row"><h2>Contract</h2><StatusBadge status={contract.status} /></div><p>{contractId}</p><p className="notice">Your first month was paid offline at handover and has no rental invoice. Later monthly invoices are shown below.</p></section>
+      <section className="panel stack"><div className="card-heading-row"><h2>Selected Contract</h2><StatusBadge status={contract.status} /></div><p>{contractOption(contract)}</p><p className="notice">Your first month was paid offline at handover and has no rental invoice. Later monthly invoices are shown below.</p></section>
       <CustomerTabs labels={['Billing & Overdue', 'Return & Settlement']} selected={section} onChange={setSection}>{({ tabId, panelId }) => <>
       <section className="panel stack" role="tabpanel" id={panelId(0)} aria-labelledby={tabId(0)} hidden={section !== 0} tabIndex={0}>
         <h2>Billing &amp; Overdue</h2>
@@ -62,7 +63,7 @@ export function CustomerFeeReturnPage() {
             <Link className="button button-secondary" to={`/customer/invoices/${encodeURIComponent(invoice.invoiceId)}`}>View Invoice</Link>
           </article>)}
           <h3>Late Fee Records</h3>
-          {billing.lateFees.length === 0 ? <EmptyState message="No late-fee records have been returned." /> : billing.lateFees.map(fee => <article className="reservation-card" key={fee.lateFeeId}><dl className="detail-list compact"><div><dt>Invoice ID</dt><dd>{fee.invoiceId}</dd></div><div><dt>Overdue Days</dt><dd>{fee.overdueDays}</dd></div><div><dt>Recorded Late Fee</dt><dd>{formatMoney(fee.amount)}</dd></div><div><dt>Calculated (GMT+7)</dt><dd>{formatUtcDateTime(fee.calculatedAt)}</dd></div></dl></article>)}
+          {billing.lateFees.length === 0 ? <EmptyState message="No late-fee records have been returned." /> : billing.lateFees.map(fee => <article className="reservation-card" key={fee.lateFeeId}><dl className="detail-list compact"><div><dt>Related Invoice</dt><dd><Link to={`/customer/invoices/${encodeURIComponent(fee.invoiceId)}`}>View Invoice</Link></dd></div><div><dt>Overdue Days</dt><dd>{fee.overdueDays}</dd></div><div><dt>Recorded Late Fee</dt><dd>{formatMoney(fee.amount)}</dd></div><div><dt>Calculated (GMT+7)</dt><dd>{formatUtcDateTime(fee.calculatedAt)}</dd></div></dl></article>)}
           <p className="muted">These are recorded fee amounts. A fee record alone is not a payment request; applicable deductions are shown in settlement.</p>
         </>}
       </section>
