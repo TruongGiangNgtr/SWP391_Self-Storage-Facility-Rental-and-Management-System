@@ -7,7 +7,8 @@ import { CustomerListToolbar } from '../components/CustomerListToolbar'
 import { useCustomerListFilter } from '../features/customer-list/useCustomerListFilter'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState, PaginationControls } from '../components/PageStates'
-import { StatusBadge } from '../components/StatusBadge'
+import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
+import { contractTitle, contractUnit } from '../utils/customerPresentation'
 import type { HandoverContractDetail as ContractDetail } from '../features/handover/contract.types'
 import { formatMonthRange } from '../utils/formatters'
 
@@ -41,10 +42,9 @@ export function CustomerContractListPage() {
         <>
           {response.data.length === 0 ? <EmptyState message="You do not have any contracts yet." /> : <><CustomerListToolbar {...filter.controls} statuses={["ACTIVE","COMPLETED","TERMINATED"]} visibleCount={response.data.filter(contract => filter.matches(`${contract.contractId} ${contract.unitCode ?? ''} ${contract.unitTypeName ?? ''} ${contract.startMonth} ${contract.endMonth}`, contract.status)).length} /><div className="reservation-list">
             {response.data.filter(contract => filter.matches(`${contract.contractId} ${contract.unitCode ?? ''} ${contract.unitTypeName ?? ''} ${contract.startMonth} ${contract.endMonth}`, contract.status)).map((contract) => <article className={`reservation-card reservation-card-${contract.status === 'ACTIVE' ? 'confirmed' : contract.status === 'COMPLETED' ? 'completed' : 'cancelled'}`} key={contract.contractId}>
-              <div className="card-heading-row"><h2>{contract.unitTypeName || 'Storage Contract'}</h2><StatusBadge status={contract.status} /></div>
+              <div className="card-heading-row"><h2>{contractTitle(contract)}</h2><StatusBadge status={contract.status} /></div>
               <dl className="detail-list compact">
-                <div><dt>Contract ID</dt><dd>{contract.contractId}</dd></div>
-                <div><dt>Storage Unit</dt><dd>{contract.unitCode || contract.storageUnitId}</dd></div>
+                <div><dt>Storage Unit</dt><dd>{contractUnit(contract)}</dd></div>
                 <div><dt>Rental Period</dt><dd>{formatMonthRange(contract.startMonth, contract.endMonth)}</dd></div>
               </dl>
               <div className="action-row">

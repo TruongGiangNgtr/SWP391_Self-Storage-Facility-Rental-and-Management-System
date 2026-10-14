@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { presentApiError, presentValidationError } from '../api/apiErrorPresentation'
+import { presentApiError } from '../api/apiErrorPresentation'
 import type { ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { reservationApi } from '../api/reservationApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
@@ -16,6 +16,7 @@ export function ReservationConfirmPage() {
   const navigate = useNavigate()
   const [reservation, setReservation] = useState<ReservationDetail | null>(null)
   const [visitDate, setVisitDate] = useState('')
+  const [dateError, setDateError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<ApiErrorPresentation | null>(null)
@@ -48,11 +49,12 @@ export function ReservationConfirmPage() {
   async function handleConfirm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!visitDate) {
-      setError(presentValidationError('Please select a handover date.'))
+      setDateError('Please select a handover date.')
       return
     }
 
     setSubmitting(true)
+    setDateError(null)
     setError(null)
     try {
       const response = await reservationApi.confirm(reservationId, {
@@ -101,7 +103,7 @@ export function ReservationConfirmPage() {
             reservation.depositInvoice.status === 'PAID' ? (
               <form className="form-grid" onSubmit={handleConfirm}>
                 <div className="flow-visit-type"><FlowIcon name="visit-type" />Handover · RESERVATION</div>
-                <CalendarDateField id="reservationVisitDate" label="Preferred Handover Date" value={visitDate} initialMonth={reservation.startMonth} disabled={submitting} onChange={setVisitDate} />
+                <CalendarDateField id="reservationVisitDate" label="Preferred Handover Date" value={visitDate} initialMonth={reservation.startMonth} disabled={submitting} error={dateError} onChange={value => { setVisitDate(value); setDateError(null) }} />
                 <div className="notice"><FlowIcon name="info" />The handover date must follow the reservation policy. Please bring identification to the facility.</div>
                 <div className="action-row">
                   <Link

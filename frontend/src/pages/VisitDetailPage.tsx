@@ -1,13 +1,14 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { presentApiError, presentValidationError } from '../api/apiErrorPresentation'
+import { presentApiError } from '../api/apiErrorPresentation'
 import type { ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { visitApi } from '../api/visitApi'
 import { ApiRequestError } from '../api/httpClient'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { LoadingState } from '../components/PageStates'
-import { StatusBadge } from '../components/StatusBadge'
+import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
 import { CalendarDateField } from '../components/CalendarDateField'
+import { CustomerFieldError } from '../components/CustomerFieldError'
 import type { VisitDetail } from '../features/visits/visit.types'
 
 const VISIT_NAMES: Record<VisitDetail['visitType'], string> = {
@@ -21,17 +22,18 @@ export function VisitDetailPage() {
   const [visit, setVisit] = useState<VisitDetail | null>(null)
   const [newVisitDate, setNewVisitDate] = useState('')
   const [cancelReason, setCancelReason] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [mode, setMode] = useState<'reschedule' | 'cancel' | null>(null)
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(false)
   const [error, setError] = useState<ApiErrorPresentation | null>(null)
   const actionBusy = useRef(false)
 
-  const loadVisit = useCallback(async () => {
+  const loadVisit = useCallback(async (preserveDraft = false) => {
     try {
       const response = await visitApi.get(visitId)
       setVisit(response.data)
-      setNewVisitDate(response.data.visitDate)
+      if (!preserveDraft) setNewVisitDate(response.data.visitDate)
     } catch (requestError) {
       setVisit(null)
       setError(presentApiError(requestError))
@@ -70,11 +72,12 @@ export function VisitDetailPage() {
     event.preventDefault()
     if (loading || actionBusy.current || visit?.status !== 'SCHEDULED') return
     if (!newVisitDate) {
-      setError(presentValidationError('Please select a new visit date.'))
+      setFieldErrors({ date: 'Please select a new visit date.' })
       return
     }
 
     actionBusy.current = true
+    setFieldErrors({})
     setWorking(true)
     setError(null)
     try {
@@ -84,8 +87,7 @@ export function VisitDetailPage() {
     } catch (requestError) {
       setError(presentApiError(requestError))
       if (requestError instanceof ApiRequestError && requestError.status === 409) {
-        setMode(null)
-        await loadVisit()
+        await loadVisit(true)
       }
     } finally {
       actionBusy.current = false
@@ -97,7 +99,7 @@ export function VisitDetailPage() {
     event.preventDefault()
     if (loading || actionBusy.current || visit?.status !== 'SCHEDULED') return
     if (!cancelReason.trim()) {
-      setError(presentValidationError('Please enter a reason for cancelling the visit.'))
+      setFieldErrors({ reason: 'Please enter a reason for cancelling the visit.' })
       return
     }
 
@@ -112,8 +114,7 @@ export function VisitDetailPage() {
     } catch (requestError) {
       setError(presentApiError(requestError))
       if (requestError instanceof ApiRequestError && requestError.status === 409) {
-        setMode(null)
-        await loadVisit()
+        await loadVisit(true)
       }
     } finally {
       actionBusy.current = false
@@ -161,8 +162,8 @@ export function VisitDetailPage() {
               <dd>{visit.actualReturnDate ?? 'Not Available'}</dd>
             </div>}
             <div>
-              <dt>Handling Staff ID</dt>
-              <dd>{visit.employeeId ?? 'Not Recorded'}</dd>
+              <dt>Handling Staff</dt>
+              <dd>{visit.employeeId ? 'Recorded by the facility' : 'Not Recorded'}</dd>
             </div>
           </dl>
 
@@ -206,7 +207,7 @@ export function VisitDetailPage() {
 
           {visit.status === 'SCHEDULED' && mode === 'reschedule' && (
             <form className="form-grid" onSubmit={handleReschedule}>
-              <CalendarDateField id="newVisitDate" label="New Visit Date" value={newVisitDate} disabled={loading || working} onChange={setNewVisitDate} />
+              <CalendarDateField id="newVisitDate" label="New Visit Date" value={newVisitDate} disabled={loading || working} error={fieldErrors.date} onChange={value => { setNewVisitDate(value); setFieldErrors({}) }} />
               <small className="muted">The new date must follow the policy for this visit.</small>
               <div className="action-row">
                 <button className="button button-secondary" disabled={working} onClick={() => setMode(null)} type="button">
@@ -228,8 +229,11 @@ export function VisitDetailPage() {
                   rows={3}
                   value={cancelReason}
                   disabled={loading || working}
-                  onChange={(event) => setCancelReason(event.target.value)}
+                  aria-invalid={Boolean(fieldErrors.reason)}
+                  aria-describedby={fieldErrors.reason ? 'visitCancelReason-error' : undefined}
+                  onChange={(event) => { setCancelReason(event.target.value); setFieldErrors({}) }}
                 />
+                <CustomerFieldError id="visitCancelReason-error" message={fieldErrors.reason} />
               </div>
               <div className="action-row">
                 <button className="button button-secondary" disabled={working} onClick={() => setMode(null)} type="button">

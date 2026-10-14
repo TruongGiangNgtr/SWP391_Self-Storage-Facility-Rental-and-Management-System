@@ -10,7 +10,7 @@ export function CustomerActionFrame({ contractId, returnTo, backLabel = 'View Co
   const background = (location.state as { backgroundLocation?: Location } | null)?.backgroundLocation
   const backUrl = returnTo ?? `/customer/contracts/${encodeURIComponent(contractId ?? '')}`
   if (background && (background.pathname === '/customer' || background.pathname.startsWith('/customer/'))) {
-    return <FlowDialog title={title} category={category} subtitle={subtitle} busy={busy} onClose={() => navigate(`${background.pathname}${background.search}${background.hash}`, { replace: true, state: background.state })}>
+    return <FlowDialog trapFocus title={title} category={category} subtitle={subtitle} busy={busy} onClose={() => navigate(`${background.pathname}${background.search}${background.hash}`, { replace: true, state: background.state })}>
       <div className="flow-page customer-action-content">{children}</div>
     </FlowDialog>
   }

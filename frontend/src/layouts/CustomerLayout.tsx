@@ -75,7 +75,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
           {signedIn ? <>
             <NavLink className="customer-icon-button customer-notifications" to={CUSTOMER_NOTIFICATIONS.to} aria-label="Notifications" title="Notifications & Transaction History"><Bell size={20} aria-hidden="true" /></NavLink>
             <details className="customer-account-menu" ref={accountMenu}>
-              <summary className="flow-account" aria-label={`Account: ${name}`}>
+              <summary className="flow-account" aria-label={`Account: ${name}`} title={name}>
                 <span className="flow-avatar">{initials}</span><span className="customer-account-name"><strong>{name}</strong><small>Customer</small></span><ChevronDown size={16} aria-hidden="true" />
               </summary>
               <nav aria-label="Account navigation" onClick={() => { if (accountMenu.current) accountMenu.current.open = false }}>
@@ -107,7 +107,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
       <div><h2>Account</h2>{signedIn ? <><Link to="/customer/account-settings">My Account</Link><button type="button" onClick={logout}>Sign Out</button></> : <><Link to="/auth/customer/login">Sign In</Link><Link to="/auth/customer/register">Create Account</Link><Link to="/auth/employee/login">Employee Sign In</Link></>}</div>
       <p className="flow-copyright">© {copyrightYear} FStoRent. All rights reserved.</p>
     </div></footer>
-    {drawerOpen && <FlowDialog title="Navigation" subtitle="Choose where you would like to go." category="FStoRent" onClose={() => setDrawerOpen(false)}>
+    {drawerOpen && <FlowDialog trapFocus title="Navigation" subtitle="Choose where you would like to go." category="FStoRent" onClose={() => setDrawerOpen(false)}>
       <div className="customer-drawer-nav"><nav aria-label="Storage navigation" onClick={() => setDrawerOpen(false)}><StorageNavigation /></nav>{signedIn && withSidebar ? portalNavigation(() => setDrawerOpen(false)) : signedIn ? <Link className="button button-secondary" to="/customer" onClick={() => setDrawerOpen(false)}>Customer Portal</Link> : <Link className="button" to="/auth/customer/register" onClick={() => setDrawerOpen(false)}>Create Account</Link>}</div>
     </FlowDialog>}
   </div>

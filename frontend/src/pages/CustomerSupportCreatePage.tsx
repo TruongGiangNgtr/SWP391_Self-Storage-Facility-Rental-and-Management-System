@@ -10,6 +10,8 @@ import { isSupportPagination, isSupportTicket } from '../features/customer-suppo
 import { isUuid } from '../features/handover/handoverValidation'
 import type { HandoverContractDetail } from '../features/handover/contract.types'
 import { SUPPORT_TICKET_CATEGORIES, type SupportTicketCategory } from '../features/manager-support/models/supportTicket'
+import { contractOption, customerLabel } from '../utils/customerPresentation'
+import { CustomerFieldError } from '../components/CustomerFieldError'
 
 export function CustomerSupportCreatePage() {
   const [page, setPage] = useState(1)
@@ -19,6 +21,7 @@ export function CustomerSupportCreatePage() {
   const [description, setDescription] = useState('')
   const [working, setWorking] = useState(false)
   const [actionError, setActionError] = useState<ApiErrorPresentation | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const key = `${page}:${retry}`
   const [snapshot, setSnapshot] = useState<{ key: string; response: ApiCollectionResponse<HandoverContractDetail> | null; error: ApiErrorPresentation | null } | null>(null)
   const loading = snapshot?.key !== key
@@ -44,11 +47,12 @@ export function CustomerSupportCreatePage() {
     event.preventDefault()
     if (busy.current || loading || !response) return
     const text = description.trim()
-    if (!response.data.some(contract => contract.contractId === contractId) || !category ||
-      !SUPPORT_TICKET_CATEGORIES.includes(category) || !text) {
-      setActionError(presentValidationError('Select a contract and category, and describe the issue.'))
-      return
-    }
+    const nextErrors: Record<string, string> = {}
+    if (!response.data.some(contract => contract.contractId === contractId)) nextErrors.contract = 'Choose a contract from this page.'
+    if (!category || !SUPPORT_TICKET_CATEGORIES.includes(category)) nextErrors.category = 'Choose a category.'
+    if (!text) nextErrors.description = 'Describe the issue.'
+    setFieldErrors(nextErrors)
+    if (Object.keys(nextErrors).length || !category) { setActionError(null); return }
     busy.current = true; setWorking(true); setActionError(null)
     try {
       const { data } = await createSupportTicket({ contractId, category, description: text })
@@ -69,9 +73,9 @@ export function CustomerSupportCreatePage() {
     <button className="button button-secondary" type="button" disabled={loading || working} onClick={() => { setContractId(''); setRetry(value => value + 1) }}>Refresh Contracts</button>
     {loading ? <LoadingState label="Loading your contracts..." /> : response && (response.data.length === 0 ? <EmptyState message="A support ticket must reference one of your contracts. You do not have any contracts on this page." /> : <section className="panel stack">
       <form className="form-grid" onSubmit={submit} noValidate>
-        <div className="form-field"><label htmlFor="supportContract">Contract</label><select id="supportContract" value={contractId} disabled={working} onChange={event => setContractId(event.target.value)}><option value="">Choose a contract</option>{response.data.map(contract => <option key={contract.contractId} value={contract.contractId}>{contract.contractId} — {contract.status}</option>)}</select></div>
-        <div className="form-field"><label htmlFor="supportCategory">Category</label><select id="supportCategory" value={category} disabled={working} onChange={event => setCategory(event.target.value as SupportTicketCategory | '')}><option value="">Choose a category</option>{SUPPORT_TICKET_CATEGORIES.map(value => <option key={value} value={value}>{value.replaceAll('_', ' ')}</option>)}</select></div>
-        <div className="form-field"><label htmlFor="supportDescription">Description</label><textarea id="supportDescription" value={description} disabled={working} onChange={event => setDescription(event.target.value)} /></div>
+        <div className="form-field"><label htmlFor="supportContract">Contract</label><select id="supportContract" value={contractId} disabled={working} aria-invalid={Boolean(fieldErrors.contract)} aria-describedby={fieldErrors.contract ? 'supportContract-error' : undefined} onChange={event => { setContractId(event.target.value); setFieldErrors(current => ({ ...current, contract: '' })) }}><option value="">Choose a contract</option>{response.data.map(contract => <option key={contract.contractId} value={contract.contractId}>{contractOption(contract)}</option>)}</select><CustomerFieldError id="supportContract-error" message={fieldErrors.contract} /></div>
+        <div className="form-field"><label htmlFor="supportCategory">Category</label><select id="supportCategory" value={category} disabled={working} aria-invalid={Boolean(fieldErrors.category)} aria-describedby={fieldErrors.category ? 'supportCategory-error' : undefined} onChange={event => { setCategory(event.target.value as SupportTicketCategory | ''); setFieldErrors(current => ({ ...current, category: '' })) }}><option value="">Choose a category</option>{SUPPORT_TICKET_CATEGORIES.map(value => <option key={value} value={value}>{customerLabel(value)}</option>)}</select><CustomerFieldError id="supportCategory-error" message={fieldErrors.category} /></div>
+        <div className="form-field"><label htmlFor="supportDescription">Description</label><textarea id="supportDescription" value={description} disabled={working} aria-invalid={Boolean(fieldErrors.description)} aria-describedby={fieldErrors.description ? 'supportDescription-error' : undefined} onChange={event => { setDescription(event.target.value); setFieldErrors(current => ({ ...current, description: '' })) }} /><CustomerFieldError id="supportDescription-error" message={fieldErrors.description} /></div>
         {category === 'OTHER' && <p className="notice">Describe the issue clearly so the Facility team can understand what needs help.</p>}
         <p className="muted">The Manager assigns Staff. Creating a ticket does not change your Contract, Payment or Storage Unit, and does not schedule a return.</p>
         <button className="button" type="submit" disabled={working}>{working ? 'Creating...' : 'Submit Support Ticket'}</button>

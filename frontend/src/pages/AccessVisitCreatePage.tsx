@@ -6,7 +6,8 @@ import { visitApi } from '../api/visitApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { CalendarDateField } from '../components/CalendarDateField'
 import { LoadingState } from '../components/PageStates'
-import { StatusBadge } from '../components/StatusBadge'
+import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
+import { contractTitle, contractUnit } from '../utils/customerPresentation'
 import { isUuid } from '../features/handover/handoverValidation'
 import { isCalendarDate } from '../features/visits/accessValidation'
 import { useAccessContract } from '../features/visits/useAccessContract'
@@ -16,6 +17,7 @@ export function AccessVisitCreatePage() {
   const { contractId = '' } = useParams()
   const { contract, loading, error, refresh } = useAccessContract(contractId)
   const [visitDate, setVisitDate] = useState('')
+  const [dateError, setDateError] = useState<string | null>(null)
   const [working, setWorking] = useState(false)
   const [actionError, setActionError] = useState<ApiErrorPresentation | null>(null)
   const submitBusy = useRef(false)
@@ -30,10 +32,11 @@ export function AccessVisitCreatePage() {
     event.preventDefault()
     if (submitBusy.current || loading || !contract || contract.status !== 'ACTIVE') return
     if (!isCalendarDate(visitDate)) {
-      setActionError(presentValidationError('Please select a valid visit date.'))
+      setDateError('Please select a valid visit date.')
       return
     }
     submitBusy.current = true
+    setDateError(null)
     setWorking(true)
     setActionError(null)
     try {
@@ -68,15 +71,15 @@ export function AccessVisitCreatePage() {
         <section className="panel stack" aria-label="Access contract">
           <div className="card-heading-row"><h2>Selected Contract</h2><StatusBadge status={contract.status} /></div>
           <dl className="detail-list compact">
-            <div><dt>Contract ID</dt><dd>{contract.contractId}</dd></div>
-            <div><dt>Storage Unit ID</dt><dd>{contract.storageUnitId}</dd></div>
+            <div><dt>Unit Type</dt><dd>{contractTitle(contract)}</dd></div>
+            <div><dt>Storage Unit</dt><dd>{contractUnit(contract)}</dd></div>
             <div><dt>Rental Period</dt><dd>{formatMonthRange(contract.startMonth, contract.endMonth)}</dd></div>
           </dl>
         </section>
         {contract.status === 'ACTIVE' ? <section className="panel stack" aria-label="Schedule access visit">
           <h2>Visit Date</h2>
           <form className="form-grid" onSubmit={handleCreate}>
-            <CalendarDateField id="accessVisitDate" label="Access Visit Date (GMT+7)" value={visitDate} disabled={working} onChange={setVisitDate} />
+            <CalendarDateField id="accessVisitDate" label="Access Visit Date (GMT+7)" value={visitDate} disabled={working} error={dateError} onChange={value => { setVisitDate(value); setDateError(null) }} />
             <p className="notice">You cannot schedule a new access visit while a return visit is pending. Your eligibility is checked when you submit.</p>
             <p className="muted">Choose a date to visit your rented unit. This does not create a new reservation or change your rental period.</p>
             <button className="button" type="submit" disabled={working}>{working ? 'Scheduling...' : 'Confirm Access Visit'}</button>

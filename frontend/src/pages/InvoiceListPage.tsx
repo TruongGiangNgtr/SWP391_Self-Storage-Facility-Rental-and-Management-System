@@ -8,7 +8,8 @@ import { CustomerListToolbar } from '../components/CustomerListToolbar'
 import { useCustomerListFilter } from '../features/customer-list/useCustomerListFilter'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState, PaginationControls } from '../components/PageStates'
-import { StatusBadge } from '../components/StatusBadge'
+import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
+import { CustomerInvoiceContext } from '../components/CustomerInvoiceContext'
 import type { InvoiceDetail } from '../features/billing/billing.types'
 import { formatMoney, formatUtcDateTime } from '../utils/formatters'
 
@@ -22,6 +23,7 @@ const EMPTY_PAGINATION: Pagination = {
 export function InvoiceListPage() {
   const filter = useCustomerListFilter()
   const [page, setPage] = useState(1)
+  const [retry, setRetry] = useState(0)
   const [invoices, setInvoices] = useState<InvoiceDetail[]>([])
   const [pagination, setPagination] = useState(EMPTY_PAGINATION)
   const [loading, setLoading] = useState(true)
@@ -52,7 +54,7 @@ export function InvoiceListPage() {
     return () => {
       active = false
     }
-  }, [page])
+  }, [page, retry])
 
   return (
     <main className="page-container flow-page">
@@ -63,6 +65,7 @@ export function InvoiceListPage() {
       </section>
 
       <ApiErrorAlert error={error} />
+      <button className="button button-secondary" type="button" disabled={loading} onClick={() => { setLoading(true); setError(null); setRetry(value => value + 1) }}>Refresh Invoices</button>
       {loading ? (
         <LoadingState />
       ) : error ? null : invoices.length === 0 ? (
@@ -75,6 +78,7 @@ export function InvoiceListPage() {
                 <h2>{invoice.invoiceType === 'DEPOSIT' ? 'Deposit' : 'Rental Fee'}</h2>
                 <StatusBadge status={invoice.status} />
               </div>
+              <CustomerInvoiceContext invoice={invoice} />
               <strong className="amount">{formatMoney(invoice.amountDue)}</strong>
               <p className="muted">Payment Deadline: {formatUtcDateTime(invoice.dueDate)}</p>
               <Link className="button button-secondary" to={invoice.invoiceId}>

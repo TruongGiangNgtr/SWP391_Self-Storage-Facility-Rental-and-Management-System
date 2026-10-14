@@ -5,7 +5,7 @@ import type { ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { billingApi } from '../api/billingApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { LoadingState } from '../components/PageStates'
-import { StatusBadge } from '../components/StatusBadge'
+import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
 import { FlowIcon } from '../components/FlowIcon'
 import type { PaymentDetail } from '../features/billing/billing.types'
 import {

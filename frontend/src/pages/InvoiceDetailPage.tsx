@@ -1,44 +1,20 @@
-import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { presentApiError } from '../api/apiErrorPresentation'
-import type { ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { billingApi } from '../api/billingApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { LoadingState } from '../components/PageStates'
-import { StatusBadge } from '../components/StatusBadge'
-import type { InvoiceDetail } from '../features/billing/billing.types'
+import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
+import { CustomerInvoiceContext } from '../components/CustomerInvoiceContext'
+import { usePublicRead } from '../features/catalog/usePublicCatalog'
 import { formatMoney, formatUtcDateTime } from '../utils/formatters'
+
+const readInvoice = (invoiceId: string) => billingApi.getInvoice(invoiceId)
 
 export function InvoiceDetailPage() {
   const { invoiceId = '' } = useParams()
-  const [invoice, setInvoice] = useState<InvoiceDetail | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<ApiErrorPresentation | null>(null)
-
-  useEffect(() => {
-    let active = true
-    billingApi
-      .getInvoice(invoiceId)
-      .then((response) => {
-        if (active) {
-          setInvoice(response.data)
-        }
-      })
-      .catch((requestError: unknown) => {
-        if (active) {
-          setError(presentApiError(requestError))
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setLoading(false)
-        }
-      })
-
-    return () => {
-      active = false
-    }
-  }, [invoiceId])
+  // Reuse the keyed reader with authenticated billingApi, not a public request.
+  const { data: response, loading, error, refresh } = usePublicRead(invoiceId, readInvoice, true, presentApiError)
+  const invoice = response?.data
 
   return (
     <main className="page-container flow-page narrow-page">
@@ -53,6 +29,7 @@ export function InvoiceDetailPage() {
       </section>
 
       <ApiErrorAlert error={error} />
+      <button className="button button-secondary" type="button" disabled={loading} onClick={refresh}>Refresh Invoice</button>
       {loading ? (
         <LoadingState />
       ) : (
@@ -62,6 +39,7 @@ export function InvoiceDetailPage() {
               <h2>{invoice.invoiceType === 'DEPOSIT' ? 'Deposit Invoice' : 'Rental Invoice'}</h2>
               <StatusBadge status={invoice.status} />
             </div>
+            <CustomerInvoiceContext invoice={invoice} />
             <dl className="detail-list">
               <div>
                 <dt>Base Amount</dt>
@@ -88,11 +66,6 @@ export function InvoiceDetailPage() {
                 <dd>{invoice.paidAt ? formatUtcDateTime(invoice.paidAt) : 'Not Recorded'}</dd>
               </div>
             </dl>
-            {invoice.invoiceType === 'DEPOSIT' && (
-              <Link className="button" to={`/customer/reservations/${invoice.entityId}`}>
-                Open Reservation
-              </Link>
-            )}
           </section>
         )
       )}

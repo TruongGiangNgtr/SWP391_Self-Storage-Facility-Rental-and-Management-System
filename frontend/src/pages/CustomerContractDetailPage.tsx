@@ -1,7 +1,8 @@
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { LoadingState } from '../components/PageStates'
-import { StatusBadge } from '../components/StatusBadge'
+import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
+import { contractTitle, contractUnit } from '../utils/customerPresentation'
 import { useAccessContract } from '../features/visits/useAccessContract'
 import { formatMonthRange } from '../utils/formatters'
 
@@ -18,11 +19,10 @@ export function CustomerContractDetailPage() {
       <ApiErrorAlert error={error} />
       <button className="button button-secondary" type="button" disabled={loading} onClick={refresh}>Refresh Contract</button>
       {loading ? <LoadingState label="Loading your contract..." /> : contract && <section className="panel stack">
-        <div className="card-heading-row"><h2>{contract.storageUnit?.unitTypeName || 'Storage Contract'}</h2><StatusBadge status={contract.status} /></div>
+        <div className="card-heading-row"><h2>{contractTitle(contract)}</h2><StatusBadge status={contract.status} /></div>
         <dl className="detail-list">
-          <div><dt>Contract ID</dt><dd>{contract.contractId}</dd></div>
-          <div><dt>Facility ID</dt><dd>{contract.facilityId}</dd></div>
-          <div><dt>Storage Unit</dt><dd>{contract.storageUnit?.unitCode || contract.storageUnitId}</dd></div>
+          <div><dt>Facility</dt><dd><Link to={`/facilities/${encodeURIComponent(contract.facilityId)}`}>View Facility</Link></dd></div>
+          <div><dt>Storage Unit</dt><dd>{contractUnit(contract)}</dd></div>
           <div><dt>Rental Period</dt><dd>{formatMonthRange(contract.startMonth, contract.endMonth)}</dd></div>
           {contract.storageUnit && <><div><dt>Storage Type / Size</dt><dd>{contract.storageUnit.unitTypeMode === 'PRIVATE' ? 'Private' : 'Public'} · {contract.storageUnit.unitTypeSize}</dd></div><div><dt>Unit Location</dt><dd>{contract.storageUnit.locationInfo || 'Not recorded'}</dd></div></>}
         </dl>

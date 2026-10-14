@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { getCurrentBusinessMonth } from '../features/reservations/reservationValidation'
 import { FlowIcon } from './FlowIcon'
+import { CustomerFieldError } from './CustomerFieldError'
 
 interface CalendarDateFieldProps {
   id: string
@@ -8,6 +9,7 @@ interface CalendarDateFieldProps {
   value: string
   initialMonth?: string
   disabled?: boolean
+  error?: string | null
   onChange(value: string): void
 }
 
@@ -17,7 +19,7 @@ function moveMonth(month: string, step: number): string {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`
 }
 
-export function CalendarDateField({ id, label, value, initialMonth, disabled = false, onChange }: CalendarDateFieldProps) {
+export function CalendarDateField({ id, label, value, initialMonth, disabled = false, error, onChange }: CalendarDateFieldProps) {
   const [month, setMonth] = useState(() => value.slice(0, 7) || initialMonth || getCurrentBusinessMonth())
   const [year, monthNumber] = month.split('-').map(Number)
   const offset = (new Date(Date.UTC(year, monthNumber - 1, 1)).getUTCDay() + 6) % 7
@@ -35,11 +37,14 @@ export function CalendarDateField({ id, label, value, initialMonth, disabled = f
           type="date"
           value={value}
           disabled={disabled}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
           onChange={(event) => {
             onChange(event.target.value)
             if (event.target.value) setMonth(event.target.value.slice(0, 7))
           }}
         />
+        <CustomerFieldError id={`${id}-error`} message={error} />
       </div>
       <div className="calendar-heading">
         <button type="button" disabled={disabled} aria-label="Previous Month" onClick={() => setMonth(moveMonth(month, -1))}><FlowIcon name="calendar-prev" /></button>

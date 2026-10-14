@@ -3,8 +3,10 @@ import { Link, useParams } from 'react-router-dom'
 import { CustomerActionFrame } from '../components/CustomerActionFrame'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { LoadingState } from '../components/PageStates'
-import { StatusBadge } from '../components/StatusBadge'
-import { getExtensionStartMonth, isRentalMonth } from '../features/renewal/renewalValidation'
+import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
+import { contractTitle, contractUnit } from '../utils/customerPresentation'
+import { getExtensionStartMonth, isRentalMonth, validateRenewalMonth } from '../features/renewal/renewalValidation'
+import { CustomerFieldError } from '../components/CustomerFieldError'
 import { useContractRenewal } from '../features/renewal/useContractRenewal'
 import { formatMoney, formatMonthRange } from '../utils/formatters'
 
@@ -12,12 +14,17 @@ export function ContractRenewalPage() {
   const { contractId = '' } = useParams()
   const { contract, loading, readError, actionError, working, result, lastAttemptEndMonth, refreshContract, renew } = useContractRenewal(contractId)
   const [newEndMonth, setNewEndMonth] = useState('')
+  const [monthError, setMonthError] = useState<string | null>(null)
   const extensionStartMonth = contract ? getExtensionStartMonth(contract.endMonth) : null
   const busy = loading || working
   const targetReached = !result && contract && lastAttemptEndMonth && isRentalMonth(contract.endMonth) && contract.endMonth >= lastAttemptEndMonth
 
   async function handleRenew(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!contract) return
+    const invalid = validateRenewalMonth(contract.endMonth, newEndMonth)
+    setMonthError(invalid)
+    if (invalid) return
     await renew(newEndMonth)
   }
 
@@ -31,7 +38,6 @@ export function ContractRenewalPage() {
       {result && <section className="panel stack" aria-label="Renewal result">
         <div className="card-heading-row"><h2>Renewal Confirmed</h2><StatusBadge status={result.status} /></div>
         <dl className="detail-list">
-          <div><dt>Contract ID</dt><dd>{result.contractId}</dd></div>
           <div><dt>Previous End Month</dt><dd>{result.oldEndMonth}</dd></div>
           <div><dt>New End Month</dt><dd>{result.newEndMonth}</dd></div>
           <div><dt>Extension Period</dt><dd>{formatMonthRange(getExtensionStartMonth(result.oldEndMonth)!, result.newEndMonth)}</dd></div>
@@ -45,8 +51,8 @@ export function ContractRenewalPage() {
         <section className="panel stack" aria-label="Current contract">
           <div className="card-heading-row"><h2>Current Contract</h2><StatusBadge status={contract.status} /></div>
           <dl className="detail-list">
-            <div><dt>Contract ID</dt><dd>{contract.contractId}</dd></div>
-            <div><dt>Storage Unit ID</dt><dd>{contract.storageUnitId}</dd></div>
+            <div><dt>Unit Type</dt><dd>{contractTitle(contract)}</dd></div>
+            <div><dt>Storage Unit</dt><dd>{contractUnit(contract)}</dd></div>
             <div><dt>Original Start Month</dt><dd>{contract.startMonth}</dd></div>
             <div><dt>Current End Month</dt><dd>{contract.endMonth}</dd></div>
           </dl>
@@ -59,7 +65,8 @@ export function ContractRenewalPage() {
           <form className="form-grid" onSubmit={handleRenew} noValidate>
             <div className="form-field">
               <label htmlFor="newEndMonth">New End Month</label>
-              <input id="newEndMonth" type="month" min={extensionStartMonth} value={newEndMonth} disabled={busy} onChange={(event) => setNewEndMonth(event.target.value)} />
+              <input id="newEndMonth" type="month" min={extensionStartMonth} value={newEndMonth} disabled={busy} aria-invalid={Boolean(monthError)} aria-describedby={monthError ? 'newEndMonth-error' : undefined} onChange={(event) => { setNewEndMonth(event.target.value); setMonthError(null) }} />
+              <CustomerFieldError id="newEndMonth-error" message={monthError} />
             </div>
             <dl className="detail-list compact">
               <div><dt>Extension Starts</dt><dd>{extensionStartMonth}</dd></div>
