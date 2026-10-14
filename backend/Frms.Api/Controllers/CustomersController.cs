@@ -1,45 +1,66 @@
+using System.Text.Json;
 using Frms.Api.Authorization;
 using Frms.Api.DTOs.Responses;
+using Frms.Api.Mapping;
+using Frms.Api.Validation;
+using Frms.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Frms.Api.Controllers;
 
-/// <summary>
-/// Customer-specific API surface for own profile, Facility-scoped lookup,
-/// and Business Operations Manager lookup. Keep RBAC on actions: the scopes
-/// are distinct and must never be combined into one broad role check.
-/// </summary>
+/// <summary>Customer operations. Route and role remain action-specific.</summary>
 [Route("api/v1")]
-public sealed class CustomersController : ScaffoldControllerBase
+public sealed class CustomersController(ICustomerService customers) : ScaffoldControllerBase
 {
-    // AUTH-005: Implement only after profile field/update rules are wired through Service/Repository.
     [Authorize(Roles = RoleNames.Customer)]
     [HttpPatch("customers/me/profile")]
-    public ActionResult<ApiErrorResponse> UpdateOwnProfile([FromBody] System.Text.Json.JsonElement request) =>
-        ScaffoldNotImplemented("AUTH-005");
+    [ProducesResponseType(typeof(ApiResponse<UpdatedCustomerProfileResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<UpdatedCustomerProfileResponse>>> UpdateOwnProfile(
+        [FromBody] JsonElement request, CancellationToken cancellationToken = default)
+    {
+        var updated = await customers.UpdateOwnProfileAsync(
+            CustomerProfilePatchParser.Parse(request), cancellationToken);
+        return Ok(new ApiResponse<UpdatedCustomerProfileResponse>(updated.ToResponse(), "Customer profile updated."));
+    }
 
-    // UX-RBAC-12: Must resolve current Employee.FacilityId and restrict linked
-    // Reservation OR Contract rows BEFORE pagination/counting and DTO mapping.
+    // Facility relationship includes a Reservation OR Contract (not just assigned tasks).
     [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
     [HttpGet("facilities/{facilityId:guid}/customers")]
-    public ActionResult<ApiErrorResponse> ListFacilityCustomers(Guid facilityId) =>
-        ScaffoldNotImplemented("UX-RBAC-12-LIST");
+    public async Task<ActionResult<PaginatedResponse<CustomerDirectoryResponse>>> ListFacilityCustomers(
+        Guid facilityId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await customers.ListFacilityAsync(facilityId, page, pageSize, cancellationToken);
+        return Ok(result.ToResponse());
+    }
 
     [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
     [HttpGet("facilities/{facilityId:guid}/customers/{customerId:guid}")]
-    public ActionResult<ApiErrorResponse> GetFacilityCustomer(Guid facilityId, Guid customerId) =>
-        ScaffoldNotImplemented("UX-RBAC-12-DETAIL");
+    public async Task<ActionResult<ApiResponse<CustomerDirectoryResponse>>> GetFacilityCustomer(
+        Guid facilityId, Guid customerId, CancellationToken cancellationToken = default)
+    {
+        var result = await customers.GetFacilityAsync(facilityId, customerId, cancellationToken);
+        return Ok(new ApiResponse<CustomerDirectoryResponse>(result.ToResponse()));
+    }
 
-    // UX-RBAC-14: Business-wide read-only customer directory. Never expose
-    // credentials/secrets; final field-level PII projection awaits SRS approval.
+    // Read-only business directory. Field-level PII is intentionally excluded.
     [Authorize(Roles = RoleNames.BusinessOperationsManager)]
     [HttpGet("business/customers")]
-    public ActionResult<ApiErrorResponse> ListCustomers() =>
-        ScaffoldNotImplemented("UX-RBAC-14-LIST");
+    public async Task<ActionResult<PaginatedResponse<CustomerDirectoryResponse>>> ListCustomers(
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await customers.ListBusinessAsync(page, pageSize, cancellationToken);
+        return Ok(result.ToResponse());
+    }
 
     [Authorize(Roles = RoleNames.BusinessOperationsManager)]
     [HttpGet("business/customers/{customerId:guid}")]
-    public ActionResult<ApiErrorResponse> GetCustomer(Guid customerId) =>
-        ScaffoldNotImplemented("UX-RBAC-14-DETAIL");
+    public async Task<ActionResult<ApiResponse<CustomerDirectoryResponse>>> GetCustomer(
+        Guid customerId, CancellationToken cancellationToken = default)
+    {
+        var result = await customers.GetBusinessAsync(customerId, cancellationToken);
+        return Ok(new ApiResponse<CustomerDirectoryResponse>(result.ToResponse()));
+    }
 }

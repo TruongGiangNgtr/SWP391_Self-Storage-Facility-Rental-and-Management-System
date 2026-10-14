@@ -27,6 +27,7 @@ public static class DataAccessServiceCollectionExtensions
         services.AddHealthChecks().AddDbContextCheck<FrmsDbContext>("sqlserver");
         services.AddScoped<IUserAccountRepository, UserAccountRepository>();
         services.AddScoped<ICustomerRegistrationRepository, CustomerRegistrationRepository>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<IStorageUnitRepository, StorageUnitRepository>();
         services.AddScoped<IFacilityRepository, FacilityRepository>();

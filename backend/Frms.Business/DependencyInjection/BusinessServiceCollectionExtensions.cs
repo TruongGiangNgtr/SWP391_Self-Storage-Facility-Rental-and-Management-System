@@ -14,6 +14,7 @@ public static class BusinessServiceCollectionExtensions
         services.AddSingleton<IClock>(_ => new SystemClock(businessTimeZone ?? "Asia/Ho_Chi_Minh"));
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<ICustomerRegistrationService, CustomerRegistrationService>();
+        services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IFacilityAuthorizationService, FacilityAuthorizationService>();
         services.AddScoped<IStorageUnitService, StorageUnitService>();
