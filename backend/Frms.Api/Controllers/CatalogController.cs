@@ -14,7 +14,8 @@ public sealed class CatalogController(
     ICapacityService capacityService,
     IUnitTypeService unitTypeService,
     IFacilityAuthorizationService facilityAuthorizationService,
-    IFacilityCatalogService facilityCatalogService)
+    IFacilityCatalogService facilityCatalogService,
+    IOperationalCatalogService publicCatalog)
     : ScaffoldControllerBase {
 
     /// <summary>CAT-001: Browse active Facilities scaffold.</summary>
@@ -97,9 +98,24 @@ public sealed class CatalogController(
     [ProducesResponseType(typeof(ApiResponse<UnitTypeSummary>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUnitType(
         Guid unitTypeId,
-        CancellationToken cancellationToken = default) {
+        CancellationToken cancellationToken = default,
+        [FromQuery] string? view = null) {
+        if (view is not null && view is not ("public" or "operational"))
+            return BadRequest(new ApiErrorResponse("VALIDATION_ERROR",
+                "Unsupported view.", HttpContext.TraceIdentifier));
+        if (view != "operational") {
+            var (items, _) = await publicCatalog.ListPublicUnitTypesAsync(
+                null, null, unitTypeId, null, null, 1, 1, cancellationToken);
+            if (items.Count == 0)
+                return NotFound(new ApiErrorResponse("RESOURCE_NOT_FOUND",
+                    "UnitType was not found in the public catalogue.", HttpContext.TraceIdentifier));
+            var item = items[0];
+            return Ok(new ApiResponse<UnitTypeSummary>(new UnitTypeSummary(
+                item.UnitTypeId, item.Name, item.Mode, item.Size,
+                item.RentalPrice, item.Description)));
+        }
         if (User.Identity?.IsAuthenticated != true)
-            return ScaffoldNotImplemented("CAT-004-PUBLIC");
+            return Unauthorized();
         if (!User.IsInRole(RoleNames.Customer) &&
             !User.IsInRole(RoleNames.FacilityStaff) &&
             !User.IsInRole(RoleNames.FacilityManager))

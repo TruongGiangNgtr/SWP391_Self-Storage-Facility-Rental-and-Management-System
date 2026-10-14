@@ -22,7 +22,6 @@ public sealed class ContractsController(
     [Authorize(
         Roles =
             RoleNames.Customer + "," +
-            RoleNames.FacilityStaff + "," +
             RoleNames.FacilityManager + "," +
             RoleNames.BusinessOperationsManager)]
     [HttpGet]

@@ -17,7 +17,7 @@ public sealed class StorageUnitsController(
     IStorageUnitService storageUnitService)
     : ScaffoldControllerBase {
     /// <summary>UNIT-001: List Facility StorageUnits.</summary>
-    [Authorize(Roles = RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
+    [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpGet("facilities/{facilityId:guid}/storage-units")]
     [ProducesResponseType(
         typeof(PaginatedResponse<StorageUnitDetailResponse>),
@@ -31,8 +31,6 @@ public sealed class StorageUnitsController(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
             CancellationToken cancellationToken = default) {
-        if (User.IsInRole(RoleNames.BusinessOperationsManager))
-            return ScaffoldNotImplemented("UNIT-001-BOM");
         var (items, totalCount) =
             await storageUnitService.ListByFacilityAsync(
                 facilityId,
@@ -89,7 +87,7 @@ public sealed class StorageUnitsController(
     }
 
     /// <summary>UNIT-003: StorageUnit detail.</summary>
-    [Authorize(Roles = RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
+    [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpGet("storage-units/{storageUnitId:guid}")]
     [ProducesResponseType(
         typeof(ApiResponse<StorageUnitDetailResponse>),
@@ -99,8 +97,6 @@ public sealed class StorageUnitsController(
         GetStorageUnit(
             Guid storageUnitId,
             CancellationToken cancellationToken) {
-        if (User.IsInRole(RoleNames.BusinessOperationsManager))
-            return ScaffoldNotImplemented("UNIT-003-BOM");
         var result =
             await storageUnitService.GetByIdAsync(
                 storageUnitId,

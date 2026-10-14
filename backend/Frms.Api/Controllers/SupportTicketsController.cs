@@ -30,7 +30,7 @@ public sealed class SupportTicketsController(ISupportTicketService supportTicket
     }
 
     /// <summary>SUP-002: List accessible SupportTickets scaffold.</summary>
-    [Authorize(Roles = RoleNames.Customer + "," + RoleNames.FacilityStaff + "," + RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
+    [Authorize(Roles = RoleNames.Customer + "," + RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
     [HttpGet]
     [ProducesResponseType(typeof(PaginatedResponse<SupportTicketDetailResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ListSupportTickets(
@@ -38,8 +38,6 @@ public sealed class SupportTicketsController(ISupportTicketService supportTicket
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        if (User.IsInRole(RoleNames.BusinessOperationsManager))
-            return ScaffoldNotImplemented("SUP-002-BOM");
         var result = await supportTicketService.ListAccessibleAsync(page, pageSize, cancellationToken);
         var response = result.Items.Select(x => x.ToResponse()).ToArray();
         return Ok(new PaginatedResponse<SupportTicketDetailResponse>(
@@ -48,15 +46,13 @@ public sealed class SupportTicketsController(ISupportTicketService supportTicket
     }
 
     /// <summary>SUP-003: SupportTicket detail scaffold.</summary>
-    [Authorize(Roles = RoleNames.Customer + "," + RoleNames.FacilityStaff + "," + RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
+    [Authorize(Roles = RoleNames.Customer + "," + RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
     [HttpGet("{ticketId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<SupportTicketDetailResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<SupportTicketDetailResponse>>> GetSupportTicket(
         Guid ticketId,
         CancellationToken cancellationToken)
     {
-        if (User.IsInRole(RoleNames.BusinessOperationsManager))
-            return ScaffoldNotImplemented("SUP-003-BOM");
         var ticket = await supportTicketService.GetAccessibleAsync(ticketId, cancellationToken);
         return Ok(new ApiResponse<SupportTicketDetailResponse>(ticket.ToResponse()));
     }
