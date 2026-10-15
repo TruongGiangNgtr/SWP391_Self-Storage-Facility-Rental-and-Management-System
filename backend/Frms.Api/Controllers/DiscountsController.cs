@@ -1,4 +1,5 @@
 using Frms.Api.Authorization;
+using Frms.Api.Mapping;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Models;
 using Frms.Business.Services.Interfaces;
@@ -37,7 +38,7 @@ public sealed class CustomerDiscountsController(
                 cancellationToken);
 
         var data = items
-            .Select(ToResponse)
+            .Select(x => x.ToResponse())
             .ToArray();
 
         var totalPages = totalCount == 0
@@ -53,27 +54,5 @@ public sealed class CustomerDiscountsController(
                     pageSize,
                     totalCount,
                     totalPages)));
-    }
-
-    private static DiscountResponse ToResponse(
-        DiscountResult result) {
-        return new DiscountResponse(
-            result.DiscountId,
-            result.CustomerId,
-            result.Name,
-            result.Percentage,
-            result.Status,
-            AsUtc(result.EffectiveFrom),
-            result.EffectiveTo is null
-                ? null
-                : AsUtc(result.EffectiveTo.Value));
-    }
-
-    private static DateTime AsUtc(DateTime value) {
-        return value.Kind == DateTimeKind.Utc
-            ? value
-            : DateTime.SpecifyKind(
-                value,
-                DateTimeKind.Utc);
     }
 }

@@ -1,3 +1,4 @@
+import { CustomerPicker } from './CustomerPicker'
 import {
   type SyntheticEvent,
   useMemo,
@@ -36,9 +37,6 @@ const emptyForm: DiscountForm = {
   effectiveFrom: '',
   effectiveTo: '',
 }
-
-const uuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 function toUtcIso(localValue: string): string | null {
   if (!localValue) {
@@ -101,15 +99,12 @@ function formatEffectivePeriod(discount: Discount): string {
 }
 
 export function DiscountManagementPage() {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const initialCustomerId = searchParams.get('customerId') ?? ''
-
-  const [customerIdInput, setCustomerIdInput] = useState(initialCustomerId)
+  const [, setSearchParams] = useSearchParams()
+  const [selectedCustomer, setSelectedCustomer] = useState<{ customerId: string; fullName: string } | null>(null)
   const [loadedCustomerId, setLoadedCustomerId] = useState('')
   const [discounts, setDiscounts] = useState<Discount[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [pageError, setPageError] = useState<string | null>(null)
-  const [customerIdError, setCustomerIdError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] =
     useState<'ALL' | DiscountStatus>('ALL')
@@ -168,23 +163,6 @@ export function DiscountManagementPage() {
     filteredDiscounts.length,
   )
 
-  function validateCustomerId(): string | null {
-    const value = customerIdInput.trim()
-
-    if (!value) {
-      setCustomerIdError('Customer ID is required.')
-      return null
-    }
-
-    if (!uuidPattern.test(value)) {
-      setCustomerIdError('Customer ID must be a valid UUID.')
-      return null
-    }
-
-    setCustomerIdError(null)
-    return value
-  }
-
   async function loadCustomerDiscounts(customerId: string) {
     setIsLoading(true)
     setPageError(null)
@@ -229,19 +207,6 @@ export function DiscountManagementPage() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  async function handleCustomerLookup(
-    event: SyntheticEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault()
-
-    const customerId = validateCustomerId()
-    if (!customerId) {
-      return
-    }
-
-    await loadCustomerDiscounts(customerId)
   }
 
   function openCreateModal() {
@@ -300,7 +265,9 @@ export function DiscountManagementPage() {
       ? toUtcIso(form.effectiveTo)
       : null
 
-    if (!name) {
+    if (name.length > 150) {
+      nextErrors.name = 'Name must not exceed 150 characters.'
+    } else if (!name) {
       nextErrors.name = 'Discount name is required.'
     }
 
@@ -322,6 +289,9 @@ export function DiscountManagementPage() {
       nextErrors.effectiveTo = 'Effective to must be a valid date and time.'
     }
 
+    if (effectiveFrom && effectiveTo && effectiveTo < effectiveFrom) {
+      nextErrors.effectiveTo = 'End date must be on or after the start date.'
+    }
     if (Object.keys(nextErrors).length > 0 || !effectiveFrom) {
       setFormErrors(nextErrors)
       return null
@@ -441,7 +411,8 @@ export function DiscountManagementPage() {
             : discount,
         ),
       )
-      closeFormModal()
+      setEditingDiscount(null)
+      setForm(emptyForm)
     } catch (error) {
       if (error instanceof ApiRequestError) {
         if (applyServerValidation(error)) {
@@ -507,10 +478,6 @@ export function DiscountManagementPage() {
 
   return (
     <section className="facility-page">
-      <div className="facility-breadcrumb">
-        Business Operations / Discounts
-      </div>
-
       <div className="facility-page-heading">
         <div>
           <span className="facility-eyebrow">DISCOUNT MANAGEMENT</span>
@@ -540,47 +507,10 @@ export function DiscountManagementPage() {
         </div>
       </div>
 
-      <form
-        className="discount-customer-scope"
-        onSubmit={handleCustomerLookup}
-      >
-        <div className="discount-customer-scope__copy">
-          <span className="facility-summary-label">CUSTOMER SCOPE</span>
-          <strong>Load discounts by Customer ID</strong>
-          <p>
-            BOM-010 is customer-scoped. Enter the target Customer UUID to load
-            the authoritative Discount catalogue.
-          </p>
-        </div>
-
-        <div className="discount-customer-scope__control">
-          <label htmlFor="discount-customer-id">Customer ID</label>
-          <div className="discount-customer-scope__row">
-            <input
-              id="discount-customer-id"
-              type="text"
-              value={customerIdInput}
-              onChange={(event) => {
-                setCustomerIdInput(event.target.value)
-                setCustomerIdError(null)
-              }}
-              placeholder="00000000-0000-0000-0000-000000000000"
-              disabled={isLoading}
-              autoComplete="off"
-            />
-            <button
-              type="submit"
-              className="facility-primary-button"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Loading...' : 'Load Customer'}
-            </button>
-          </div>
-          {customerIdError && (
-            <span className="facility-form-error">{customerIdError}</span>
-          )}
-        </div>
-      </form>
+      <CustomerPicker disabled={isLoading || isSaving || Boolean(statusChangingId)} selectedCustomer={selectedCustomer} onSelect={customer => {
+        setSelectedCustomer(customer)
+        void loadCustomerDiscounts(customer.customerId)
+      }} />
 
       <div className="facility-summary-grid">
         <article className="facility-summary-card">
@@ -676,8 +606,8 @@ export function DiscountManagementPage() {
             <h2>Customer Discount Registry</h2>
             <p>
               {loadedCustomerId
-                ? `Customer: ${loadedCustomerId}`
-                : 'Select a Customer ID before loading Discount records.'}
+                ? `Customer: ${selectedCustomer?.fullName ?? ""}`
+                : 'Choose a customer to view their discounts.'}
             </p>
           </div>
           <span>Showing {filteredDiscounts.length} discounts</span>
@@ -701,8 +631,7 @@ export function DiscountManagementPage() {
                     <div className="facility-state-content">
                       <strong>No Customer selected</strong>
                       <span>
-                        Enter a Customer UUID above to load BWP-04 Discount
-                        Management data.
+                        Choose a customer above to view and manage their discounts.
                       </span>
                     </div>
                   </td>
@@ -918,8 +847,8 @@ export function DiscountManagementPage() {
                 </h2>
                 <p>
                   {editingDiscount
-                    ? `Update ${editingDiscount.name} for Customer ${editingDiscount.customerId}.`
-                    : `Create a Discount for Customer ${loadedCustomerId}.`}
+                    ? `Update ${editingDiscount.name} for ${selectedCustomer?.fullName ?? "the selected customer"}.`
+                    : `Create a Discount for ${selectedCustomer?.fullName ?? "the selected customer"}.`}
                 </p>
               </div>
               <button
@@ -954,6 +883,7 @@ export function DiscountManagementPage() {
                     Name <span>*</span>
                   </label>
                   <input
+                    maxLength={150}
                     id="discount-name"
                     type="text"
                     value={form.name}

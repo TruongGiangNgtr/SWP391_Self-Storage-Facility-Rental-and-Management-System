@@ -1,5 +1,6 @@
 using Frms.Business.Models.Results;
 using Frms.Api.Authorization;
+using Frms.Api.Mapping;
 using Frms.Api.DTOs.Responses;
 using Frms.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -13,12 +14,12 @@ public sealed class CatalogController(
     ICapacityService capacityService,
     IUnitTypeService unitTypeService,
     IFacilityAuthorizationService facilityAuthorizationService,
-    IFacilityCatalogService facilityCatalogService)
+    IFacilityCatalogService facilityCatalogService,
+    IOperationalCatalogService publicCatalog)
     : ScaffoldControllerBase {
 
-    /// <summary>CAT-001: Browse active Facilities scaffold.</summary>
-    /// <summary>CAT-001: Browse active Facilities.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
+    /// <summary>CAT-001: Browse/search active Facilities with server-side filters.</summary>
+    [AllowAnonymous]
     [HttpGet("facilities")]
     [ProducesResponseType(
         typeof(PaginatedResponse<FacilitySummaryResponse>),
@@ -26,15 +27,22 @@ public sealed class CatalogController(
     public async Task<IActionResult> BrowseFacilities(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default) {
-        var result =
-            await facilityCatalogService.GetActiveFacilitiesAsync(
-                page,
-                pageSize,
-                cancellationToken);
+        CancellationToken cancellationToken = default,
+        [FromQuery] string? location = null,
+        [FromQuery] Guid? facilityId = null,
+        [FromQuery] string? mode = null,
+        [FromQuery] string? size = null,
+        [FromQuery] Guid? unitTypeId = null,
+        [FromQuery] string? startMonth = null,
+        [FromQuery] string? endMonth = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] string? sortDirection = null) {
+        var result = await facilityCatalogService.SearchActiveFacilitiesAsync(
+            location, facilityId, mode, size, unitTypeId, startMonth, endMonth,
+            sortBy, sortDirection, page, pageSize, cancellationToken);
 
         var data = result.Items
-            .Select(MapFacility)
+            .Select(x => x.ToSummary())
             .ToArray();
 
         var totalPages =
@@ -56,7 +64,7 @@ public sealed class CatalogController(
     }
 
     /// <summary>CAT-002: Active Facility detail.</summary>
-    [Authorize(Roles = RoleNames.Customer)]
+    [AllowAnonymous]
     [HttpGet("facilities/{facilityId:guid}")]
     [ProducesResponseType(
         typeof(ApiResponse<FacilitySummaryResponse>),
@@ -71,23 +79,40 @@ public sealed class CatalogController(
 
         return Ok(
             new ApiResponse<FacilitySummaryResponse>(
-                MapFacility(result)));
+                result.ToSummary()));
     }
 
     /// <summary>
     /// CAT-004: Unit Type detail.
     /// UnitType catalogue metadata is owned by SSP-01.
     /// </summary>
-    [Authorize(
-        Roles =
-            RoleNames.Customer + "," +
-            RoleNames.FacilityStaff + "," +
-            RoleNames.FacilityManager)]
+    [AllowAnonymous]
     [HttpGet("unit-types/{unitTypeId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<UnitTypeSummary>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUnitType(
         Guid unitTypeId,
-        CancellationToken cancellationToken = default) {
+        CancellationToken cancellationToken = default,
+        [FromQuery] string? view = null) {
+        if (view is not null && view is not ("public" or "operational"))
+            return BadRequest(new ApiErrorResponse("VALIDATION_ERROR",
+                "Unsupported view.", HttpContext.TraceIdentifier));
+        if (view != "operational") {
+            var (items, _) = await publicCatalog.ListPublicUnitTypesAsync(
+                null, null, unitTypeId, null, null, 1, 1, cancellationToken);
+            if (items.Count == 0)
+                return NotFound(new ApiErrorResponse("RESOURCE_NOT_FOUND",
+                    "UnitType was not found in the public catalogue.", HttpContext.TraceIdentifier));
+            var item = items[0];
+            return Ok(new ApiResponse<UnitTypeSummary>(new UnitTypeSummary(
+                item.UnitTypeId, item.Name, item.Mode, item.Size,
+                item.RentalPrice, item.Description)));
+        }
+        if (User.Identity?.IsAuthenticated != true)
+            return Unauthorized();
+        if (!User.IsInRole(RoleNames.Customer) &&
+            !User.IsInRole(RoleNames.FacilityStaff) &&
+            !User.IsInRole(RoleNames.FacilityManager))
+            return Forbid();
         var unitType = await unitTypeService.GetByIdAsync(
             unitTypeId,
             cancellationToken);
@@ -101,30 +126,16 @@ public sealed class CatalogController(
         }
 
         return Ok(new {
-            data = Map(unitType)
+            data = unitType.ToSummary()
         });
     }
-
-    private static UnitTypeSummary Map(
-        UnitTypeResult unitType)
-        => new(
-            unitType.UnitTypeId,
-            unitType.Name,
-            unitType.Mode,
-            unitType.Size,
-            unitType.RentalPrice,
-            unitType.Description);
 
     /// <summary>
     /// CAT-003: Unit Types offered at a Facility
     /// with optional requested-period capacity.
     /// Capacity calculation is owned by SSP-02.
     /// </summary>
-    [Authorize(
-        Roles =
-            RoleNames.Customer + "," +
-            RoleNames.FacilityStaff + "," +
-            RoleNames.FacilityManager)]
+    [AllowAnonymous]
     [HttpGet("facilities/{facilityId:guid}/unit-types")]
     [ProducesResponseType(
         typeof(PaginatedResponse<UnitTypeAvailabilityResponse>),
@@ -135,7 +146,14 @@ public sealed class CatalogController(
         [FromQuery] string? endMonth = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default) {
+        CancellationToken cancellationToken = default,
+        [FromQuery] string? view = null,
+        [FromQuery] string? mode = null,
+        [FromQuery] string? size = null,
+        [FromQuery] Guid? unitTypeId = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] string? sortDirection = null,
+        [FromQuery] string? availableOnly = null) {
         if (page < 1 || pageSize < 1 || pageSize > 100) {
             return BadRequest(new {
                 code = "VALIDATION_ERROR",
@@ -144,13 +162,39 @@ public sealed class CatalogController(
             });
         }
 
-        // Customer may browse ACTIVE facilities.
-        // Staff/Manager must be assigned to the path Facility.
+        if (view is not null && view != "public" && view != "operational")
+            return BadRequest(new {
+                code = "VALIDATION_ERROR",
+                message = "Unsupported view; choose public or operational.",
+                traceId = HttpContext.TraceIdentifier
+            });
+        if (view != "operational")
+        {
+            var publicResult = await publicCatalog.ListFacilityPublicUnitTypesAsync(
+                facilityId, mode, size, unitTypeId, startMonth, endMonth,
+                sortBy, sortDirection, availableOnly, page, pageSize, cancellationToken);
+            var publicData = publicResult.Items.Select(x => x.ToAvailabilityResponse()).ToArray();
+            var publicPages = publicResult.TotalItems == 0 ? 0 :
+                (int)Math.Ceiling(publicResult.TotalItems / (double)pageSize);
+            return Ok(new PaginatedResponse<UnitTypeAvailabilityResponse>(publicData,
+                new PaginationResponse(page, pageSize, publicResult.TotalItems, publicPages)));
+        }
+        if (User.Identity?.IsAuthenticated != true)
+            return Unauthorized();
+        if (!User.IsInRole(RoleNames.Customer) &&
+            !User.IsInRole(RoleNames.FacilityStaff) &&
+            !User.IsInRole(RoleNames.FacilityManager))
+            return Forbid();
         if (!User.IsInRole(RoleNames.Customer)) {
             await facilityAuthorizationService.EnsureSameFacilityAsync(
-                facilityId,
-                cancellationToken);
+                facilityId, cancellationToken);
         }
+
+        if (mode is not null || size is not null || unitTypeId.HasValue ||
+            sortBy is not null || sortDirection is not null || availableOnly is not null)
+            return BadRequest(new ApiErrorResponse("VALIDATION_ERROR",
+                "Public catalogue filters are not supported in operational view.",
+                HttpContext.TraceIdentifier));
 
         var result = await capacityService.ListUnitTypesAsync(
             facilityId,
@@ -161,20 +205,7 @@ public sealed class CatalogController(
             cancellationToken);
 
         var data = result.Items
-            .Select(x =>
-                new UnitTypeAvailabilityResponse(
-                    x.UnitTypeId,
-                    x.Name,
-                    x.Mode,
-                    x.Size,
-                    x.RentalPrice,
-                    x.Description,
-                    x.RequestedStartMonth is null
-                        ? null
-                        : new RequestedPeriodResponse(
-                            x.RequestedStartMonth.Value.ToString("yyyy-MM"),
-                            x.RequestedEndMonth!.Value.ToString("yyyy-MM")),
-                    x.AvailableCapacity))
+            .Select(x => x.ToAvailabilityResponse())
             .ToArray();
 
         var totalPages =
@@ -193,14 +224,4 @@ public sealed class CatalogController(
             }
         });
     }
-
-    private static FacilitySummaryResponse MapFacility(
-        Frms.Business.Models.Results.FacilityCatalogResult facility)
-        => new(
-            facility.FacilityId,
-            facility.Name,
-            facility.Address,
-            facility.ContactInfo,
-            facility.Description,
-            facility.Status);
 }

@@ -18,3 +18,4 @@ test-results/
 
 appsettings.*.local.json
 *.bat
+*.patch

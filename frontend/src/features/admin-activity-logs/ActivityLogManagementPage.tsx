@@ -185,7 +185,7 @@ function AuditLogDetailDrawer({
     <aside className="awp07-drawer" role="dialog" aria-modal="true" aria-labelledby="awp07-drawer-title">
       <header className="awp07-drawer__header">
         <div>
-          <p className="awp01-eyebrow">AWP-07 · Audit event</p>
+          <p className="awp01-eyebrow">Activity detail</p>
           <h2 id="awp07-drawer-title">{formatCode(entry.action)}</h2>
           <code title={entry.auditLogId}>{entry.auditLogId}</code>
         </div>
@@ -355,10 +355,10 @@ export default function ActivityLogManagementPage() {
     <div className="awp01-page awp06-page awp07-page" data-testid="awp07-page">
       <header className="awp01-page__header">
         <div>
-          <p className="awp01-eyebrow">System Administrator · AWP-07 · SSP-18</p>
+          <p className="awp01-eyebrow">System Administrator</p>
           <h1>Activity log management</h1>
           <p>
-            Search recorded business and security activity through ADM-011. Review the actor, action, affected resource, event time, and stored before/after result snapshots without mutating audit history.
+            Review account activity, affected resources, and changes over time.
           </p>
         </div>
         <button

@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   AtSign,
   Building2,
@@ -6,11 +6,12 @@ import {
   Activity,
   LogOut,
   Percent,
-  ReceiptText,
   Tag,
 } from 'lucide-react'
 import { useAuth } from '../auth/auth.context'
 import { BrandLogo } from '../components/BrandLogo'
+import '../styles/manager.css'
+import '../styles/business-sidebar.css'
 interface BusinessOperationsLayoutProps {
   basePath?: string
 }
@@ -19,6 +20,10 @@ export function BusinessOperationsLayout({
   basePath = '/business',
 }: BusinessOperationsLayoutProps) {
   const { user, logout } = useAuth()
+  const { pathname } = useLocation()
+  const displayName = user?.fullName?.trim() || 'Business Operations Manager'
+  const initials = user?.fullName?.trim().split(/\s+/).slice(-2)
+    .map(part => part[0]?.toUpperCase() ?? '').join('') || 'BO'
 
   return (
   <div className="bo-shell">
@@ -45,28 +50,29 @@ export function BusinessOperationsLayout({
       </div>
     </header>
 
-    <div className="bo-body">
-      <aside className="bo-sidebar">
-        <div className="bo-profile-card">
-          <div className="bo-profile-avatar">BO</div>
+    <div className="bo-body bo-body--employee-sidebar">
+      <aside className="manager-sidebar">
+        <div className="manager-profile">
+          <div className="manager-profile-avatar">{initials}</div>
 
-          <strong>Business Operations</strong>
+          <strong title={displayName}>{displayName}</strong>
 
-          <span className="bo-profile-email">
-            {user?.email ?? 'Preview mode'}
+          <span className="manager-profile-email">
+            {user?.email ?? 'Employee account'}
           </span>
+          <span className="manager-role-badge">Business Operations Manager</span>
         </div>
 
-        <nav className="bo-nav">
+        <nav className="manager-nav" aria-label="Business Operations Manager navigation">
           <NavLink
             to={`${basePath}/facilities`}
             className={({ isActive }) =>
               isActive
-                ? 'bo-nav-link bo-nav-link-active'
-                : 'bo-nav-link'
+                ? 'manager-nav-link manager-nav-link-active'
+                : 'manager-nav-link'
             }
           >
-            <Building2 size={19} />
+            <Building2 size={18} />
             <span>Facilities</span>
           </NavLink>
 
@@ -74,11 +80,11 @@ export function BusinessOperationsLayout({
             to={`${basePath}/monitoring`}
             className={({ isActive }) =>
               isActive
-                ? 'bo-nav-link bo-nav-link-active'
-                : 'bo-nav-link'
+                ? 'manager-nav-link manager-nav-link-active'
+                : 'manager-nav-link'
             }
           >
-            <Activity size={19} />
+            <Activity size={18} />
             <span>Multi-Facility Monitoring</span>
           </NavLink>
 
@@ -86,11 +92,11 @@ export function BusinessOperationsLayout({
             to={`${basePath}/unit-types`}
             className={({ isActive }) =>
               isActive
-                ? 'bo-nav-link bo-nav-link-active'
-                : 'bo-nav-link'
+                ? 'manager-nav-link manager-nav-link-active'
+                : 'manager-nav-link'
             }
           >
-            <Tag size={19} />
+            <Tag size={18} />
             <span>Unit Types &amp; Pricing</span>
           </NavLink>
 
@@ -98,62 +104,46 @@ export function BusinessOperationsLayout({
             to={`${basePath}/policies`}
             className={({ isActive }) =>
               isActive
-                ? 'bo-nav-link bo-nav-link-active'
-                : 'bo-nav-link'
+                ? 'manager-nav-link manager-nav-link-active'
+                : 'manager-nav-link'
             }
           >
-            <AtSign size={19} />
+            <AtSign size={18} />
             <span>Policies</span>
           </NavLink>
 
           <NavLink
             to={`${basePath}/discounts`}
             className={({ isActive }) =>
-              isActive
-                ? 'bo-nav-link bo-nav-link-active'
-                : 'bo-nav-link'
+              (isActive || pathname === `${basePath}/extra-fees`)
+                ? 'manager-nav-link manager-nav-link-active'
+                : 'manager-nav-link'
             }
           >
-            <Percent size={19} />
-            <span>Discounts</span>
-          </NavLink>
-
-          <NavLink
-            to={`${basePath}/extra-fees`}
-            className={({ isActive }) =>
-              isActive
-                ? 'bo-nav-link bo-nav-link-active'
-                : 'bo-nav-link'
-            }
-          >
-            <ReceiptText size={19} />
-            <span>Extra Fees</span>
+            <Percent size={18} />
+            <span>Discount &amp; Extra Fee</span>
           </NavLink>
 
           <NavLink
             to={`${basePath}/reports`}
             className={({ isActive }) =>
               isActive
-                ? 'bo-nav-link bo-nav-link-active'
-                : 'bo-nav-link'
+                ? 'manager-nav-link manager-nav-link-active'
+                : 'manager-nav-link'
             }
           >
-            <ChartNoAxesCombined size={19} />
+            <ChartNoAxesCombined size={18} />
             <span>Reports</span>
           </NavLink>
         </nav>
 
-        <div className="bo-sidebar-actions">
+        <div className="manager-sidebar-actions">
           <button
             type="button"
-            className="bo-sidebar-action bo-sidebar-signout"
-            onClick={() => {
-              if (user) {
-                logout()
-              }
-            }}
+            className="manager-signout"
+            onClick={logout}
           >
-            <LogOut size={1} />
+            <LogOut size={18} />
             <span>Sign Out</span>
           </button>
         </div>

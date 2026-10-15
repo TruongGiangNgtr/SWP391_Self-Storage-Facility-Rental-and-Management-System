@@ -1,12 +1,12 @@
 
 using Frms.Api.Authorization;
+using Frms.Api.Mapping;
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Frms.Business.Models.Commands;
 using Frms.Business.Services.Interfaces;
-using Frms.Api.Mapping;
 
 namespace Frms.Api.Controllers;
 
@@ -37,27 +37,7 @@ public sealed class ContractsController(
             pageSize,
             cancellationToken);
 
-        var response = new ContractListResponse(
-            result.Items
-                .Select(x => new ContractSummaryResponse(
-                    x.ContractId,
-                    x.FacilityId,
-                    x.StorageUnitId,
-                    x.UnitCode,
-                    x.UnitTypeId,
-                    x.UnitTypeName,
-                    x.UnitTypeMode,
-                    x.StartMonth.ToString("yyyy-MM"),
-                    x.EndMonth.ToString("yyyy-MM"),
-                    x.Status) {
-                    CustomerId = x.CustomerId
-                })
-                .ToArray(),
-            new ContractPaginationResponse(
-                result.Page,
-                result.PageSize,
-                result.TotalItems,
-                result.TotalPages));
+        var response = result.ToResponse();
 
         return Ok(response);
     }
@@ -80,57 +60,7 @@ public sealed class ContractsController(
             contractId,
             cancellationToken);
 
-        var response = new ContractDetailResponse(
-            result.ContractId,
-            result.ReservationId,
-            result.FacilityId,
-            result.PolicyId,
-            result.DiscountId,
-            result.StartMonth.ToString("yyyy-MM"),
-            result.EndMonth.ToString("yyyy-MM"),
-            result.Status,
-            new ContractStorageUnitResponse(
-                result.StorageUnitId,
-                result.UnitCode,
-                result.LocationInfo,
-                result.StorageUnitStatus,
-                result.UnitTypeId,
-                result.UnitTypeName,
-                result.UnitTypeMode,
-                result.UnitTypeSize),
-            result.Extensions
-                .Select(x => new ContractExtensionResponse(
-                    x.ContractExtensionId,
-                    x.OldEndMonth.ToString("yyyy-MM"),
-                    x.NewEndMonth.ToString("yyyy-MM"),
-                    x.AppliedMonthlyPrice,
-                    new DateTimeOffset(
-                        DateTime.SpecifyKind(
-                            x.CreatedAt,
-                            DateTimeKind.Utc))))
-                .ToArray(),
-            result.Visits
-                .Select(x => new ContractVisitResponse(
-                    x.VisitId,
-                    x.VisitType,
-                    x.VisitDate,
-                    x.ActualReturnDate.HasValue
-                        ? DateOnly.FromDateTime(
-                            x.ActualReturnDate.Value)
-                        : null,
-                    x.Status,
-                    x.EmployeeId))
-                .ToArray(),
-            result.RentalInvoices
-                .Select(x => new ContractInvoiceStatusResponse(
-                    x.InvoiceId,
-                    x.BillingMonth?.ToString("yyyy-MM"),
-                    x.AmountDue,
-                    x.Status))
-                .ToArray()) {
-            CustomerId = result.CustomerId,
-            StorageUnitId = result.StorageUnitId
-        };
+        var response = result.ToResponse();
 
         return Ok(new ApiResponse<ContractDetailResponse>(
             response,
@@ -154,12 +84,7 @@ public sealed class ContractsController(
                 request.NewEndMonth),
             cancellationToken);
 
-        var response = new RenewContractResponse(
-            result.ContractId,
-            result.OldEndMonth.ToString("yyyy-MM"),
-            result.NewEndMonth.ToString("yyyy-MM"),
-            result.AppliedMonthlyPrice,
-            result.Status);
+        var response = result.ToResponse();
 
         return Ok(new ApiResponse<RenewContractResponse>(
             response,
@@ -237,15 +162,6 @@ public sealed class ContractsController(
             cancellationToken);
 
         return Ok(new ApiResponse<FinalizeReturnResponse>(
-            new FinalizeReturnResponse(
-                r.ContractId,
-                r.ContractStatus,
-                r.StorageUnitStatus,
-                new DepositSettlementResponse(
-                    r.Settlement.DepositSettlementId,
-                    r.Settlement.TotalDeduction,
-                    r.Settlement.RefundAmount,
-                    r.Settlement.AdditionalAmountDue,
-                    r.Settlement.Status))));
+            r.ToResponse()));
     }
 }

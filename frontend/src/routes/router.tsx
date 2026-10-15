@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes, useLocation, type Location } from 'react-router-dom'
+import { DiscountAndExtraFeePage } from '../features/discount-management/DiscountAndExtraFeePage'
 import { RequireAuth } from '../auth/RequireAuth'
 import { RequireRole } from '../auth/RequireRole'
 import { RootLayout } from '../layouts/RootLayout'
@@ -29,7 +30,8 @@ import { InvoiceListPage } from '../pages/InvoiceListPage'
 import { CustomerFeeReturnPage } from '../pages/CustomerFeeReturnPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PaymentResultPage } from '../pages/PaymentResultPage'
-import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
+import { FacilityReportsPage } from '../features/manager-reports/FacilityReportsPage'
+import { BusinessReportsPage } from '../features/business-reports/BusinessReportsPage'
 import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
 import { FacilityManagerLayout } from '../layouts/FacilityManagerLayout'
 import { SystemAdministratorLayout } from '../layouts/SystemAdministratorLayout'
@@ -275,9 +277,7 @@ export function AppRouter() {
         <Route
           path="reports"
           element={
-            <PortalPlaceholderPage
-              title="Facility Reports"
-            />
+            <FacilityReportsPage />
           }
         />
       </Route>
@@ -325,6 +325,9 @@ export function AppRouter() {
           path="policies"
           element={<PolicyVersionManagementPage />}
         />
+        <Route path="discounts" element={<DiscountAndExtraFeePage />} />
+        <Route path="extra-fees" element={<DiscountAndExtraFeePage />} />
+        <Route path="reports" element={<BusinessReportsPage />} />
       </Route>
     </Route>
   </Route>
