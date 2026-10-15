@@ -1,0 +1,9 @@
+# Reference only. Copy the required values into your ignored local
+# backend/Frms.Api/.env. Do not overwrite existing JWT/provider settings.
+# Generate a password locally; these placeholders are not credentials.
+POSTGRES_PASSWORD=<local-generated-password>
+POSTGRES_PORT=5433
+ConnectionStrings__FrmsDb="Host=127.0.0.1;Port=5433;Database=frms_dev;Username=frms_dev;Password=<same-local-generated-password>;Timezone=UTC;Include Error Detail=false"
+# Configure only one ConnectionStrings alias. An existing
+# ConnectionStrings__Frms takes precedence over ConnectionStrings__FrmsDb.
+# EF tooling also gives FRMS_CONNECTION_STRING highest priority.

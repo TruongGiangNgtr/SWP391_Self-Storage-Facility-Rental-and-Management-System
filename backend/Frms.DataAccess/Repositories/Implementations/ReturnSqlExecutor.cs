@@ -1,7 +1,8 @@
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
 using Frms.DataAccess.Persistence;
 using Frms.DataAccess.StoredProcedures;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 
 namespace Frms.DataAccess.Repositories.Implementations;
@@ -20,10 +21,20 @@ internal sealed class ReturnSqlExecutor(FrmsDbContext db)
         "RESOURCE_NOT_FOUND", "VALIDATION_ERROR"
     ];
 
-    public async Task ExecuteAsync(
-        string procedure,
-        CancellationToken ct,
+    public Task ExecuteAsync(string procedure, CancellationToken ct,
         params (string Name, DbType Type, object? Value)[] arguments)
+        => ExecuteCoreAsync(procedure, false, ct, arguments);
+
+    public async Task<Guid> ExecuteIdentifierAsync(string procedure, CancellationToken ct,
+        params (string Name, DbType Type, object? Value)[] arguments)
+    {
+        var result = await ExecuteCoreAsync(procedure, true, ct, arguments);
+        return result is Guid id ? id
+            : throw new InvalidOperationException("Database function returned no identifier.");
+    }
+
+    private async Task<object?> ExecuteCoreAsync(string procedure, bool returnsIdentifier,
+        CancellationToken ct, (string Name, DbType Type, object? Value)[] arguments)
     {
         var connection = db.Database.GetDbConnection();
         var mustClose = connection.State != ConnectionState.Open;
@@ -31,7 +42,8 @@ internal sealed class ReturnSqlExecutor(FrmsDbContext db)
         {
             if (mustClose) await connection.OpenAsync(ct);
             await using var command = connection.CreateCommand();
-            command.CommandText = "dbo." + procedure;
+            command.Transaction = db.Database.CurrentTransaction?.GetDbTransaction();
+            command.CommandText = procedure;
             command.CommandType = CommandType.StoredProcedure;
             foreach (var (name, type, value) in arguments)
             {
@@ -39,16 +51,18 @@ internal sealed class ReturnSqlExecutor(FrmsDbContext db)
                 p.ParameterName = name;
                 p.DbType = type;
                 p.Value = value ?? DBNull.Value;
-                if (type == DbType.Binary && p is SqlParameter sqlParam)
-                    sqlParam.Size = -1;
+                if (type == DbType.Binary && p is NpgsqlParameter sqlParam)
+                    sqlParam.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Bytea;
                 command.Parameters.Add(p);
             }
-            await command.ExecuteNonQueryAsync(ct);
+            if (returnsIdentifier) return await PostgreSqlRoutine.ExecuteScalarAsync(command, ct);
+            await PostgreSqlRoutine.ExecuteNonQueryAsync(command, ct);
+            return null;
         }
-        catch (SqlException ex)
+        catch (PostgresException ex)
         {
             var code = KnownCodes.FirstOrDefault(c =>
-                ex.Message.Contains(c, StringComparison.OrdinalIgnoreCase));
+                string.Equals(ex.MessageText, c, StringComparison.Ordinal));
             if (code is not null) throw new StoredProcedureBusinessException(code, code);
             throw;
         }

@@ -1,0 +1,11 @@
+# Configuration reference only: all values below are placeholders, not credentials.
+# Development: put the approved values in ignored Frms.Api/.env.
+# Staging/Production: inject through the approved process environment/secret store.
+# Pick ONE alias; ConnectionStrings__Frms wins over ConnectionStrings__FrmsDb.
+ConnectionStrings__Frms="Host=<approved-direct-or-session-host>;Port=<dashboard-port>;Database=<database>;Username=<dashboard-username>;Password=<secret>;SSL Mode=VerifyFull;Multiplexing=false;Include Error Detail=false"
+# ConnectionStrings__FrmsDb is the supported alternative key.
+# If a private CA is required, add Root Certificate=<absolute-approved-CA-file>.
+# Migrations only: FRMS_CONNECTION_STRING overrides either alias.
+Jwt__SigningKey=<approved-signing-key-at-least-32-UTF8-bytes>
+# Reuse approved Jwt issuer/audience and provider configuration; do not invent values.
+# Transaction pooling is not certified: audit uses per-connection session state.

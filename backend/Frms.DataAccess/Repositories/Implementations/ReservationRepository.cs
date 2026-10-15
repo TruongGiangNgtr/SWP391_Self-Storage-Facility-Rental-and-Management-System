@@ -5,7 +5,7 @@ using Frms.DataAccess.Repositories.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using Frms.DataAccess.StoredProcedures;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 
 namespace Frms.DataAccess.Repositories.Implementations;
 
@@ -24,7 +24,7 @@ internal sealed class ReservationRepository(
             }
 
             await using var command = connection.CreateCommand();
-            command.CommandText = "dbo.usp_CancelReservation";
+            command.CommandText = "usp_CancelReservation";
             command.CommandType = CommandType.StoredProcedure;
             foreach (var (name, value) in new[] {
                 ("@UserAccountId", userAccountId),
@@ -38,10 +38,10 @@ internal sealed class ReservationRepository(
                 command.Parameters.Add(parameter);
             }
 
-            await command.ExecuteNonQueryAsync(cancellationToken);
+            await PostgreSqlRoutine.ExecuteNonQueryAsync(command, cancellationToken);
         }
-        catch (SqlException ex) when (ex.Number is >= 51201 and <= 51205) {
-            var code = ex.Number switch {
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) is >= 51201 and <= 51205) {
+            var code = PostgreSqlErrors.Number(ex) switch {
                 51201 => "RESOURCE_NOT_FOUND",
                 51202 => "ACCOUNT_INACTIVE",
                 51203 => "FORBIDDEN",
@@ -98,7 +98,7 @@ internal sealed class ReservationRepository(
                 connection.CreateCommand();
 
             command.CommandText =
-                "dbo.usp_CreateReservation";
+                "usp_CreateReservation";
 
             command.CommandType =
                 CommandType.StoredProcedure;
@@ -181,7 +181,7 @@ internal sealed class ReservationRepository(
                 endMonthParameter);
 
             await using var reader =
-                await command.ExecuteReaderAsync(
+                await PostgreSqlRoutine.ExecuteReaderAsync(command,
                     cancellationToken);
 
             if (!await reader.ReadAsync(
@@ -200,14 +200,14 @@ internal sealed class ReservationRepository(
                     reader.GetOrdinal(
                         "DepositInvoiceId"));
         }
-        catch (SqlException ex)
-            when (ex.Number is
+        catch (PostgresException ex)
+            when (PostgreSqlErrors.Number(ex) is
                 51101 or
                 51102 or
                 51103 or
                 51104 or
                 51106) {
-            var code = ex.Number switch {
+            var code = PostgreSqlErrors.Number(ex) switch {
                 51101 => "INVALID_MONTH_RANGE",
                 51102 => "ACCOUNT_INACTIVE",
                 51103 => "FACILITY_INACTIVE",
@@ -511,7 +511,7 @@ internal sealed class ReservationRepository(
                 connection.CreateCommand();
 
             command.CommandText =
-                "dbo.usp_ConfirmReservation";
+                "usp_ConfirmReservation";
 
             command.CommandType =
                 CommandType.StoredProcedure;
@@ -548,7 +548,7 @@ internal sealed class ReservationRepository(
                 visitDateParameter);
 
             await using var reader =
-                await command.ExecuteReaderAsync(
+                await PostgreSqlRoutine.ExecuteReaderAsync(command,
                     cancellationToken);
 
             if (!await reader.ReadAsync(
@@ -567,15 +567,15 @@ internal sealed class ReservationRepository(
                     reader.GetOrdinal(
                         "Status"));
         }
-        catch (SqlException ex)
-            when (ex.Number is
+        catch (PostgresException ex)
+            when (PostgreSqlErrors.Number(ex) is
                 51107 or
                 51108 or
                 51109 or
                 51110) {
             // 51107/51110 có thể xảy ra khi request confirm được retry
             // sau/concurrently với request đã thành công.
-            if (ex.Number is 51107 or 51110) {
+            if (PostgreSqlErrors.Number(ex) is 51107 or 51110) {
                 var existing =
                     await TryGetConfirmedAsync(
                         customerId,
@@ -587,7 +587,7 @@ internal sealed class ReservationRepository(
                 }
             }
 
-            var code = ex.Number switch {
+            var code = PostgreSqlErrors.Number(ex) switch {
                 51107 =>
                     "RESERVATION_INVALID_STATUS",
 

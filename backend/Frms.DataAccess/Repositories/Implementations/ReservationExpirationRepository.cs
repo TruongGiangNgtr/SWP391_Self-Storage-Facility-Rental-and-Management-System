@@ -1,3 +1,4 @@
+using Frms.DataAccess.StoredProcedures;
 using System.Data;
 using Frms.DataAccess.Persistence;
 using Frms.DataAccess.Repositories.Interfaces;
@@ -26,11 +27,11 @@ internal sealed class ReservationExpirationRepository(
             await using var command = connection.CreateCommand();
 
             command.CommandText =
-                "dbo.usp_ExpirePendingReservations";
+                "usp_ExpirePendingReservations";
             command.CommandType =
                 CommandType.StoredProcedure;
 
-            await command.ExecuteNonQueryAsync(
+            await PostgreSqlRoutine.ExecuteNonQueryAsync(command,
                 cancellationToken);
         }
         finally

@@ -1,4 +1,4 @@
-using Frms.DataAccess.Persistence.Configurations;
+using Frms.Migrations.PostgreSql.Persistence.Configurations;
 using Frms.DataAccess.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,5 +34,12 @@ public sealed class FrmsDbContext(DbContextOptions<FrmsDbContext> options) : DbC
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder) => modelBuilder.ApplyFrmsConfiguration();
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyFrmsConfiguration();
+        PostgreSqlStringSearch.Configure(modelBuilder);
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
+        optionsBuilder.AddInterceptors(PostgreSqlStringSearch.QueryInterceptor);
 }

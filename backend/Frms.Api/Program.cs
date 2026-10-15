@@ -82,6 +82,11 @@ builder.Services.AddAuthorizationBuilder()
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+builder.Services.AddDatabaseAuditActor(services =>
+{
+    var actor = services.GetRequiredService<ICurrentUserContext>();
+    return actor.IsAuthenticated ? actor.UserAccountId : null;
+});
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 

@@ -4,7 +4,7 @@ using Frms.DataAccess.Persistence.Entities;
 using Frms.DataAccess.Repositories.Interfaces;
 using Frms.DataAccess.Repositories.Models;
 using Frms.DataAccess.StoredProcedures;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 
 namespace Frms.DataAccess.Repositories.Implementations;
@@ -54,11 +54,9 @@ internal sealed class HandoverRepository(
             await using var command =
                 connection.CreateCommand();
 
-            // MUST UPDATE SQL dbo.usp_CompleteHandover before use
-            // File located in '/update'
-            // usp_CompleteHandover mordified date 07/10/2026
+            // The independent PostgreSQL chain owns this function contract.
             command.CommandText =
-                "dbo.usp_CompleteHandover";
+                "usp_CompleteHandover";
 
             command.CommandType =
                 CommandType.StoredProcedure;
@@ -100,12 +98,12 @@ internal sealed class HandoverRepository(
             command.Parameters.Add(
                 discountParameter);
 
-            await command.ExecuteNonQueryAsync(
+            await PostgreSqlRoutine.ExecuteNonQueryAsync(command,
                 cancellationToken);
         }
-        catch (SqlException ex) {
+        catch (PostgresException ex) {
             var code =
-                GetBusinessCode(ex.Message);
+                GetBusinessCode(ex.MessageText);
 
             if (code is not null) {
                 throw new StoredProcedureBusinessException(
@@ -192,8 +190,6 @@ internal sealed class HandoverRepository(
         };
 
         return knownCodes.FirstOrDefault(
-            code => message.Contains(
-                code,
-                StringComparison.OrdinalIgnoreCase));
+            code => string.Equals(message, code, StringComparison.Ordinal));
     }
 }

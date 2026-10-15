@@ -17,6 +17,7 @@
   <ItemGroup>
     <Compile Include="../Frms.DataAccess/Persistence/Entities/Entities.cs" Link="Shared/Entities.cs" />
     <Compile Include="../Frms.DataAccess/Persistence/SeedIds.cs" Link="Shared/SeedIds.cs" />
+    <Compile Include="../Frms.DataAccess/Persistence/PostgreSqlStringSearch.cs" Link="Shared/PostgreSqlStringSearch.cs" />
     <EmbeddedResource Include="../sql/postgresql/*.sql" LogicalName="Frms.DataAccess.PostgreSql.%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

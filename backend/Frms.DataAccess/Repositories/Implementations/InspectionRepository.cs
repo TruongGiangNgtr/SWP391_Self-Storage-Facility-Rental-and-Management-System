@@ -1,6 +1,6 @@
 using System.Data;
 using Frms.DataAccess.StoredProcedures;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Frms.DataAccess.Persistence;
 using Frms.DataAccess.Repositories.Interfaces;
 using Frms.DataAccess.Repositories.Models;
@@ -37,7 +37,7 @@ internal sealed class InspectionRepository(FrmsDbContext dbContext) : IInspectio
         {
             if (shouldClose) await connection.OpenAsync(cancellationToken);
             await using var command = connection.CreateCommand();
-            command.CommandText = "dbo.usp_DecideDamage";
+            command.CommandText = "usp_DecideDamage";
             command.CommandType = CommandType.StoredProcedure;
             AddGuid(command, "@DamageRecordId", damageRecordId);
             AddGuid(command, "@ManagerEmployeeId", managerEmployeeId);
@@ -49,14 +49,14 @@ internal sealed class InspectionRepository(FrmsDbContext dbContext) : IInspectio
             command.Parameters.Add(decisionParam);
 
             // Procedure returns one row (DamageRecordId, Status) after committing.
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            await using var reader = await PostgreSqlRoutine.ExecuteReaderAsync(command, cancellationToken);
             if (!await reader.ReadAsync(cancellationToken))
                 throw new InvalidOperationException("usp_DecideDamage returned no decision row.");
             return new DamageDecisionRecord(reader.GetGuid(0), reader.GetString(1));
         }
-        catch (SqlException ex) when (ex.Number is 51209 or 51210 or 51147)
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) is 51209 or 51210 or 51147)
         {
-            var code = ex.Number switch
+            var code = PostgreSqlErrors.Number(ex) switch
             {
                 51209 => "DAMAGE_INVALID_STATUS",
                 51210 => "DAMAGE_RECORD_NOT_FOUND",

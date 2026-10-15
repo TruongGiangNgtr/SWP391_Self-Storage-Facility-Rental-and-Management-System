@@ -3,7 +3,7 @@ using Frms.DataAccess.Persistence;
 using Frms.DataAccess.Repositories.Interfaces;
 using Frms.DataAccess.Repositories.Models;
 using Frms.DataAccess.StoredProcedures;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -39,7 +39,7 @@ internal sealed class ReturnVisitRepository(FrmsDbContext db) : IReturnVisitRepo
             if (mustClose) await connection.OpenAsync(ct);
             await using var command = connection.CreateCommand();
             command.Transaction = db.Database.CurrentTransaction?.GetDbTransaction();
-            command.CommandText = "dbo." + procedure;
+            command.CommandText = procedure;
             command.CommandType = CommandType.StoredProcedure;
             foreach (var (name, type, value) in new (string, DbType, object)[] {
                 (idName, DbType.Guid, id), ("@UserAccountId", DbType.Guid, account),
@@ -50,7 +50,7 @@ internal sealed class ReturnVisitRepository(FrmsDbContext db) : IReturnVisitRepo
                 parameter.ParameterName = name; parameter.DbType = type; parameter.Value = value;
                 command.Parameters.Add(parameter);
             }
-            await using var reader = await command.ExecuteReaderAsync(ct);
+            await using var reader = await PostgreSqlRoutine.ExecuteReaderAsync(command, ct);
             if (!await reader.ReadAsync(ct)) throw new InvalidOperationException("RETURN procedure returned no Visit.");
             return new(reader.GetGuid(reader.GetOrdinal("VisitId")), reader.GetGuid(reader.GetOrdinal("EntityId")),
                 reader.IsDBNull(reader.GetOrdinal("EmployeeId")) ? null : reader.GetGuid(reader.GetOrdinal("EmployeeId")),
@@ -58,9 +58,9 @@ internal sealed class ReturnVisitRepository(FrmsDbContext db) : IReturnVisitRepo
                 reader.IsDBNull(reader.GetOrdinal("ActualReturnDate")) ? null : reader.GetDateTime(reader.GetOrdinal("ActualReturnDate")),
                 reader.GetString(reader.GetOrdinal("Status")));
         }
-        catch (SqlException ex) when (ex.Number is >= 51301 and <= 51308)
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) is >= 51301 and <= 51308)
         {
-            var code = ex.Number switch
+            var code = PostgreSqlErrors.Number(ex) switch
             {
                 51301 => "RESOURCE_NOT_FOUND",
                 51302 => "ACCOUNT_INACTIVE",

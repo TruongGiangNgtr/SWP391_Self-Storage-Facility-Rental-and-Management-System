@@ -3,7 +3,7 @@ using Frms.DataAccess.Persistence;
 using Frms.DataAccess.Persistence.Entities;
 using Frms.DataAccess.Repositories.Interfaces;
 using Frms.DataAccess.StoredProcedures;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 
 namespace Frms.DataAccess.Repositories.Implementations;
@@ -130,7 +130,7 @@ internal sealed class VisitRepository(
 
             await using var command = connection.CreateCommand();
 
-            command.CommandText = "dbo.usp_CancelVisit";
+            command.CommandText = "usp_CancelVisit";
             command.CommandType = CommandType.StoredProcedure;
 
             var visitParameter = command.CreateParameter();
@@ -139,15 +139,15 @@ internal sealed class VisitRepository(
             visitParameter.Value = visitId;
             command.Parameters.Add(visitParameter);
 
-            await command.ExecuteNonQueryAsync(cancellationToken);
+            await PostgreSqlRoutine.ExecuteNonQueryAsync(command, cancellationToken);
         }
-        catch (SqlException ex) when (ex.Number == 51112) {
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) == 51112) {
             throw new StoredProcedureBusinessException(
                 "VISIT_INVALID_STATUS",
                 "VISIT_INVALID_STATUS");
         }
 
-        catch (SqlException ex) when (ex.Number == 51115) {
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) == 51115) {
             throw new StoredProcedureBusinessException(
                 "RESERVATION_VISIT_CANCEL_NOT_ALLOWED",
                 "RESERVATION_VISIT_CANCEL_NOT_ALLOWED");
@@ -242,8 +242,8 @@ internal sealed class VisitRepository(
 
             await using var command = connection.CreateCommand();
 
-            //command.CommandText = "dbo.usp_CheckInVisit";
-            command.CommandText = "dbo.usp_CheckInVisitDemo"; // For demo only, change to usp_CheckInVisit when release
+            //command.CommandText = "usp_CheckInVisit";
+            command.CommandText = "usp_CheckInVisit"; // For demo only, change to usp_CheckInVisit when release
             command.CommandType = CommandType.StoredProcedure;
 
             var visitParameter = command.CreateParameter();
@@ -258,18 +258,18 @@ internal sealed class VisitRepository(
             employeeParameter.Value = employeeId;
             command.Parameters.Add(employeeParameter);
 
-            await command.ExecuteNonQueryAsync(
+            await PostgreSqlRoutine.ExecuteNonQueryAsync(command,
                 cancellationToken);
         }
-        catch (SqlException ex)
+        catch (PostgresException ex)
         {
-            if (ex.Number == 51113) {
+            if (PostgreSqlErrors.Number(ex) == 51113) {
                 throw new StoredProcedureBusinessException(
                     "VISIT_DATE_MISMATCH",
                     "VISIT_DATE_MISMATCH");
             }
 
-            if (ex.Number == 51114) {
+            if (PostgreSqlErrors.Number(ex) == 51114) {
                 throw new StoredProcedureBusinessException(
                     "FORBIDDEN",
                     "STAFF_FACILITY_OR_ROLE_INVALID");
@@ -484,7 +484,7 @@ internal sealed class VisitRepository(
 
             await using var command = connection.CreateCommand();
 
-            command.CommandText = "dbo.usp_CreateAccessVisit";
+            command.CommandText = "usp_CreateAccessVisit";
             command.CommandType = CommandType.StoredProcedure;
 
             var contractParameter = command.CreateParameter();
@@ -506,7 +506,7 @@ internal sealed class VisitRepository(
             command.Parameters.Add(visitDateParameter);
 
             await using var reader =
-                await command.ExecuteReaderAsync(cancellationToken);
+                await PostgreSqlRoutine.ExecuteReaderAsync(command, cancellationToken);
 
             if (!await reader.ReadAsync(cancellationToken)) {
                 throw new InvalidOperationException(
@@ -516,22 +516,22 @@ internal sealed class VisitRepository(
             visitId = reader.GetGuid(
                 reader.GetOrdinal("VisitId"));
         }
-        catch (SqlException ex) when (ex.Number == 51120) {
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) == 51120) {
             throw new StoredProcedureBusinessException(
                 "CONTRACT_NOT_ACTIVE_OR_NOT_OWNED",
                 "CONTRACT_NOT_ACTIVE_OR_NOT_OWNED");
         }
-        catch (SqlException ex) when (ex.Number == 51121) {
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) == 51121) {
             throw new StoredProcedureBusinessException(
                 "ACCESS_VISIT_DATE_OUTSIDE_CONTRACT",
                 "ACCESS_VISIT_DATE_OUTSIDE_CONTRACT");
         }
-        catch (SqlException ex) when (ex.Number == 51122) {
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) == 51122) {
             throw new StoredProcedureBusinessException(
                 "RETURN_VISIT_PENDING",
                 "RETURN_VISIT_PENDING");
         }
-        catch (SqlException ex) when (ex.Number == 51123) {
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) == 51123) {
             throw new StoredProcedureBusinessException(
                 "VISIT_DATE_IN_PAST",
                 "VISIT_DATE_IN_PAST");

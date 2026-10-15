@@ -3,7 +3,8 @@ using Frms.DataAccess.Persistence;
 using Frms.DataAccess.Persistence.Entities;
 using Frms.DataAccess.Repositories.Interfaces;
 using Frms.DataAccess.Repositories.Models;
-using Microsoft.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -80,7 +81,7 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
             try
             {
                 // Invoice locks serialize attempt creation with cancellation/payment completion.
-                await database.Invoices.FromSqlInterpolated($"SELECT * FROM dbo.Invoice WITH (UPDLOCK, HOLDLOCK) WHERE InvoiceId = {invoiceId}")
+                await database.Invoices.FromSqlInterpolated($"SELECT * FROM public.\"Invoice\" WHERE \"InvoiceId\" = {invoiceId} FOR UPDATE")
                     .AsNoTracking().ToListAsync(cancellationToken);
 
                 // Recheck after acquiring the lock: a concurrent attempt may already have won.
@@ -109,16 +110,16 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
                     return new(PaymentAttemptOutcome.AmountUnsupported, null);
                 }
                 await ExecuteAsync("""
-                    INSERT INTO dbo.Payment (PaymentId, InvoiceId, IdempotencyKey, ProviderOrderCode, Amount, PaymentMethod, Status, CreatedAt)
-                    SELECT @Id, InvoiceId, @Key, NEXT VALUE FOR dbo.ProviderOrderCodeSequence, AmountDue, 'PAYOS', 'PENDING', @Now
-                    FROM dbo.Invoice WHERE InvoiceId = @Invoice
-                    """, [Parameter("@Id", SqlDbType.UniqueIdentifier, paymentId),
-                        Parameter("@Invoice", SqlDbType.UniqueIdentifier, invoiceId),
-                        Parameter("@Key", SqlDbType.UniqueIdentifier, idempotencyKey),
-                        Parameter("@Now", SqlDbType.DateTime2, now.UtcDateTime)], cancellationToken);
+                    INSERT INTO public."Payment" ("PaymentId", "InvoiceId", "IdempotencyKey", "ProviderOrderCode", "Amount", "PaymentMethod", "Status", "CreatedAt")
+                    SELECT @Id, "InvoiceId", @Key, nextval('public."ProviderOrderCodeSequence"'), "AmountDue", 'PAYOS', 'PENDING', @Now
+                    FROM public."Invoice" WHERE "InvoiceId" = @Invoice
+                    """, [Parameter("@Id", NpgsqlDbType.Uuid, paymentId),
+                        Parameter("@Invoice", NpgsqlDbType.Uuid, invoiceId),
+                        Parameter("@Key", NpgsqlDbType.Uuid, idempotencyKey),
+                        Parameter("@Now", NpgsqlDbType.TimestampTz, now.UtcDateTime)], cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
             }
-            catch (SqlException exception) when (exception.Number is 2601 or 2627)
+            catch (PostgresException exception) when (exception.SqlState == "23505")
             {
                 await transaction.RollbackAsync(cancellationToken);
                 // Unique IdempotencyKey is the final arbiter across different Invoice locks.
@@ -144,13 +145,10 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
             // Same short transaction lock as the result procedure. It serializes reference binding,
             // including collations that treat differently spelled provider references as equal.
             await ExecuteAsync("""
-                DECLARE @lockResult int;
-                EXEC @lockResult = sys.sp_getapplock @Resource = N'FRMS:PaymentReferenceBinding',
-                    @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 15000;
-                IF @lockResult < 0 THROW 51000, 'Payment reference lock could not be acquired.', 1;
+                SELECT pg_advisory_xact_lock(70439101);
                 """, [], cancellationToken);
             var payment = await database.Payments.FromSqlInterpolated(
-                    $"SELECT * FROM dbo.Payment WITH (UPDLOCK, HOLDLOCK) WHERE PaymentId = {paymentId}")
+                    $"SELECT * FROM public.\"Payment\" WHERE \"PaymentId\" = {paymentId} FOR UPDATE")
                 .AsNoTracking().SingleOrDefaultAsync(cancellationToken);
             if (payment is null)
             {
@@ -167,13 +165,13 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
                 }
                 // Use a DbCommand to keep the provider URL out of EF command logging.
                 await ExecuteAsync("""
-                    UPDATE dbo.Payment SET TransactionCode = COALESCE(@Reference, TransactionCode),
-                        PaymentUrl = @Url, PaymentUrlExpiresAt = @ExpiresAt
-                    WHERE PaymentId = @Id
-                    """, [Parameter("@Reference", SqlDbType.VarChar, session.TransactionCode, 150),
-                        Parameter("@Url", SqlDbType.NVarChar, session.PaymentUrl, 2048),
-                        Parameter("@ExpiresAt", SqlDbType.DateTime2, session.ExpiresAt?.UtcDateTime),
-                        Parameter("@Id", SqlDbType.UniqueIdentifier, paymentId)], cancellationToken);
+                    UPDATE public."Payment" SET "TransactionCode" = COALESCE(@Reference, "TransactionCode"),
+                        "PaymentUrl" = @Url, "PaymentUrlExpiresAt" = @ExpiresAt
+                    WHERE "PaymentId" = @Id
+                    """, [Parameter("@Reference", NpgsqlDbType.Varchar, session.TransactionCode, 150),
+                        Parameter("@Url", NpgsqlDbType.Varchar, session.PaymentUrl, 2048),
+                        Parameter("@ExpiresAt", NpgsqlDbType.TimestampTz, session.ExpiresAt?.UtcDateTime),
+                        Parameter("@Id", NpgsqlDbType.Uuid, paymentId)], cancellationToken);
             }
             await transaction.CommitAsync(cancellationToken);
         }
@@ -185,23 +183,42 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
         if (!Enum.IsDefined(result.Status) || !Enum.IsDefined(result.Source)
             || result.TransactionCode?.Length > 150)
             return new(PaymentApplyOutcome.InvalidResult, null, null);
-        var outcome = Parameter("@Outcome", SqlDbType.VarChar, null, 30);
-        outcome.Direction = ParameterDirection.Output;
-        var reason = Parameter("@Reason", SqlDbType.VarChar, null, 80);
-        reason.Direction = ParameterDirection.Output;
-        var amount = Parameter("@VerifiedAmount", SqlDbType.Decimal, result.VerifiedAmount);
-        // Do not round a mismatching provider amount to the invoice's two-decimal scale.
-        amount.Precision = 38;
-        amount.Scale = 18;
-        await ExecuteAsync("dbo.usp_ApplyPaymentResult",
-            [Parameter("@PaymentId", SqlDbType.UniqueIdentifier, result.PaymentId),
-             Parameter("@Status", SqlDbType.VarChar, result.Status == PaymentFinalStatus.Success ? "SUCCESS" : "FAILED", 50),
-             Parameter("@TransactionCode", SqlDbType.VarChar, result.TransactionCode, 150), amount,
-             Parameter("@VerifiedPaidAtUtc", SqlDbType.DateTime2, result.VerifiedPaidAt?.UtcDateTime),
-             Parameter("@Source", SqlDbType.VarChar, "VERIFIED_CALLBACK", 50), outcome, reason],
-            cancellationToken, CommandType.StoredProcedure);
-        var applied = Enum.Parse<PaymentApplyOutcome>((string)outcome.Value, ignoreCase: false);
-        return new(applied, await GetByIdAsync(result.PaymentId, cancellationToken), reason.Value as string);
+        PaymentApplyOutcome applied;
+        string? reason;
+        var connection = database.Database.GetDbConnection();
+        var close = connection.State != ConnectionState.Open;
+        try
+        {
+            if (close) await connection.OpenAsync(cancellationToken);
+            await using var command = connection.CreateCommand();
+            command.Transaction = database.Database.CurrentTransaction?.GetDbTransaction();
+            command.CommandText = """
+                SELECT "Outcome", "Reason" FROM public."usp_ApplyPaymentResult"(
+                    @PaymentId, @Status, @TransactionCode, @VerifiedAmount, @VerifiedPaidAtUtc, @Source)
+                """;
+            var amount = Parameter("@VerifiedAmount", NpgsqlDbType.Numeric, result.VerifiedAmount);
+            amount.Precision = 38;
+            amount.Scale = 18;
+            command.Parameters.AddRange(new NpgsqlParameter[]
+            {
+                Parameter("@PaymentId", NpgsqlDbType.Uuid, result.PaymentId),
+                Parameter("@Status", NpgsqlDbType.Varchar, result.Status == PaymentFinalStatus.Success ? "SUCCESS" : "FAILED", 50),
+                Parameter("@TransactionCode", NpgsqlDbType.Varchar, result.TransactionCode, 150),
+                amount,
+                Parameter("@VerifiedPaidAtUtc", NpgsqlDbType.TimestampTz, result.VerifiedPaidAt?.UtcDateTime),
+                Parameter("@Source", NpgsqlDbType.Varchar, "VERIFIED_CALLBACK", 50)
+            });
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            if (!await reader.ReadAsync(cancellationToken))
+                throw new InvalidOperationException("Payment result routine returned no result.");
+            applied = Enum.Parse<PaymentApplyOutcome>(reader.GetString(0), ignoreCase: false);
+            reason = reader.IsDBNull(1) ? null : reader.GetString(1);
+        }
+        finally
+        {
+            if (close) await connection.CloseAsync();
+        }
+        return new(applied, await GetByIdAsync(result.PaymentId, cancellationToken), reason);
     }
 
     private async Task<PaymentAttemptResult> ReadAttemptAsync(
@@ -215,7 +232,7 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
         return new(outcome, new PaymentAttemptRecord(detail, payment.IdempotencyKey, payment.PaymentUrl, expiry, payment.ProviderOrderCode));
     }
 
-    private async Task ExecuteAsync(string sql, SqlParameter[] parameters, CancellationToken cancellationToken,
+    private async Task ExecuteAsync(string sql, NpgsqlParameter[] parameters, CancellationToken cancellationToken,
         CommandType type = CommandType.Text)
     {
         var connection = database.Database.GetDbConnection();
@@ -236,7 +253,7 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
         }
     }
 
-    private static SqlParameter Parameter(string name, SqlDbType type, object? value, int size = 0) =>
+    private static NpgsqlParameter Parameter(string name, NpgsqlDbType type, object? value, int size = 0) =>
         new(name, type) { Value = value ?? DBNull.Value, Size = size };
     private static DateTimeOffset Utc(DateTime time) => new(DateTime.SpecifyKind(time, DateTimeKind.Utc));
     private static DateTimeOffset? Utc(DateTime? time) => time.HasValue ? Utc(time.Value) : null;

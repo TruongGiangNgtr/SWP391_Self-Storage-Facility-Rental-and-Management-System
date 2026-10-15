@@ -4,7 +4,7 @@ using Frms.DataAccess.Persistence.Entities;
 using Frms.DataAccess.Repositories.Interfaces;
 using Frms.DataAccess.Repositories.Models;
 using Frms.DataAccess.StoredProcedures;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 
 namespace Frms.DataAccess.Repositories.Implementations;
@@ -56,7 +56,7 @@ internal sealed class RenewalRepository(
                 "RESOURCE_NOT_FOUND");
         }
 
-        var oldEndMonth = contractBefore.EndMonth;
+        Guid extensionId;
 
         var connection =
             dbContext.Database.GetDbConnection();
@@ -76,7 +76,7 @@ internal sealed class RenewalRepository(
                 connection.CreateCommand();
 
             command.CommandText =
-                "dbo.usp_RenewContract";
+                "usp_RenewContract";
 
             command.CommandType =
                 CommandType.StoredProcedure;
@@ -112,13 +112,14 @@ internal sealed class RenewalRepository(
             command.Parameters.Add(
                 newEndMonthParameter);
 
-            await command.ExecuteNonQueryAsync(
-                cancellationToken);
+            var result = await PostgreSqlRoutine.ExecuteScalarAsync(command, cancellationToken);
+            extensionId = result is Guid id ? id
+                : throw new InvalidOperationException("Renewal function returned no extension identifier.");
         }
-        catch (SqlException ex)
+        catch (PostgresException ex)
         {
             var code =
-                GetBusinessCode(ex.Message);
+                GetBusinessCode(ex.MessageText);
 
             if (code is not null)
             {
@@ -149,9 +150,7 @@ internal sealed class RenewalRepository(
             await dbContext.ContractExtensions
                 .AsNoTracking()
                 .SingleAsync(
-                    x => x.ContractId == contractId &&
-                         x.OldEndMonth == oldEndMonth &&
-                         x.NewEndMonth == newEndMonth,
+                    x => x.ContractExtensionId == extensionId,
                     cancellationToken);
 
         return new RenewedContractRecord(
@@ -175,8 +174,6 @@ internal sealed class RenewalRepository(
         };
 
         return knownCodes.FirstOrDefault(
-            code => message.Contains(
-                code,
-                StringComparison.OrdinalIgnoreCase));
+            code => string.Equals(message, code, StringComparison.Ordinal));
     }
 }

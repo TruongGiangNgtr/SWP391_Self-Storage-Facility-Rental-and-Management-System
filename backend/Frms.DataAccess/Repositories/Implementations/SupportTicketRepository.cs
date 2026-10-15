@@ -4,7 +4,7 @@ using Frms.DataAccess.Persistence.Entities;
 using Frms.DataAccess.Repositories.Interfaces;
 using Frms.DataAccess.Repositories.Models;
 using Frms.DataAccess.StoredProcedures;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 
 namespace Frms.DataAccess.Repositories.Implementations;
@@ -52,17 +52,17 @@ internal sealed class SupportTicketRepository(FrmsDbContext db) : ISupportTicket
         {
             if (shouldClose) await connection.OpenAsync(ct);
             await using var command = connection.CreateCommand();
-            command.CommandText = "dbo.usp_CreateSupportTicket";
+            command.CommandText = "usp_CreateSupportTicket";
             command.CommandType = CommandType.StoredProcedure;
             AddGuid(command, "@ContractId", contractId);
             AddGuid(command, "@CustomerId", customerId);
             AddString(command, "@Category", category, DbType.AnsiString, 50);
             AddString(command, "@Description", description, DbType.String, 1000);
-            var result = await command.ExecuteScalarAsync(ct);
+            var result = await PostgreSqlRoutine.ExecuteScalarAsync(command, ct);
             return result is Guid ticketId ? ticketId
                 : throw new InvalidOperationException("SupportTicket creation returned no identifier.");
         }
-        catch (SqlException ex) when (ex.Number == 51152)
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) == 51152)
         {
             throw new StoredProcedureBusinessException("SUPPORT_CONTRACT_NOT_OWNED", "SUPPORT_CONTRACT_NOT_OWNED");
         }
@@ -81,14 +81,14 @@ internal sealed class SupportTicketRepository(FrmsDbContext db) : ISupportTicket
         {
             if (shouldClose) await connection.OpenAsync(ct);
             await using var command = connection.CreateCommand();
-            command.CommandText = "dbo.usp_CompleteSupportTicket";
+            command.CommandText = "usp_CompleteSupportTicket";
             command.CommandType = CommandType.StoredProcedure;
             AddGuid(command, "@SupportTicketId", ticketId);
             AddGuid(command, "@StaffEmployeeId", staffEmployeeId);
             AddString(command, "@ResultNote", resultNote, DbType.String, 1000);
-            await command.ExecuteNonQueryAsync(ct);
+            await PostgreSqlRoutine.ExecuteNonQueryAsync(command, ct);
         }
-        catch (SqlException ex) when (ex.Number == 51146)
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) == 51146)
         {
             throw new StoredProcedureBusinessException(
                 "SUPPORT_TICKET_INVALID_STATUS_OR_ACTOR", "SUPPORT_TICKET_INVALID_STATUS_OR_ACTOR");
@@ -108,16 +108,16 @@ internal sealed class SupportTicketRepository(FrmsDbContext db) : ISupportTicket
         {
             if (shouldClose) await connection.OpenAsync(ct);
             await using var command = connection.CreateCommand();
-            command.CommandText = "dbo.usp_AssignSupportTicket";
+            command.CommandText = "usp_AssignSupportTicket";
             command.CommandType = CommandType.StoredProcedure;
             AddGuid(command, "@SupportTicketId", ticketId);
             AddGuid(command, "@ManagerEmployeeId", managerEmployeeId);
             AddGuid(command, "@StaffEmployeeId", staffEmployeeId);
-            await command.ExecuteNonQueryAsync(ct);
+            await PostgreSqlRoutine.ExecuteNonQueryAsync(command, ct);
         }
-        catch (SqlException ex) when (ex.Number is 51146 or 51147 or 51114)
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) is 51146 or 51147 or 51114)
         {
-            var code = ex.Number switch
+            var code = PostgreSqlErrors.Number(ex) switch
             {
                 51146 => "SUPPORT_TICKET_INVALID_STATUS",
                 51147 => "FACILITY_MANAGER_SCOPE_INVALID",
@@ -140,13 +140,13 @@ internal sealed class SupportTicketRepository(FrmsDbContext db) : ISupportTicket
         {
             if (shouldClose) await connection.OpenAsync(ct);
             await using var command = connection.CreateCommand();
-            command.CommandText = "dbo.usp_CancelSupportTicket";
+            command.CommandText = "usp_CancelSupportTicket";
             command.CommandType = CommandType.StoredProcedure;
             AddGuid(command, "@SupportTicketId", ticketId);
             AddGuid(command, "@CustomerId", customerId);
-            await command.ExecuteNonQueryAsync(ct);
+            await PostgreSqlRoutine.ExecuteNonQueryAsync(command, ct);
         }
-        catch (SqlException ex) when (ex.Number == 51146)
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) == 51146)
         {
             throw new StoredProcedureBusinessException(
                 "SUPPORT_TICKET_INVALID_STATUS_OR_OWNER", "SUPPORT_TICKET_INVALID_STATUS_OR_OWNER");

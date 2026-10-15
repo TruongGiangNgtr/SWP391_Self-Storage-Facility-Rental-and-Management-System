@@ -85,47 +85,38 @@ internal sealed class InspectionWorkflowRepository(
     public async Task<DamageRecordItem> RecordDamageAsync(
         Guid id, Guid typeId, decimal amount, string? note, Guid staffId, CancellationToken ct)
     {
-        var before = await db.DamageRecords.AsNoTracking()
-            .Where(x => x.InspectionId == id).Select(x => x.DamageRecordId).ToListAsync(ct);
-        await sql.ExecuteAsync("usp_RecordDamage", ct,
+        var createdId = await sql.ExecuteIdentifierAsync("usp_RecordDamage", ct,
             ReturnSqlExecutor.GuidParam("@InspectionId", id),
             ReturnSqlExecutor.GuidParam("@DamageTypeId", typeId),
             ReturnSqlExecutor.DecimalParam("@DamageAmount", amount),
             ReturnSqlExecutor.TextParam("@Note", note));
         var row = await db.DamageRecords.AsNoTracking()
-            .Where(x => x.InspectionId == id && !before.Contains(x.DamageRecordId))
-            .OrderByDescending(x => x.CreatedAt).FirstAsync(ct);
+            .SingleAsync(x => x.DamageRecordId == createdId, ct);
         return new(row.DamageRecordId, row.DamageTypeId, row.DamageAmount, row.Note, row.Status);
     }
 
     public async Task<ExtraFeeRecordItem> RecordExtraFeeAsync(
         Guid id, Guid typeId, decimal amount, string reason, Guid staffId, CancellationToken ct)
     {
-        var before = await db.ExtraFees.AsNoTracking()
-            .Where(x => x.InspectionId == id).Select(x => x.ExtraFeeId).ToListAsync(ct);
-        await sql.ExecuteAsync("usp_RecordExtraFee", ct,
+        var createdId = await sql.ExecuteIdentifierAsync("usp_RecordExtraFee", ct,
             ReturnSqlExecutor.GuidParam("@InspectionId", id),
             ReturnSqlExecutor.GuidParam("@ExtraFeeTypeId", typeId),
             ReturnSqlExecutor.DecimalParam("@Amount", amount),
             ReturnSqlExecutor.TextParam("@Reason", reason));
         var row = await db.ExtraFees.AsNoTracking()
-            .Where(x => x.InspectionId == id && !before.Contains(x.ExtraFeeId))
-            .OrderByDescending(x => x.CreatedAt).FirstAsync(ct);
+            .SingleAsync(x => x.ExtraFeeId == createdId, ct);
         return new(row.ExtraFeeId, row.ExtraFeeTypeId, row.Amount, row.Reason);
     }
 
     public async Task<EvidenceRecordItem> AddEvidenceAsync(
         Guid id, byte[] bytes, string evidenceType, Guid staffId, CancellationToken ct)
     {
-        var before = await db.InspectionEvidence.AsNoTracking()
-            .Where(x => x.InspectionId == id).Select(x => x.InspectionEvidenceId).ToListAsync(ct);
-        await sql.ExecuteAsync("usp_AddInspectionEvidence", ct,
+        var createdId = await sql.ExecuteIdentifierAsync("usp_AddInspectionEvidence", ct,
             ReturnSqlExecutor.GuidParam("@InspectionId", id),
             ("@FileData", DbType.Binary, bytes),
             ReturnSqlExecutor.TextParam("@EvidenceType", evidenceType));
         var row = await db.InspectionEvidence.AsNoTracking()
-            .Where(x => x.InspectionId == id && !before.Contains(x.InspectionEvidenceId))
-            .OrderByDescending(x => x.CreatedAt).FirstAsync(ct);
+            .SingleAsync(x => x.InspectionEvidenceId == createdId, ct);
         return new(row.InspectionEvidenceId, row.EvidenceType, row.CreatedAt);
     }
 

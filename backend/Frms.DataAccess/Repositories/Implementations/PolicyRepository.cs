@@ -33,22 +33,13 @@ internal sealed class PolicyRepository(
         int lateFeeDivisorDays,
         int earlyReturnWaiveFeeUntilDay,
         CancellationToken cancellationToken = default) {
-        await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
-            EXEC dbo.usp_CreatePolicyVersion
-                @DepositTimeoutHours = {depositTimeoutHours},
-                @ReservationVisitStartDay = {reservationVisitStartDay},
-                @ReservationVisitEndDay = {reservationVisitEndDay},
-                @MonthlyPaymentDueDay = {monthlyPaymentDueDay},
-                @OverdueStartDay = {overdueStartDay},
-                @LateFeeDivisorDays = {lateFeeDivisorDays},
-                @EarlyReturnWaiveFeeUntilDay = {earlyReturnWaiveFeeUntilDay}
-            """, cancellationToken);
+        var createdId = await dbContext.Database.SqlQuery<Guid>($"""
+            SELECT "PolicyId" AS "Value" FROM public."usp_CreatePolicyVersion"({depositTimeoutHours}, {reservationVisitStartDay}, {reservationVisitEndDay}, {monthlyPaymentDueDay}, {overdueStartDay}, {lateFeeDivisorDays}, {earlyReturnWaiveFeeUntilDay})
+            """).SingleAsync(cancellationToken);
 
         var policy = await dbContext.Policies
             .AsNoTracking()
-            .Where(x => x.Status == "ACTIVE")
-            .OrderByDescending(x => x.Version)
-            .FirstAsync(cancellationToken);
+            .SingleAsync(x => x.PolicyId == createdId, cancellationToken);
 
         return policy;
     }

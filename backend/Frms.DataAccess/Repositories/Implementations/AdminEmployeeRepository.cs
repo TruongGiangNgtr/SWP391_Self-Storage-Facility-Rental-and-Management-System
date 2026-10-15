@@ -117,9 +117,7 @@ internal sealed class AdminEmployeeRepository(
     CancellationToken cancellationToken) {
         await dbContext.Database.ExecuteSqlInterpolatedAsync(
             $"""
-        EXEC dbo.usp_SetUserAccountStatus
-            @UserAccountId = {userAccountId},
-            @NewStatus = {status}
+        SELECT * FROM public."usp_SetUserAccountStatus"({userAccountId}, {status})
         """,
             cancellationToken);
 
@@ -137,10 +135,7 @@ internal sealed class AdminEmployeeRepository(
         Guid? facilityId,
         CancellationToken cancellationToken = default) {
             await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
-            EXEC dbo.usp_UpdateEmployeeRoleFacility
-                @EmployeeId = {employeeId},
-                @RoleName = {roleName},
-                @FacilityId = {facilityId}
+            SELECT * FROM public."usp_UpdateEmployeeRoleFacility"({employeeId}, {roleName}, {facilityId})
             """, cancellationToken);
 
             dbContext.ChangeTracker.Clear();
