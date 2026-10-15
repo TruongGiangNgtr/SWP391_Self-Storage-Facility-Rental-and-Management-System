@@ -39,12 +39,6 @@ import '../../styles/adminUserMonitoring.css'
 import '../../styles/adminEmployeeManagement.css'
 import '../../styles/adminRoleFacilityAssignment.css'
 import '../../styles/adminAccessManagement.css'
-
-function shortId(value: string) {
-  if (value.length <= 16) return value
-  return `${value.slice(0, 8)}…${value.slice(-4)}`
-}
-
 interface PageNotice {
   tone: 'success' | 'error'
   title: string
@@ -111,7 +105,7 @@ function EmployeeAssignmentsPanel() {
     if (!employeeId) {
       setAssignmentError({
         code: 'RESOURCE_NOT_FOUND',
-        message: 'The selected account does not contain an Employee ID.',
+        message: 'The employee profile is unavailable. Refresh and try again.',
       })
       return
     }
@@ -140,9 +134,8 @@ function EmployeeAssignmentsPanel() {
     <div className="awp45-panel-body" id="awp45-assignments-panel" role="tabpanel" aria-labelledby="awp45-assignments-tab">
       <div className="awp45-panel-header">
         <div>
-          <p className="awp01-eyebrow">AWP-04 · ADM-009</p>
           <h2>Employee assignments</h2>
-          <p>Review Employee access and update one role and Facility scope at a time. Changes are enforced by the backend.</p>
+          <p>Review employee access and update role and facility assignments.</p>
         </div>
         <button
           className="awp01-button awp01-button--secondary"
@@ -157,7 +150,7 @@ function EmployeeAssignmentsPanel() {
 
       <section className="awp01-summary" aria-label="Assignment summary">
         <div className="awp01-summary-card">
-          <span>Employees on API page</span>
+          <span>Employees on page</span>
           <strong>{rawAccounts.length}</strong>
         </div>
         <div className="awp01-summary-card">
@@ -170,11 +163,11 @@ function EmployeeAssignmentsPanel() {
         </div>
       </section>
 
-      <section className="awp04-rule-strip" aria-label="BR-EMP-01 assignment rules">
+      <section className="awp04-rule-strip" aria-label="Facility assignment rules">
         <ShieldCheck size={18} aria-hidden="true" />
         <div>
-          <strong>BR-EMP-01</strong>
-          <span>FACILITY_STAFF / FACILITY_MANAGER → one Facility · BUSINESS_OPERATIONS_MANAGER / SYSTEM_ADMINISTRATOR → no Facility.</span>
+          <strong>Facility assignment</strong>
+          <span>Facility Staff and Facility Managers must be assigned to one facility. Business Operations Managers and System Administrators do not have a facility assignment.</span>
         </div>
       </section>
 
@@ -239,14 +232,14 @@ function EmployeeAssignmentsPanel() {
                 ...filters,
                 search: event.target.value,
               })}
-              placeholder="Name, email, phone, employee/facility ID…"
+              placeholder="Name, email or phone…"
             />
           </div>
         </label>
 
         <p className="awp01-toolbar__note">
-          Showing Employee records from the current ADM-001 API page only. Assignment changes use ADM-009; Facility scope and role eligibility are validated server-side.
-          {facilityDirectoryError ? ' Facility names are unavailable; IDs are shown as a fallback.' : ''}
+          Filters apply to employees on this page. Use Previous and Next to browse more accounts.
+          {facilityDirectoryError ? ' Facility names are temporarily unavailable.' : ''}
         </p>
       </section>
 
@@ -278,7 +271,7 @@ function EmployeeAssignmentsPanel() {
           <strong>No Employee assignments to show</strong>
           <p>
             {rawAccounts.length === 0
-              ? 'The current ADM-001 page contains no Employee profiles. Use Previous/Next to inspect another API page.'
+              ? 'No employees on this page. Use Previous and Next to browse more accounts.'
               : 'No loaded Employee row matches the current filters.'}
           </p>
         </div>
@@ -304,9 +297,6 @@ function EmployeeAssignmentsPanel() {
                     <td>
                       <div className="awp01-user-cell">
                         <strong>{account.profile?.fullName || 'Unnamed employee'}</strong>
-                        <code title={account.profile?.employeeId ?? account.userAccountId}>
-                          {shortId(account.profile?.employeeId ?? account.userAccountId)}
-                        </code>
                       </div>
                     </td>
                     <td>
@@ -314,8 +304,8 @@ function EmployeeAssignmentsPanel() {
                     </td>
                     <td>
                       {account.profile?.facilityId ? (
-                        <span className="awp45-facility-cell" title={account.profile.facilityId}>
-                          {facilityNames.get(account.profile.facilityId.toLowerCase()) ?? shortId(account.profile.facilityId)}
+                        <span className="awp45-facility-cell">
+                          {facilityNames.get(account.profile.facilityId.toLowerCase()) ?? 'Facility unavailable'}
                         </span>
                       ) : (
                         <span className="awp45-global-chip">Global</span>
@@ -347,7 +337,7 @@ function EmployeeAssignmentsPanel() {
 
           <div className="awp01-pagination">
             <span>
-              ADM-001 API page {pagination.page}{pagination.totalPages > 0 ? ` of ${pagination.totalPages}` : ''} · {pagination.totalItems} total user accounts
+              Page {pagination.page}{pagination.totalPages > 0 ? ` of ${pagination.totalPages}` : ''} · {pagination.totalItems} total user accounts
             </span>
             <div>
               <button
@@ -405,9 +395,9 @@ export default function RoleFacilityAssignmentPage() {
       <header className="awp45-page-heading">
         <div className="awp45-page-heading__icon"><ShieldCheck size={23} aria-hidden="true" /></div>
         <div className="awp45-page-heading__content">
-          <p className="awp01-eyebrow">System Administrator · AWP-04 / AWP-05</p>
+          <p className="awp01-eyebrow">System Administrator</p>
           <h1>Role &amp; access management</h1>
-          <p>Manage Employee role and Facility assignments, and review the fixed Release 1 access policies in one place.</p>
+          <p>Manage employee roles, facility assignments, and access policies.</p>
         </div>
         <span className="awp45-heading-badge">5 fixed roles</span>
       </header>
@@ -431,7 +421,7 @@ export default function RoleFacilityAssignmentPage() {
           }}
         >
           <LayoutList size={17} aria-hidden="true" />
-          <span><strong>Employee assignments</strong><small>Role &amp; Facility · AWP-04</small></span>
+          <span><strong>Employee assignments</strong><small>Roles and facilities</small></span>
           <ArrowRight className="awp45-tab__arrow" size={15} aria-hidden="true" />
         </button>
         <button
@@ -452,7 +442,7 @@ export default function RoleFacilityAssignmentPage() {
           }}
         >
           <LockKeyhole size={17} aria-hidden="true" />
-          <span><strong>RBAC permissions</strong><small>Access policies · AWP-05</small></span>
+          <span><strong>RBAC permissions</strong><small>Access policies</small></span>
           <ArrowRight className="awp45-tab__arrow" size={15} aria-hidden="true" />
         </button>
       </nav>

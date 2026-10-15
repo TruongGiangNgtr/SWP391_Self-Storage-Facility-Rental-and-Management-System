@@ -1,3 +1,4 @@
+import { useAdminFacilities } from '../../hooks/useAdminFacilities'
 import {
   KeyRound,
   MoreHorizontal,
@@ -61,12 +62,6 @@ function formatDateTime(value: string) {
   }).format(date)
 }
 
-function shortId(value: string) {
-  if (value.length <= 16) {
-    return value
-  }
-  return `${value.slice(0, 8)}…${value.slice(-4)}`
-}
 
 type ConfirmAction = 'ACTIVATE' | 'DEACTIVATE' | 'RESEND_CREDENTIAL'
 
@@ -102,6 +97,7 @@ function actionDescription(action: ConfirmAction) {
 }
 
 export default function EmployeeAccountManagementPage() {
+  const { facilityName } = useAdminFacilities()
   const {
     accounts,
     rawAccounts,
@@ -201,7 +197,7 @@ export default function EmployeeAccountManagementPage() {
         setNotice({
           tone: 'warning',
           title: 'Credential email was not delivered',
-          message: 'ADM-005 may already have created this employee as INACTIVE. The list was refreshed; do not submit the create form again. After the email provider is available, use Resend credential on the INACTIVE account.',
+          message: 'This employee may already have been created as inactive. The list was refreshed; do not submit the create form again. After the email provider is available, use Resend credential on the INACTIVE account.',
           traceId: normalized.traceId,
         })
         await loadPage(1)
@@ -218,7 +214,7 @@ export default function EmployeeAccountManagementPage() {
     if (!employeeId) {
       setFormError({
         code: 'RESOURCE_NOT_FOUND',
-        message: 'The selected row does not contain an Employee ID.',
+        message: 'The employee profile is unavailable. Refresh and try again.',
       })
       return
     }
@@ -302,10 +298,10 @@ export default function EmployeeAccountManagementPage() {
     <div className="awp01-page awp03-page" data-testid="awp03-page">
       <header className="awp01-page__header">
         <div>
-          <p className="awp01-eyebrow">System Administrator · AWP-03</p>
+          <p className="awp01-eyebrow">System Administrator</p>
           <h1>Employee account management</h1>
           <p>
-            Create and update Employee accounts, activate/deactivate account status, and recover failed initial-credential provisioning. The account list reuses AWP-01 ADM-001/ADM-002 reads.
+            Create employee accounts, update profiles, manage access, and resend sign-in credentials.
           </p>
         </div>
 
@@ -337,11 +333,11 @@ export default function EmployeeAccountManagementPage() {
           <strong>{rawAccounts.length}</strong>
         </div>
         <div className="awp01-summary-card">
-          <span>Active on API page</span>
+          <span>Active on page</span>
           <strong>{activeOnPage}</strong>
         </div>
         <div className="awp01-summary-card">
-          <span>Inactive on API page</span>
+          <span>Inactive on page</span>
           <strong>{inactiveOnPage}</strong>
         </div>
       </section>
@@ -407,13 +403,13 @@ export default function EmployeeAccountManagementPage() {
                 ...filters,
                 search: event.target.value,
               })}
-              placeholder="Name, email, phone, employee/facility ID…"
+              placeholder="Name, email or phone…"
             />
           </div>
         </label>
 
         <p className="awp01-toolbar__note">
-          ADM-001 is the authoritative paged account read and does not expose an Employee-only server filter. This page requests up to 100 account rows, keeps only Employee profiles, then applies these filters locally. Use Previous/Next to inspect other API pages.
+          Filters apply to employees on this page. Use Previous and Next to browse more accounts.
         </p>
       </section>
 
@@ -442,10 +438,10 @@ export default function EmployeeAccountManagementPage() {
 
       {!loading && !error && accounts.length === 0 && (
         <div className="awp01-state-card">
-          <strong>No Employee rows to show on this API page</strong>
+          <strong>No Employee rows to show on this page</strong>
           <p>
             {rawAccounts.length === 0
-              ? 'The current ADM-001 page contains no Employee profiles. Move to another API page or create an Employee.'
+              ? 'No employees on this page. Browse another page or create an employee.'
               : 'No loaded Employee row matches the current filters.'}
           </p>
         </div>
@@ -476,9 +472,6 @@ export default function EmployeeAccountManagementPage() {
                     <td>
                       <div className="awp01-user-cell">
                         <strong>{account.profile?.fullName || 'Unnamed employee'}</strong>
-                        <code title={account.profile?.employeeId ?? account.userAccountId}>
-                          {shortId(account.profile?.employeeId ?? account.userAccountId)}
-                        </code>
                       </div>
                     </td>
                     <td><span className="awp01-role-chip">{USER_ROLE_LABELS[account.role]}</span></td>
@@ -489,9 +482,7 @@ export default function EmployeeAccountManagementPage() {
                       </div>
                     </td>
                     <td>
-                      <code className="awp03-facility-code" title={account.profile?.facilityId ?? undefined}>
-                        {account.profile?.facilityId ? shortId(account.profile.facilityId) : 'Global'}
-                      </code>
+                      <span>{facilityName(account.profile?.facilityId)}</span>
                     </td>
                     <td><AccountStatusBadge status={account.status} /></td>
                     <td>{formatDateTime(account.createdAt)}</td>
@@ -516,7 +507,7 @@ export default function EmployeeAccountManagementPage() {
 
           <div className="awp01-pagination">
             <span>
-              ADM-001 API page {pagination.page}{pagination.totalPages > 0 ? ` of ${pagination.totalPages}` : ''} · {pagination.totalItems} total user accounts
+              Page {pagination.page}{pagination.totalPages > 0 ? ` of ${pagination.totalPages}` : ''} · {pagination.totalItems} total user accounts
             </span>
             <div>
               <button

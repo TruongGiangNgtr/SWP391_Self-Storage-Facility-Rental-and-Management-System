@@ -41,13 +41,6 @@ function formatDateTime(value: string) {
   }).format(date)
 }
 
-function shortId(value: string) {
-  if (value.length <= 16) {
-    return value
-  }
-
-  return `${value.slice(0, 8)}…${value.slice(-4)}`
-}
 
 export default function UserAccountMonitoringPage() {
   const {
@@ -87,7 +80,7 @@ export default function UserAccountMonitoringPage() {
     <div className="awp01-page" data-testid="awp01-page">
       <header className="awp01-page__header">
         <div>
-          <p className="awp01-eyebrow">System Administrator · AWP-01</p>
+          <p className="awp01-eyebrow">System Administrator</p>
           <h1>User account monitoring</h1>
           <p>
             View all Customer and Employee accounts with basic profile information. This feature is read-only and does not modify Customer business data.
@@ -111,7 +104,7 @@ export default function UserAccountMonitoringPage() {
           <strong>{pagination.totalItems}</strong>
         </div>
         <div className="awp01-summary-card">
-          <span>Current API page</span>
+          <span>Current page</span>
           <strong>{pagination.page}</strong>
         </div>
         <div className="awp01-summary-card">
@@ -163,13 +156,13 @@ export default function UserAccountMonitoringPage() {
                 ...filters,
                 search: event.target.value,
               })}
-              placeholder="Name, email, phone, account/profile ID…"
+              placeholder="Name, email or phone…"
             />
           </div>
         </label>
 
         <p className="awp01-toolbar__note">
-          Status, role, and text filters apply only to the currently loaded API page. Pagination remains server-authoritative.
+          Filters apply to accounts on this page. Use Previous and Next to browse more accounts.
         </p>
       </section>
 
@@ -201,7 +194,7 @@ export default function UserAccountMonitoringPage() {
           <strong>No user accounts to show</strong>
           <p>
             {pagination.totalItems === 0
-              ? 'No account records were returned by ADM-001.'
+              ? 'No user accounts found.'
               : 'No row on this page matches the current-page filters.'}
           </p>
         </div>
@@ -232,7 +225,6 @@ export default function UserAccountMonitoringPage() {
                     <td>
                       <div className="awp01-user-cell">
                         <strong>{account.profile?.fullName || 'Profile unavailable'}</strong>
-                        <code title={account.userAccountId}>{shortId(account.userAccountId)}</code>
                       </div>
                     </td>
                     <td>{getAccountType(account)}</td>

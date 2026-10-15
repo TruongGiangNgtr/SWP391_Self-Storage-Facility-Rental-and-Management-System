@@ -144,7 +144,7 @@ export function EmployeeAssignmentDialog({
       >
         <header className="awp03-modal__header">
           <div>
-            <p className="awp01-eyebrow">ADM-009 · BR-EMP-01</p>
+            <p className="awp01-eyebrow">Employee assignment</p>
             <h2 id="awp04-assignment-title">Assign role &amp; facility</h2>
           </div>
           <button
@@ -243,7 +243,7 @@ export function EmployeeAssignmentDialog({
                 {fieldError('facilityId') ? (
                   <small className="awp03-field-error">{fieldError('facilityId')}</small>
                 ) : null}
-                <small>Facility names are loaded from the Admin facility directory. The selected Facility ID is sent to ADM-009.</small>
+                <small>Choose the facility where this employee works.</small>
               </label>
               {facilitiesError ? (
                 <div className="awp04-facility-load-error" role="alert">
@@ -269,7 +269,7 @@ export function EmployeeAssignmentDialog({
           <div className="awp04-current-assignment" aria-label="Current assignment">
             <span>Current</span>
             <strong>{USER_ROLE_LABELS[account.role]}</strong>
-            <code>{account.profile?.facilityId ? (facilities.find((facility) => facility.facilityId === account.profile?.facilityId)?.name ?? account.profile.facilityId) : 'Global / no Facility'}</code>
+            <span>{account.profile?.facilityId ? (facilities.find((facility) => facility.facilityId === account.profile?.facilityId)?.name ?? 'Facility unavailable') : 'Global / no Facility'}</span>
           </div>
 
           <footer className="awp03-modal__actions">

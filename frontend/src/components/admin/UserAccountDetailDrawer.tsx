@@ -1,3 +1,4 @@
+import { useAdminFacilities } from '../../hooks/useAdminFacilities'
 import { X } from 'lucide-react'
 import type {
   AdminApiErrorShape,
@@ -44,6 +45,7 @@ export function UserAccountDetailDrawer({
   error,
   onClose,
 }: Props) {
+  const { facilityName } = useAdminFacilities()
   return (
     <aside
       className="awp01-drawer"
@@ -89,14 +91,10 @@ export function UserAccountDetailDrawer({
           </div>
 
           <div className="awp01-readonly-note">
-            AWP-01 is read-only. Account status, employee management, and role/facility assignment are handled by separate administration features.
+            View account information. To make changes, use Customer Account Status, Employee Account Management, or Role & Access Management.
           </div>
 
           <dl className="awp01-detail-grid">
-            <div>
-              <dt>User Account ID</dt>
-              <dd>{account.userAccountId}</dd>
-            </div>
             <div>
               <dt>Full name</dt>
               <dd><Value>{account.profile?.fullName}</Value></dd>
@@ -120,10 +118,6 @@ export function UserAccountDetailDrawer({
               <h3>Customer profile</h3>
               <dl className="awp01-detail-grid">
                 <div>
-                  <dt>Customer ID</dt>
-                  <dd>{account.profile.customerId}</dd>
-                </div>
-                <div>
                   <dt>Address</dt>
                   <dd><Value>{account.profile.address}</Value></dd>
                 </div>
@@ -140,12 +134,8 @@ export function UserAccountDetailDrawer({
               <h3>Employee profile</h3>
               <dl className="awp01-detail-grid">
                 <div>
-                  <dt>Employee ID</dt>
-                  <dd>{account.profile.employeeId}</dd>
-                </div>
-                <div>
-                  <dt>Facility ID</dt>
-                  <dd><Value>{account.profile.facilityId}</Value></dd>
+                  <dt>Facility</dt>
+                  <dd>{facilityName(account.profile.facilityId)}</dd>
                 </div>
               </dl>
             </section>

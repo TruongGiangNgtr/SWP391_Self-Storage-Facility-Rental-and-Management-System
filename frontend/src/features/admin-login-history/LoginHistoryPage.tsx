@@ -103,9 +103,9 @@ export default function LoginHistoryPage() {
     <div className="awp01-page awp06-page" data-testid="awp06-page">
       <header className="awp01-page__header">
         <div>
-          <p className="awp01-eyebrow">System Administrator · AWP-06</p>
+          <p className="awp01-eyebrow">System Administrator</p>
           <h1>Login history</h1>
-          <p>Search append-only LoginHistory through ADM-010. Only attempts whose identifier resolves to a UserAccount appear here; unknown identifiers remain in technical/security logging.</p>
+          <p>Review sign-in attempts associated with user accounts.</p>
         </div>
         <button className="awp01-button awp01-button--secondary" type="button" onClick={() => void load(pagination.page || 1, appliedFilters)} disabled={loading}><RefreshCw size={16} /> Refresh</button>
       </header>
@@ -125,11 +125,11 @@ export default function LoginHistoryPage() {
         {clientError ? <p className="awp06-client-error" role="alert">{clientError}</p> : null}
       </form>
 
-      <div className="awp06-integrity-note"><ShieldCheck size={18} /><span>LoginHistory is append-only. This screen intentionally has no edit or delete control.</span></div>
+      <div className="awp06-integrity-note"><ShieldCheck size={18} /><span>Sign-in history is preserved and cannot be edited or deleted.</span></div>
 
       {loading && <div className="awp01-state-grid">{Array.from({ length: 6 }).map((_, index) => <div className="awp01-skeleton" key={index} />)}</div>}
       {!loading && error && <div className="awp01-state-card awp01-state-card--error" role="alert"><strong>{error.code}</strong><p>{error.message}</p>{error.traceId ? <small>Trace: {error.traceId}</small> : null}</div>}
-      {!loading && !error && items.length === 0 && <div className="awp01-state-card"><strong>No login attempts found</strong><p>No LoginHistory row matches the applied server-side filters.</p></div>}
+      {!loading && !error && items.length === 0 && <div className="awp01-state-card"><strong>No login attempts found</strong><p>No sign-in attempts match these filters.</p></div>}
 
       {!loading && !error && items.length > 0 && (
         <section className="awp01-table-card">
