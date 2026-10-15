@@ -21,7 +21,7 @@ export function RootLayout() {
     return <CustomerLayout publicPage><Outlet /></CustomerLayout>
   }
 
-  if (location.pathname.startsWith('/auth/customer/')) {
+  if (location.pathname.startsWith('/auth/customer/') || location.pathname === '/auth/employee/login') {
     return <CustomerLayout publicPage><Outlet /></CustomerLayout>
   }
 
