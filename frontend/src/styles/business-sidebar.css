@@ -1,0 +1,36 @@
+.bo-body.bo-body--employee-sidebar {
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: 18px;
+  padding: 8px;
+}
+
+.bo-body--employee-sidebar > .bo-main {
+  padding: 24px 22px 48px 4px;
+}
+
+.bo-body--employee-sidebar .manager-nav-link {
+  padding-block: 10px;
+}
+
+.bo-body--employee-sidebar .manager-nav-link:focus-visible,
+.bo-body--employee-sidebar .manager-signout:focus-visible {
+  outline: 2px solid #4368eb;
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .bo-body.bo-body--employee-sidebar {
+    display: block;
+    padding: 0;
+  }
+
+  .bo-body--employee-sidebar > .bo-main {
+    padding: 18px 14px 36px;
+  }
+}
+
+@media (max-width: 380px) {
+  .bo-body--employee-sidebar .manager-nav {
+    grid-template-columns: 1fr;
+  }
+}
