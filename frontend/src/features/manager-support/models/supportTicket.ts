@@ -85,3 +85,11 @@ export const SUPPORT_TICKET_STATUSES: SupportTicketStatus[] = [
   "COMPLETED",
   "CANCELLED",
 ];
+
+export interface FacilityStaffLookupItem {
+  employeeId: string;
+  facilityId: string | null;
+  fullName: string;
+  role: string;
+  status: string;
+}

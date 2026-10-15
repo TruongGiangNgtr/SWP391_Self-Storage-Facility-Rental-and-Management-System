@@ -68,7 +68,8 @@
 
 .mwp05-toolbar input,
 .mwp05-toolbar select,
-.mwp05-field input {
+.mwp05-field input,
+.mwp05-field select {
   width: 100%;
   min-height: 40px;
   border: 1px solid var(--mwp05-border);
@@ -82,7 +83,8 @@
 
 .mwp05-toolbar input:focus,
 .mwp05-toolbar select:focus,
-.mwp05-field input:focus {
+.mwp05-field input:focus,
+.mwp05-field select:focus {
   outline: 2px solid color-mix(in srgb, var(--mwp05-primary) 25%, transparent);
   border-color: var(--mwp05-primary);
 }
