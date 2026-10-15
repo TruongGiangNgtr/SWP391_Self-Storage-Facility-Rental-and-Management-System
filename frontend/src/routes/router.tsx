@@ -29,7 +29,7 @@ import { InvoiceListPage } from '../pages/InvoiceListPage'
 import { CustomerFeeReturnPage } from '../pages/CustomerFeeReturnPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PaymentResultPage } from '../pages/PaymentResultPage'
-import { PortalPlaceholderPage } from '../pages/PortalPlaceholderPage'
+import { FacilityReportsPage } from '../features/manager-reports/FacilityReportsPage'
 import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
 import { FacilityManagerLayout } from '../layouts/FacilityManagerLayout'
 import { SystemAdministratorLayout } from '../layouts/SystemAdministratorLayout'
@@ -275,9 +275,7 @@ export function AppRouter() {
         <Route
           path="reports"
           element={
-            <PortalPlaceholderPage
-              title="Facility Reports"
-            />
+            <FacilityReportsPage />
           }
         />
       </Route>
