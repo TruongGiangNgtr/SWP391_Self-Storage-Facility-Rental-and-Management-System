@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes, useLocation, type Location } from 'react-router-dom'
+import { DiscountAndExtraFeePage } from '../features/discount-management/DiscountAndExtraFeePage'
 import { RequireAuth } from '../auth/RequireAuth'
 import { RequireRole } from '../auth/RequireRole'
 import { RootLayout } from '../layouts/RootLayout'
@@ -323,6 +324,8 @@ export function AppRouter() {
           path="policies"
           element={<PolicyVersionManagementPage />}
         />
+        <Route path="discounts" element={<DiscountAndExtraFeePage />} />
+        <Route path="extra-fees" element={<DiscountAndExtraFeePage />} />
       </Route>
     </Route>
   </Route>

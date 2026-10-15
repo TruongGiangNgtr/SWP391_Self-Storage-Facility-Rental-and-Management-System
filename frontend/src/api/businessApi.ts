@@ -44,6 +44,13 @@ async function readAllPages<T>(
 }
 
 export const businessApi = {
+  listCustomers(page = 1): Promise<ApiCollectionResponse<{ customerId: string; fullName: string }>> {
+    return httpClient.get(`/business/customers?page=${page}&pageSize=20`)
+  },
+
+  updateExtraFeeType(id: string, request: { defaultAmount: number; status: ExtraFeeTypeDetail['status'] }): Promise<ApiResponse<ExtraFeeTypeDetail>> {
+    return httpClient.patch(`/business/extra-fee-types/${encodeURIComponent(id)}`, request)
+  },
   listFacilities(
     page = 1,
     pageSize = 20,
