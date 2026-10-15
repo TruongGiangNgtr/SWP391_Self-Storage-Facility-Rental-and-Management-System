@@ -1,3 +1,4 @@
+import { useAdminFacilities } from '../../hooks/useAdminFacilities'
 import {
   KeyRound,
   Pencil,
@@ -56,6 +57,7 @@ export function EmployeeAccountDrawer({
   onDeactivate,
   onResendCredential,
 }: Props) {
+  const { facilityName } = useAdminFacilities()
   return (
     <aside
       className="awp01-drawer awp03-drawer"
@@ -141,18 +143,10 @@ export function EmployeeAccountDrawer({
           </div>
 
           <div className="awp03-info-note">
-            Role and Facility reassignment is deliberately outside AWP-03 and belongs to AWP-04. Activating an account does not send a credential email.
+            Change roles and facilities in Role & Access Management. Activating an account does not send a credential email.
           </div>
 
           <dl className="awp01-detail-grid">
-            <div>
-              <dt>User Account ID</dt>
-              <dd>{account.userAccountId}</dd>
-            </div>
-            <div>
-              <dt>Employee ID</dt>
-              <dd><Value>{account.profile?.employeeId}</Value></dd>
-            </div>
             <div>
               <dt>Full name</dt>
               <dd><Value>{account.profile?.fullName}</Value></dd>
@@ -166,8 +160,8 @@ export function EmployeeAccountDrawer({
               <dd><Value>{account.phoneNumber}</Value></dd>
             </div>
             <div>
-              <dt>Facility ID</dt>
-              <dd><Value>{account.profile?.facilityId}</Value></dd>
+              <dt>Facility</dt>
+              <dd>{facilityName(account.profile?.facilityId)}</dd>
             </div>
             <div>
               <dt>Created (GMT+7)</dt>

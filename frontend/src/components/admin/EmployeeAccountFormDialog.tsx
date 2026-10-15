@@ -1,4 +1,5 @@
 import { X } from 'lucide-react'
+import { useAdminFacilities } from '../../hooks/useAdminFacilities'
 import {
   useEffect,
   useMemo,
@@ -18,7 +19,6 @@ import {
 } from '../../models/adminEmployee'
 import { USER_ROLE_LABELS } from '../../models/adminUser'
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 type CreateSubmit = (request: CreateAdminEmployeeRequest) => Promise<void>
@@ -55,6 +55,7 @@ function getServerFieldError(error: AdminApiErrorShape | null, field: string) {
 }
 
 export function EmployeeAccountFormDialog(props: Props) {
+  const { facilities, loading: facilitiesLoading, error: facilitiesError, retry } = useAdminFacilities()
   const editing = props.mode === 'edit'
   const [fullName, setFullName] = useState(editing ? props.account.profile?.fullName ?? '' : '')
   const [createFields, setCreateFields] = useState<CreateFields>({
@@ -112,10 +113,10 @@ export function EmployeeAccountFormDialog(props: Props) {
       nextErrors.phoneNumber = 'Phone number is required.'
     }
     if (facilityRequired) {
-      if (!createFields.facilityId.trim()) {
-        nextErrors.facilityId = 'Facility ID is required for Facility Staff and Facility Manager.'
-      } else if (!UUID_PATTERN.test(createFields.facilityId.trim())) {
-        nextErrors.facilityId = 'Facility ID must be a valid UUID.'
+      if (facilitiesLoading || facilitiesError) {
+        nextErrors.facilityId = 'Load the facility list before creating this employee.'
+      } else if (!facilities.some((facility) => facility.facilityId === createFields.facilityId)) {
+        nextErrors.facilityId = 'Select a facility for this employee.'
       }
     }
 
@@ -145,7 +146,6 @@ export function EmployeeAccountFormDialog(props: Props) {
       >
         <header className="awp03-modal__header">
           <div>
-            <p className="awp01-eyebrow">{editing ? 'ADM-006' : 'ADM-005'}</p>
             <h2 id="awp03-form-title">{editing ? 'Edit employee profile' : 'Create employee account'}</h2>
           </div>
           <button
@@ -167,7 +167,7 @@ export function EmployeeAccountFormDialog(props: Props) {
 
         {editing && (
           <div className="awp03-info-note">
-            AWP-03 updates the employee basic profile only. Email and phone are Release 1 login/contact identifiers and are not editable; role/facility changes belong to AWP-04.
+            Update the employee name here. Email and phone cannot be changed. Manage roles and facilities in Role & Access Management.
           </div>
         )}
 
@@ -248,16 +248,19 @@ export function EmployeeAccountFormDialog(props: Props) {
 
               {facilityRequired ? (
                 <label>
-                  <span>Facility ID</span>
-                  <input
-                    value={createFields.facilityId}
+                  <span>Facility</span>
+                  <select
+                    value={facilitiesLoading || facilitiesError ? '' : createFields.facilityId}
                     onChange={(event) => setCreateFields({ ...createFields, facilityId: event.target.value })}
-                    disabled={props.busy}
+                    disabled={props.busy || facilitiesLoading || facilitiesError}
                     aria-invalid={Boolean(fieldError('facilityId'))}
-                    placeholder="00000000-0000-0000-0000-000000000000"
-                  />
+                  >
+                    <option value="">{facilitiesLoading ? 'Loading facilities…' : facilitiesError ? 'Facilities unavailable' : facilities.length === 0 ? 'No facilities available' : 'Select a facility'}</option>
+                    {facilities.map((facility) => <option key={facility.facilityId} value={facility.facilityId}>{facility.name}{facility.status === 'INACTIVE' ? ' (Inactive)' : ''}</option>)}
+                  </select>
                   {fieldError('facilityId') ? <small className="awp03-field-error">{fieldError('facilityId')}</small> : null}
-                  <small>Required by BR-EMP-01 for Facility Staff and Facility Manager.</small>
+                  <small>Required for Facility Staff and Facility Manager.</small>
+                  {facilitiesError && <span role="alert">Unable to load facilities. <button type="button" onClick={retry} disabled={props.busy}>Retry</button></span>}
                 </label>
               ) : (
                 <div className="awp03-field-readonly">
@@ -280,7 +283,7 @@ export function EmployeeAccountFormDialog(props: Props) {
             <button
               className="awp01-button awp03-button--primary"
               type="submit"
-              disabled={props.busy}
+              disabled={props.busy || (facilityRequired && (facilitiesLoading || facilitiesError || facilities.length === 0))}
             >
               {props.busy ? 'Saving…' : editing ? 'Save changes' : 'Create employee'}
             </button>
