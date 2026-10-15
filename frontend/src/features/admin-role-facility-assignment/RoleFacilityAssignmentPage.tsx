@@ -14,12 +14,12 @@ import {
   type ChangeEvent,
 } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { businessApi } from '../../api/businessApi'
 import { RolePermissionsPanel } from './RolePermissionsPanel'
-import type { Facility } from '../../models/facility'
 import {
   assignAdminEmployee,
+  listAllAdminFacilities,
   normalizeAdminApiError,
+  type AdminFacilityLookup,
 } from '../../api/adminApi'
 import { AccountStatusBadge } from '../../components/admin/AccountStatusBadge'
 import { EmployeeAssignmentDialog } from '../../components/admin/EmployeeAssignmentDialog'
@@ -72,12 +72,12 @@ function EmployeeAssignmentsPanel() {
 
   // Display Facility names rather than opaque IDs in the assignment table.
   // Assignment still sends the original FacilityId via ADM-009.
-  const [facilities, setFacilities] = useState<Facility[]>([])
+  const [facilities, setFacilities] = useState<AdminFacilityLookup[]>([])
   const [facilityDirectoryError, setFacilityDirectoryError] = useState(false)
 
   useEffect(() => {
     let active = true
-    void businessApi.listAllFacilities().then((list) => {
+    void listAllAdminFacilities().then((list) => {
       if (active) {
         setFacilities(list)
         setFacilityDirectoryError(false)

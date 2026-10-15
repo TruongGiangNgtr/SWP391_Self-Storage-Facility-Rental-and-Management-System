@@ -1,8 +1,7 @@
 import { ShieldCheck, X } from 'lucide-react'
-import { businessApi } from '../../api/businessApi'
+import { listAllAdminFacilities, type AdminFacilityLookup } from '../../api/adminApi'
 import { ApiRequestError } from '../../api/httpClient'
 import '../../styles/adminRoleFacilityAssignment.css'
-import type { Facility } from '../../models/facility'
 import {
   useEffect,
   useMemo,
@@ -52,12 +51,12 @@ export function EmployeeAssignmentDialog({
   const [role, setRole] = useState<EmployeeRole>(() => employeeRole(account))
   const [facilityId, setFacilityId] = useState(account.profile?.facilityId ?? '')
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({})
-  const [facilities, setFacilities] = useState<Facility[]>([])
+  const [facilities, setFacilities] = useState<AdminFacilityLookup[]>([])
   const [facilitiesLoading, setFacilitiesLoading] = useState(true)
   const [facilitiesError, setFacilitiesError] = useState<string | null>(null)
   const [facilitiesReload, setFacilitiesReload] = useState(0)
 
-  // Load all pages from BOM-001 (also readable by System Administrator).
+  // Load all pages from the System Administrator facility lookup.
   // Keep the original FacilityId for ADM-009; labels are Facility names only.
   useEffect(() => {
     let cancelled = false
@@ -66,7 +65,7 @@ export function EmployeeAssignmentDialog({
       setFacilitiesLoading(true)
       setFacilitiesError(null)
       try {
-        const result = await businessApi.listAllFacilities()
+        const result = await listAllAdminFacilities()
         if (!cancelled) {
           setFacilities(result.sort((a, b) => a.name.localeCompare(b.name, 'vi')))
         }
@@ -244,7 +243,7 @@ export function EmployeeAssignmentDialog({
                 {fieldError('facilityId') ? (
                   <small className="awp03-field-error">{fieldError('facilityId')}</small>
                 ) : null}
-                <small>Facility names are loaded from the business Facilities API. The selected Facility ID is sent to ADM-009.</small>
+                <small>Facility names are loaded from the Admin facility directory. The selected Facility ID is sent to ADM-009.</small>
               </label>
               {facilitiesError ? (
                 <div className="awp04-facility-load-error" role="alert">

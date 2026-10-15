@@ -22,6 +22,27 @@ import type {
   ApiResponse,
 } from './api.types'
 import { ApiRequestError, httpClient } from './httpClient'
+import type { FacilityStatus } from '../models/facility'
+
+export interface AdminFacilityLookup {
+  facilityId: string
+  name: string
+  status: FacilityStatus
+}
+
+/** AWP-04: load the complete Admin facility directory for assignment. */
+export async function listAllAdminFacilities(): Promise<AdminFacilityLookup[]> {
+  const readPage = (page: number) => httpClient.get<ApiCollectionResponse<AdminFacilityLookup>>(
+    `/admin/facilities/lookup?page=${page}&pageSize=100`,
+  )
+  const firstPage = await readPage(1)
+  const facilities = [...firstPage.data]
+  for (let page = 2; page <= firstPage.pagination.totalPages; page += 1) {
+    const response = await readPage(page)
+    facilities.push(...response.data)
+  }
+  return facilities
+}
 
 /**
  * AWP-01 / SRS V10 FINAL
