@@ -31,6 +31,7 @@ import { CustomerFeeReturnPage } from '../pages/CustomerFeeReturnPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PaymentResultPage } from '../pages/PaymentResultPage'
 import { FacilityReportsPage } from '../features/manager-reports/FacilityReportsPage'
+import { BusinessReportsPage } from '../features/business-reports/BusinessReportsPage'
 import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
 import { FacilityManagerLayout } from '../layouts/FacilityManagerLayout'
 import { SystemAdministratorLayout } from '../layouts/SystemAdministratorLayout'
@@ -326,6 +327,7 @@ export function AppRouter() {
         />
         <Route path="discounts" element={<DiscountAndExtraFeePage />} />
         <Route path="extra-fees" element={<DiscountAndExtraFeePage />} />
+        <Route path="reports" element={<BusinessReportsPage />} />
       </Route>
     </Route>
   </Route>
