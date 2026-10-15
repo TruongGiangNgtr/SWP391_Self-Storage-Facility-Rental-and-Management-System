@@ -1,5 +1,6 @@
 import type {
   ApiErrorShape,
+  FacilityStaffLookupItem,
   AssignSupportStaffRequest,
   CreateSupportTicketRequest,
   CancelSupportTicketRequest,
@@ -88,4 +89,8 @@ export function normalizeApiError(error: unknown): ApiErrorShape {
       ? error.message
       : "An unexpected error occurred.",
   };
+}
+
+export function listFacilitySupportStaff(facilityId: string, page = 1): Promise<CollectionEnvelope<FacilityStaffLookupItem>> {
+  return httpClient.get(`/facilities/${encodeURIComponent(facilityId)}/staff/lookup?page=${page}&pageSize=20`);
 }

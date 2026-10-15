@@ -1,5 +1,6 @@
 import type { ChangeEvent, MouseEvent } from "react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import { useAuth } from "../../../auth/auth.context";
 import { AssignSupportStaffDialog } from "../components/AssignSupportStaffDialog";
 import { SupportStatusBadge } from "../components/SupportStatusBadge";
 import { SupportTicketDetailDrawer } from "../components/SupportTicketDetailDrawer";
@@ -29,9 +30,9 @@ function shortId(value: string) {
 }
 
 export default function ManagerSupportTicketsPage() {
+  const { user } = useAuth();
   const {
     tickets,
-    rawTickets,
     pagination,
     loading,
     error,
@@ -46,11 +47,6 @@ export default function ManagerSupportTicketsPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const detail = useManagerSupportTicketDetail(selectedTicketId);
-
-  const recentlyAssignedEmployeeIds = useMemo(
-    () => rawTickets.map((ticket) => ticket.assignedEmployeeId).filter((id): id is string => Boolean(id)),
-    [rawTickets],
-  );
 
   async function assign(employeeId: string) {
     const result = await detail.assign(employeeId);
@@ -193,7 +189,7 @@ export default function ManagerSupportTicketsPage() {
         ticket={detail.ticket}
         submitting={detail.assigning}
         error={detail.error}
-        recentlyAssignedEmployeeIds={recentlyAssignedEmployeeIds}
+        facilityId={user?.facilityId ?? null}
         onClose={() => setAssignOpen(false)}
         onAssign={assign}
       />

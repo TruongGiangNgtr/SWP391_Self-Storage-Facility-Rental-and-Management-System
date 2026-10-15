@@ -1,16 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent, MouseEvent } from "react";
-import type { ApiErrorShape, SupportTicketDetail } from "../models/supportTicket";
+import type { ApiErrorShape, FacilityStaffLookupItem, PaginationMeta, SupportTicketDetail } from "../models/supportTicket";
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+import { listFacilitySupportStaff, normalizeApiError } from "../../../api/supportTicketApi";
 
 interface AssignSupportStaffDialogProps {
   open: boolean;
   ticket: SupportTicketDetail | null;
   submitting: boolean;
   error: ApiErrorShape | null;
-  recentlyAssignedEmployeeIds?: string[];
+  facilityId: string | null;
   onClose: () => void;
   onAssign: (employeeId: string) => Promise<boolean>;
 }
@@ -20,7 +19,7 @@ export function AssignSupportStaffDialog({
   ticket,
   submitting,
   error,
-  recentlyAssignedEmployeeIds = [],
+  facilityId,
   onClose,
   onAssign,
 }: AssignSupportStaffDialogProps) {
@@ -34,18 +33,44 @@ export function AssignSupportStaffDialog({
     }
   }, [open, ticket?.supportTicketId]);
 
-  const suggestions = useMemo(
-    () => Array.from(new Set(recentlyAssignedEmployeeIds.filter(Boolean))).slice(0, 5),
-    [recentlyAssignedEmployeeIds],
-  );
+  const [staff, setStaff] = useState<FacilityStaffLookupItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lookupError, setLookupError] = useState<ApiErrorShape | null>(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
+  const [retry, setRetry] = useState(0);
+
+  useEffect(() => { setPage(1); }, [open, facilityId, ticket?.supportTicketId]);
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    setStaff([]);
+    setEmployeeId("");
+    setLoading(true);
+    setLookupError(null);
+    setPagination(null);
+    if (!facilityId) {
+      setLookupError({ code: "FACILITY_REQUIRED", message: "Your account has no assigned facility. Please contact your administrator." });
+      setLoading(false);
+      return;
+    }
+    void listFacilitySupportStaff(facilityId, page).then((result) => {
+      if (!active) return;
+      setStaff(result.data);
+      setPagination(result.pagination);
+    }).catch((err: unknown) => {
+      if (active) setLookupError(normalizeApiError(err));
+    }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [open, facilityId, page, retry, ticket?.supportTicketId]);
 
   if (!open || !ticket) return null;
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const value = employeeId.trim();
-    if (!UUID_PATTERN.test(value)) {
-      setValidation("Enter a valid Facility Staff employee UUID.");
+    if (loading || lookupError || !staff.some((member) => member.employeeId === value)) {
+      setValidation("Select a Facility Staff member from the list.");
       return;
     }
     setValidation(null);
@@ -80,31 +105,35 @@ export function AssignSupportStaffDialog({
 
         <form onSubmit={handleSubmit}>
           <label className="mwp05-field">
-            <span>Facility Staff employee ID</span>
-            <input
+            <span>Facility Staff</span>
+            <select
               data-testid="mwp05-employee-id"
               autoFocus
               value={employeeId}
-              onChange={(event: ChangeEvent<HTMLInputElement>) => setEmployeeId(event.target.value)}
-              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-              disabled={submitting}
+              onChange={(event: ChangeEvent<HTMLSelectElement>) => { setEmployeeId(event.target.value); setValidation(null); }}
+              disabled={submitting || loading || Boolean(lookupError) || staff.length === 0}
               aria-invalid={Boolean(validation || error)}
-            />
-            <small>
-              The server authoritatively validates ACTIVE FACILITY_STAFF role and same-Facility assignment.
-            </small>
+            >
+              <option value="">{loading ? "Loading staff..." : "Select a staff member"}</option>
+              {staff.map((member) => (
+                <option key={member.employeeId} value={member.employeeId}>{member.fullName} - {member.employeeId}</option>
+              ))}
+            </select>
+            <small>Choose an active staff member in your facility.</small>
           </label>
-
-          {suggestions.length > 0 && (
-            <div className="mwp05-suggestions" aria-label="Recently assigned staff IDs">
-              <span>Recently assigned in this visible Facility ticket set</span>
-              <div>
-                {suggestions.map((id) => (
-                  <button key={id} type="button" onClick={() => setEmployeeId(id)} disabled={submitting}>
-                    {id.slice(0, 8)}…
-                  </button>
-                ))}
-              </div>
+          {!loading && !lookupError && staff.length === 0 && <p role="status">No active Facility Staff found.</p>}
+          {lookupError && (
+            <div className="mwp05-inline-error" role="alert">
+              <strong>{lookupError.code}</strong>: {lookupError.message}
+              {lookupError.traceId && <span> - Trace {lookupError.traceId}</span>}
+              {facilityId && <button type="button" className="mwp05-link-button" onClick={() => setRetry((value) => value + 1)}>Try again</button>}
+            </div>
+          )}
+          {pagination && pagination.totalPages > 1 && (
+            <div className="mwp05-pagination">
+              <span>Staff page {pagination.page} of {pagination.totalPages}</span>
+              <button type="button" className="mwp05-button mwp05-button--secondary" disabled={submitting || loading || page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
+              <button type="button" className="mwp05-button mwp05-button--secondary" disabled={submitting || loading || page >= pagination.totalPages} onClick={() => setPage(page + 1)}>Next</button>
             </div>
           )}
 
@@ -120,7 +149,7 @@ export function AssignSupportStaffDialog({
             <button className="mwp05-button mwp05-button--secondary" type="button" onClick={onClose} disabled={submitting}>
               Cancel
             </button>
-            <button className="mwp05-button mwp05-button--primary" type="submit" disabled={submitting} data-testid="mwp05-confirm-assign">
+            <button className="mwp05-button mwp05-button--primary" type="submit" disabled={submitting || loading || Boolean(lookupError) || !employeeId} data-testid="mwp05-confirm-assign">
               {submitting ? "Assigning…" : "Assign staff"}
             </button>
           </div>
