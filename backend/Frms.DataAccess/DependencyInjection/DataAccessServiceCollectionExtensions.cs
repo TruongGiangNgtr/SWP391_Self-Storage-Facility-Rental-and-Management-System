@@ -43,6 +43,7 @@ public static class DataAccessServiceCollectionExtensions
         services.AddScoped<ICustomerRegistrationRepository, CustomerRegistrationRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IReportRevenueRepository, ReportRevenueRepository>();
         services.AddScoped<IStorageUnitRepository, StorageUnitRepository>();
         services.AddScoped<IFacilityRepository, FacilityRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
