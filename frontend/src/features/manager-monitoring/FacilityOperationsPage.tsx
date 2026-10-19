@@ -15,6 +15,8 @@ import type { VisitDetail } from '../visits/visit.types'
 import type { InvoiceDetail } from '../billing/billing.types'
 import type { ContractBillingSummary, ContractReturnSummary } from '../fee-return-tracking/tracking.types'
 import '../manager-portal.css'
+import { catalogApi } from '../../api/catalogApi'
+import { StorageUnitTimeline } from './StorageUnitTimeline'
 
 type Tab = 'reservations' | 'contracts' | 'visits' | 'invoices' | 'units'
 type RecordItem = ReservationDetail | HandoverContractDetail | VisitDetail | InvoiceDetail | StorageUnit
@@ -53,7 +55,7 @@ function titleOf(tab: Tab, item: RecordItem): string {
 function itemSearch(tab: Tab, item: RecordItem): string {
   return JSON.stringify(item).toLowerCase() + (tab === 'units' ? ` ${(item as StorageUnit).unitCode}` : '')
 }
-function ListRow({ tab, item, onSelect }: { tab: Tab; item: RecordItem; onSelect: () => void }) {
+function ListRow({ tab, item, onSelect, unitTypeNames }: { tab: Tab; item: RecordItem; onSelect: () => void; unitTypeNames: Record<string, string> }) {
   let sub = ''
   let secondary = ''
   let state = ''
@@ -88,8 +90,8 @@ function ListRow({ tab, item, onSelect }: { tab: Tab; item: RecordItem; onSelect
     }
     case 'units': {
       const r = item as StorageUnit
-      sub = `${r.locationInfo || 'Location not specified'} · Type ${shortId(r.unitTypeId)}`
-      secondary = shortId(r.storageUnitId)
+      sub = `${r.locationInfo || 'Location not specified'} · ${unitTypeNames[r.unitTypeId] || 'Type name unavailable'}`
+      secondary = ''
       state = r.status
     }
   }
@@ -103,14 +105,14 @@ function ListRow({ tab, item, onSelect }: { tab: Tab; item: RecordItem; onSelect
 function DetailField({ label, value }: { label: string; value?: string | number | null }) {
   return <div className="mop-detail-field"><dt>{label}</dt><dd>{value ?? '—'}</dd></div>
 }
-function RecordDetail({ detail, close, refreshing }: { detail: DetailState; close: () => void; refreshing: boolean }) {
+function RecordDetail({ detail, close, refreshing, facilityName, unitTypeNames }: { detail: DetailState; close: () => void; refreshing: boolean; facilityName: string; unitTypeNames: Record<string, string> }) {
   const { tab, item, billing, returns } = detail
   return <div className="mop-drawer-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) close() }}>
     <aside className="mop-drawer" role="dialog" aria-modal="true" aria-label={`${tab} detail`}>
       <div className="mop-drawer-head"><div><small>Facility monitoring · Read only</small><h2>{tab === 'units' ? 'Storage unit' : tab.slice(0, -1)} detail</h2></div><button type="button" className="mop-icon-button" onClick={close} aria-label="Close details"><X size={20} /></button></div>
       <p className="mop-muted">Backend-authorized record. Monitoring does not change any lifecycle state.</p>
       <dl className="mop-detail-grid">
-        <DetailField label="Record ID" value={itemId(tab, item)} />
+        {tab !== 'units' && <DetailField label="Record ID" value={itemId(tab, item)} />}
         {tab === 'reservations' && (() => { const r = item as ReservationDetail; return <>
           <DetailField label="Status" value={r.status}/><DetailField label="Customer ID" value={r.customerId}/><DetailField label="Unit type ID" value={r.unitTypeId}/><DetailField label="Rental period" value={`${r.startMonth} → ${r.endMonth}`}/><DetailField label="Locked first-month rent" value={money(r.lockedRentalPrice)}/><DetailField label="Deposit" value={`${money(r.depositAmount)} · ${r.depositInvoice?.status ?? '—'}`}/><DetailField label="Reservation visit" value={r.reservationVisit ? `${date(r.reservationVisit.visitDate)} · ${r.reservationVisit.status}` : 'Not scheduled'} />
         </> })()}
@@ -124,7 +126,7 @@ function RecordDetail({ detail, close, refreshing }: { detail: DetailState; clos
           <DetailField label="Type" value={i.invoiceType}/><DetailField label="Status" value={i.status}/><DetailField label="Reservation/contract ID" value={i.entityId}/><DetailField label="Billing month" value={i.billingMonth}/><DetailField label="Amount due" value={money(i.amountDue)}/><DetailField label="Discount" value={money(i.discountAmount)}/><DetailField label="Due date" value={date(i.dueDate)}/><DetailField label="Paid at (UTC)" value={i.paidAt}/>
         </> })()}
         {tab === 'units' && (() => { const u = item as StorageUnit; return <>
-          <DetailField label="Unit code" value={u.unitCode}/><DetailField label="Status" value={u.status}/><DetailField label="Location" value={u.locationInfo}/><DetailField label="Facility ID" value={u.facilityId}/><DetailField label="Unit type ID" value={u.unitTypeId}/>
+          <DetailField label="Unit code" value={u.unitCode}/><DetailField label="Status" value={u.status}/><DetailField label="Location" value={u.locationInfo}/><DetailField label="Facility" value={facilityName}/><DetailField label="Unit type" value={unitTypeNames[u.unitTypeId] || 'Type name unavailable'}/>
         </> })()}
       </dl>
       {tab === 'contracts' && (refreshing ? <p className="mop-muted">Loading contract financial and return summaries…</p> : <>
@@ -138,6 +140,9 @@ function RecordDetail({ detail, close, refreshing }: { detail: DetailState; clos
 export function FacilityOperationsPage() {
   const { user } = useAuth()
   const facilityId = user?.facilityId || null
+  const [unitView, setUnitView] = useState<'list' | 'timeline'>('list')
+  const [facilityName, setFacilityName] = useState('Name unavailable')
+  const [unitTypeNames, setUnitTypeNames] = useState<Record<string, string>>({})
   const [tab, setTab] = useState<Tab>('reservations')
   const [page, setPage] = useState(1)
   const [query, setQuery] = useState('')
@@ -153,6 +158,25 @@ export function FacilityOperationsPage() {
   const [detailError, setDetailError] = useState('')
   const [detailLoading, setDetailLoading] = useState(false)
   const [revision, setRevision] = useState(0)
+
+  useEffect(() => {
+    let active = true
+    setFacilityName('Name unavailable'); setUnitTypeNames({})
+    if (!facilityId) return
+    catalogApi.getFacility(facilityId).then(response => { if (active) setFacilityName(response.data.name) }).catch(() => {})
+    return () => { active = false }
+  }, [facilityId, revision])
+
+  useEffect(() => {
+    let active = true
+    const units = records.filter((item): item is StorageUnit => 'storageUnitId' in item && 'unitTypeId' in item && 'unitCode' in item)
+    if (tab !== 'units') return
+    void Promise.allSettled([...new Set(units.map(unit => unit.unitTypeId))].map(async id => {
+      const response = await catalogApi.getUnitType(id)
+      if (active) setUnitTypeNames(names => ({ ...names, [id]: response.data.name }))
+    }))
+    return () => { active = false }
+  }, [records, tab])
 
   useEffect(() => {
     let alive = true
@@ -228,19 +252,22 @@ export function FacilityOperationsPage() {
   const occupied = report ? report.availableUnits + report.inUseUnits + report.inspectionUnits + report.maintenanceUnits : 0
 
   return <main className="mop-page" data-testid="manager-operations-page">
-    <header className="mop-page-header"><div><p className="mop-eyebrow">FACILITY MANAGER · MWP-03</p><h1>Facility Operations Monitoring</h1><p>Operational records, rental activity and financial status for your assigned Facility.</p><span className="mop-facility-id">Facility {facilityId ? shortId(facilityId) : 'Not assigned'}</span></div><button className="mop-btn mop-btn-secondary" type="button" onClick={refresh}><RefreshCw size={16}/> Refresh data</button></header>
+    <header className="mop-page-header"><div><p className="mop-eyebrow">FACILITY MANAGER · MWP-03</p><h1>Facility Operations Monitoring</h1><p>Operational records, rental activity and financial status for your assigned Facility.</p><span className="mop-facility-id">{facilityId ? facilityName : 'Not assigned'}</span></div><button className="mop-btn mop-btn-secondary" type="button" onClick={refresh}><RefreshCw size={16}/> Refresh data</button></header>
     <section className="mop-section" aria-label="Facility operations snapshot"><div className="mop-section-heading"><div><h2><Activity size={19}/> Operational snapshot</h2><p>Server-calculated REP-001 metrics; usage rate includes every physical unit in the denominator.</p></div>{report && <span className="mop-small">As of {new Date(report.asOf).toLocaleString('en-GB', { timeZone: 'Asia/Ho_Chi_Minh' })} ICT</span>}</div>
       {reportLoading ? <p className="mop-empty">Loading authoritative Facility metrics…</p> : reportError ? <div role="alert" className="mop-alert">{reportError}</div> : report && <><div className="mop-stats"><div><span>Available units</span><strong>{report.availableUnits}</strong><small>Ready for allocation</small></div><div><span>Rented / in use</span><strong>{report.inUseUnits}</strong><small>Physically occupied</small></div><div><span>Under inspection</span><strong>{report.inspectionUnits}</strong><small>Awaiting release</small></div><div><span>Maintenance</span><strong>{report.maintenanceUnits}</strong><small>Temporarily unavailable</small></div><div><span>Overdue contracts</span><strong>{report.overdueContractCount}</strong><small>Server-determined cases</small></div><div><span>Usage rate</span><strong>{(report.usageRate * 100).toFixed(1)}%</strong><small>{report.inUseUnits} / {occupied} total units</small></div></div><div className="mop-usage-track" aria-label={`Usage rate ${(report.usageRate * 100).toFixed(1)}%`}><div style={{width: `${Math.max(0, Math.min(100, report.usageRate * 100))}%`}} /></div></>}
     </section>
     <section className="mop-section"><div className="mop-section-heading"><div><h2>Facility activity</h2><p>Review reservation status, customer/contract references, visit progress and persisted invoice payments.</p></div></div>
       <div className="mop-tabs" role="tablist" aria-label="Operations record type">{tabs.map(t => { const Icon = t.icon; return <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} className={`mop-tab ${tab === t.key ? 'active' : ''}`} onClick={() => chooseTab(t.key)}><Icon size={15}/>{t.label}</button> })}</div>
+      {tab === 'units' && <div className="mop-table-toolbar"><strong>Storage units</strong><div><button type="button" className="mop-btn mop-btn-secondary" aria-pressed={unitView === 'list'} onClick={() => setUnitView('list')}>List</button> <button type="button" className="mop-btn mop-btn-secondary" aria-pressed={unitView === 'timeline'} onClick={() => { setUnitView('timeline'); setSelected(null) }}>Timeline</button></div></div>}
+      {tab === 'units' && unitView === 'timeline' ? (facilityId ? <StorageUnitTimeline key={facilityId} facilityId={facilityId} revision={revision} /> : <p className="mop-alert">No facility is assigned.</p>) : <>
       <div className="mop-table-toolbar"><label className="mop-search"><Search size={16}/><input value={query} onChange={e => setQuery(e.target.value)} placeholder={`Filter ${tab} on this page`} aria-label={`Filter ${tab} on current page`}/></label><span className="mop-small">{totalItems} server-scoped records · Page {page} {totalPages > 0 ? `of ${totalPages}` : ''}</span></div>
-      {loading ? <div className="mop-empty">Loading {tab}…</div> : error ? <div className="mop-alert" role="alert">{error}<button type="button" onClick={refresh}>Retry</button></div> : visible.length === 0 ? <div className="mop-empty">{records.length ? 'No records match the current-page filter.' : `No ${tab} found in this Facility.`}</div> : <div className="mop-table" role="tabpanel">{visible.map(i => <ListRow key={itemId(tab, i)} tab={tab} item={i} onSelect={() => void openRecord(i, tab)}/>)}</div>}
+      {loading ? <div className="mop-empty">Loading {tab}…</div> : error ? <div className="mop-alert" role="alert">{error}<button type="button" onClick={refresh}>Retry</button></div> : visible.length === 0 ? <div className="mop-empty">{records.length ? 'No records match the current-page filter.' : `No ${tab} found in this Facility.`}</div> : <div className="mop-table" role="tabpanel">{visible.map(i => <ListRow unitTypeNames={unitTypeNames} key={itemId(tab, i)} tab={tab} item={i} onSelect={() => void openRecord(i, tab)}/>)}</div>}
       <div className="mop-pagination"><button type="button" className="mop-btn mop-btn-secondary" disabled={loading || page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button><span>Page {page} / {Math.max(1, totalPages)}</span><button type="button" className="mop-btn mop-btn-secondary" disabled={loading || page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button></div>
+      </>}
     </section>
     <p className="mop-footnote">Revenue totals are not estimated from invoices: REP-002 on the supplied backend is not implemented. First-month offline rental revenue must be included by the authoritative reporting API, not invented in the frontend.</p>
     {detailLoading && !selected && <div className="mop-alert" role="status">Loading record detail…</div>}
     {detailError && <div className="mop-alert" role="alert">{detailError}<button type="button" onClick={() => { setDetailError(''); if (selected) void openRecord(selected.item, selected.tab) }}>Retry</button></div>}
-    {selected && <RecordDetail detail={selected} close={() => { setSelected(null); setDetailError('') }} refreshing={detailLoading} />}
+    {selected && <RecordDetail facilityName={facilityName} unitTypeNames={unitTypeNames} detail={selected} close={() => { setSelected(null); setDetailError('') }} refreshing={detailLoading} />}
   </main>
 }
