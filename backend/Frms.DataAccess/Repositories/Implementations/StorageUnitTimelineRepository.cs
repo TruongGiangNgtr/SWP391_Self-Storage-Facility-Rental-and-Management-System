@@ -13,17 +13,16 @@ internal sealed class StorageUnitTimelineRepository(FrmsDbContext db) : IStorage
     public Task<bool> UnitTypeExistsAsync(Guid unitTypeId, CancellationToken ct) =>
         db.UnitTypes.AsNoTracking().AnyAsync(x => x.UnitTypeId == unitTypeId, ct);
 
-    private IQueryable<StorageUnitTimelineUnitRecord> Units(Guid facilityId, Guid? unitTypeId)
+    // Keep the filter as an EF entity query. Constructor projections are only
+    // created after SQL filtering, ordering, pagination and metadata joins.
+    private IQueryable<Frms.DataAccess.Persistence.Entities.StorageUnit> Units(
+        Guid facilityId, Guid? unitTypeId)
     {
-        var query = from storage in db.StorageUnits.AsNoTracking()
-                    join type in db.UnitTypes.AsNoTracking() on storage.UnitTypeId equals type.UnitTypeId
-                    join facility in db.Facilities.AsNoTracking() on storage.FacilityId equals facility.FacilityId
-                    where storage.FacilityId == facilityId
-                    select new { storage, type, facility };
-        if (unitTypeId.HasValue) query = query.Where(x => x.storage.UnitTypeId == unitTypeId.Value);
-        return query.Select(x => new StorageUnitTimelineUnitRecord(
-            x.storage.StorageUnitId, x.storage.UnitCode, x.type.Name,
-            x.facility.Name, x.storage.LocationInfo));
+        var query = db.StorageUnits.AsNoTracking()
+            .Where(storage => storage.FacilityId == facilityId);
+        if (unitTypeId.HasValue)
+            query = query.Where(storage => storage.UnitTypeId == unitTypeId.Value);
+        return query;
     }
 
     public async Task<(IReadOnlyList<StorageUnitTimelineUnitRecord> Items, int TotalCount)> ListUnitsAsync(
@@ -31,14 +30,55 @@ internal sealed class StorageUnitTimelineRepository(FrmsDbContext db) : IStorage
     {
         var query = Units(facilityId, unitTypeId);
         var total = await query.CountAsync(ct);
-        var items = await query.OrderBy(x => x.UnitCode).ThenBy(x => x.StorageUnitId)
-            .Skip(skip).Take(take).ToArrayAsync(ct);
-        return (items, total);
+
+        // Order and paginate *before* projection. PostgreSQL gets LIMIT/OFFSET
+        // for physical units, not for their status-history intervals.
+        var page = query.OrderBy(storage => storage.UnitCode)
+            .ThenBy(storage => storage.StorageUnitId)
+            .Skip(skip).Take(take);
+        var rows = await (from storage in page
+                          join type in db.UnitTypes.AsNoTracking()
+                              on storage.UnitTypeId equals type.UnitTypeId
+                          join facility in db.Facilities.AsNoTracking()
+                              on storage.FacilityId equals facility.FacilityId
+                          select new
+                          {
+                              storage.StorageUnitId,
+                              storage.UnitCode,
+                              UnitTypeName = type.Name,
+                              FacilityName = facility.Name,
+                              storage.LocationInfo
+                          }).ToArrayAsync(ct);
+
+        return (rows.Select(x => new StorageUnitTimelineUnitRecord(
+            x.StorageUnitId, x.UnitCode, x.UnitTypeName,
+            x.FacilityName, x.LocationInfo)).ToArray(), total);
     }
 
-    public Task<StorageUnitTimelineUnitRecord?> FindUnitAsync(
-        Guid facilityId, Guid storageUnitId, CancellationToken ct) =>
-        Units(facilityId, null).SingleOrDefaultAsync(x => x.StorageUnitId == storageUnitId, ct);
+    public async Task<StorageUnitTimelineUnitRecord?> FindUnitAsync(
+        Guid facilityId, Guid storageUnitId, CancellationToken ct)
+    {
+        // Filter before projecting to avoid EF trying to translate a record
+        // constructor's StorageUnitId back into SQL.
+        var rows = from storage in Units(facilityId, null)
+                       .Where(storage => storage.StorageUnitId == storageUnitId)
+                   join type in db.UnitTypes.AsNoTracking()
+                       on storage.UnitTypeId equals type.UnitTypeId
+                   join facility in db.Facilities.AsNoTracking()
+                       on storage.FacilityId equals facility.FacilityId
+                   select new
+                   {
+                       storage.StorageUnitId,
+                       storage.UnitCode,
+                       UnitTypeName = type.Name,
+                       FacilityName = facility.Name,
+                       storage.LocationInfo
+                   };
+        var row = await rows.SingleOrDefaultAsync(ct);
+        return row is null ? null : new StorageUnitTimelineUnitRecord(
+            row.StorageUnitId, row.UnitCode, row.UnitTypeName,
+            row.FacilityName, row.LocationInfo);
+    }
 
     public async Task<IReadOnlyList<StorageUnitStatusAuditRecord>> ListStatusEventsAsync(
         Guid[] storageUnitIds, DateTime fromUtc, DateTime toUtc, CancellationToken ct)
@@ -54,18 +94,16 @@ internal sealed class StorageUnitTimelineRepository(FrmsDbContext db) : IStorage
         var prior = await audit.Where(x => x.CreatedAt < fromUtc)
             .GroupBy(x => x.EntityId)
             .Select(g => g.OrderByDescending(x => x.CreatedAt)
-                .ThenByDescending(x => x.AuditLogId)
-                .Select(x => new StorageUnitStatusAuditRecord(
-                    x.AuditLogId, x.EntityId!.Value, x.Action,
-                    x.OldValue, x.NewValue, x.CreatedAt)).First())
+                .ThenByDescending(x => x.AuditLogId).First())
             .ToArrayAsync(ct);
 
         var current = await audit.Where(x => x.CreatedAt >= fromUtc && x.CreatedAt < toUtc)
             .OrderBy(x => x.CreatedAt).ThenBy(x => x.AuditLogId)
-            .Select(x => new StorageUnitStatusAuditRecord(
-                x.AuditLogId, x.EntityId!.Value, x.Action,
-                x.OldValue, x.NewValue, x.CreatedAt))
             .ToArrayAsync(ct);
-        return prior.Concat(current).ToArray();
+        // Both database queries are bounded to the requested units and time
+        // range. Map to records only after materialization, never mid-query.
+        return prior.Concat(current).Select(x => new StorageUnitStatusAuditRecord(
+            x.AuditLogId, x.EntityId!.Value, x.Action,
+            x.OldValue, x.NewValue, x.CreatedAt)).ToArray();
     }
 }
