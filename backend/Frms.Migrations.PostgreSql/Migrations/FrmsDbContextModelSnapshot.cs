@@ -1166,6 +1166,11 @@ namespace Frms.Migrations.PostgreSql.Migrations
                         .HasColumnType("character varying(1000)")
                         .UseCollation("frms_ci_as");
 
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .UseCollation("frms_ci_as");
+
                     b.Property<string>("Mode")
                         .IsRequired()
                         .HasColumnType("varchar(50)")
@@ -1184,6 +1189,11 @@ namespace Frms.Migrations.PostgreSql.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)")
+                        .UseCollation("frms_ci_as");
+
+                    b.Property<string>("VideoUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
                         .UseCollation("frms_ci_as");
 
                     b.HasKey("UnitTypeId");
