@@ -116,6 +116,9 @@ builder.Services.AddSingleton<
     IAuthorizationMiddlewareResultHandler,
     ApiAuthorizationMiddlewareResultHandler>();
 
+// AI-001: register optional recommendation and anonymous request limits.
+builder.Services.AddAiRecommendationBusiness();
+builder.Services.AddFrmsAiRateLimiting(builder.Configuration);
 var app = builder.Build();
 app.UseExceptionHandler();
 app.UseStatusCodePages(async context =>
@@ -132,6 +135,8 @@ if (app.Environment.IsDevelopment()) {
 }
 
 app.MapOpenApi();
+app.UseRouting();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHealthChecks("/health").AllowAnonymous();

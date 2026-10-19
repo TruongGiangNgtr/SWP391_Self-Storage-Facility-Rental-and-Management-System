@@ -1,5 +1,6 @@
 using Frms.Business.Abstractions.External;
 using Frms.Infrastructure.External;
+using Frms.Infrastructure.Ai;
 using Frms.Infrastructure.Payments;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +17,12 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IValidateOptions<PayOsOptions>, PayOsOptionsValidator>();
 
         services.AddHttpClient<IPaymentGateway, PayOsPaymentGateway>().RemoveAllLoggers();
-        services.AddSingleton<IAiRecommendationProvider, UnconfiguredAiRecommendationProvider>();
+        services.Configure<AiOptions>(configuration.GetSection(AiOptions.SectionName));
+        if (string.Equals(configuration["Ai:Provider"], "OpenAICompatible", StringComparison.OrdinalIgnoreCase))
+            services.AddHttpClient<IAiRecommendationProvider, OpenAiCompatibleRecommendationProvider>()
+                .RemoveAllLoggers();
+        else
+            services.AddSingleton<IAiRecommendationProvider, UnconfiguredAiRecommendationProvider>();
         services.AddSingleton<IEmailService, UnconfiguredEmailService>();
         services.AddSingleton<INotificationSender, UnconfiguredNotificationSender>();
         return services;
