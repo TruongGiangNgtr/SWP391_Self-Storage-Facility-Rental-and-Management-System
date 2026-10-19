@@ -18,6 +18,7 @@ public static class BusinessServiceCollectionExtensions
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IFacilityAuthorizationService, FacilityAuthorizationService>();
         services.AddScoped<IStorageUnitService, StorageUnitService>();
+        services.AddScoped<IStorageUnitTimelineService, StorageUnitTimelineService>();
         services.AddScoped<IFacilityService, FacilityService>();
         services.AddScoped<IReservationService, ReservationService>();
         services.AddScoped<IVisitService, VisitService>();
