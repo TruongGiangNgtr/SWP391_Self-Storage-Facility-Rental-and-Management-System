@@ -22,7 +22,7 @@ using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddDevelopmentEnvFile(builder.Environment);
-builder.Services.AddDataAccess(builder.Configuration);
+builder.Services.AddDataAccess(builder.Configuration, builder.Environment.IsDevelopment());
 builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.Configure<ApiBehaviorOptions>(options => options.InvalidModelStateResponseFactory = context =>
 {

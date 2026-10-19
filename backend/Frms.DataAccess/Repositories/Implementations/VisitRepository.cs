@@ -9,7 +9,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Frms.DataAccess.Repositories.Implementations;
 
 internal sealed class VisitRepository(
-    FrmsDbContext dbContext) : IVisitRepository
+    FrmsDbContext dbContext,
+    bool allowOutOfDateVisitCheckIn = false) : IVisitRepository
 {
     public Task<Guid?> GetCustomerIdByUserAccountIdAsync(
         Guid userAccountId,
@@ -242,8 +243,11 @@ internal sealed class VisitRepository(
 
             await using var command = connection.CreateCommand();
 
-            //command.CommandText = "usp_CheckInVisit";
-            command.CommandText = "usp_CheckInVisit"; // For demo only, change to usp_CheckInVisit when release
+            // Production remains the default; demo bypasses only the VisitDate equality check.
+            // Demo__AllowOutOfDateVisitCheckIn=true in .env
+            command.CommandText = allowOutOfDateVisitCheckIn
+                ? "usp_CheckInVisitDemo"
+                : "usp_CheckInVisit";
             command.CommandType = CommandType.StoredProcedure;
 
             var visitParameter = command.CreateParameter();

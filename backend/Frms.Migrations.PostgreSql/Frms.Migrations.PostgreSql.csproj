@@ -19,5 +19,7 @@
     <Compile Include="../Frms.DataAccess/Persistence/SeedIds.cs" Link="Shared/SeedIds.cs" />
     <Compile Include="../Frms.DataAccess/Persistence/PostgreSqlStringSearch.cs" Link="Shared/PostgreSqlStringSearch.cs" />
     <EmbeddedResource Include="../sql/postgresql/*.sql" LogicalName="Frms.DataAccess.PostgreSql.%(Filename)%(Extension)" />
+    <!-- Pg011 demo routine is intentionally under /demo, outside the normal wildcard. -->
+    <EmbeddedResource Include="../sql/postgresql/demo/CheckInVisitDemo.sql" LogicalName="Frms.DataAccess.PostgreSql.CheckInVisitDemo.sql" />
   </ItemGroup>
 </Project>

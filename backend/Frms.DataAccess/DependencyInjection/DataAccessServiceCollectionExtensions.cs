@@ -19,7 +19,7 @@ public static class DataAccessServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddDataAccess(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddDataAccess(this IServiceCollection services, IConfiguration configuration, bool isDevelopment = false)
     {
         // Preserve the existing name; FrmsDb also supports the documented .NET environment variable.
         var connectionString = configuration.GetConnectionString("Frms")
@@ -27,10 +27,13 @@ public static class DataAccessServiceCollectionExtensions
         if (string.IsNullOrWhiteSpace(connectionString))
             throw new InvalidOperationException("PostgreSQL configuration is required. Set ConnectionStrings__Frms (existing convention) or ConnectionStrings__FrmsDb.");
 
-        return services.AddDataAccess(connectionString);
+        // Manual demo routine is opt-in and may never be selected outside Development.
+        var demoCheckIn = isDevelopment && bool.TryParse(
+            configuration["Demo:AllowOutOfDateVisitCheckIn"], out var enabled) && enabled;
+        return services.AddDataAccess(connectionString, demoCheckIn);
     }
 
-    public static IServiceCollection AddDataAccess(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddDataAccess(this IServiceCollection services, string connectionString, bool allowOutOfDateVisitCheckIn = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
         if (new NpgsqlConnectionStringBuilder(connectionString).Multiplexing)
@@ -48,7 +51,9 @@ public static class DataAccessServiceCollectionExtensions
         services.AddScoped<IStorageUnitTimelineRepository, StorageUnitTimelineRepository>();
         services.AddScoped<IFacilityRepository, FacilityRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
-        services.AddScoped<IVisitRepository, VisitRepository>();
+        services.AddScoped<IVisitRepository>(provider => new VisitRepository(
+            provider.GetRequiredService<FrmsDbContext>(),
+            allowOutOfDateVisitCheckIn));
         services.AddScoped<IReturnVisitRepository, ReturnVisitRepository>();
         services.AddScoped<IInspectionRepository, InspectionRepository>();
         services.AddScoped<ISupportTicketRepository, SupportTicketRepository>();

@@ -12,16 +12,15 @@ namespace Frms.Api.Controllers;
 [AllowAnonymous]
 [EnableRateLimiting("public-ai")]
 [Route("api/v1/ai")]
-public sealed class AiController(IAiRecommendationService service) : ControllerBase
-{
-    /// <summary>AI-001: Optional, non-authoritative public UnitType recommendation.</summary>
-    /// For using this function, it is require to apply API key to .env
-    /// Ai__Provider=OpenAICompatible
-    /// Ai__Endpoint = https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
-    /// Ai__ApiKey= <GEMINI_API_KEY>
-    /// Ai__Model = gemini - 3.8 - flash
-    /// Ai__TimeoutSeconds=60
-    /// Ai__RateLimitPerMinute=10
+public sealed class AiController(IAiRecommendationService service) : ControllerBase {
+    /// <summary>AI-001: Optional, non-authoritative public UnitType recommendation. </summary>
+    // For using this function, it is require to apply API key to .env
+    // Ai__Provider= OpenAICompatible
+    // Ai__Endpoint = https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
+    // Ai__ApiKey= < GEMINI_API_KEY >
+    // Ai__Model = gemini - 3.8 - flash
+    // Ai__TimeoutSeconds = 60
+    // Ai__RateLimitPerMinute = 10
 
     [HttpPost("unit-type-recommendations")]
     [ProducesResponseType(typeof(ApiResponse<UnitTypeRecommendationResponse>), StatusCodes.Status200OK)]
