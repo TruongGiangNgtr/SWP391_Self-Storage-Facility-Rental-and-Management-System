@@ -6,9 +6,10 @@ import { usePublicSizes } from '../features/catalog/usePublicCatalog'
 import type { FacilitySummary, PublicCatalogFilters } from '../features/catalog/catalog.types'
 import { presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { getNextBusinessMonth } from '../features/reservations/reservationValidation'
+import { PublicLocationField } from './PublicLocationField'
 
-export function PublicStorageSearchForm({ initialValues, suggestions = [], pinnedFacility, onSearch, onDirtyChange, embedded = false }: {
-  initialValues?: PublicCatalogFilters; suggestions?: readonly FacilitySummary[]; pinnedFacility?: FacilitySummary
+export function PublicStorageSearchForm({ initialValues, pinnedFacility, onSearch, onDirtyChange, embedded = false }: {
+  initialValues?: PublicCatalogFilters; pinnedFacility?: FacilitySummary
   onSearch?(filters: PublicCatalogFilters): void; onDirtyChange?(dirty: boolean): void; embedded?: boolean
 }) {
   const id = useId()
@@ -38,7 +39,8 @@ export function PublicStorageSearchForm({ initialValues, suggestions = [], pinne
   return <section className={`panel public-search-panel ${embedded ? 'public-search-embedded' : ''}`} aria-label="Storage search">
     {embedded && <div className="public-search-intro"><h2>Find Your Next Storage</h2><p className="muted">Choose a location, storage type, size and rental period.</p></div>}
     <form className="form-grid public-search-form" onSubmit={submit} noValidate>
-      <div className="form-field public-location-field"><label htmlFor={field('location')}>Location / Facility</label><div className="public-location"><input id={field('location')} type="search" list={field('locations')} placeholder="City, area or facility name" value={pinnedFacility?.name ?? form.location} readOnly={Boolean(pinnedFacility)} onChange={event => change({ location: event.target.value, facilityId: '' })} /><img src="/figma/gwp-01/imgImage.svg" alt="" aria-hidden="true" /></div><datalist id={field('locations')}>{suggestions.map(item => <option key={item.facilityId} value={item.name}>{item.address}</option>)}</datalist></div>
+      <PublicLocationField id={field('location')} value={form.location} pinnedFacility={pinnedFacility}
+        onChange={location => change({ location, facilityId: '' })} />
       <div className="form-field"><label htmlFor={field('mode')}>Storage Type</label><div className="public-select"><select id={field('mode')} value={form.mode} onChange={event => { setSizePage(1); change({ mode: event.target.value as PublicCatalogFilters['mode'], size: '', unitTypeId: '' }) }}><option value="">All storage types</option><option value="PRIVATE">Private Storage</option><option value="PUBLIC">Public Storage</option></select><img src="/figma/gwp-01/imgImage.svg" alt="" aria-hidden="true" /></div></div>
       <div className="form-field"><label htmlFor={field('size')}>Storage Size</label><div className="public-select"><select id={field('size')} value={form.size} onChange={event => change({ size: event.target.value, unitTypeId: '' })}><option value="">All sizes</option>{sizeOptions.map(size => <option key={size} value={size}>{size}</option>)}</select><img src="/figma/gwp-01/imgImage.svg" alt="" aria-hidden="true" /></div></div>
       <div className="form-field"><label htmlFor={field('start')}>Check-in Month</label><div className="public-month"><input id={field('start')} type="month" min={getNextBusinessMonth()} value={form.startMonth} onChange={event => change({ startMonth: event.target.value })} /><img src="/figma/gwp-01/imgContainer.svg" alt="" aria-hidden="true" /></div></div>

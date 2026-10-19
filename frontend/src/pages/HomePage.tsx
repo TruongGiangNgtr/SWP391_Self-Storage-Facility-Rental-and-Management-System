@@ -38,7 +38,7 @@ export function HomePage() {
         <p className="public-hero-description">Find the right storage space for your belongings, reserve online, and manage your rental with ease.</p>
         <div className="public-hero-benefits"><span><DesignIcon name="imgIcon1" />Monthly rental periods</span><span><DesignIcon name="imgIcon1" />Compare facility locations</span></div>
       </div><div className="public-hero-media" aria-hidden="true" /></div>
-      <div className="public-hero-search"><PublicStorageSearchForm embedded suggestions={facilities.data?.data} /></div>
+      <div className="public-hero-search"><PublicStorageSearchForm embedded /></div>
     </div></section>
     <section className="public-benefits-section"><div className="gwp-container public-benefits-grid">{BENEFITS.map(item => <article className="public-benefit-card" key={item.title}><span className="public-icon-tile"><DesignIcon name={item.icon} /></span><div><h2>{item.title}</h2><p>{item.text}</p></div></article>)}</div></section>
     <section className="public-home-section public-home-tint"><div className="gwp-container">

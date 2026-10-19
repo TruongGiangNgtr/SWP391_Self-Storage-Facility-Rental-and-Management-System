@@ -29,8 +29,20 @@
 .frms-customer .public-select, .frms-customer .public-month, .frms-customer .public-location { position: relative; min-width: 0; }
 .frms-customer .public-select select { appearance: none; padding-right: 40px; }
 .frms-customer .public-select > img { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
-.frms-customer .public-location > img { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
 .frms-customer .public-location input { padding-right: 40px; }
+.frms-customer .public-location-toggle { position: absolute; right: 2px; top: 2px; bottom: 2px; width: 38px; display: grid; place-items: center; border: 0; border-radius: 10px; background: transparent; cursor: pointer; }
+.frms-customer .public-location-toggle:focus-visible { outline: 2px solid var(--flow-brand); outline-offset: -2px; }
+.frms-customer .public-location-toggle[aria-expanded="true"] img { transform: rotate(180deg); }
+.frms-customer .public-location-suggestions { position: absolute; z-index: 25; top: calc(100% + 8px); left: 0; right: 0; background: #fff; border: 1px solid var(--flow-border); border-radius: 12px; box-shadow: 0 8px 24px rgb(15 23 42 / 12%); overflow-wrap: anywhere; }
+.frms-customer .public-location-suggestions [role="listbox"] { max-height: 240px; overflow-y: auto; padding: 4px; }
+.frms-customer .public-location-option { display: grid; gap: 4px; padding: 12px; border-radius: 8px; color: var(--flow-text); cursor: pointer; }
+.frms-customer .public-location-option:hover, .frms-customer .public-location-option[aria-selected="true"] { background: #eff6ff; }
+.frms-customer .public-location-option strong { font-size: 14px; }
+.frms-customer .public-location-option span { color: var(--flow-muted); font-size: 12px; }
+.frms-customer .public-location-message { margin: 0; padding: 12px; font-size: 13px; }
+.frms-customer .public-location-pages { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--flow-border); }
+.frms-customer .public-location-pages .button { padding: 6px 10px; font-size: 12px; }
+.frms-customer .public-location-hint { margin: 0; padding: 10px 12px; border-top: 1px solid var(--flow-border); color: var(--flow-muted); font-size: 12px; }
 .frms-customer .public-month > img { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; }
 .frms-customer .public-month input::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }
 .frms-customer .public-field-note { color: #64748b; font-size: 12px; margin: 14px 0 0; }
