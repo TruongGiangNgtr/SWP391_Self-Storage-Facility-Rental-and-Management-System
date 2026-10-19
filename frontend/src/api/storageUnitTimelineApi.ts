@@ -5,22 +5,22 @@ import type { StorageUnitStatus } from './storageUnitApi'
 export interface UnitStatusPeriod {
   status: StorageUnitStatus
   from: string
-  to: string | null
+  to: string
 }
 export interface UnitTimeline {
+  storageUnitId: string
   unitCode: string
   unitTypeName: string
   facilityName: string
   locationInfo: string | null
-  periods: UnitStatusPeriod[]
+  intervals: UnitStatusPeriod[]
 }
 
-// Approved frontend contract; backend implementation is pending.
-// Date bounds are inclusive GMT+7 calendar dates; periods are [from, to) UTC.
-// null to means ongoing through the response time, never a forecast.
+// Month uses the GMT+7 business calendar; intervals are [from, to) UTC.
+// The server bounds intervals at its response time, never a forecast.
 export const storageUnitTimelineApi = {
-  list(facilityId: string, from: string, to: string, page: number): Promise<ApiCollectionResponse<UnitTimeline>> {
-    const query = new URLSearchParams({ from, to, page: String(page), pageSize: '20' })
+  list(facilityId: string, month: string, page: number): Promise<ApiCollectionResponse<UnitTimeline>> {
+    const query = new URLSearchParams({ month, page: String(page), pageSize: '20' })
     return httpClient.get(`/facilities/${encodeURIComponent(facilityId)}/storage-units/timeline?${query}`)
   },
 }
