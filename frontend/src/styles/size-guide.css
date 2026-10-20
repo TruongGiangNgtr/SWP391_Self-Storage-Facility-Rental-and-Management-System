@@ -48,6 +48,25 @@
 .frms-customer .size-guide-assistant-controls :disabled { cursor: not-allowed; opacity: .7; }
 .frms-customer .size-guide-assistant-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 16px 32px; margin-top: 20px; }
 .frms-customer .size-guide-assistant-links a { display: inline-flex; align-items: center; min-height: 44px; color: #2563eb; font-weight: 600; }
+.frms-customer .size-guide-assistant-controls { align-items: start; }
+.frms-customer .size-guide-assistant-controls > .button { margin-top: 24px; }
+.frms-customer .size-guide-assistant-input textarea { resize: vertical; min-height: 96px; }
+.frms-customer .size-guide-ai-input-help { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-top: 8px; color: #64748b; }
+.frms-customer .size-guide-ai-input-help > small:first-child { flex: 1 1 280px; }
+.frms-customer .size-guide-ai-progress { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-top: 16px; }
+.frms-customer .size-guide-ai-progress p { flex: 1 1 280px; margin: 0; color: #475569; }
+.frms-customer .size-guide-ai-feedback, .frms-customer .size-guide-ai-results { margin-top: 24px; }
+.frms-customer .size-guide-ai-results > h3 { margin: 24px 0 16px; }
+.frms-customer .size-guide-ai-results > [role='status'] h3 { margin: 24px 0 8px; }
+.frms-customer .size-guide-ai-request { display: flex; flex-direction: column; gap: 8px; margin: 0 0 24px auto; max-width: 720px; padding: 16px; border-radius: 12px; background: #eff6ff; border: 1px solid #dbeafe; }
+.frms-customer .size-guide-ai-request span, .frms-customer .size-guide-ai-reason { white-space: pre-wrap; overflow-wrap: anywhere; }
+.frms-customer .size-guide-ai-card { min-width: 0; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; box-shadow: var(--customer-shadow); }
+.frms-customer .size-guide-ai-card > .eyebrow { margin: 0 0 16px; }
+.frms-customer .size-guide-ai-card h4 { margin: 0; min-width: 0; font-size: 18px; overflow-wrap: anywhere; }
+.frms-customer .size-guide-ai-card .size-guide-mode { margin-bottom: 16px; }
+.frms-customer .size-guide-ai-reason { margin: 0; color: #475569; }
+.frms-customer .size-guide-ai-card > .button { display: flex; margin-top: 20px; }
+.frms-customer .size-guide-ai-alternatives { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
 @media (max-width: 767px) {
   .frms-customer .size-guide-hero { padding: 24px 0 32px; }
   .frms-customer .size-guide-hero-copy { margin-top: 32px; }
@@ -60,4 +79,6 @@
   .frms-customer .size-guide-toolbar { align-items: stretch; }
   .frms-customer .size-guide-toolbar .form-field { width: 100%; }
   .frms-customer .size-guide-assistant-controls .button { min-height: 44px; }
+  .frms-customer .size-guide-assistant-controls > .button { margin-top: 0; }
+  .frms-customer .size-guide-ai-alternatives { grid-template-columns: 1fr; }
 }
