@@ -11,7 +11,9 @@ import { EmptyState, LoadingState } from '../components/PageStates'
 import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
 import { contractTitle, contractUnit, customerLabel } from '../utils/customerPresentation'
 import { useOverviewCollection, useOverviewDetail } from '../features/customer-overview/useOverviewCollection'
-import { isOverviewContract, isOverviewReservation, isOverviewVisit, overviewDate } from '../features/customer-overview/overviewValidation'
+import { useOverviewContracts } from '../features/customer-overview/useOverviewContracts'
+import { useContractCardData } from '../features/contracts/useContractCardData'
+import { isOverviewReservation, isOverviewVisit, overviewDate } from '../features/customer-overview/overviewValidation'
 import { isSupportTicket } from '../features/customer-support/supportValidation'
 import { isReturnSummary } from '../features/fee-return-tracking/trackingValidation'
 import { usePublicFacility, usePublicRead } from '../features/catalog/usePublicCatalog'
@@ -20,7 +22,6 @@ import { formatMoney, formatMonthRange, getCurrentBusinessDate } from '../utils/
 import { StorageSearchPage } from './StorageSearchPage'
 import '../styles/customer-overview.css'
 
-const readContracts = () => contractApi.list(1, 20)
 const readVisits = () => visitApi.list(1, 20)
 const readTickets = () => listSupportTickets({ page: 1, pageSize: 20 })
 const readUnitType = (id: string, signal: AbortSignal) => publicCatalogApi.getUnitType(id, signal)
@@ -34,20 +35,23 @@ export function CustomerPortalPage() {
   const location = useLocation()
   const [revision, setRevision] = useState(0)
   const [selectedContractId, setSelectedContractId] = useState('')
-  const contracts = useOverviewCollection(readContracts, revision, isOverviewContract)
+  const contracts = useOverviewContracts(revision)
   const visits = useOverviewCollection(readVisits, revision, isOverviewVisit)
   const tickets = useOverviewCollection(readTickets, revision, isSupportTicket)
   const activeContracts = contracts.response?.data.filter(item => item.status === 'ACTIVE') ?? []
   const activeContract = activeContracts.find(item => item.contractId === selectedContractId) ?? activeContracts[0]
+  const contractDetails = useContractCardData(activeContract ? [activeContract] : [])
+  const selectedDetails = activeContract ? contractDetails.reads[activeContract.contractId] : undefined
+  const displayContract = selectedDetails?.contract ?? activeContract
   const upcomingVisits = visits.response?.data.filter(item => item.visitType === 'RESERVATION' && item.status === 'SCHEDULED' && item.visitDate >= getCurrentBusinessDate()).sort((a, b) => a.visitDate.localeCompare(b.visitDate)) ?? []
   const upcomingVisit = upcomingVisits[0]
   const openTickets = tickets.response?.data.filter(item => item.status === 'OPEN' || item.status === 'IN_PROGRESS') ?? []
   const openTicket = [...openTickets].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
-  const rental = useOverviewDetail(activeContract?.reservationId ?? '', revision, reservationApi.get, isOverviewReservation)
+  const rental = { data: selectedDetails?.reservation ?? null, loading: contractDetails.loading, error: contractDetails.error }
   const handover = useOverviewDetail(upcomingVisit?.entityId ?? '', revision, reservationApi.get, isOverviewReservation)
   const returnSummary = useOverviewDetail(activeContract?.contractId ?? '', revision, contractApi.getReturnSummary, isReturnSummary)
   // Never mix separately loaded resources into another contract/reservation's preview.
-  const rentalData = rental.data?.facilityId === activeContract?.facilityId ? rental.data : null
+  const rentalData = rental.data
   const handoverData = handover.data?.reservationVisit?.visitId === upcomingVisit?.visitId &&
     handover.data?.reservationVisit?.visitDate === upcomingVisit?.visitDate && handover.data?.reservationVisit?.status === 'SCHEDULED' &&
     handover.data?.status === 'CONFIRMED' ? handover.data : null
@@ -69,7 +73,7 @@ export function CustomerPortalPage() {
   ]
 
   return <main className="page-container flow-page customer-overview">
-    <section className="page-heading overview-heading"><div><p className="eyebrow">Customer Portal</p><h1>Welcome back{user?.fullName ? `, ${user.fullName}` : ''}</h1><p className="muted">Manage your storage, reservations, deposits and support requests in one place.</p></div><button className="customer-icon-button" type="button" disabled={busy} aria-label="Refresh Overview" title="Refresh Overview" onClick={() => setRevision(value => value + 1)}><RefreshCw size={18} aria-hidden="true" /></button></section>
+    <section className="page-heading overview-heading"><div><p className="eyebrow">Customer Portal</p><h1>Welcome back{user?.fullName ? `, ${user.fullName}` : ''}</h1><p className="muted">Manage your storage, reservations, deposits and support requests in one place.</p></div><button className="customer-icon-button" type="button" disabled={busy} aria-label="Refresh Overview" title="Refresh Overview" onClick={() => { contractDetails.retry(); setRevision(value => value + 1) }}><RefreshCw size={18} aria-hidden="true" /></button></section>
     <StorageSearchPage embedded />
     <section className="overview-metrics" aria-label="Storage overview">
       {metrics.map(item => <Link className="panel overview-metric" to={item.to} key={item.title} title={item.title === 'Security Deposit' ? item.helper : scopeNote}><div className="overview-metric-top"><span className={`overview-icon overview-icon-${item.tone}`}><item.icon size={21} aria-hidden="true" /></span><span className={`overview-tag overview-tag-${item.tone}`}>{item.tag}</span></div><div><h2>{item.title}</h2><strong className={item.title === 'Security Deposit' ? 'overview-money' : ''}>{item.value}</strong><p>{item.helper}</p></div></Link>)}
@@ -80,7 +84,7 @@ export function CustomerPortalPage() {
           {contracts.loading ? <LoadingState label="Loading contracts…" /> : contracts.response && !activeContract ? <EmptyState message="No active contracts in your loaded results. Find storage or view all contracts." /> : activeContract && <>
             {activeContracts.length > 1 && <div className="form-field overview-contract-picker"><label htmlFor="overview-contract">Viewing Contract</label><select id="overview-contract" value={activeContract.contractId} onChange={event => setSelectedContractId(event.target.value)}>{activeContracts.map(item => <option key={item.contractId} value={item.contractId}>{contractTitle(item)} · {contractUnit(item)} · {formatMonthRange(item.startMonth, item.endMonth)}</option>)}</select></div>}
             <header className="overview-card-header"><span className="overview-icon"><Building2 size={24} aria-hidden="true" /></span><div><h3>{facility.data?.data.name ?? contractTitle(activeContract)}</h3><p>{facility.data?.data.address ?? (facility.loading ? 'Loading facility…' : 'Facility details unavailable')}</p></div><StatusBadge status={activeContract.status} /></header><ApiErrorAlert error={facility.error} />
-            <div className="overview-unit"><span className="overview-icon"><Package size={21} aria-hidden="true" /></span><div><span className="overview-label">Storage Specification</span><strong>{contractTitle(activeContract)}{activeContract.storageUnit?.unitTypeSize ? ` · ${activeContract.storageUnit.unitTypeSize}` : ''}</strong></div><span className="overview-unit-code"><KeyRound size={14} aria-hidden="true" />{contractUnit(activeContract)}</span></div>
+            <div className="overview-unit"><span className="overview-icon"><Package size={21} aria-hidden="true" /></span><div><span className="overview-label">Storage Specification</span><strong>{contractTitle(displayContract ?? activeContract)}{displayContract?.storageUnit?.unitTypeSize ? ` · ${displayContract.storageUnit.unitTypeSize}` : ''}</strong></div><span className="overview-unit-code"><KeyRound size={14} aria-hidden="true" />{contractUnit(displayContract ?? activeContract)}</span></div>
             <ApiErrorAlert error={rental.error} /><dl className="overview-contract-facts"><div><dt>Storage Unit</dt><dd>{contractUnit(activeContract)}</dd></div><div><dt>Rental Period</dt><dd>{formatMonthRange(activeContract.startMonth, activeContract.endMonth)}</dd></div><div><dt>Initial Monthly Rent</dt><dd>{rental.loading ? 'Loading…' : rentalData ? `${formatMoney(rentalData.lockedRentalPrice)}/month` : 'Not available'}</dd></div><div><dt>Original Deposit</dt><dd>{rental.loading ? 'Loading…' : rentalData ? formatMoney(rentalData.depositAmount) : 'Not available'}</dd></div></dl>
             <div className="overview-card-actions"><Link className="button" to={contractPath}>View Contract <ArrowRight size={16} aria-hidden="true" /></Link><div className="overview-text-actions"><Link to={`${contractPath}/renew`} state={{ backgroundLocation: location }}>Request Extension</Link><Link to={`${contractPath}/return-visits/new`} state={{ backgroundLocation: location }}>Return Storage</Link></div></div>
           </>}
