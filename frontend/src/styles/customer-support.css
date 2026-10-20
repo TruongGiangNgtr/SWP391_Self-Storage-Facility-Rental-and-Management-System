@@ -1,0 +1,64 @@
+/* Support Tickets uses the exported page layout with shared dashboard tokens. */
+.customer-support { container-type: inline-size; }
+.customer-support .support-page-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.customer-support .support-page-heading > div:first-child { min-width: 0; flex: 1; }
+.customer-support .support-page-heading h1 { margin: 6px 0 8px; }
+.customer-support .support-page-heading p { margin-bottom: 0; }
+.customer-support .support-heading-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
+.customer-support .support-heading-actions .button { font-size: 13px; }
+.customer-support .support-total { display: inline-flex; align-items: center; padding: 5px 10px; background: #f1f5f9; border-radius: 999px; color: #475569; font-size: 11px; font-weight: 600; }
+.customer-support .support-info-banner { display: flex; align-items: center; gap: 14px; padding: 16px; border: 1px solid #dbeafe; background: #eff6ff; border-radius: 12px; }
+.customer-support .support-banner-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: 0 0 40px; background: #dbeafe; color: var(--flow-brand); border-radius: 10px; }
+.customer-support .support-info-banner h2 { font-size: 14px; margin: 0 0 5px; }
+.customer-support .support-info-banner p { font-size: 12px; line-height: 1.7; color: #475569; margin: 0; }
+.frms-customer .customer-support .support-filter { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 16px; }
+.customer-support .support-filter .form-field { flex: 1 1 260px; max-width: 340px; }
+.customer-support .support-search { position: relative; }
+.customer-support .support-search > svg { position: absolute; left: 12px; top: 14px; color: var(--flow-muted); pointer-events: none; }
+.frms-customer .customer-support .support-search input { padding-left: 38px; font-size: 12px; }
+.customer-support .support-status-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.customer-support .support-status-filter { min-height: 44px; padding: 9px 12px; border: 1px solid transparent; border-radius: 10px; background: #f1f5f9; color: #475569; font-size: 12px; font-weight: 500; cursor: pointer; }
+.customer-support .support-status-filter:hover { background: #e2e8f0; }
+.customer-support .support-status-filter[aria-pressed='true'] { color: #fff; background: var(--flow-brand); border-color: var(--flow-brand); }
+.customer-support .support-list-tools { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; margin-block: -12px; }
+.customer-support .support-list-tools > p { margin: 0; font-size: 11px; flex: 1 1 260px; }
+.customer-support .support-list-tools > div { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.customer-support .support-text-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--flow-brand); font-size: 12px; cursor: pointer; }
+.customer-support .support-text-button:disabled { color: var(--flow-muted); cursor: wait; }
+.customer-support .support-ticket-list { display: grid; gap: 16px; min-width: 0; }
+.frms-customer .customer-support .support-ticket-card { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.customer-support .support-ticket-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.customer-support .support-ticket-heading > div { min-width: 0; }
+.customer-support .support-ticket-label { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--flow-muted); margin-bottom: 8px; }
+.customer-support .support-ticket-label svg { color: var(--flow-brand); }
+.customer-support .support-ticket-heading h2 { font-size: 16px; margin: 0; }
+.customer-support .support-ticket-heading > .status-badge { flex-shrink: 0; }
+.customer-support .support-ticket-description { color: #475569; font-size: 14px; line-height: 1.75; white-space: pre-wrap; margin: -4px 0 0; overflow-wrap: anywhere; }
+.customer-support .support-ticket-result { display: flex; align-items: flex-start; gap: 10px; padding: 14px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 12px; }
+.customer-support .support-ticket-result > svg { color: var(--flow-brand); flex-shrink: 0; margin-top: 1px; }
+.customer-support .support-ticket-completed .support-ticket-result > svg { color: #047857; }
+.customer-support .support-ticket-cancelled .support-ticket-result > svg { color: #64748b; }
+.customer-support .support-ticket-result strong { font-size: 12px; color: #334155; }
+.customer-support .support-ticket-result p { font-size: 12px; line-height: 1.7; white-space: pre-wrap; margin: 4px 0 0; color: #475569; overflow-wrap: anywhere; }
+.customer-support .support-ticket-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; border-top: 1px solid var(--flow-border); padding-top: 16px; }
+.customer-support .support-ticket-footer > div { min-width: 0; }
+.customer-support .support-ticket-footer p { font-size: 11px; color: var(--flow-muted); margin: 0 0 4px; }
+.customer-support .support-ticket-footer .button { font-size: 12px; }
+.customer-support .support-text-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; color: var(--flow-brand); text-decoration: none; }
+.customer-support .support-text-link:hover { text-decoration: underline; }
+.customer-support .support-empty { text-align: center; }
+.customer-support .support-empty > svg { color: var(--flow-brand); }
+.customer-support .support-empty .page-state { border: 0; padding: 16px 0; }
+.customer-support .support-empty .button { margin-top: 8px; }
+@container (max-width: 760px) {
+  .customer-support .support-page-heading { align-items: flex-start; }
+  .customer-support .support-heading-actions { flex-direction: column; align-items: flex-end; }
+  .customer-support .support-filter .form-field { max-width: none; }
+}
+@container (max-width: 480px) {
+  .customer-support .support-page-heading { flex-direction: column; }
+  .customer-support .support-heading-actions { flex-direction: row; align-items: center; align-self: stretch; justify-content: space-between; }
+  .customer-support .support-ticket-heading { flex-wrap: wrap; }
+  .customer-support .support-ticket-footer > .button { margin-left: auto; }
+  .customer-support .support-info-banner { align-items: flex-start; }
+}
