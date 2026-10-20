@@ -1,4 +1,4 @@
-# Backend Test Cases — Implementation-Based
+# Backend Test Cases — Implementation-Based (10/20/2026)
 
 > **Basis:** current backend source code in this ZIP, not the SRS. This document distinguishes executable tests from legacy source files that are not currently compiled. Expected results below describe current code behavior, not a promise that unimplemented workflows exist.
 
@@ -93,20 +93,79 @@ These files are excluded from compilation by `Frms.IntegrationTests.csproj` unti
 
 `SupportTicketsController.AssignSupportTicket` currently declares `[Authorize(Roles = "FACILITY_MANAGER")]`. The test `AssignSupportTicketIsRestrictedToFacilityManagers` checks this method-level role gate. This is a metadata/contract test: it confirms the controller declaration, not that the full assignment workflow is implemented or succeeds end-to-end.
 
-## 7. Execution status
+## 7. Additional edge-case test suites
 
-The first run reported by the developer (before the latest fixes) was **309 passed / 3 failed / 312 total**. The three failures were:
+These five new test files were added under the existing test projects. They exercise the current implementation directly and use test doubles where applicable; they do not imply that unfinished business workflows are implemented.
 
-- `FrmsDbContextModelTests.UserAccount_Status_HasActiveDefaultAndAllowedValuesConstraint` — fixed to inspect check-constraint metadata through EF Core's design-time model.
-- `RbacV2ContractTests.ExistingContractListAllowsStaff` — updated to assert the roles actually declared by `ContractsController.ListContracts` (`CUSTOMER,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER`); the method does not declare `FACILITY_STAFF`.
-- `RbacV2ContractTests.BOMMonitoringIsReadOnlyAtControllerGate` — updated to match the current role metadata on inspection, support-ticket and report endpoints. The existing assertion about `AssignSupportTicket` expecting a manager role was incorrect because the method currently has no method-level `[Authorize]` attribute; this is called out separately as a security review finding.
+| Test file | Added test cases | Main edge cases covered |
+|---|---:|---|
+| `tests/Frms.UnitTests/AuthenticationServiceEdgeCaseTests.cs` | 38 | All supported employee roles; unsupported, misspelled, lowercase, blank and unknown roles; customer login with non-customer roles; inactive account statuses; exact case-sensitive role/status comparisons; missing account during active-token checks; failed login history is recorded. |
+| `tests/Frms.UnitTests/CustomerProfileValidatorEdgeCaseTests.cs` | 31 | Null/empty/whitespace names; 150/151 and extremely long names; Unicode Vietnamese and punctuation; address and CCCD length boundaries; trimming; empty optional values normalized to null; no fields selected; validation error precedence; fields not selected for update. |
+| `tests/Frms.UnitTests/PolicyVersionValidatorEdgeCaseTests.cs` | 45 | `int.MinValue`, negative, zero, maximum integer; day values below 1 and above 31; reversed date/day ranges; same-day ranges; valid minimum and maximum boundaries; deterministic first-invalid-field precedence. |
+| `tests/Frms.UnitTests/PayOsOptionsEdgeCaseTests.cs` | 38 | Blank/relative/malformed URLs; unsupported schemes; insecure HTTP where HTTPS is required; credentials embedded in URLs; fragments; lookalike API origins; CR/LF in credentials; zero/negative/positive/extreme expiry values; return/cancel route mismatch; null options. |
+| `tests/Frms.ApiTests/PasswordValidationEdgeCaseTests.cs` | 32 | Password character lengths 0–1000; boundaries at 7/8 and 64/65; UTF-8 byte boundaries at 72/over 72 bytes; Vietnamese characters, emoji and mixed strings; null/non-string values; validation error message. |
+| **First additional batch total** | **184** | **Unit tests: 152 added; API tests: 32 added.** |
 
-The latest developer-reported run after the previous patch was **312 passed / 1 failed / 313 total**. The remaining failure was `RbacV2ContractTests.AssignSupportTicketCurrentlyHasNoMethodLevelAuthorizeAttribute`: the test expected no method-level authorization, while the controller actually declares `[Authorize(Roles = "FACILITY_MANAGER")]`. The test has now been corrected to assert the role currently declared by the controller. This final patch has **not yet been rerun**, and therefore the result after this change is not yet known.
+### 7.1. Second batch — bulk boundary and configuration cases
 
-Run from `backend/`:
+The second batch adds 503 NUnit test cases, primarily through parameterized test sources that vary boundary values while asserting the existing implementation's behavior.
+
+| Test file | Added test cases | Main edge cases covered |
+|---|---:|---|
+| `tests/Frms.ApiTests/PasswordValidationBulkEdgeTests.cs` | 200 | ASCII password lengths 0–70; repeated Vietnamese multibyte characters; emoji; mixed ASCII/Vietnamese strings; checks character-length and UTF-8 byte-length constraints. |
+| `tests/Frms.UnitTests/PolicyVersionValidatorBulkEdgeTests.cs` | 203 | Negative and zero duration values; invalid day values below 1 and above 31 across policy fields; inverted but individually valid day ranges; expected first invalid field. |
+| `tests/Frms.UnitTests/PayOsOptionsBulkEdgeTests.cs` | 100 | Blank/control-character credentials; malformed or untrusted API origins; invalid return/cancel/webhook URLs; URL schemes, credentials and fragments; negative and zero expiry values. |
+| **Second batch total** | **503** | **Unit tests: 303 added; API tests: 200 added.** |
+| **All additional batches total** | **687** | **Unit tests: 455 added; API tests: 232 added.** |
+
+The bulk cases are generated by NUnit `TestCaseSource`; each yielded `TestCaseData` is discovered as an individual test case. They exercise validation contracts and do not represent 503 distinct business workflows or database integration scenarios.
+
+### Edge-case notes
+
+- Authentication tests intentionally verify exact role/status matching because the current service uses exact string comparisons in these checks.
+- Profile tests assert the current `CustomerProfileValidator` normalization/validation behavior; they are not database persistence tests.
+- Policy validator tests assert the current validation order as well as accepted/rejected boundaries.
+- PayOS tests cover configuration validation only; they do not make a real PayOS API request.
+- Password tests distinguish Unicode character count from UTF-8 byte count, which is important for BCrypt's 72-byte input limit.
+- These test cases are automated NUnit cases. The number of test cases in the final suite is taken from the actual `dotnet test` run below, not estimated from source-file counts.
+
+## 8. Execution status
+
+**Latest user-reported run: PASS — 1,000 passed / 0 failed / 1,000 total / 0 skipped.**
+
+Reported command:
 
 ```powershell
 dotnet test Frms.slnx
 ```
 
-Update this execution status from the actual command output. Do not mark the final suite as passed until it has been rerun.
+Reported summary:
+
+```text
+Test summary: total: 1000, failed: 0, succeeded: 1000, skipped: 0, duration: 22.9s
+Build succeeded in 43.8s
+```
+
+Project-level discovered / executed counts in that run:
+
+| Test project | Discovered / executed | Result |
+|---|---:|---|
+| `Frms.UnitTests` | 624 | Passed |
+| `Frms.ArchitectureTests` | 13 | Passed |
+| `Frms.IntegrationTests` | 14 | Passed |
+| `Frms.ApiTests` | 349 | Passed |
+| **Total** | **1,000** | **All passed** |
+
+The earlier failures were corrected before the successful 497-test run:
+
+- `FrmsDbContextModelTests.UserAccount_Status_HasActiveDefaultAndAllowedValuesConstraint` — the test now reads check-constraint metadata from EF Core's design-time model.
+- `RbacV2ContractTests.ExistingContractListAllowsStaff` and `BOMMonitoringIsReadOnlyAtControllerGate` — assertions now match the role metadata declared by the current controllers.
+- `RbacV2ContractTests.AssignSupportTicketCurrentlyHasNoMethodLevelAuthorizeAttribute` — the test now verifies the current `[Authorize(Roles = "FACILITY_MANAGER")]` declaration.
+
+The latest 1,000-test result is reported by the user after applying the second batch. It confirms all discovered tests passed in that reported environment. It does **not** prove full business-flow coverage, and the legacy SQL Server integration source files listed above remain excluded from compilation until ported to PostgreSQL.
+
+Run from `backend/` to reproduce:
+
+```powershell
+dotnet test Frms.slnx
+```
