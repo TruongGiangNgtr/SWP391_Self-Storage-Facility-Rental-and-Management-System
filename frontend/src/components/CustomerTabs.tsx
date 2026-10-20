@@ -1,7 +1,7 @@
 import { useId, useRef, type ReactNode } from 'react'
 
-export function CustomerTabs({ labels, ariaLabel = 'Contract tracking sections', selected, onChange, children }: {
-  labels: readonly string[]; ariaLabel?: string; selected: number; onChange(index: number): void; children(ids: { tabId: (index: number) => string; panelId: (index: number) => string }): ReactNode
+export function CustomerTabs({ labels, counts, ariaLabel = 'Contract tracking sections', selected, onChange, children }: {
+  labels: readonly string[]; counts?: readonly number[]; ariaLabel?: string; selected: number; onChange(index: number): void; children(ids: { tabId: (index: number) => string; panelId: (index: number) => string }): ReactNode
 }) {
   const id = useId()
   const buttons = useRef<(HTMLButtonElement | null)[]>([])
@@ -17,7 +17,7 @@ export function CustomerTabs({ labels, ariaLabel = 'Contract tracking sections',
         else if (event.key === 'End') next = labels.length - 1
         else return
         event.preventDefault(); onChange(next); buttons.current[next]?.focus()
-      }}>{label}</button>)}
+      }}>{counts ? <><span>{label}</span><span className="customer-tab-count">{counts[index] ?? 0}</span></> : label}</button>)}
     </div>
     {children({ tabId, panelId })}
   </>
