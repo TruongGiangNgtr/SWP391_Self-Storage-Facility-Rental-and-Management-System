@@ -32,7 +32,7 @@ export function RootLayout() {
     return (
       <CustomerLayout>
         <Outlet
-          key={['/customer/notifications', '/customer/reservations', '/customer/visits', '/customer/contracts'].includes(location.pathname) ? location.pathname : `${location.pathname}${location.search}`}
+          key={['/customer/notifications', '/customer/reservations', '/customer/visits', '/customer/contracts', '/customer/invoices'].includes(location.pathname) ? location.pathname : `${location.pathname}${location.search}`}
         />
       </CustomerLayout>
     )
