@@ -1,7 +1,7 @@
 # Frms.IntegrationTests
 
-Contains host/registration checks and real SQL Server authentication and schema tests. Set `FRMS_TEST_CONNECTION_STRING` to a disposable database named `Frms_Test_*` before the root solution test command. Missing configuration fails the gate. Fixtures migrate that database; schema fixtures roll back and authentication fixture accounts remain only in that test database.
+The current DataAccess implementation registers Entity Framework Core with PostgreSQL/Npgsql (`UseNpgsql`) and the schema configuration lives in `Frms.Migrations.PostgreSql`. Active integration-project tests therefore focus on PostgreSQL provider registration, design-time connection configuration, and the EF model without requiring a live database.
 
-`INT_AUTH_001` uses the real API/repository/BCrypt/JWT path for customer phone login, employee email login, current-account identity/facility scope, inactive login rejection, and rejection of an already-issued JWT after deactivation. `DBT_PHASE0_001..003` exercise SQL default/UTC timestamp behavior, valid/equal/reversed Policy day ranges, and all Pending/Sent + null/non-null SentAt combinations.
+Several historical integration fixtures in this folder still target SQL Server (`Microsoft.Data.SqlClient`, `UseSqlServer`, `dbo.*`, `sys.tables`, and T-SQL). They are intentionally excluded from compilation by `Frms.IntegrationTests.csproj` until they are ported to PostgreSQL. They are retained as source reference only and must not be reported as active or passing tests. The previous `FRMS_TEST_CONNECTION_STRING`/`Frms_Test_*` instructions applied to those SQL Server fixtures and are no longer the setup contract for the active test suite.
 
-These Phase 0 checks do not claim completion of Release 1 `DBT-01..25`, concurrency suites, or business journeys; those require their authoritative procedures/workflows in later phases.
+No SRS-only workflow is assumed to be implemented. Each test should be added to the active suite only after its target behavior is confirmed in the current code and its database assumptions match the provider used by the application.

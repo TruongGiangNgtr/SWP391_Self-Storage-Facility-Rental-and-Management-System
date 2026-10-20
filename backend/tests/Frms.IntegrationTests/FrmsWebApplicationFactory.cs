@@ -9,7 +9,7 @@ public sealed class FrmsWebApplicationFactory : WebApplicationFactory<Program>
     static FrmsWebApplicationFactory()
     {
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
-        Environment.SetEnvironmentVariable("ConnectionStrings__Frms", "Server=localhost;Database=Frms_IntegrationTests;Trusted_Connection=True;TrustServerCertificate=True");
+        Environment.SetEnvironmentVariable("ConnectionStrings__Frms", "Host=127.0.0.1;Port=5432;Database=frms_integration_tests;Username=frms_test;Password=test-password;Timeout=1;Pooling=false");
         Environment.SetEnvironmentVariable("Jwt__Issuer", "frms-integration-tests");
         Environment.SetEnvironmentVariable("Jwt__Audience", "frms-integration-tests");
         Environment.SetEnvironmentVariable("Jwt__SigningKey", Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)));
