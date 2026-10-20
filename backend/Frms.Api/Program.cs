@@ -30,10 +30,10 @@ builder.Services.Configure<ApiBehaviorOptions>(options => options.InvalidModelSt
     var errors = context.ModelState.Where(pair => pair.Value?.Errors.Count > 0).ToDictionary(pair => ToCamelCase(pair.Key), pair => pair.Value!.Errors.Select(error => error.ErrorMessage).ToArray());
     return new BadRequestObjectResult(new ApiErrorResponse("VALIDATION_ERROR", "Request validation failed.", context.HttpContext.TraceIdentifier, errors));
 });
-builder.Services.AddOpenApi(options => options.AddOperationTransformer((operation, context, _) =>
+builder.Services.AddOpenApi(options => options.AddOperationTransformer(async (operation, context, cancellationToken) =>
 {
     Frms.Api.OpenApi.PaymentOpenApi.Configure(operation, context.Description.RelativePath);
-    return Task.CompletedTask;
+    await Frms.Api.OpenApi.CustomerProfileOpenApi.ConfigureAsync(operation, context, cancellationToken);
 }));
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -100,6 +100,7 @@ builder.Services.AddFrmsBackgroundJobs();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => {
     options.OperationFilter<Frms.Api.OpenApi.PaymentOpenApi>();
+    options.OperationFilter<Frms.Api.OpenApi.CustomerProfileOpenApi>();
     options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme {
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
