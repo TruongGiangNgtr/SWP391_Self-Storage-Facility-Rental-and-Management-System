@@ -10,10 +10,8 @@ namespace Frms.Api.Controllers;
 
 [Authorize(Roles = RoleNames.FacilityStaff)]
 [Route("api/v1")]
-public sealed class StaffOperationsController(
-    IHandoverService handoverService,
-    IStaffWorkItemService staffWorkItemService)
-    : ScaffoldControllerBase {
+public sealed class StaffOperationsController(IHandoverService handoverService,IStaffWorkItemService staffWorkItemService) : ControllerBase
+{
     /// <summary>OPS-001: Derived daily Staff work list.</summary>
     [HttpGet("staff/work-items")]
     [ProducesResponseType(

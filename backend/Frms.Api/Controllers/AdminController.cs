@@ -11,8 +11,8 @@ namespace Frms.Api.Controllers;
 
 [Authorize(Roles = RoleNames.SystemAdministrator)]
 [Route("api/v1/admin")]
-public sealed class AdminController(
-    IAdminUserService adminUserService) : ScaffoldControllerBase {
+public sealed class AdminController(IAdminUserService adminUserService) : ControllerBase
+{
     /// <summary>
     /// ADM-001: List all Customer/Employee accounts.
     /// </summary>

@@ -16,7 +16,8 @@ public sealed class CatalogController(
     IFacilityAuthorizationService facilityAuthorizationService,
     IFacilityCatalogService facilityCatalogService,
     IOperationalCatalogService publicCatalog)
-    : ScaffoldControllerBase {
+    : ControllerBase
+{
 
     /// <summary>CAT-001: Browse/search active Facilities with server-side filters.</summary>
     [AllowAnonymous]

@@ -11,7 +11,7 @@ namespace Frms.Api.Controllers;
 
 /// <summary>Customer operations. Route and role remain action-specific.</summary>
 [Route("api/v1")]
-public sealed class CustomersController(ICustomerService customers) : ScaffoldControllerBase
+public sealed class CustomersController(ICustomerService customers) : ControllerBase
 {
     [Authorize(Roles = RoleNames.Customer)]
     [HttpPatch("customers/me/profile")]

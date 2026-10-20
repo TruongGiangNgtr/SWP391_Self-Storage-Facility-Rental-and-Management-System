@@ -1,7 +1,6 @@
 using Frms.Api.Authorization;
 using Frms.Api.Mapping;
 using Frms.Api.DTOs.Responses;
-using Frms.Business.Models;
 using Frms.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Frms.Api.Controllers;
 
 [Route("api/v1/business/customers")]
-public sealed class CustomerDiscountsController(
-    IDiscountService discountService)
-    : ScaffoldControllerBase {
+public sealed class CustomerDiscountsController(IDiscountService discountService): ControllerBase
+{
     /// <summary>BOM-010: Authorized Customer Discount catalogue.</summary>
     [Authorize(
         Roles =

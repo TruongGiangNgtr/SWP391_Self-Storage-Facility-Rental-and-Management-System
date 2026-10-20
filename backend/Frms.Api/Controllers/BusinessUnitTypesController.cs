@@ -11,8 +11,8 @@ namespace Frms.Api.Controllers;
 [ApiController]
 [Authorize(Roles = "BUSINESS_OPERATIONS_MANAGER")]
 [Route("api/v1/business/unit-types")]
-public sealed class BusinessUnitTypesController(
-    IUnitTypeService unitTypeService) : ControllerBase {
+public sealed class BusinessUnitTypesController(IUnitTypeService unitTypeService) : ControllerBase
+{
     /// <summary>
     /// BOM-006: List global UnitTypes.
     /// </summary>

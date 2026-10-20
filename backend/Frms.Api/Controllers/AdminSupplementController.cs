@@ -8,8 +8,7 @@ namespace Frms.Api.Controllers;
 
 [Authorize(Roles = RoleNames.SystemAdministrator)]
 [Route("api/v1/admin")]
-public sealed class AdminSupplementController(IAdminReadService service,
-    IAdminCustomerStatusService customerStatuses) : ScaffoldControllerBase
+public sealed class AdminSupplementController(IAdminReadService service, IAdminCustomerStatusService customerStatuses) : ScaffoldControllerBase
 {
     [HttpPost("customers/{customerId:guid}/activate")]
     public async Task<ActionResult<ApiResponse<AdminCustomerStatusResponse>>> ActivateCustomer(

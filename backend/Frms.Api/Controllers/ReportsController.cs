@@ -15,7 +15,7 @@ public sealed class ReportsController(
     IFacilityOperationsReportService facilityOperationsReportService,
     IReportRevenueService revenueService,
     IBusinessOverviewService overviewService,
-    IClock clock) : ScaffoldControllerBase
+    IClock clock) : ControllerBase
 {
     /// <summary>REP-001: Facility Operations, unchanged.</summary>
     [Authorize(Roles = RoleNames.FacilityManager)]

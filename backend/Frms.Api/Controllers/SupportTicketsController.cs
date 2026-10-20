@@ -11,8 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Frms.Api.Controllers;
 
 [Route("api/v1/support-tickets")]
-public sealed class SupportTicketsController(ISupportTicketService supportTicketService) : ScaffoldControllerBase
-{
+public sealed class SupportTicketsController(ISupportTicketService supportTicketService) : ControllerBase {
     /// <summary>SUP-001: Create a Customer-owned Contract support ticket.</summary>
     [Authorize(Roles = RoleNames.Customer)]
     [HttpPost]

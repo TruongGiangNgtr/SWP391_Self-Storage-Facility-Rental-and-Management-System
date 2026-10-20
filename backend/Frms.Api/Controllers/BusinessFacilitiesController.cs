@@ -12,8 +12,8 @@ namespace Frms.Api.Controllers;
 [ApiController]
 [Authorize(Roles = "BUSINESS_OPERATIONS_MANAGER")]
 [Route("api/v1/business/facilities")]
-public sealed class BusinessFacilitiesController(
-    IFacilityService facilityService) : ControllerBase {
+public sealed class BusinessFacilitiesController(IFacilityService facilityService) : ControllerBase
+{
     /// <summary>
     /// BOM-001: List all Facilities for Business Operations Manager.
     /// </summary>

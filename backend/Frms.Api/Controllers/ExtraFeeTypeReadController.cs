@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Frms.Api.Controllers;
 
 [Route("api/v1/business/extra-fee-types")]
-public sealed class ExtraFeeTypeReadController(IOperationalCatalogService service) : ScaffoldControllerBase
+public sealed class ExtraFeeTypeReadController(IOperationalCatalogService service) : ControllerBase
 {
     [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager)]
     [HttpGet]

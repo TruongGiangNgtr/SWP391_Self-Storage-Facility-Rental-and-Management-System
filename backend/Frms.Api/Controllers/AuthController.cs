@@ -15,7 +15,8 @@ namespace Frms.Api.Controllers;
 [Route("api/v1/auth")]
 public sealed class AuthController(
     IAuthenticationService authenticationService,
-    ICustomerRegistrationService customerRegistrationService) : ControllerBase
+    ICustomerRegistrationService customerRegistrationService)
+    : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost("customer/register")]

@@ -14,9 +14,8 @@ namespace Frms.Api.Controllers;
 
 [Authorize]
 [Route("api/v1/reservations")]
-public sealed class ReservationsController(
-    IReservationService reservationService)
-    : ScaffoldControllerBase {
+public sealed class ReservationsController(IReservationService reservationService) : ScaffoldControllerBase
+{
     /// <summary>RES-001: Create Reservation and Deposit Invoice.</summary>
     [HttpPost]
     [Authorize(Roles = "CUSTOMER")]

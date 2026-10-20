@@ -10,9 +10,11 @@ namespace Frms.Api.Controllers;
 // All endpoints in this controller are read-only. BOM does not inherit Admin writes.
 [Authorize(Roles = RoleNames.BusinessOperationsManager)]
 [Route("api/v1/business")]
-public sealed class BusinessReadController(IEmployeeDirectoryService employees,
+public sealed class BusinessReadController(
+    IEmployeeDirectoryService employees,
     IOperationalCatalogService catalogue,
-    IBusinessDiscountService discounts) : ScaffoldControllerBase
+    IBusinessDiscountService discounts)
+    : ControllerBase
 {
     // UX-RBAC-16: exclude credentials/secrets; field-level PII awaits SRS.
     [HttpGet("employees")]

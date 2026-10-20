@@ -17,7 +17,8 @@ public sealed class ContractsController(
     IReturnProcessingService returnService,
     IBillingService billingService,
     IReturnVisitService returnVisits)
-    : ScaffoldControllerBase {
+    : ControllerBase
+{
     /// <summary>CON-001: List own Contracts.</summary>
     [Authorize(
         Roles =

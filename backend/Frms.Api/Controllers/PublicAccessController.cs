@@ -7,7 +7,7 @@ namespace Frms.Api.Controllers;
 
 /// <summary>Anonymous public catalogue and reviewed current policy content.</summary>
 [Route("api/v1")]
-public sealed class PublicAccessController(IOperationalCatalogService catalogue, IPublicPolicyService policies) : ScaffoldControllerBase
+public sealed class PublicAccessController(IOperationalCatalogService catalogue, IPublicPolicyService policies) : ControllerBase
 {
     [AllowAnonymous]
     [HttpGet("unit-types")]

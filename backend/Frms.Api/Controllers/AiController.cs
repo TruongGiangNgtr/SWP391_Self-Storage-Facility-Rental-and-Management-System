@@ -12,7 +12,8 @@ namespace Frms.Api.Controllers;
 [AllowAnonymous]
 [EnableRateLimiting("public-ai")]
 [Route("api/v1/ai")]
-public sealed class AiController(IAiRecommendationService service) : ControllerBase {
+public sealed class AiController(IAiRecommendationService service) : ControllerBase
+{
     /// <summary>AI-001: Optional, non-authoritative public UnitType recommendation. </summary>
     // For using this function, it is require to apply API key to .env
     // Ai__Provider= OpenAICompatible

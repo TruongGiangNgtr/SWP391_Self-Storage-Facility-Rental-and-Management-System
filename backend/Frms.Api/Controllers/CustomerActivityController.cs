@@ -12,7 +12,7 @@ namespace Frms.Api.Controllers;
 /// </summary>
 [Authorize(Roles = RoleNames.Customer)]
 [Route("api/v1/customers/me")]
-public sealed class CustomerActivityController(ICustomerActivityService service) : ScaffoldControllerBase
+public sealed class CustomerActivityController(ICustomerActivityService service) : ControllerBase
 {
     [HttpGet("notifications")]
     [ProducesResponseType(typeof(PaginatedResponse<CustomerNotificationResponse>), StatusCodes.Status200OK)]

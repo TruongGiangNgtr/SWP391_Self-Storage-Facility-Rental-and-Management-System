@@ -10,7 +10,7 @@ namespace Frms.Api.Controllers;
 /// <summary>Read-only, evidence-based StorageUnit operational status history.</summary>
 [Authorize(Roles = RoleNames.FacilityManager + "," + RoleNames.BusinessOperationsManager + "," + RoleNames.SystemAdministrator)]
 [Route("api/v1/facilities/{facilityId:guid}")]
-public sealed class StorageUnitTimelineController(IStorageUnitTimelineService service) : ScaffoldControllerBase
+public sealed class StorageUnitTimelineController(IStorageUnitTimelineService service) : ControllerBase
 {
     [HttpGet("storage-units/timeline")]
     [ProducesResponseType(typeof(PaginatedResponse<StorageUnitTimelineResponse>), StatusCodes.Status200OK)]

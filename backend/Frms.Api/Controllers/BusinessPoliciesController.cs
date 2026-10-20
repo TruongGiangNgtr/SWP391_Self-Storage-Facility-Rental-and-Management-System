@@ -12,8 +12,8 @@ namespace Frms.Api.Controllers;
 [ApiController]
 [Authorize(Roles = "BUSINESS_OPERATIONS_MANAGER")]
 [Route("api/v1/business/policies")]
-public sealed class BusinessPoliciesController(
-    IPolicyService policyService) : ControllerBase {
+public sealed class BusinessPoliciesController(IPolicyService policyService) : ControllerBase
+{
     /// <summary>
     /// BOM-008: List Policy versions.
     /// </summary>

@@ -12,8 +12,8 @@ namespace Frms.Api.Controllers;
 [ApiController]
 [Authorize(Roles = "SYSTEM_ADMINISTRATOR")]
 [Route("api/v1/admin/employees")]
-public sealed class AdminEmployeesController(
-    IAdminEmployeeService adminEmployeeService) : ControllerBase {
+public sealed class AdminEmployeesController(IAdminEmployeeService adminEmployeeService) : ControllerBase
+{
     /// <summary>
     /// ADM-005: Create Employee and provision initial credential.
     /// </summary>

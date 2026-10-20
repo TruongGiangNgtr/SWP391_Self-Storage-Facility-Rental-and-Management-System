@@ -9,9 +9,7 @@ namespace Frms.Api.Controllers;
 
 [Authorize(Roles = RoleNames.Customer)]
 [Route("api/v1/contracts")]
-public sealed class ContractAccessVisitsController(
-    IVisitService visitService)
-    : ScaffoldControllerBase
+public sealed class ContractAccessVisitsController(IVisitService visitService): ControllerBase
 {
     /// <summary>VIS-001: Create ACCESS Visit.</summary>
     [HttpPost("{contractId:guid}/access-visits")]

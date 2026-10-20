@@ -9,8 +9,8 @@ namespace Frms.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/reservations/{reservationId:guid}/handover-unit-assignment")]
-public sealed class HandoverUnitAssignmentsController(IHandoverUnitAssignmentService service)
-    : ControllerBase {
+public sealed class HandoverUnitAssignmentsController(IHandoverUnitAssignmentService service): ControllerBase
+{
     /// <summary>MWP-A01: Persist Manager assignment or reassignment.</summary>
     [HttpPut]
     [Authorize(Roles = RoleNames.FacilityManager)]

@@ -11,9 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Frms.Api.Controllers;
 
 [Route("api/v1")]
-public sealed class InspectionsController(
-    IInspectionService inspectionService,
-    IInspectionWorkflowService workflow) : ScaffoldControllerBase
+public sealed class InspectionsController(IInspectionService inspectionService, IInspectionWorkflowService workflow) : ControllerBase
 {
     [Authorize(Roles = RoleNames.FacilityStaff + "," + RoleNames.FacilityManager)]
     [HttpGet("inspections")]

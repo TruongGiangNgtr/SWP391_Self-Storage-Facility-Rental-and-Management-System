@@ -13,9 +13,8 @@ namespace Frms.Api.Controllers;
 
 [Authorize]
 [Route("api/v1")]
-public sealed class StorageUnitsController(
-    IStorageUnitService storageUnitService)
-    : ScaffoldControllerBase {
+public sealed class StorageUnitsController(IStorageUnitService storageUnitService) : ControllerBase
+{
     /// <summary>UNIT-001: List Facility StorageUnits.</summary>
     [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpGet("facilities/{facilityId:guid}/storage-units")]

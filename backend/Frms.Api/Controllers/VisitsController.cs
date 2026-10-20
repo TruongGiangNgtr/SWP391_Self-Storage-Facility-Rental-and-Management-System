@@ -11,7 +11,7 @@ namespace Frms.Api.Controllers;
 
 [Route("api/v1/visits")]
 public sealed class VisitsController(
-    IVisitService visitService, IReturnProcessingService returnService) : ScaffoldControllerBase
+    IVisitService visitService, IReturnProcessingService returnService) : ControllerBase
 {
     /// <summary>VIS-003: List authorized Visits.</summary>
     [Authorize(
