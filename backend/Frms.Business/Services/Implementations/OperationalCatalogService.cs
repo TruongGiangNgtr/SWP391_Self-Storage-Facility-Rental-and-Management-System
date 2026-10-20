@@ -120,7 +120,8 @@ internal sealed class OperationalCatalogService(
         var rows = selected.Select(x => new UnitTypeAvailabilityResult(
             x.UnitTypeId, x.Name, x.Mode, x.Size, x.RentalPrice, x.Description,
             period.StartMonth, period.EndMonth,
-            period.StartMonth.HasValue ? capacities.GetValueOrDefault(x.UnitTypeId) : null)).ToArray();
+            period.StartMonth.HasValue ? capacities.GetValueOrDefault(x.UnitTypeId) : null,
+            x.ImageUrl, x.VideoUrl)).ToArray();
         return new CapacityPageResult(rows, total);
     }
 

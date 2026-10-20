@@ -9,7 +9,9 @@ public sealed record UnitTypeAvailabilityResult(
     string? Description,
     DateOnly? RequestedStartMonth,
     DateOnly? RequestedEndMonth,
-    int? AvailableCapacity);
+    int? AvailableCapacity,
+    string? ImageUrl = null,
+    string? VideoUrl = null);
 
 public sealed record CapacityPageResult(
     IReadOnlyList<UnitTypeAvailabilityResult> Items,

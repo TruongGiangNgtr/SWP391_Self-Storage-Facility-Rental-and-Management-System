@@ -21,7 +21,9 @@ public sealed record UnitTypeAvailabilityResponse(
     decimal RentalPrice,
     string? Description,
     RequestedPeriodResponse? RequestedPeriod,
-    int? AvailableCapacity);
+    int? AvailableCapacity,
+    string? ImageUrl = null,
+    string? VideoUrl = null);
 
 /// <summary>Represents an AI recommendation alternative.</summary>
 public sealed record UnitTypeRecommendationAlternativeResponse(

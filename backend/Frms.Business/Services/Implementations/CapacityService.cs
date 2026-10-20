@@ -139,7 +139,9 @@ internal sealed class CapacityService(
                         ? null
                         : capacities.GetValueOrDefault(
                             unitType.UnitTypeId,
-                            0)))
+                            0),
+                    unitType.ImageUrl,
+                    unitType.VideoUrl))
             .ToArray();
 
         return new CapacityPageResult(

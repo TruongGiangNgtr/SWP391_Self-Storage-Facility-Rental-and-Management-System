@@ -105,7 +105,7 @@ public sealed class CatalogController(
             var item = items[0];
             return Ok(new ApiResponse<UnitTypeSummary>(new UnitTypeSummary(
                 item.UnitTypeId, item.Name, item.Mode, item.Size,
-                item.RentalPrice, item.Description)));
+                item.RentalPrice, item.Description, item.ImageUrl, item.VideoUrl)));
         }
         if (User.Identity?.IsAuthenticated != true)
             return Unauthorized();

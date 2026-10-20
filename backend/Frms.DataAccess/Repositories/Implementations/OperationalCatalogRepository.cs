@@ -49,7 +49,7 @@ internal sealed class OperationalCatalogRepository(FrmsDbContext db) : IOperatio
         if (skip.HasValue) query = query.Skip(skip.Value);
         if (take.HasValue) query = query.Take(take.Value);
         var rows = await query.Select(x => new PublicUnitTypeRecord(x.UnitTypeId,
-            x.Name, x.Mode, x.Size, x.RentalPrice, x.Description)).ToArrayAsync(ct);
+            x.Name, x.Mode, x.Size, x.RentalPrice, x.Description, x.ImageUrl, x.VideoUrl)).ToArrayAsync(ct);
         return (rows, total);
     }
 
@@ -72,7 +72,7 @@ internal sealed class OperationalCatalogRepository(FrmsDbContext db) : IOperatio
                           : query.OrderBy(x => x.Name).ThenBy(x => x.UnitTypeId));
         var rows = await query.Skip((page - 1) * pageSize).Take(pageSize)
             .Select(x => new PublicUnitTypeRecord(x.UnitTypeId, x.Name, x.Mode, x.Size,
-                x.RentalPrice, x.Description)).ToArrayAsync(ct);
+                x.RentalPrice, x.Description, x.ImageUrl, x.VideoUrl)).ToArrayAsync(ct);
         return (rows, total);
     }
 }

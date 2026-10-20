@@ -15,7 +15,7 @@ internal static class CatalogResponseMapping
 
     public static UnitTypeSummary ToSummary(this UnitTypeResult unitType) => new(
         unitType.UnitTypeId, unitType.Name, unitType.Mode, unitType.Size,
-        unitType.RentalPrice, unitType.Description);
+        unitType.RentalPrice, unitType.Description, unitType.ImageUrl, unitType.VideoUrl);
 
     public static UnitTypeAvailabilityResponse ToAvailabilityResponse(this UnitTypeAvailabilityResult unitType) => new(
         unitType.UnitTypeId, unitType.Name, unitType.Mode, unitType.Size,
@@ -23,5 +23,5 @@ internal static class CatalogResponseMapping
         unitType.RequestedStartMonth is null ? null : new RequestedPeriodResponse(
             unitType.RequestedStartMonth.Value.ToString("yyyy-MM"),
             unitType.RequestedEndMonth!.Value.ToString("yyyy-MM")),
-        unitType.AvailableCapacity);
+        unitType.AvailableCapacity, unitType.ImageUrl, unitType.VideoUrl);
 }

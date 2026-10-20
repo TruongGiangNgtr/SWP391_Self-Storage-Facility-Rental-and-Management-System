@@ -6,4 +6,6 @@ public sealed record UnitTypeSummary(
     string Mode,
     string Size,
     decimal RentalPrice,
-    string? Description);
+    string? Description,
+    string? ImageUrl = null,
+    string? VideoUrl = null);

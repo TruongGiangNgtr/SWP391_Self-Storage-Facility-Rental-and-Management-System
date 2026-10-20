@@ -21,7 +21,7 @@ public sealed class PublicAccessController(IOperationalCatalogService catalogue)
             sortBy, sortDirection, page, pageSize, cancellationToken);
         return Ok(new PaginatedResponse<UnitTypeSummary>(
             items.Select(x => new UnitTypeSummary(x.UnitTypeId, x.Name, x.Mode,
-                x.Size, x.RentalPrice, x.Description)).ToArray(),
+                x.Size, x.RentalPrice, x.Description, x.ImageUrl, x.VideoUrl)).ToArray(),
             new PaginationResponse(page, pageSize, total,
                 total == 0 ? 0 : (int)Math.Ceiling((double)total / pageSize))));
     }
