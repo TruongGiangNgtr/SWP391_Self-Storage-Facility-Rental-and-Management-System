@@ -10,6 +10,7 @@ using Frms.Api.DTOs.Responses;
 using Frms.Api.Middleware;
 using Frms.Business.Abstractions.Security;
 using Frms.Business.DependencyInjection;
+using Frms.Business.Services.Implementations;
 using Frms.Business.Services.Interfaces;
 using Frms.DataAccess.DependencyInjection;
 using Frms.Infrastructure.DependencyInjection;
@@ -91,6 +92,8 @@ builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 
 builder.Services.AddBusiness(builder.Configuration["Time:BusinessTimeZone"]);
+builder.Services.AddSingleton<IPublicPolicyContentProvider>(_ => JsonPublicPolicyContentProvider.Load(
+    Path.Combine(AppContext.BaseDirectory, "Content", "PublicPolicies", "published.json")));
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddFrmsBackgroundJobs();
 

@@ -28,6 +28,7 @@
     <Content Remove=".env" />
     <None Remove=".env" />
     <None Update=".env.example" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+    <Content Update="Content/PublicPolicies/published.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

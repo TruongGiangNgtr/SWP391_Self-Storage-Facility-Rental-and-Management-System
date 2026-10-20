@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Frms.Api.Controllers;
 
-/// <summary>Release 1 public read contracts pending a public-safe projection implementation.</summary>
+/// <summary>Anonymous public catalogue and reviewed current policy content.</summary>
 [Route("api/v1")]
-public sealed class PublicAccessController(IOperationalCatalogService catalogue) : ScaffoldControllerBase
+public sealed class PublicAccessController(IOperationalCatalogService catalogue, IPublicPolicyService policies) : ScaffoldControllerBase
 {
     [AllowAnonymous]
     [HttpGet("unit-types")]
@@ -28,11 +28,27 @@ public sealed class PublicAccessController(IOperationalCatalogService catalogue)
 
     [AllowAnonymous]
     [HttpGet("public/policies")]
-    public ActionResult<ApiErrorResponse> ListPublicPolicies() =>
-        ScaffoldNotImplemented("PUB-POL-001");
+    public async Task<ActionResult<PaginatedResponse<PublicPolicySummaryResponse>>> ListPublicPolicies(
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var (items, total) = await policies.ListAsync(page, pageSize, cancellationToken);
+        var data = items.Select(x => new PublicPolicySummaryResponse(x.PolicyKey, x.Title,
+            x.Summary, x.PolicyId, x.Version, x.EffectiveFrom, x.EffectiveTo)).ToArray();
+        return Ok(new PaginatedResponse<PublicPolicySummaryResponse>(data,
+            new PaginationResponse(page, pageSize, total,
+                total == 0 ? 0 : (int)Math.Ceiling((double)total / pageSize))));
+    }
 
     [AllowAnonymous]
     [HttpGet("public/policies/{policyKey}")]
-    public ActionResult<ApiErrorResponse> GetPublicPolicy(string policyKey) =>
-        ScaffoldNotImplemented("PUB-POL-002");
+    public async Task<ActionResult<ApiResponse<PublicPolicyDetailResponse>>> GetPublicPolicy(
+        string policyKey, CancellationToken cancellationToken)
+    {
+        var x = await policies.GetAsync(policyKey, cancellationToken);
+        var data = new PublicPolicyDetailResponse(x.PolicyKey, x.Title, x.Summary,
+            x.PolicyId, x.Version, x.EffectiveFrom, x.EffectiveTo,
+            x.Sections.Select(s => new PublicPolicySectionResponse(s.Heading, s.Body)).ToArray());
+        return Ok(new ApiResponse<PublicPolicyDetailResponse>(data));
+    }
 }
