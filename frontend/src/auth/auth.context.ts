@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { AuthUser, CustomerLoginRequest, EmployeeLoginRequest } from './auth.types'
+import type { AuthUser, CustomerLoginRequest, EmployeeLoginRequest, UpdateCustomerProfileRequest, UpdatedCustomerProfile } from './auth.types'
 
 export interface AuthContextValue {
   user: AuthUser | null
@@ -7,6 +7,7 @@ export interface AuthContextValue {
   isInitializing: boolean
   loginCustomer(request: CustomerLoginRequest): Promise<AuthUser>
   loginEmployee(request: EmployeeLoginRequest): Promise<AuthUser>
+  updateCustomerProfile(request: UpdateCustomerProfileRequest): Promise<UpdatedCustomerProfile>
   logout(): void
 }
 

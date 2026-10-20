@@ -10,7 +10,7 @@ import { authToken } from '../api/authToken'
 import { ApiRequestError } from '../api/httpClient'
 import { abandonCustomerContinuation, clearCustomerContinuation } from './customerContinuation'
 import { AuthContext, type AuthContextValue } from './auth.context'
-import type { AuthUser, CustomerLoginRequest, EmployeeLoginRequest } from './auth.types'
+import type { AuthUser, CustomerLoginRequest, EmployeeLoginRequest, UpdateCustomerProfileRequest, UpdatedCustomerProfile } from './auth.types'
 
 function mapCurrentAccount(
   account: Awaited<ReturnType<typeof authApi.getCurrentAccount>>['data'],
@@ -101,6 +101,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [loadCurrentAccount, logout],
   )
 
+  const updateCustomerProfile = useCallback(async (request: UpdateCustomerProfileRequest): Promise<UpdatedCustomerProfile> => {
+    if (user?.role !== 'CUSTOMER') throw new ApiRequestError(403, { code: 'FORBIDDEN', message: 'Customer access required.' })
+    const token = authToken.get()
+    const { data } = await authApi.updateCustomerProfile(request)
+    if (!data || data.userAccountId !== user.userAccountId || data.customerId !== user.customerId ||
+      data.role !== 'CUSTOMER' || data.status !== 'ACTIVE' || typeof data.fullName !== 'string' || !data.fullName.trim() || data.fullName.length > 150) {
+      throw new ApiRequestError(502, { code: 'UNEXPECTED_ERROR', message: 'Invalid profile update response.' })
+    }
+    // Use the server's accepted name; keep National ID page-local, never in session storage.
+    if (authToken.get() === token) setUser(current => current?.userAccountId === data.userAccountId ? { ...current, fullName: data.fullName } : current)
+    return data
+  }, [user])
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
@@ -108,9 +121,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isInitializing,
       loginCustomer,
       loginEmployee,
+      updateCustomerProfile,
       logout,
     }),
-    [isInitializing, loginCustomer, loginEmployee, logout, user],
+    [isInitializing, loginCustomer, loginEmployee, logout, updateCustomerProfile, user],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

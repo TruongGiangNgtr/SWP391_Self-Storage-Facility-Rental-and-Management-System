@@ -49,7 +49,6 @@ export function CustomerRegisterPage() {
     try {
       const response = await authApi.registerCustomer({
         fullName, phoneNumber, email, password,
-        address: String(form.get('address') ?? '').trim() || null,
         cccd: String(form.get('cccd') ?? '').trim() || null,
       })
       if (!isUuid(response?.data?.userAccountId) || !isUuid(response?.data?.customerId)) {
@@ -68,7 +67,7 @@ export function CustomerRegisterPage() {
       <CustomerPasswordField name="password" autoComplete="new-password" describedBy="password-guidance" error={fieldErrors.password} />
       <p id="password-guidance" className="muted customer-auth-small">8–64 characters, no more than 72 UTF-8 bytes.</p>
       <CustomerPasswordField name="confirmPassword" label="Confirm Password" autoComplete="new-password" error={fieldErrors.confirmPassword} />
-      <details className="customer-auth-optional"><summary>Additional profile information (optional)</summary><div className="form-grid"><div className="form-field"><label htmlFor="registerAddress">Address</label><input id="registerAddress" name="address" autoComplete="street-address" /></div><div className="form-field"><label htmlFor="registerCccd">National ID / CCCD</label><input id="registerCccd" name="cccd" autoComplete="off" /></div></div></details>
+      <details className="customer-auth-optional"><summary>Additional profile information (optional)</summary><div className="form-grid"><div className="form-field"><label htmlFor="registerCccd">National ID / CCCD</label><input id="registerCccd" name="cccd" autoComplete="off" maxLength={20} /></div></div></details>
       <ApiErrorAlert error={error} />
       <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Creating your account…' : 'Create Customer Account'}</button>
       <div className="customer-auth-divider"><span>Already have an account?</span></div>

@@ -18,7 +18,7 @@ export const CUSTOMER_NAV_ITEMS: readonly CustomerNavigationItem[] = [
   { to: '/customer/invoices', label: 'Deposit & Invoices', icon: WalletCards },
   { to: '/customer/identity-verification', label: 'Identity Verification', icon: ShieldCheck, unavailable: true },
   { to: '/customer/support-tickets', label: 'Support Tickets', icon: Ticket },
-  { to: '/customer/account-settings', label: 'Account Settings', icon: Settings, unavailable: true },
+  { to: '/customer/account-settings', label: 'Account Settings', icon: Settings },
 ]
 
 export const CUSTOMER_NOTIFICATIONS = {
