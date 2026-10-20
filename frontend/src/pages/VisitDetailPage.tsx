@@ -1,5 +1,5 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { presentApiError } from '../api/apiErrorPresentation'
 import type { ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { visitApi } from '../api/visitApi'
@@ -19,11 +19,17 @@ const VISIT_NAMES: Record<VisitDetail['visitType'], string> = {
 
 export function VisitDetailPage() {
   const { visitId = '' } = useParams()
+  const [searchParams] = useSearchParams()
   const [visit, setVisit] = useState<VisitDetail | null>(null)
   const [newVisitDate, setNewVisitDate] = useState('')
   const [cancelReason, setCancelReason] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
-  const [mode, setMode] = useState<'reschedule' | 'cancel' | null>(null)
+  // List shortcuts only open the existing form. Eligibility is checked after VIS-004;
+  // no command is sent until the customer submits it explicitly.
+  const [mode, setMode] = useState<'reschedule' | 'cancel' | null>(() => {
+    const action = searchParams.get('action')
+    return action === 'reschedule' || action === 'cancel' ? action : null
+  })
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(false)
   const [error, setError] = useState<ApiErrorPresentation | null>(null)

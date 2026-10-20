@@ -1,0 +1,87 @@
+/* My Visits only; dashboard tokens and existing shared shell remain authoritative. */
+.customer-visits .visits-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; }
+.customer-visits .visits-heading > div:first-child { flex: 1; min-width: 0; }
+.customer-visits .visits-heading h1 { font-weight: 700; }
+.customer-visits .visits-heading .muted { max-width: 520px; }
+.customer-visits .visits-heading-actions { display: flex; flex-wrap: wrap; gap: 10px; flex-shrink: 0; }
+.customer-visits .visits-heading-actions .button { font-size: 12px; }
+.frms-customer .customer-visits .visits-filter-form { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, .85fr) minmax(0, .85fr) auto; gap: 12px; padding: 16px; align-items: end; }
+.customer-visits .visits-filter-form label { font-size: 11px; }
+.customer-visits .visits-filter-form .form-field { min-width: 0; }
+.customer-visits .visits-filter-form :is(input, select) { background: #f8fafc; }
+.customer-visits .visits-search { position: relative; }
+.customer-visits .visits-search > svg { position: absolute; top: 13px; left: 12px; color: var(--flow-muted); pointer-events: none; }
+.frms-customer .customer-visits .visits-search input { padding-left: 38px; }
+.customer-visits .visits-filter-form > .button { padding-inline: 14px; font-size: 12px; }
+.customer-visits .visits-custom-dates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; grid-column: 1 / -1; }
+.customer-visits .visits-custom-dates > .field-error { grid-column: 1 / -1; }
+.customer-visits .visits-list-summary { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-block: -10px; }
+.customer-visits .visits-list-summary p { font-size: 11px; margin: 0; }
+.customer-visits .visits-list-summary > div { display: flex; align-items: center; gap: 16px; }
+.customer-visits .visits-text-button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0; border: 0; color: var(--flow-brand); background: transparent; font-size: 12px; cursor: pointer; }
+.customer-visits .visits-text-button:disabled { color: var(--flow-muted); cursor: wait; }
+.customer-visits .visits-tabs { display: grid; gap: 20px; min-width: 0; }
+.frms-customer .customer-visits .customer-tabs { gap: 16px; }
+.frms-customer .customer-visits .customer-tabs button { display: inline-flex; align-items: center; gap: 7px; padding-inline: 0; margin-right: 8px; font-size: 12px; }
+.customer-visits .customer-tab-count { min-width: 20px; padding: 1px 6px; border-radius: 999px; background: #f1f5f9; color: #475569; font-size: 10px; }
+.customer-visits .customer-tabs button[aria-selected='true'] .customer-tab-count { color: var(--flow-brand); background: #dbeafe; }
+.customer-visits .customer-tabs button:nth-child(2) .customer-tab-count { color: #1d4ed8; background: #eff6ff; }
+.customer-visits .customer-tabs button:nth-child(3) .customer-tab-count { color: #92400e; background: #fef3c7; }
+.customer-visits .visits-card-list { display: grid; gap: 16px; }
+.frms-customer .customer-visits .visits-card { padding: 20px; }
+.customer-visits .visits-card-heading { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9; }
+.customer-visits .visits-card-heading > .status-badge { margin-left: auto; flex-shrink: 0; }
+.customer-visits .visits-card-heading > .status-checked-in { color: #92400e; background: #fef3c7; }
+.customer-visits .visits-icon { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; flex: 0 0 38px; border: 1px solid #dbeafe; border-radius: 10px; color: var(--flow-brand); background: #eff6ff; }
+.customer-visits .visits-card-title { min-width: 0; }
+.customer-visits .visits-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+.customer-visits .visits-card-title h2 { font-size: 16px; margin: 0; font-weight: 700; }
+.customer-visits .visits-card-title p { margin: 4px 0 0; color: var(--flow-muted); font-size: 11px; overflow-wrap: anywhere; }
+.customer-visits .visits-type-label { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #475569; text-transform: uppercase; }
+.customer-visits :is(.visits-type-reservation, .visits-type-return) { background: #eff6ff; color: #1d4ed8; }
+.customer-visits .visits-facility { display: inline-flex; align-items: center; gap: 4px; min-width: 0; font-size: 11px; color: #475569; overflow-wrap: anywhere; }
+.customer-visits .visits-facility svg { color: var(--flow-brand); flex-shrink: 0; }
+.customer-visits .visits-card-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding-block: 16px; }
+.customer-visits .visits-fact { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--flow-border); border-radius: 12px; background: #f8fafc; }
+.customer-visits .visits-fact > div { min-width: 0; }
+.customer-visits .visits-fact h3 { margin: 0 0 6px; font-family: Inter, sans-serif; color: var(--flow-muted); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .025em; }
+.customer-visits .visits-fact a { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; color: var(--flow-brand); text-decoration: none; font-size: 13px; font-weight: 600; margin-right: 8px; }
+.customer-visits .visits-fact strong { display: block; font-size: 13px; overflow-wrap: anywhere; }
+.customer-visits .visits-fact small { display: block; font-size: 10px; color: var(--flow-muted); margin-top: 4px; }
+.customer-visits .visits-date { background: #eff6ff; border-color: #dbeafe; }
+.customer-visits .visits-date .visits-icon { background: var(--flow-brand); color: #fff; }
+.customer-visits .visits-card-checked-in .visits-type-icon { color: #92400e; border-color: #fde68a; background: #fffbeb; }
+.customer-visits .visits-card-checked-in .visits-date { background: #fffbeb; border-color: #fde68a; }
+.customer-visits .visits-card-checked-in .visits-date .visits-icon { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+.customer-visits :is(.visits-card-checked-out, .visits-card-cancelled) .visits-date { background: #f8fafc; border-color: var(--flow-border); }
+.customer-visits :is(.visits-card-checked-out, .visits-card-cancelled) .visits-date .visits-icon { color: #475569; background: #e2e8f0; border-color: var(--flow-border); }
+.customer-visits :is(.visits-card-checked-out, .visits-card-cancelled) .visits-type-icon { color: #475569; background: #f1f5f9; border-color: var(--flow-border); }
+.customer-visits .visits-card-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; padding-top: 12px; border-top: 1px solid #f1f5f9; }
+.customer-visits .visits-card-footer > p { display: flex; align-items: flex-start; gap: 6px; flex: 1 1 260px; font-size: 11px; color: var(--flow-muted); margin: 0; }
+.customer-visits .visits-card-footer > p > svg { flex-shrink: 0; color: var(--flow-brand); margin-top: 1px; }
+.customer-visits .visits-card-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-left: auto; }
+.customer-visits .visits-card-actions .button { padding-inline: 12px; font-size: 11px; }
+.customer-visits .visits-text-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; color: var(--flow-brand); text-decoration: none; font-size: 12px; font-weight: 600; }
+.customer-visits :is(.visits-text-link, .visits-fact a):hover { text-decoration: underline; }
+.customer-visits .visits-guidelines { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; scroll-margin-top: 112px; }
+.customer-visits .visits-guidelines > div:first-of-type { flex: 1; min-width: min(100%, 250px); }
+.customer-visits .visits-guidelines h2 { font-size: 14px; margin: 0; }
+.customer-visits .visits-guidelines p { font-size: 12px; margin: 6px 0 0; }
+.customer-visits .visits-guideline-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
+.customer-visits .visits-guideline-actions .button { font-size: 12px; }
+@container (max-width: 850px) {
+  .customer-visits .visits-heading { flex-direction: column; align-items: stretch; }
+  .customer-visits .visits-heading-actions { justify-content: flex-end; }
+  .frms-customer .customer-visits .visits-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .customer-visits .visits-filter-form > .button { justify-self: end; grid-column: 2; }
+}
+@container (max-width: 540px) {
+  .customer-visits .visits-card-facts { grid-template-columns: 1fr; }
+  .customer-visits .visits-card-heading { flex-wrap: wrap; }
+  .customer-visits .visits-card-title { flex: 1; }
+  .customer-visits .visits-card-heading > .status-badge { margin-left: 50px; }
+}
+@container (max-width: 380px) {
+  .frms-customer .customer-visits .visits-filter-form, .customer-visits .visits-custom-dates { grid-template-columns: 1fr; }
+  .customer-visits .visits-filter-form > .button { grid-column: 1; }
+}
