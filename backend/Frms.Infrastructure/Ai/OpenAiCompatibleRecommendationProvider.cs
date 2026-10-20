@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -42,7 +43,6 @@ internal sealed class OpenAiCompatibleRecommendationProvider(
         var payload = new
         {
             model = options.Model,
-            temperature = 0,
             max_tokens = 2048,
             response_format = new { type = "json_object" },
             messages = new object[]
@@ -61,16 +61,23 @@ internal sealed class OpenAiCompatibleRecommendationProvider(
             }
         };
 
+        var elapsed = Stopwatch.StartNew();
+        var timeoutPhase = "response_headers";
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, options.Endpoint);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiKey);
-            // Gemini thinking models default to medium effort, which can exceed the
-            // latency budget for a short size-guide recommendation. Lower Gemini-only
-            // reasoning effort without changing other OpenAI-compatible providers.
+            // Gemini 3.8 Flash recommends default sampling parameters. Omit
+            // temperature for Gemini while retaining the non-Gemini baseline.
             var providerPayload = JsonSerializer.SerializeToNode(payload)!.AsObject();
             if (options.Model?.StartsWith("gemini-", StringComparison.OrdinalIgnoreCase) == true)
+            {
                 providerPayload["reasoning_effort"] = "low";
+            }
+            else
+            {
+                providerPayload["temperature"] = 0;
+            }
             request.Content = JsonContent.Create(providerPayload);
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             timeout.CancelAfter(TimeSpan.FromSeconds(options.TimeoutSeconds));
@@ -81,6 +88,7 @@ internal sealed class OpenAiCompatibleRecommendationProvider(
                 throw Unavailable();
             }
 
+            timeoutPhase = "response_body";
             await using var stream = await response.Content.ReadAsStreamAsync(timeout.Token);
             using var body = new MemoryStream();
             var buffer = new byte[8192];
@@ -114,7 +122,10 @@ internal sealed class OpenAiCompatibleRecommendationProvider(
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (OperationCanceledException)
         {
-            logger.LogWarning("AI-001 provider request timed out.");
+            // No secrets, request text, or provider response are logged.
+            logger.LogWarning(
+                "AI-001 provider request timed out (phase={Phase}, elapsedMs={ElapsedMs}, configuredTimeoutSeconds={TimeoutSeconds}).",
+                timeoutPhase, elapsed.ElapsedMilliseconds, options.TimeoutSeconds);
             throw Unavailable();
         }
         catch (JsonException)
