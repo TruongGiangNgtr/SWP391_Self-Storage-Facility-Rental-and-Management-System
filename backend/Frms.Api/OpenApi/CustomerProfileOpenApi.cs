@@ -33,27 +33,37 @@ internal sealed class CustomerProfileOpenApi : IOperationFilter
 
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        if (!Matches(context.ApiDescription.RelativePath, context.ApiDescription.HttpMethod) ||
-            operation.RequestBody is not OpenApiRequestBody requestBody) return;
+        if (!Matches(context.ApiDescription.RelativePath, context.ApiDescription.HttpMethod)) return;
+        operation.Description = Details;
+        if (operation.RequestBody is not OpenApiRequestBody requestBody ||
+            requestBody.Content is null || !requestBody.Content.Keys.Any(IsJsonMediaType)) return;
 
         var schema = context.SchemaGenerator.GenerateSchema(
             typeof(CustomerProfilePatchRequestSchema), context.SchemaRepository);
-        foreach (var media in requestBody.Content.Values)
-            media.Schema = schema;
-        operation.Description = Details;
+        foreach (var media in requestBody.Content)
+            if (IsJsonMediaType(media.Key)) media.Value.Schema = schema;
     }
 
     internal static async Task ConfigureAsync(OpenApiOperation operation,
         OpenApiOperationTransformerContext context, CancellationToken cancellationToken)
     {
-        if (!Matches(context.Description.RelativePath, context.Description.HttpMethod) ||
-            operation.RequestBody is not OpenApiRequestBody requestBody) return;
+        if (!Matches(context.Description.RelativePath, context.Description.HttpMethod)) return;
+        operation.Description = Details;
+        if (operation.RequestBody is not OpenApiRequestBody requestBody ||
+            requestBody.Content is null || !requestBody.Content.Keys.Any(IsJsonMediaType)) return;
 
         var schema = await context.GetOrCreateSchemaAsync(
             typeof(CustomerProfilePatchRequestSchema), null, cancellationToken);
-        foreach (var media in requestBody.Content.Values)
-            media.Schema = schema;
-        operation.Description = Details;
+        foreach (var media in requestBody.Content)
+            if (IsJsonMediaType(media.Key)) media.Value.Schema = schema;
+    }
+
+    private static bool IsJsonMediaType(string mediaType)
+    {
+        var type = mediaType.Split(';', 2)[0].Trim();
+        return type.Equals("application/json", StringComparison.OrdinalIgnoreCase) ||
+               type.Equals("text/json", StringComparison.OrdinalIgnoreCase) ||
+               type.EndsWith("+json", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool Matches(string? path, string? method) =>
