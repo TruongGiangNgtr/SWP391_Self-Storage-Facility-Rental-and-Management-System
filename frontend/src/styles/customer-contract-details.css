@@ -1,0 +1,64 @@
+/* Contract Details: exported two-column content, within the shared Customer shell. */
+.customer-contract-details { container-type: inline-size; }
+.customer-contract-details .contract-detail-navigation { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-block: -12px; }
+.customer-contract-details .contract-detail-text-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 12px; font-weight: 600; text-decoration: none; color: var(--flow-brand); }
+.customer-contract-details .contract-detail-text-link:hover { text-decoration: underline; }
+.customer-contract-details .contract-detail-text-button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--flow-brand); cursor: pointer; font-size: 12px; }
+.customer-contract-details .contract-detail-text-button:disabled { color: var(--flow-muted); cursor: wait; }
+.customer-contract-details .contract-detail-heading > div { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.customer-contract-details .contract-detail-heading h1 { margin: 6px 0 8px; }
+.customer-contract-details .contract-detail-heading > p { margin-bottom: 0; }
+.customer-contract-details .contract-detail-banner { display: flex; align-items: flex-start; gap: 12px; padding: 16px; border: 1px solid #dbeafe; border-radius: 16px; background: #eff6ff; color: #1e40af; }
+.customer-contract-details .contract-detail-banner > svg { flex-shrink: 0; margin-top: 2px; }
+.customer-contract-details .contract-detail-banner h2 { margin: 0 0 6px; font-size: 14px; color: inherit; }
+.customer-contract-details .contract-detail-banner p { margin: 0; font-size: 12px; line-height: 1.7; }
+.customer-contract-details .contract-detail-banner-completed { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
+.customer-contract-details .contract-detail-banner-terminated { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+.customer-contract-details .contract-detail-columns { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.customer-contract-details .contract-detail-stack { display: grid; gap: 24px; min-width: 0; }
+.frms-customer .customer-contract-details .contract-detail-card { display: grid; gap: 20px; min-width: 0; }
+.customer-contract-details .contract-detail-card-heading { display: flex; align-items: center; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9; }
+.customer-contract-details .contract-detail-card-heading > svg { color: var(--flow-brand); flex-shrink: 0; }
+.customer-contract-details .contract-detail-card h2 { font-size: 16px; margin: 0; }
+.customer-contract-details .contract-detail-card > p { font-size: 12px; line-height: 1.7; margin: 0; }
+.customer-contract-details .contract-detail-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; margin: 0; }
+.customer-contract-details .contract-detail-facts > div { min-width: 0; }
+.customer-contract-details .contract-detail-facts dt { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--flow-muted); font-weight: 600; margin-bottom: 8px; }
+.customer-contract-details .contract-detail-facts dd { font-size: 14px; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+.customer-contract-details .contract-detail-facts dd .contract-detail-text-link { min-height: 44px; margin-top: -12px; margin-bottom: -12px; }
+.customer-contract-details .contract-detail-facts dd small { display: block; color: var(--flow-muted); font-size: 11px; font-weight: 400; margin-top: 4px; }
+.customer-contract-details .contract-detail-rent { color: var(--flow-brand); }
+.customer-contract-details .contract-detail-info { display: flex; align-items: flex-start; gap: 8px; padding: 14px; border-radius: 12px; background: #f8fafc; color: #475569; }
+.customer-contract-details .contract-detail-info > svg { flex-shrink: 0; margin-top: 2px; color: var(--flow-muted); }
+.customer-contract-details .contract-detail-info p { font-size: 12px; line-height: 1.7; margin: 0; }
+.customer-contract-details .contract-detail-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.customer-contract-details .contract-detail-actions .button { font-size: 12px; }
+.frms-customer .customer-contract-details .contract-detail-soft-button { background: #f1f5f9; border-color: #f1f5f9; color: #334155; }
+.customer-contract-details .contract-detail-helper { font-size: 11px !important; color: var(--flow-muted); }
+.customer-contract-details .contract-detail-access { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid #f1f5f9; }
+.customer-contract-details .contract-detail-access > div { flex: 1 1 180px; }
+.customer-contract-details .contract-detail-access h3 { font-size: 14px; margin: 0 0 6px; }
+.customer-contract-details .contract-detail-access p { font-size: 12px; margin: 0; line-height: 1.7; }
+.customer-contract-details .contract-detail-access .button { font-size: 12px; }
+.customer-contract-details .contract-detail-unit { display: grid; gap: 8px; padding: 20px 12px; border: 1px solid #dbeafe; border-radius: 12px; background: #eff6ff; text-align: center; }
+.customer-contract-details .contract-detail-unit span { color: var(--flow-brand); font-size: 10px; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+.customer-contract-details .contract-detail-unit strong { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; color: #1e40af; overflow-wrap: anywhere; }
+.customer-contract-details .contract-detail-storage-facts { display: grid; gap: 18px; margin: 0; }
+.customer-contract-details .contract-detail-storage-facts dt { display: flex; align-items: center; gap: 6px; color: var(--flow-muted); font-size: 11px; margin-bottom: 6px; }
+.customer-contract-details .contract-detail-storage-facts dt svg { flex-shrink: 0; }
+.customer-contract-details .contract-detail-storage-facts dd { margin: 0; font-size: 13px; font-weight: 600; }
+.customer-contract-details .contract-detail-deposit { display: flex; align-items: flex-start; flex-direction: column; gap: 10px; }
+.customer-contract-details .contract-detail-deposit > span:first-child { color: var(--flow-muted); font-size: 11px; }
+.customer-contract-details .contract-detail-deposit > strong { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; overflow-wrap: anywhere; }
+.customer-contract-details .contract-detail-help > svg { color: var(--flow-brand); }
+.customer-contract-details .contract-detail-help h2 { line-height: 1.5; }
+.customer-contract-details .contract-detail-help .button { font-size: 12px; width: 100%; }
+@container (max-width: 760px) {
+  .customer-contract-details .contract-detail-columns { grid-template-columns: 1fr; }
+  .customer-contract-details .contract-detail-columns > aside { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .customer-contract-details .contract-detail-help { grid-column: 1 / -1; }
+}
+@container (max-width: 480px) {
+  .customer-contract-details .contract-detail-facts, .customer-contract-details .contract-detail-columns > aside { grid-template-columns: 1fr; }
+  .customer-contract-details .contract-detail-heading h1 { font-size: 24px; }
+}
