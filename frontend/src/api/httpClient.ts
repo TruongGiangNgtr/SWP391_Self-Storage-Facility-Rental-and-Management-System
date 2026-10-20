@@ -93,6 +93,14 @@ export const httpClient = {
     return request<T>(path, { signal }, false)
   },
 
+  postPublic<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
+    return request<T>(path, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      signal,
+    }, false)
+  },
+
   get<T>(path: string): Promise<T> {
     return request<T>(path)
   },

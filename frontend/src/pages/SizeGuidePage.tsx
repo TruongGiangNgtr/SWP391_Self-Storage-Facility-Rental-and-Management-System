@@ -4,7 +4,7 @@ import { Box } from 'lucide-react'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState, PaginationControls } from '../components/PageStates'
 import { SizeGuideUnitTypeCard } from '../components/SizeGuideUnitTypeCard'
-import { SizeGuideAssistantPreview } from '../components/SizeGuideAssistantPreview'
+import { SizeGuideAssistant } from '../components/SizeGuideAssistant'
 import { presentValidationError } from '../api/apiErrorPresentation'
 import { usePublicUnitTypes } from '../features/catalog/usePublicCatalog'
 import { readSizeGuideSearch, sizeGuideUrl, type SizeGuideSort } from '../features/catalog/sizeGuideSearch'
@@ -54,6 +54,6 @@ export function SizeGuidePage() {
     <section className="size-guide-catalog" id="storage-sizes"><div className="gwp-container"><div className="size-guide-catalog-heading"><h2>Choose the size that fits your needs</h2><div className="size-guide-tabs" role="tablist" aria-label="Storage type">{MODES.map((mode, index) => <button key={mode} id={`${id}-tab-${mode}`} ref={element => { tabs.current[index] = element }} role="tab" type="button" aria-selected={mode === query.mode} aria-controls={`${id}-panel-${mode}`} tabIndex={mode === query.mode ? 0 : -1} onClick={() => changeMode(mode)} onKeyDown={event => tabKey(event, index)}>{modeName(mode)}</button>)}</div></div>
       {MODES.map(mode => <section key={mode} role="tabpanel" id={`${id}-panel-${mode}`} aria-labelledby={`${id}-tab-${mode}`} hidden={query.mode !== mode} tabIndex={0}>{query.mode === mode && content}</section>)}
     </div></section>
-    <div className="size-guide-assistant-section"><div className="gwp-container"><SizeGuideAssistantPreview /></div></div>
+    <div className="size-guide-assistant-section"><div className="gwp-container"><SizeGuideAssistant key={query.mode} mode={query.mode} enabled={!query.error} /></div></div>
   </main>
 }
