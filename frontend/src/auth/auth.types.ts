@@ -33,6 +33,8 @@ export interface CurrentAccount {
     employeeId: string | null
     fullName: string | null
     facilityId: string | null
+    // Missing until AUTH-004 is aligned; missing is not an empty National ID.
+    cccd?: string | null
   } | null
 }
 
@@ -41,7 +43,6 @@ export interface CustomerRegisterRequest {
   phoneNumber: string
   email: string
   password: string
-  address?: string | null
   cccd?: string | null
 }
 
@@ -56,7 +57,14 @@ export interface EmployeeLoginRequest {
 }
 
 export interface UpdateCustomerProfileRequest {
-  fullName: string
-  address?: string | null
+  fullName?: string
   cccd?: string | null
+}
+
+export interface UpdatedCustomerProfile {
+  userAccountId: string
+  customerId: string
+  role: 'CUSTOMER'
+  status: 'ACTIVE'
+  fullName: string
 }

@@ -11,6 +11,7 @@
 **Payment Idempotency Clarification Date:** 2026-10-10 — REV-2026-10-10-PAY-IDEMPOTENCY
 **Public Guest Requirements Revision Date:** 2026-10-13 — REV-2026-10-13-GUEST
 **Public Guest Requirements Approval:** Team approved on 2026-10-13; confirmed by the project owner
+**Customer Profile Revision Date:** 2026-10-20 — REV-2026-10-20-CUSTOMER-NO-ADDRESS
 **Status:** Final Implementation Baseline — EPS-01 Implementation Gates Passed; Limited payOS Live Payment Verified
 **Architecture:** 3 Logical Layers + Repository Pattern + Infrastructure Adapters
 **Backend:** ASP.NET Core Web API / C#
@@ -47,6 +48,7 @@
 | **V10 FINAL — 2026-10-08 payment timestamp clarification** | Owner-approved persisted Invoice payment timestamp | Invoice.PaidAt is nullable UTC, set from the verified provider timestamp only on the first UNPAID/OVERDUE -> PAID transition. Duplicate webhook, subsequent successful attempts and cancelled invoices preserve the Invoice timestamp. Existing historical timestamps are not fabricated. |
 | **V10 FINAL — 2026-10-10 payment idempotency clarification** | Owner-requested alignment with the approved PAY-001 contract | REV-2026-10-10-PAY-IDEMPOTENCY makes the frontend UUID, required persisted uniqueidentifier, global uniqueness, lifetime retention, retry/concurrency and non-disclosure rules explicit in the SRS and Data Dictionary. No new Payment status, recovery workflow or live-provider authorization. |
 | **V10 FINAL — 2026-10-13 public Guest requirements revision** | Team-approved shared implementation baseline; approval confirmed by project owner | REV-2026-10-13-GUEST defines common public catalog, requested-period availability, sizing/rental-process guidance and public help/policies; permits optional anonymous AI recommendations; defines authentication continuation. Visual design and page/component implementation are excluded. Five business roles, seven flows, 27 entities and existing private-resource/financial lifecycles remain unchanged. Approval does not imply implementation acceptance. |
+| **V10 FINAL — 2026-10-20 Customer profile revision** | Owner-approved removal of Customer physical address and FE-first Account Settings | REV-2026-10-20-CUSTOMER-NO-ADDRESS removes Customer.Address from the target profile model and AUTH-001/AUTH-005, and defines optional own-profile CCCD in AUTH-004 for Account Settings. Facility.Address, account Email and existing ownership rules remain unchanged. Backend/schema alignment is a follow-up, not acceptance of current code. |
 
 ## V5 Review Summary
 
@@ -235,6 +237,21 @@ The owner permits checking the existing FRMS baseline and applying forward EPS-0
 **Affected requirements:** sections 2/3, Flow 1, GWP-01..05, CWP-01/02, BR-PUB-01..07, sections 10/13/14/15, catalog/policy schemas and endpoint index, public API/security tests, E2E-F01, traceability, Release 1 gates and acceptance.
 
 **Implementation boundary:** This approval update changes only this SRS. Backend authorization/query contracts, Swagger, frontend API models, approved public article copy and automated functional/security tests require follow-up alignment with this approved baseline. Existing code must not be represented as already supporting the revised behavior. Visual style, layout, header/footer/sidebar, component design, specific public-page URLs and UI prototypes belong to the owner's separate frontend design work and are not defined by this revision. Public policy content is a deployment-owned read model, not a new Policy entity, approval workflow or financial rule. Operational Facility scope and private ownership checks remain enforced; public projection never grants operational reads or commands. No new role, business flow, persisted entity/attribute/status, stored procedure, personal-data publication, reservation hold at browsing time or payment obligation is introduced. Email OTP, password reset/change and Google login remain outside current Release 1.
+
+## 0.0.7 Approved Change Record — REV-2026-10-20-CUSTOMER-NO-ADDRESS
+
+**Approval:** On 2026-10-20 the project owner confirms that FRMS does not collect Customer physical addresses and requests removal of that field from the governing SRS.
+
+**Approved scope:**
+
+- Customer physical address is not part of the target Customer profile model. Customer registration, profile updates and profile read models MUST NOT collect or expose a Customer `address` field.
+- AUTH-001 retains `fullName`, `phoneNumber`, `email`, `password` and optional `cccd`; AUTH-005 retains the permitted `fullName` and `cccd` profile updates. Customer login PhoneNumber and account Email remain unchanged by AUTH-005 under DD-07.
+- Facility.Address remains required for Facility location, public catalog/search and facility management. An account email address is not a physical address and is unaffected.
+- CCCD remains optional and unique when present. For the owner-approved FE-first Account Settings implementation, AUTH-004's own Customer profile includes `data.profile.cccd` as `string | null`. Existing authenticated own-profile access is unchanged; no employee directory/public projection gains CCCD. This does not introduce identity verification or new permissions.
+
+**Traceability:** Customer profile model (section 9.6) -> AUTH-001/AUTH-005 (section 13.12) -> registration/profile DTOs and validators -> Customer persistence mapping/migration -> frontend registration/Account Settings -> API and UI contract/security tests.
+
+**Implementation boundary:** The owner approves SRS and frontend Account Settings alignment together, with backend implementation following separately. The lower-priority Data Dictionary Customer.Address definition, existing backend/Swagger contracts and persistence require follow-up alignment by their owners; they are not evidence that address collection is still permitted. Existing stored values MUST NOT be silently deleted by a UI change, seed or this documentation revision. Physical schema/data removal requires a separately reviewed migration/deployment plan. No backend code or database data is changed by this task, and FE mock tests are not evidence of live profile/CCCD integration.
 
 ## 0.1 Authority Order
 
@@ -1620,6 +1637,7 @@ FAILED
 
 ## 9.6 Important Nullability / Conditional Rules
 
+- Customer physical address is not collected or exposed and `Customer.Address` is excluded from the target model under REV-2026-10-20-CUSTOMER-NO-ADDRESS. This does not remove or change Facility.Address.
 - `Customer.CCCD` nullable; unique when present.
 - `Employee.FacilityId` required for Facility Staff/Manager; not required for global employee roles.
 - `Visit.EmployeeId` nullable before actual Staff handling.
@@ -3139,7 +3157,6 @@ Request:
   "phoneNumber": "0900000000",
   "email": "customer@example.com",
   "password": "<plaintext only in request transport>",
-  "address": "Ho Chi Minh City",
   "cccd": null
 }
 ```
@@ -3152,8 +3169,9 @@ Field rules:
 | `phoneNumber` | Yes | UNIQUE login identifier |
 | `email` | Yes | UNIQUE account email |
 | `password` | Yes | hashed with BCrypt before persistence |
-| `address` | No | profile field |
 | `cccd` | No | unique when present |
+
+Customer physical address is not an accepted registration profile field under REV-2026-10-20-CUSTOMER-NO-ADDRESS; the registration UI MUST NOT request it.
 
 Success: `201`, returns account/customer identifiers without `PasswordHash`.
 
@@ -3211,7 +3229,7 @@ The resolved role MUST be one of the four employee roles.
 
 ### AUTH-004 — Current Account
 
-Response example:
+Employee response example (unchanged):
 
 ```json
 {
@@ -3230,6 +3248,29 @@ Response example:
 }
 ```
 
+Customer response example (own account only):
+
+```json
+{
+  "data": {
+    "userAccountId": "uuid",
+    "role": "CUSTOMER",
+    "status": "ACTIVE",
+    "email": "customer@example.com",
+    "phoneNumber": "0900000000",
+    "profile": {
+      "customerId": "uuid",
+      "fullName": "Nguyen Van A",
+      "cccd": null
+    }
+  }
+}
+```
+
+`profile.cccd` is the authenticated Customer's own optional National ID, at most 20 characters; `null` means no value is stored. No Customer physical address is returned. The employee profile contract is unchanged. CCCD MUST NOT be added to public/catalog or employee/customer-directory responses by inference from this own-profile contract.
+
+**FE-first compatibility:** Until BE implements this field, an omitted or malformed `profile.cccd` means the value is unavailable, not that it is empty. FE MUST disable CCCD editing and omit `cccd` from profile PATCH requests in that case, while allowing permitted name updates. CCCD stays page-local and MUST NOT be stored in browser persistence, URLs, continuation records or logs. Contract alignment requires BE DTO/Swagger and own-profile tests before live acceptance.
+
 ### AUTH-005 — Update Customer Profile
 
 Request:
@@ -3237,12 +3278,15 @@ Request:
 ```json
 {
   "fullName": "Updated Name",
-  "address": "Updated address",
   "cccd": "optional"
 }
 ```
 
-V9 does not allow this endpoint to change login `PhoneNumber` or account `Email`; credential-identifier change is governed by `DD-07`.
+The permitted profile update fields are `fullName` and `cccd`. Customer physical address is not an accepted profile field under REV-2026-10-20-CUSTOMER-NO-ADDRESS. This endpoint MUST NOT change login `PhoneNumber` or account `Email`; credential-identifier change is governed by `DD-07`.
+
+PATCH is partial: at least one permitted field is supplied; omitted fields remain unchanged. Supplied `fullName` is trimmed, non-empty and at most 150 characters. Supplied `cccd` is trimmed, at most 20 characters and unique when present; explicit `null` or an empty trimmed value clears the optional value. FE sends only changed permitted fields and never infers a clear from unavailable read data. Invalid fields/values, an empty patch or duplicate CCCD return `400 VALIDATION_ERROR` with the standard error envelope; authorization/ACTIVE-account checks remain server-side.
+
+Success: `200`, using the standard envelope with `data={userAccountId, customerId, role, status, fullName}`. These identifiers and role/status refer to the caller's current account; `fullName` is the server-accepted value. Password, Address and CCCD are not added to this update response; read the own-profile contract above for CCCD. FE updates the displayed account name only after a valid successful response. This does not add password change/reset or identity-verification functionality.
 
 ## 13.13 Public Catalog / Policy / AI API Contracts
 

@@ -101,8 +101,8 @@ export const httpClient = {
     }, false)
   },
 
-  get<T>(path: string): Promise<T> {
-    return request<T>(path)
+  get<T>(path: string, signal?: AbortSignal): Promise<T> {
+    return request<T>(path, { signal })
   },
 
   post<T>(path: string, body?: unknown, headers?: HeadersInit): Promise<T> {

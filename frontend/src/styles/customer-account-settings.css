@@ -1,0 +1,17 @@
+.customer-account-settings .account-section-heading { display: flex; align-items: flex-start; gap: 12px; }
+.customer-account-settings .account-section-heading h2 { margin: 0; }
+.customer-account-settings .account-section-heading p { margin: 6px 0 0; }
+.customer-account-settings .account-profile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 20px 24px; }
+.customer-account-settings .account-profile-wide { grid-column: 1 / -1; }
+.customer-account-settings .form-field { min-width: 0; }
+.customer-account-settings .form-field input { width: 100%; min-width: 0; }
+.customer-account-settings input:read-only { background: #f8fafc; color: #475569; }
+.customer-account-settings input:disabled { background: #f8fafc; color: var(--flow-muted); cursor: not-allowed; }
+.customer-account-settings .form-field small { line-height: 1.6; }
+.customer-account-settings .account-form-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding-top: 20px; border-top: 1px solid var(--flow-border); }
+.customer-account-settings .account-form-actions .action-row { margin: 0; }
+.customer-account-settings .notice svg { flex-shrink: 0; margin-top: 1px; }
+.frms-customer .customer-account-settings .account-save-success { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+@container (max-width: 560px) {
+  .customer-account-settings .account-profile-grid { grid-template-columns: 1fr; }
+}
