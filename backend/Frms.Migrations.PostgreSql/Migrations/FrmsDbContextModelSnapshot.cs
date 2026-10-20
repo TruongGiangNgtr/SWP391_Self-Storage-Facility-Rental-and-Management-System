@@ -989,6 +989,60 @@ namespace Frms.Migrations.PostgreSql.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Frms.DataAccess.Persistence.Entities.HandoverUnitAssignment", b =>
+                {
+                    b.Property<Guid>("AssignmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp(3) with time zone")
+                        .HasDefaultValueSql("clock_timestamp()");
+
+                    b.Property<Guid>("AssignedByEmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp(3) with time zone");
+
+                    b.Property<Guid>("ReservationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(12)")
+                        .HasDefaultValue("ACTIVE");
+
+                    b.Property<Guid>("StorageUnitId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("AssignmentId");
+
+                    b.HasIndex("AssignedByEmployeeId");
+
+                    b.HasIndex("ReservationId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_HandoverUnitAssignment_ActiveReservation")
+                        .HasFilter("\"Status\"='ACTIVE'");
+
+                    b.HasIndex("StorageUnitId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_HandoverUnitAssignment_ActiveUnit")
+                        .HasFilter("\"Status\"='ACTIVE'");
+
+                    b.HasIndex("ReservationId", "AssignedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_HandoverUnitAssignment_History");
+
+                    b.ToTable("HandoverUnitAssignment", "public", t =>
+                        {
+                            t.HasCheckConstraint("CK_HandoverUnitAssignment_Status", "\"Status\" IN ('ACTIVE','REPLACED','CONSUMED','RELEASED')");
+                            t.HasCheckConstraint("CK_HandoverUnitAssignment_ClosedAt", "(\"Status\"='ACTIVE') = (\"ClosedAt\" IS NULL)");
+                        });
+                });
+
             modelBuilder.Entity("Frms.DataAccess.Persistence.Entities.Reservation", b =>
                 {
                     b.Property<Guid>("ReservationId")
@@ -1562,6 +1616,27 @@ namespace Frms.Migrations.PostgreSql.Migrations
                     b.HasOne("Frms.DataAccess.Persistence.Entities.Invoice", null)
                         .WithMany()
                         .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Frms.DataAccess.Persistence.Entities.HandoverUnitAssignment", b =>
+                {
+                    b.HasOne("Frms.DataAccess.Persistence.Entities.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("AssignedByEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Frms.DataAccess.Persistence.Entities.Reservation", null)
+                        .WithMany()
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Frms.DataAccess.Persistence.Entities.StorageUnit", null)
+                        .WithMany()
+                        .HasForeignKey("StorageUnitId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

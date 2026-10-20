@@ -14,6 +14,7 @@ public sealed class FrmsDbContext(DbContextOptions<FrmsDbContext> options) : DbC
     public DbSet<UnitType> UnitTypes => Set<UnitType>();
     public DbSet<StorageUnit> StorageUnits => Set<StorageUnit>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
+    public DbSet<HandoverUnitAssignment> HandoverUnitAssignments => Set<HandoverUnitAssignment>();
     public DbSet<Visit> Visits => Set<Visit>();
     public DbSet<Contract> Contracts => Set<Contract>();
     public DbSet<ContractExtension> ContractExtensions => Set<ContractExtension>();

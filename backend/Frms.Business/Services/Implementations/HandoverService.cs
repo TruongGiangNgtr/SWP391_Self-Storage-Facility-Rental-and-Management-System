@@ -109,6 +109,12 @@ internal sealed class HandoverService(
                         "The selected StorageUnit does not match the Reservation Facility and Unit Type.",
                         409);
 
+                case "HANDOVER_UNIT_ASSIGNMENT_REQUIRED":
+                    throw new BusinessException(ex.Code,
+                        "Manager must assign a StorageUnit before handover.", 409);
+                case "HANDOVER_UNIT_MISMATCH":
+                    throw new BusinessException(ex.Code,
+                        "StorageUnit does not match the active Manager assignment.", 409);
                 case "DISCOUNT_NOT_OWNED_BY_CUSTOMER":
                     throw new BusinessException(
                         ex.Code,

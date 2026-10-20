@@ -22,5 +22,6 @@
     <!-- Schema deployment belongs exclusively to Frms.Migrations.PostgreSql. -->
     <Compile Remove="Migrations/**/*.cs" />
     <Compile Include="../Frms.Migrations.PostgreSql/Persistence/Configurations/FrmsModelConfiguration.cs" Link="Persistence/Configurations/FrmsModelConfiguration.cs" />
+    <Compile Include="../Frms.Migrations.PostgreSql/Persistence/Configurations/HandoverAssignmentModelConfiguration.cs" Link="Persistence/Configurations/HandoverAssignmentModelConfiguration.cs" />
   </ItemGroup>
 </Project>

@@ -18,6 +18,7 @@ internal static class FrmsModelConfiguration
         ConfigureMasters(m);
         ConfigureAccounts(m);
         ConfigureRental(m);
+        HandoverAssignmentModelConfiguration.Configure(m);
         ConfigureInspectionAndSupport(m);
         ConfigureOperationalLogs(m);
         ConfigureSeed(m);

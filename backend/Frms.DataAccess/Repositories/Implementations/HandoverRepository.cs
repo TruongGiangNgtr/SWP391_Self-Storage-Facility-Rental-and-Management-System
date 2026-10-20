@@ -183,6 +183,8 @@ internal sealed class HandoverRepository(
             "VISIT_INVALID_STATUS",
             "UNIT_NOT_AVAILABLE",
             "UNIT_FACILITY_TYPE_MISMATCH",
+            "HANDOVER_UNIT_ASSIGNMENT_REQUIRED",
+            "HANDOVER_UNIT_MISMATCH",
             "DISCOUNT_NOT_OWNED_BY_CUSTOMER",
             "DISCOUNT_NOT_VALID",
             "FORBIDDEN",
