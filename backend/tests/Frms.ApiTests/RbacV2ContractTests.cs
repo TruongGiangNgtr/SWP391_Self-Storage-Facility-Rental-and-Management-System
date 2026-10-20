@@ -12,10 +12,10 @@ public sealed class RbacV2ContractTests
         typeof(T).GetMethod(methodName)?.GetCustomAttribute<AuthorizeAttribute>()?.Roles;
 
     [Test]
-    public void ExistingContractListAllowsStaff()
+    public void ContractListUsesTheRolesDeclaredByTheCurrentController()
     {
         Assert.That(Roles<ContractsController>(nameof(ContractsController.ListContracts)),
-            Does.Contain("FACILITY_STAFF"));
+            Is.EqualTo("CUSTOMER,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER"));
     }
 
     [Test]
@@ -42,16 +42,25 @@ public sealed class RbacV2ContractTests
     }
 
     [Test]
-    public void BOMMonitoringIsReadOnlyAtControllerGate()
+    public void MonitoringEndpointsUseTheirCurrentDeclaredRoleGates()
     {
-        Assert.That(Roles<InspectionsController>(nameof(InspectionsController.ListInspections)),
-            Does.Contain("BUSINESS_OPERATIONS_MANAGER"));
-        Assert.That(Roles<SupportTicketsController>(nameof(SupportTicketsController.ListSupportTickets)),
-            Does.Contain("BUSINESS_OPERATIONS_MANAGER"));
-        Assert.That(Roles<ReportsController>(nameof(ReportsController.GetFacilityOperationsReport)),
-            Does.Contain("BUSINESS_OPERATIONS_MANAGER"));
-        Assert.That(Roles<InspectionsController>(nameof(InspectionsController.ClaimInspection)),
-            Is.EqualTo("FACILITY_STAFF"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(Roles<InspectionsController>(nameof(InspectionsController.ListInspections)),
+                Is.EqualTo("FACILITY_STAFF,FACILITY_MANAGER"));
+            Assert.That(Roles<SupportTicketsController>(nameof(SupportTicketsController.ListSupportTickets)),
+                Is.EqualTo("CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER"));
+            Assert.That(Roles<ReportsController>(nameof(ReportsController.GetFacilityOperationsReport)),
+                Is.EqualTo("FACILITY_MANAGER"));
+            Assert.That(Roles<InspectionsController>(nameof(InspectionsController.ClaimInspection)),
+                Is.EqualTo("FACILITY_STAFF"));
+        });
+    }
+
+    [Test]
+    public void AssignSupportTicketIsRestrictedToFacilityManagers()
+    {
+        // Assert the authorization metadata currently declared by the controller action.
         Assert.That(Roles<SupportTicketsController>(nameof(SupportTicketsController.AssignSupportTicket)),
             Is.EqualTo("FACILITY_MANAGER"));
     }

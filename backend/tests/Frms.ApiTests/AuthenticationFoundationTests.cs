@@ -32,6 +32,14 @@ public sealed class AuthenticationFoundationTests
     }
 
     [Test]
+    public void BCryptPasswordHasher_MalformedHash_ReturnsFalseInsteadOfThrowing()
+    {
+        var hasher = new BCryptPasswordHasher(Options.Create(new BCryptOptions { WorkFactor = 4 }));
+
+        Assert.That(hasher.Verify("any-password", "not-a-bcrypt-hash"), Is.False);
+    }
+
+    [Test]
     public void JwtTokenService_ValidOptions_EmitsSubjectRoleAndConfiguredExpiry()
     {
         var now = new DateTimeOffset(2026, 10, 4, 0, 0, 0, TimeSpan.Zero);

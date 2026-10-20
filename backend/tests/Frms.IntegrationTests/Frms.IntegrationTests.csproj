@@ -22,6 +22,21 @@
     <Using Include="NUnit.Framework" />
   </ItemGroup>
 
+  <!-- These integration fixtures target SQL Server (dbo/sys.tables, SqlClient, T-SQL),
+       while the current application and migrations use PostgreSQL/Npgsql. Keep the
+       source for porting/reference, but do not compile it into the active test suite. -->
+  <ItemGroup>
+    <Compile Remove="PaymentSqlTestSupport.cs" />
+    <Compile Remove="PaymentPersistenceTests.cs" />
+    <Compile Remove="PaymentResultSqlTests.cs" />
+    <Compile Remove="PaymentServiceSqlTests.cs" />
+    <Compile Remove="PayOsPersistenceTests.cs" />
+    <Compile Remove="RealSqlServerAuthenticationTests.cs" />
+    <Compile Remove="RealSqlServerBaselineTests.cs" />
+    <Compile Remove="ReservationCancellationSqlTests.cs" />
+    <Compile Remove="SqlScriptTestDatabase.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\Frms.Api\Frms.Api.csproj" />
     <ProjectReference Include="..\..\Frms.DataAccess\Frms.DataAccess.csproj" />
