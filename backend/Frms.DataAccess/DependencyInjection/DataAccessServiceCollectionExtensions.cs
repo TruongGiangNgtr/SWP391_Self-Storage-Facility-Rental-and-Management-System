@@ -77,6 +77,7 @@ public static class DataAccessServiceCollectionExtensions
         services.AddScoped<IAdminReadRepository, AdminReadRepository>();
         services.AddScoped<IAdminCustomerStatusRepository, AdminCustomerStatusRepository>();
         services.AddScoped<IBusinessDiscountRepository, BusinessDiscountRepository>();
+        services.AddScoped<ICustomerActivityRepository, CustomerActivityRepository>();
         services.AddScoped<IFacilityCatalogRepository,FacilityCatalogRepository>();
         services.AddScoped<IStaffWorkItemRepository,StaffWorkItemRepository>();
 

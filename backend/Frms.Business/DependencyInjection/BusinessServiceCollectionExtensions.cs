@@ -47,6 +47,7 @@ public static class BusinessServiceCollectionExtensions
         services.AddScoped<IAdminReadService, AdminReadService>();
         services.AddScoped<IAdminCustomerStatusService, AdminCustomerStatusService>();
         services.AddScoped<IBusinessDiscountService, BusinessDiscountService>();
+        services.AddScoped<ICustomerActivityService, CustomerActivityService>();
 
         services.AddScoped<IStaffWorkItemService,StaffWorkItemService>();
         services.AddScoped<IReturnProcessingService, ReturnProcessingService>();
