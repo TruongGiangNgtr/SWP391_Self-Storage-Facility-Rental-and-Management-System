@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { CalendarDays } from 'lucide-react'
 import { presentApiError } from '../api/apiErrorPresentation'
 import type { ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { reservationApi } from '../api/reservationApi'
@@ -8,8 +9,10 @@ import { LoadingState } from '../components/PageStates'
 import { CustomerActionFrame } from '../components/CustomerActionFrame'
 import { FlowIcon } from '../components/FlowIcon'
 import { CalendarDateField } from '../components/CalendarDateField'
+import { CustomerStatusBadge } from '../components/CustomerStatusBadge'
 import type { ReservationDetail } from '../features/reservations/reservation.types'
 import { formatMoney, formatMonthRange } from '../utils/formatters'
+import '../styles/customer-handover-schedule.css'
 
 export function ReservationConfirmPage() {
   const { reservationId = '' } = useParams()
@@ -72,6 +75,8 @@ export function ReservationConfirmPage() {
 
   return (
     <CustomerActionFrame
+      className="customer-handover-schedule"
+      headingIcon={<CalendarDays size={24} />}
       category="Handover Visit"
       title="Confirm Reservation and Schedule Handover"
       subtitle="Select a date to collect your storage unit after paying the deposit."
@@ -80,12 +85,12 @@ export function ReservationConfirmPage() {
       backLabel="Back to Reservation"
     >
       {loading ? <LoadingState label="Checking deposit status..." /> :
-      <section className="panel stack">
+      <section className="panel stack handover-schedule-content">
         <ApiErrorAlert error={error} />
         {reservation && (
           <>
-            <dl className="detail-list compact">
-              <div>
+            <dl className="handover-schedule-facts">
+              <div className="handover-schedule-period">
                 <dt>Rental Period</dt>
                 <dd>{formatMonthRange(reservation.startMonth, reservation.endMonth)}</dd>
               </div>
@@ -95,17 +100,25 @@ export function ReservationConfirmPage() {
               </div>
               <div>
                 <dt>Invoice Status</dt>
-                <dd>{reservation.depositInvoice.status}</dd>
+                <dd><CustomerStatusBadge status={reservation.depositInvoice.status} /></dd>
               </div>
             </dl>
 
             {reservation.status === 'PENDING_DEPOSIT' &&
             reservation.depositInvoice.status === 'PAID' ? (
-              <form className="form-grid" onSubmit={handleConfirm}>
-                <div className="flow-visit-type"><FlowIcon name="visit-type" />Handover · RESERVATION</div>
-                <CalendarDateField id="reservationVisitDate" label="Preferred Handover Date" value={visitDate} initialMonth={reservation.startMonth} disabled={submitting} error={dateError} onChange={value => { setVisitDate(value); setDateError(null) }} />
-                <div className="notice"><FlowIcon name="info" />The handover date must follow the reservation policy. Please bring identification to the facility.</div>
-                <div className="action-row">
+              <form className="handover-schedule-form" onSubmit={handleConfirm}>
+                <div className="handover-schedule-type"><FlowIcon name="visit-type" />Handover · RESERVATION</div>
+                <CalendarDateField
+                  id="reservationVisitDate"
+                  label="Preferred Handover Date"
+                  value={visitDate}
+                  initialMonth={reservation.startMonth}
+                  disabled={submitting}
+                  error={dateError}
+                  onChange={value => { setVisitDate(value); setDateError(null) }}
+                />
+                <div className="handover-schedule-notice"><FlowIcon name="info" /><p>The handover date must follow the reservation policy. Please bring identification to the facility.</p></div>
+                <div className="handover-schedule-actions">
                   <Link
                     className="button button-secondary"
                     to={`/customer/reservations/${reservationId}`}
@@ -120,11 +133,12 @@ export function ReservationConfirmPage() {
               </form>
             ) : (
               <>
-                <div className="notice">
-                  This reservation is not eligible for confirmation. Check the reservation status and
-                  deposit payment before selecting a handover date.
+                <div className="handover-schedule-notice handover-schedule-ineligible">
+                  <FlowIcon name="info" />
+                  <p>This reservation is not eligible for confirmation. Check the reservation status and
+                  deposit payment before selecting a handover date.</p>
                 </div>
-                <Link className="button button-secondary" to={`/customer/reservations/${reservationId}`}>
+                <Link className="button button-secondary handover-schedule-back" to={`/customer/reservations/${reservationId}`}>
                   Back to Reservation
                 </Link>
               </>
