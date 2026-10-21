@@ -1,5 +1,6 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, ArrowRight, CalendarClock, CalendarDays, CircleX, ClipboardCheck, DoorOpen, Info, PackageCheck, RefreshCw, Undo2, UserRound } from 'lucide-react'
 import { presentApiError } from '../api/apiErrorPresentation'
 import type { ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { visitApi } from '../api/visitApi'
@@ -10,6 +11,7 @@ import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatus
 import { CalendarDateField } from '../components/CalendarDateField'
 import { CustomerFieldError } from '../components/CustomerFieldError'
 import type { VisitDetail } from '../features/visits/visit.types'
+import '../styles/customer-visit-details.css'
 
 const VISIT_NAMES: Record<VisitDetail['visitType'], string> = {
   RESERVATION: 'Handover',
@@ -128,93 +130,50 @@ export function VisitDetailPage() {
     }
   }
 
-  if (loading && !visit) {
-    return (
-      <main className="page-container flow-page">
-        <LoadingState label="Loading visit..." />
-      </main>
-    )
-  }
-
+  const VisitIcon = visit?.visitType === 'RESERVATION' ? PackageCheck : visit?.visitType === 'RETURN' ? Undo2 : DoorOpen
   return (
-    <main className="page-container flow-page narrow-page">
-      <section className="page-heading page-heading-actions">
-        <div>
-          <p className="eyebrow">My Visits</p>
-          <h1>Visit Details</h1>
-        </div>
-        <Link className="button button-secondary" to="/customer/visits">
-          My Visits
-        </Link>
-      </section>
-
-      <ApiErrorAlert error={error} />
-      <button className="button button-secondary" type="button" disabled={loading || working} onClick={() => {
+    <main className="page-container flow-page customer-visit-details">
+      <div className="visit-detail-navigation"><Link className="visit-detail-text-link" to="/customer/visits"><ArrowLeft size={16} aria-hidden="true" />Back to My Visits</Link><button className="visit-detail-text-button" type="button" disabled={loading || working} onClick={() => {
         setLoading(true); setError(null); setMode(null); void loadVisit()
-      }}>Refresh Visit</button>
-      {visit && (
-        <section className="panel stack">
-          <div className="card-heading-row">
-            <h2>{VISIT_NAMES[visit.visitType]}</h2>
-            <StatusBadge status={visit.status} />
-          </div>
-          <dl className="detail-list compact">
-            <div>
-              <dt>Visit Date</dt>
-              <dd>{visit.visitDate}</dd>
-            </div>
-            {visit.visitType === 'RETURN' && <div>
-              <dt>Actual Return Date</dt>
-              <dd>{visit.actualReturnDate ?? 'Not Available'}</dd>
-            </div>}
-            <div>
-              <dt>Handling Staff</dt>
-              <dd>{visit.employeeId ? 'Recorded by the facility' : 'Not Recorded'}</dd>
-            </div>
+      }}><RefreshCw size={14} aria-hidden="true" />{loading ? 'Refreshing…' : 'Refresh Visit'}</button></div>
+      <header className="page-heading visit-detail-heading"><p className="eyebrow">Visit Management</p><h1>Visit Details</h1><p className="muted">Review your facility visit and manage its scheduled date or cancellation.</p></header>
+      <ApiErrorAlert error={error} />
+      {loading && !visit ? <LoadingState label="Loading visit..." /> : visit && <>
+        <section className={`panel visit-detail-card visit-detail-${visit.status.toLowerCase().replaceAll('_', '-')}`} aria-label="Visit information">
+          <header className="visit-detail-card-heading"><span className="visit-detail-icon"><VisitIcon size={25} aria-hidden="true" /></span><div><h2>{VISIT_NAMES[visit.visitType]}</h2><p>Facility visit</p></div><StatusBadge status={visit.status} /></header>
+          <dl className={`visit-detail-facts${visit.visitType === 'RETURN' ? ' visit-detail-return-facts' : ''}`}>
+            <div className="visit-detail-date"><span className="visit-detail-fact-icon"><CalendarDays size={22} aria-hidden="true" /></span><div><dt>Visit Date <span>(GMT+7)</span></dt><dd>{visit.visitDate}</dd></div></div>
+            {visit.visitType === 'RETURN' && <div><span className="visit-detail-fact-icon"><ClipboardCheck size={22} aria-hidden="true" /></span><div><dt>Actual Return Date</dt><dd>{visit.actualReturnDate ?? 'Not Available'}</dd></div></div>}
+            <div><span className="visit-detail-fact-icon"><UserRound size={22} aria-hidden="true" /></span><div><dt>Handling Staff</dt><dd>{visit.employeeId ? 'Recorded by the facility' : 'Not Recorded'}</dd></div></div>
           </dl>
 
           {visit.visitType === 'ACCESS' && <>
-            <p className="notice">{visit.status === 'SCHEDULED' ? 'Your access visit is scheduled. Staff will check you in and out at the facility.'
+            <p className="visit-detail-notice"><Info size={18} aria-hidden="true" /><span>{visit.status === 'SCHEDULED' ? 'Your access visit is scheduled. Staff will check you in and out at the facility.'
               : visit.status === 'CHECKED_IN' ? 'You are checked in. Staff will check you out after your visit. This visit can no longer be rescheduled or cancelled.'
-              : visit.status === 'CHECKED_OUT' ? 'This access visit is complete. Your rental contract is managed separately.' : 'This access visit has been cancelled.'}</p>
-            <Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(visit.entityId)}`}>View Contract</Link>
+              : visit.status === 'CHECKED_OUT' ? 'This access visit is complete. Your rental contract is managed separately.' : 'This access visit has been cancelled.'}</span></p>
           </>}
 
           {visit.visitType === 'RESERVATION' && (
             <>
               {(visit.status === 'SCHEDULED' || visit.status === 'CHECKED_IN') && (
-                <div className="notice">
-                  {visit.status === 'CHECKED_IN'
+                <p className="visit-detail-notice"><Info size={18} aria-hidden="true" /><span>{visit.status === 'CHECKED_IN'
                     ? 'You are checked in. Staff will complete handover after receiving the first month offline and using the storage unit selected by the Manager.'
-                    : 'Bring identification and pay the first month offline at the facility. Review your reservation for the locked first-month rental amount.'}
-                </div>
+                    : 'Bring identification and pay the first month offline at the facility. Review your reservation for the locked first-month rental amount.'}</span></p>
               )}
-              <Link className="button button-secondary" to={`/customer/reservations/${visit.entityId}`}>
-                View Reservation
-              </Link>
             </>
           )}
 
-          {visit.status === 'SCHEDULED' && mode === null && (
-            <div className="action-row">
-              <button className="button" disabled={loading || working} onClick={() => setMode('reschedule')} type="button">
-                Reschedule
-              </button>
-              <button
-                className="button button-danger"
-                disabled={loading || working}
-                onClick={() => setMode('cancel')}
-                type="button"
-              >
-                Cancel Visit
-              </button>
-            </div>
-          )}
+          {(visit.visitType !== 'RETURN' || (visit.status === 'SCHEDULED' && mode === null)) && <footer className="visit-detail-actions">
+            {visit.visitType === 'ACCESS' && <Link className="visit-detail-text-link" to={`/customer/contracts/${encodeURIComponent(visit.entityId)}`}>View Contract<ArrowRight size={15} aria-hidden="true" /></Link>}
+            {visit.visitType === 'RESERVATION' && <Link className="visit-detail-text-link" to={`/customer/reservations/${visit.entityId}`}>View Reservation<ArrowRight size={15} aria-hidden="true" /></Link>}
+            {visit.status === 'SCHEDULED' && mode === null && <div><button className="button" disabled={loading || working} onClick={() => setMode('reschedule')} type="button"><CalendarClock size={16} aria-hidden="true" />Reschedule</button><button className="button button-danger" disabled={loading || working} onClick={() => setMode('cancel')} type="button"><CircleX size={16} aria-hidden="true" />Cancel Visit</button></div>}
+          </footer>}
+        </section>
 
           {visit.status === 'SCHEDULED' && mode === 'reschedule' && (
-            <form className="form-grid" onSubmit={handleReschedule}>
+            <section className="panel visit-detail-edit visit-detail-reschedule" aria-labelledby="visit-reschedule-heading"><div className="visit-detail-edit-heading"><span className="visit-detail-icon"><CalendarClock size={23} aria-hidden="true" /></span><h2 id="visit-reschedule-heading">Reschedule Visit</h2></div><form className="form-grid" onSubmit={handleReschedule}>
               <CalendarDateField id="newVisitDate" label="New Visit Date" value={newVisitDate} disabled={loading || working} error={fieldErrors.date} onChange={value => { setNewVisitDate(value); setFieldErrors({}) }} />
-              <small className="muted">The new date must follow the policy for this visit.</small>
+              <p className="visit-detail-edit-hint"><Info size={16} aria-hidden="true" />The new date must follow the policy for this visit.</p>
               <div className="action-row">
                 <button className="button button-secondary" disabled={working} onClick={() => setMode(null)} type="button">
                   Close
@@ -223,11 +182,11 @@ export function VisitDetailPage() {
                   {working ? 'Updating...' : 'Save New Date'}
                 </button>
               </div>
-            </form>
+            </form></section>
           )}
 
           {visit.status === 'SCHEDULED' && mode === 'cancel' && (
-            <form className="form-grid" onSubmit={handleCancel}>
+            <section className="panel visit-detail-edit visit-detail-cancel" aria-labelledby="visit-cancel-heading"><div className="visit-detail-edit-heading"><span className="visit-detail-icon"><CircleX size={23} aria-hidden="true" /></span><h2 id="visit-cancel-heading">Cancel Visit</h2></div><form className="form-grid" onSubmit={handleCancel}>
               <div className="form-field">
                 <label htmlFor="visitCancelReason">Cancellation Reason</label>
                 <textarea
@@ -249,10 +208,9 @@ export function VisitDetailPage() {
                   {working ? 'Cancelling...' : 'Confirm Visit Cancellation'}
                 </button>
               </div>
-            </form>
+            </form></section>
           )}
-        </section>
-      )}
+      </>}
     </main>
   )
 }

@@ -1,0 +1,66 @@
+/* Visit Details uses the My Visits card language; existing fields/actions only. */
+.customer-visit-details { container-type: inline-size; }
+.customer-visit-details .visit-detail-navigation { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-block: -12px; }
+.customer-visit-details .visit-detail-text-link, .customer-visit-details .visit-detail-text-button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--flow-brand); font-size: 12px; font-weight: 600; text-decoration: none; }
+.customer-visit-details .visit-detail-text-link:hover { text-decoration: underline; }
+.customer-visit-details .visit-detail-text-button { border: 0; padding: 0; background: transparent; cursor: pointer; }
+.customer-visit-details .visit-detail-text-button:disabled { color: var(--flow-muted); cursor: wait; }
+.customer-visit-details .visit-detail-heading h1 { margin: 0; }
+.customer-visit-details .visit-detail-heading > .muted { margin: 8px 0 0; }
+.frms-customer .customer-visit-details .visit-detail-card, .frms-customer .customer-visit-details .visit-detail-edit { padding: 24px; border-radius: 16px; }
+.customer-visit-details .visit-detail-card-heading { display: flex; align-items: center; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9; }
+.customer-visit-details .visit-detail-card-heading > div { flex: 1; min-width: 0; }
+.customer-visit-details .visit-detail-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex: 0 0 44px; border: 1px solid #dbeafe; border-radius: 12px; background: #eff6ff; color: var(--flow-brand); }
+.customer-visit-details .visit-detail-card-heading h2 { font-size: 18px; margin: 0; }
+.customer-visit-details .visit-detail-card-heading p { margin: 5px 0 0; font-size: 12px; color: var(--flow-muted); }
+.customer-visit-details .visit-detail-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 20px 0; }
+.customer-visit-details .visit-detail-return-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.customer-visit-details .visit-detail-facts > div { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid var(--flow-border); border-radius: 12px; background: #f8fafc; min-width: 0; }
+.customer-visit-details .visit-detail-facts > div > div { min-width: 0; }
+.customer-visit-details .visit-detail-fact-icon { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; flex: 0 0 38px; border-radius: 10px; background: #eff6ff; color: var(--flow-brand); }
+.customer-visit-details .visit-detail-facts dt { display: flex; flex-wrap: wrap; gap: 4px; font-size: 11px; font-weight: 500; color: var(--flow-muted); margin-bottom: 8px; }
+.customer-visit-details .visit-detail-facts dd { font-size: 14px; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+.customer-visit-details .visit-detail-facts .visit-detail-date { background: #eff6ff; border-color: #dbeafe; }
+.customer-visit-details .visit-detail-date .visit-detail-fact-icon { background: var(--flow-brand); color: #fff; }
+.customer-visit-details .visit-detail-notice { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; border-radius: 12px; background: #f8fafc; color: #475569; font-size: 12px; line-height: 1.7; margin: 0 0 20px; }
+.customer-visit-details .visit-detail-notice > svg { flex-shrink: 0; color: var(--flow-brand); margin-top: 2px; }
+.customer-visit-details .visit-detail-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
+.customer-visit-details .visit-detail-actions > div { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-left: auto; }
+.customer-visit-details .visit-detail-actions .button, .customer-visit-details .visit-detail-edit .button { min-height: 44px; border-radius: 12px; font-size: 12px; }
+.customer-visit-details .visit-detail-checked-in .visit-detail-icon { color: #92400e; border-color: #fde68a; background: #fffbeb; }
+.customer-visit-details .visit-detail-checked-in .status-badge { color: #92400e; background: #fef3c7; }
+.customer-visit-details .visit-detail-checked-in .visit-detail-date { background: #fffbeb; border-color: #fde68a; }
+.customer-visit-details .visit-detail-checked-in .visit-detail-date .visit-detail-fact-icon { color: #92400e; background: #fef3c7; }
+.customer-visit-details :is(.visit-detail-checked-out, .visit-detail-cancelled) .visit-detail-date { background: #f8fafc; border-color: var(--flow-border); }
+.customer-visit-details :is(.visit-detail-checked-out, .visit-detail-cancelled) .visit-detail-icon, .customer-visit-details :is(.visit-detail-checked-out, .visit-detail-cancelled) .visit-detail-date .visit-detail-fact-icon { color: #475569; border-color: #e2e8f0; background: #f1f5f9; }
+.customer-visit-details .visit-detail-edit-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.customer-visit-details .visit-detail-edit-heading h2 { font-size: 18px; margin: 0; }
+.customer-visit-details .visit-detail-edit .form-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.customer-visit-details .visit-detail-edit .action-row { justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
+.customer-visit-details .visit-detail-edit .form-field { min-width: 0; }
+.customer-visit-details .visit-detail-edit :is(input, textarea) { min-height: 44px; border-radius: 12px; padding: 12px 14px; background: #fff; font-size: 14px; }
+.customer-visit-details .visit-detail-edit textarea { resize: vertical; }
+.customer-visit-details .visit-detail-edit .flow-date-card { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px 24px; padding: 20px; border-radius: 12px; background: #f8fafc; }
+.customer-visit-details .visit-detail-edit .flow-date-card .form-field { grid-column: 2; grid-row: 1; align-self: start; }
+.customer-visit-details .visit-detail-edit .calendar-heading { grid-column: 1; grid-row: 1; margin: 0; }
+.customer-visit-details .visit-detail-edit .calendar-heading button { width: 44px; height: 44px; }
+.customer-visit-details .visit-detail-edit .calendar-grid { grid-column: 1; grid-row: 2; gap: 4px; }
+.customer-visit-details .visit-detail-edit .calendar-grid button { min-height: 44px; height: 44px; aspect-ratio: auto; }
+.customer-visit-details .visit-detail-edit .calendar-selected { grid-column: 2; grid-row: 2; margin: 0; align-self: start; overflow-wrap: anywhere; }
+.customer-visit-details .visit-detail-edit-hint { display: flex; align-items: flex-start; gap: 8px; color: var(--flow-muted); font-size: 12px; margin: 0; }
+.customer-visit-details .visit-detail-edit-hint svg { flex-shrink: 0; }
+.customer-visit-details .visit-detail-cancel .visit-detail-icon { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
+@container (max-width: 760px) {
+  .customer-visit-details .visit-detail-return-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .customer-visit-details .visit-detail-return-facts > div:last-child { grid-column: 1 / -1; }
+  .customer-visit-details .visit-detail-edit .flow-date-card { grid-template-columns: 1fr; }
+  .customer-visit-details .visit-detail-edit .flow-date-card .form-field { grid-column: 1; grid-row: 1; }
+  .customer-visit-details .visit-detail-edit .calendar-heading { grid-column: 1; grid-row: 2; }
+  .customer-visit-details .visit-detail-edit .calendar-grid { grid-column: 1; grid-row: 3; }
+  .customer-visit-details .visit-detail-edit .calendar-selected { grid-column: 1; grid-row: 4; }
+}
+@container (max-width: 480px) {
+  .customer-visit-details .visit-detail-facts { grid-template-columns: 1fr; }
+  .customer-visit-details .visit-detail-card-heading { flex-wrap: wrap; }
+  .customer-visit-details .visit-detail-actions > div { width: 100%; margin: 0; justify-content: flex-start; }
+}
