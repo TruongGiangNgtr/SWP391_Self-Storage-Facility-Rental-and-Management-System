@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft, CalendarDays, DoorOpen, Info, RefreshCw } from 'lucide-react'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { ApiRequestError } from '../api/httpClient'
 import { visitApi } from '../api/visitApi'
@@ -12,6 +13,7 @@ import { isUuid } from '../features/handover/handoverValidation'
 import { isCalendarDate } from '../features/visits/accessValidation'
 import { useAccessContract } from '../features/visits/useAccessContract'
 import { formatMonthRange } from '../utils/formatters'
+import '../styles/guest-customer-remaining.css'
 
 export function AccessVisitCreatePage() {
   const { contractId = '' } = useParams()
@@ -60,34 +62,36 @@ export function AccessVisitCreatePage() {
   }
 
   return (
-    <main className="page-container flow-page narrow-page">
+    <main className="page-container flow-page narrow-page customer-access-visit">
+      <nav className="remaining-page-navigation" aria-label="Access visit navigation">
+        <Link to={`/customer/contracts/${encodeURIComponent(contractId)}`}><ArrowLeft size={16} aria-hidden="true" />View Contract</Link>
+        <button type="button" disabled={loading || working} onClick={() => { setActionError(null); refresh() }}><RefreshCw size={15} aria-hidden="true" />Refresh Contract</button>
+      </nav>
       <section className="page-heading page-heading-actions">
-        <div><p className="eyebrow">Access Visit</p><h1>Schedule Access Visit</h1></div>
-        <Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(contractId)}`}>View Contract</Link>
+        <div><p className="eyebrow">Access Visit</p><h1>Schedule Access Visit</h1><p className="muted">Choose a date to visit your rented storage unit.</p></div>
       </section>
       <ApiErrorAlert error={actionError ?? error} />
-      <button className="button button-secondary" type="button" disabled={loading || working} onClick={() => { setActionError(null); refresh() }}>Refresh Contract</button>
       {loading ? <LoadingState label="Loading your contract..." /> : contract && <>
-        <section className="panel stack" aria-label="Access contract">
-          <div className="card-heading-row"><h2>Selected Contract</h2><StatusBadge status={contract.status} /></div>
-          <dl className="detail-list compact">
+        <section className="panel stack access-context" aria-label="Access contract">
+          <div className="remaining-card-heading"><span className="remaining-icon"><DoorOpen size={22} aria-hidden="true" /></span><h2>Selected Contract</h2><StatusBadge status={contract.status} /></div>
+          <dl className="remaining-facts access-contract-facts">
             <div><dt>Unit Type</dt><dd>{contractTitle(contract)}</dd></div>
             <div><dt>Storage Unit</dt><dd>{contractUnit(contract)}</dd></div>
             <div><dt>Rental Period</dt><dd>{formatMonthRange(contract.startMonth, contract.endMonth)}</dd></div>
           </dl>
         </section>
-        {contract.status === 'ACTIVE' ? <section className="panel stack" aria-label="Schedule access visit">
-          <h2>Visit Date</h2>
-          <form className="form-grid" onSubmit={handleCreate}>
+        {contract.status === 'ACTIVE' ? <section className="panel stack access-schedule" aria-label="Schedule access visit">
+          <div className="remaining-card-heading"><span className="remaining-icon"><CalendarDays size={22} aria-hidden="true" /></span><h2>Visit Date</h2></div>
+          <form className="access-visit-form" onSubmit={handleCreate}>
             <CalendarDateField id="accessVisitDate" label="Access Visit Date (GMT+7)" value={visitDate} disabled={working} error={dateError} onChange={value => { setVisitDate(value); setDateError(null) }} />
-            <p className="notice">You cannot schedule a new access visit while a return visit is pending. Your eligibility is checked when you submit.</p>
-            <p className="muted">Choose a date to visit your rented unit. This does not create a new reservation or change your rental period.</p>
-            <button className="button" type="submit" disabled={working}>{working ? 'Scheduling...' : 'Confirm Access Visit'}</button>
+            <div className="remaining-info"><Info size={18} aria-hidden="true" /><p>You cannot schedule a new access visit while a return visit is pending. Your eligibility is checked when you submit.</p></div>
+            <p className="remaining-helper">Choose a date to visit your rented unit. This does not create a new reservation or change your rental period.</p>
+            <div className="remaining-actions"><Link className="button button-secondary" to="/customer/visits">My Visits</Link><button className="button" type="submit" disabled={working}><CalendarDays size={16} aria-hidden="true" />{working ? 'Scheduling...' : 'Confirm Access Visit'}</button></div>
           </form>
         </section> : <p className="notice">This contract is not ACTIVE. You cannot schedule an access visit.</p>}
       </>}
       {actionError && <p className="muted">If the request may already have been processed, check My Visits before retrying to avoid scheduling a duplicate visit.</p>}
-      <Link className="button button-secondary" to="/customer/visits">My Visits</Link>
+      {(!contract || contract.status !== 'ACTIVE') && <Link className="button button-secondary access-back" to="/customer/visits">My Visits</Link>}
     </main>
   )
 }

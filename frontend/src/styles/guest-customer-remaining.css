@@ -1,0 +1,120 @@
+/* Remaining Guest/Customer surfaces. Presentation only; no employee selectors. */
+:is(.customer-access-visit, .customer-payment-result, .public-facility-detail-design) .remaining-card-heading { display: flex; align-items: center; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
+:is(.customer-access-visit, .customer-payment-result, .public-facility-detail-design) .remaining-card-heading :is(h2, h3) { flex: 1; min-width: 0; margin: 0; font-size: 18px; }
+:is(.customer-access-visit, .customer-payment-result, .public-facility-detail-design, .customer-unavailable-design) .remaining-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 44px; width: 44px; height: 44px; border-radius: 12px; background: #eff6ff; color: var(--flow-brand); }
+:is(.customer-access-visit, .customer-payment-result) .remaining-page-navigation { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-block: -8px; }
+:is(.customer-access-visit, .customer-payment-result) .remaining-page-navigation :is(a, button) { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; border: 0; padding: 0; background: transparent; color: var(--flow-brand); font-size: 12px; font-weight: 600; text-decoration: none; cursor: pointer; }
+:is(.customer-access-visit, .customer-payment-result) .remaining-page-navigation :is(a, button):hover { text-decoration: underline; }
+.customer-access-visit .remaining-page-navigation button:disabled { color: var(--flow-muted); cursor: wait; text-decoration: none; }
+:is(.customer-access-visit, .customer-payment-result) .remaining-facts { display: grid; gap: 16px; margin: 0; }
+:is(.customer-access-visit, .customer-payment-result) .remaining-facts > div { min-width: 0; padding: 16px; border-radius: 12px; background: #f8fafc; }
+:is(.customer-access-visit, .customer-payment-result) .remaining-facts dt { color: var(--flow-muted); font-size: 12px; }
+:is(.customer-access-visit, .customer-payment-result) .remaining-facts dd { margin: 8px 0 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+:is(.customer-access-visit, .customer-payment-result, .reservation-create-design) .remaining-info { display: flex; align-items: flex-start; gap: 10px; padding: 16px; border: 1px solid #bfdbfe; border-radius: 12px; background: #eff6ff; color: #1e40af; }
+:is(.customer-access-visit, .customer-payment-result, .reservation-create-design) .remaining-info > :is(svg, .flow-icon) { flex-shrink: 0; margin-top: 2px; }
+:is(.customer-access-visit, .customer-payment-result, .reservation-create-design) .remaining-info p { margin: 0; font-size: 12px; line-height: 1.7; }
+:is(.customer-access-visit, .customer-payment-result) .remaining-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+:is(.customer-access-visit, .customer-payment-result) .remaining-actions .button { min-height: 44px; border-radius: 12px; font-size: 12px; }
+.customer-access-visit { container-type: inline-size; container-name: access-visit; }
+.customer-access-visit .page-heading h1 { margin: 0; }
+.customer-access-visit .page-heading .muted { margin: 8px 0 0; }
+.customer-access-visit :is(.access-context, .access-schedule) { padding: 24px; gap: 24px; border-radius: 16px; }
+.customer-access-visit .access-contract-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.customer-access-visit .access-visit-form { display: grid; gap: 16px; }
+.customer-access-visit .flow-date-card { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px 24px; padding: 20px; background: #f8fafc; }
+.customer-access-visit .flow-date-card .form-field { grid-column: 2; grid-row: 1; align-self: start; }
+.customer-access-visit .flow-date-card input { background: #fff; min-height: 44px; border-radius: 12px; font-size: 14px; }
+.customer-access-visit .calendar-heading { grid-column: 1; grid-row: 1; margin: 0; align-self: start; }
+.customer-access-visit .calendar-grid { grid-column: 1; grid-row: 2; gap: 4px; }
+.customer-access-visit .calendar-selected { grid-column: 2; grid-row: 2; align-self: start; margin: 0; font-size: 12px; }
+.customer-access-visit .remaining-helper { margin: 0; font-size: 12px; line-height: 1.7; color: var(--flow-muted); }
+.customer-access-visit .access-back { justify-self: start; }
+.customer-payment-result .payment-result-card { gap: 24px; padding: 24px; border-radius: 16px; }
+.customer-payment-result .payment-result-outcome { display: grid; justify-items: center; gap: 12px; padding: 8px 0 24px; border-bottom: 1px solid #e2e8f0; text-align: center; }
+.customer-payment-result .payment-result-icon { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; margin-bottom: 4px; border-radius: 50%; background: #fffbeb; color: #b45309; }
+.customer-payment-result .payment-result-success .payment-result-icon { background: #ecfdf5; color: #047857; }
+.customer-payment-result .payment-result-failed .payment-result-icon { background: #fef2f2; color: #b91c1c; }
+.customer-payment-result .payment-result-outcome h2 { font-size: 24px; margin: 0; }
+.customer-payment-result .payment-result-outcome p { max-width: 560px; margin: 0; color: var(--flow-muted); font-size: 14px; line-height: 1.7; }
+.customer-payment-result .payment-result-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.customer-payment-result .payment-result-facts > div:first-child { grid-column: 1 / -1; padding: 20px; background: #eff6ff; border: 1px solid #dbeafe; }
+.customer-payment-result .payment-result-facts > div:first-child dd { font-size: 24px; color: #1e40af; }
+.customer-payment-result .payment-result-facts > div:last-child { grid-column: 1 / -1; }
+.customer-payment-result .payment-result-reference { border: 1px solid #e2e8f0; border-radius: 12px; padding: 0 16px; font-size: 12px; color: var(--flow-muted); }
+.customer-payment-result .payment-result-reference summary { min-height: 44px; padding: 12px 0; cursor: pointer; }
+.customer-payment-result .payment-result-reference p { margin: 0 0 16px; overflow-wrap: anywhere; }
+.customer-payment-result .payment-result-pending-note { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+:is(.reservation-create-design, .reservation-sign-in-design).flow-dialog { width: 640px; padding: 28px; border-radius: 20px; }
+:is(.reservation-create-design, .reservation-sign-in-design).flow-dialog::backdrop { background: #0f172a8c; backdrop-filter: blur(2px); }
+:is(.reservation-create-design, .reservation-sign-in-design) .flow-dialog-heading { gap: 16px; }
+:is(.reservation-create-design, .reservation-sign-in-design) .flow-dialog-heading > div { flex: 1; min-width: 0; }
+:is(.reservation-create-design, .reservation-sign-in-design) .flow-dialog-heading-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; background: #eff6ff; color: var(--flow-brand); }
+:is(.reservation-create-design, .reservation-sign-in-design) .flow-dialog-heading h1 { font-size: 20px; line-height: 1.35; font-weight: 800; }
+:is(.reservation-create-design, .reservation-sign-in-design) .flow-dialog-heading .eyebrow { margin: 3px 0 6px; font-size: 11px; }
+:is(.reservation-create-design, .reservation-sign-in-design).flow-dialog .dialog-subtitle { margin: 4px 0 20px 60px; font-size: 12px; line-height: 1.7; }
+:is(.reservation-create-design, .reservation-sign-in-design) .dialog-close { width: 44px; height: 44px; flex-shrink: 0; margin: -6px -6px 0 -6px; color: var(--flow-muted); }
+.reservation-create-design .reservation-create-content { gap: 20px; }
+.reservation-create-design .reservation-create-selection { border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; overflow: hidden; }
+.reservation-create-design .dialog-selection { gap: 12px; padding: 16px; border-bottom: 1px solid #e2e8f0; background: #eff6ff; margin: 0; }
+.reservation-create-design .dialog-selection strong { font-size: 16px; }
+.reservation-create-design .dialog-selection small { font-size: 12px; }
+.reservation-create-design .reservation-create-selection .detail-list { margin: 0; padding: 16px; gap: 20px 16px; border: 0; background: transparent; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.reservation-create-design .reservation-create-selection .detail-list > div { padding: 0; background: transparent; }
+.reservation-create-design .detail-list dt { font-size: 12px; color: var(--flow-muted); }
+.reservation-create-design .detail-list dd { margin-top: 6px; font-size: 14px; overflow-wrap: anywhere; }
+.reservation-create-design .reservation-create-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+.reservation-create-design .reservation-create-actions .button { min-height: 44px; border-radius: 12px; font-size: 12px; }
+.reservation-create-design .reservation-create-submit { grid-column: 1 / -1; }
+.reservation-create-design.page-container .page-heading > div { display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.reservation-create-design.page-container .page-heading .flow-dialog-heading-icon { grid-row: 1 / span 3; }
+.reservation-create-design.page-container .page-heading p { grid-column: 2; }
+.reservation-create-design.page-container .page-heading h1 { margin: 0; font-size: 24px; }
+.reservation-sign-in-design .customer-sign-in-gate { gap: 16px; }
+.reservation-sign-in-design .customer-sign-in-gate > .panel { border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; padding: 16px; }
+.reservation-sign-in-design .customer-sign-in-gate .dialog-selection { padding: 0 0 16px; margin-bottom: 16px; border: 0; border-bottom: 1px solid #e2e8f0; border-radius: 0; }
+.reservation-sign-in-design .customer-sign-in-gate .detail-list { padding: 0; border: 0; background: transparent; gap: 16px; }
+.reservation-sign-in-design .customer-sign-in-gate .detail-list dt { color: var(--flow-muted); font-size: 12px; }
+.reservation-sign-in-design .customer-sign-in-gate .detail-list dd { font-size: 12px; overflow-wrap: anywhere; }
+.reservation-sign-in-design .customer-sign-in-gate > .button { min-height: 44px; border-radius: 12px; font-size: 12px; }
+.public-facility-detail-design .public-facility-summary { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); padding: 24px; gap: 32px; }
+.public-facility-detail-design .facility-location-card { display: grid; align-content: start; justify-items: start; gap: 16px; padding: 24px; border: 1px solid #dbeafe; border-radius: 12px; background: #eff6ff; }
+.public-facility-detail-design .facility-location-card .remaining-icon { background: #fff; }
+.public-facility-detail-design .facility-location-card :is(h2, p) { margin: 0; }
+.public-facility-detail-design .facility-location-card h2 { font-size: 22px; line-height: 1.5; overflow-wrap: anywhere; }
+.public-facility-detail-design .facility-location-address { font-size: 14px; color: #475569; }
+.public-facility-detail-design .facility-location-card .button { font-size: 12px; margin-top: 8px; }
+.public-facility-detail-design .facility-about { min-width: 0; }
+.public-facility-detail-design .facility-about .public-description { margin: 20px 0; }
+.public-facility-detail-design .facility-contact { padding: 20px 0; border-bottom: 1px solid #e2e8f0; }
+.public-facility-detail-design .facility-contact h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 14px; }
+.public-facility-detail-design .facility-contact h3 svg { color: var(--flow-brand); flex-shrink: 0; }
+.public-facility-detail-design .facility-contact p { margin: 0; font-size: 14px; white-space: pre-wrap; }
+.public-facility-detail-design .facility-options-heading { scroll-margin-top: 104px; }
+.public-facility-detail-design .facility-options-heading h2 { margin: 0; font-size: 22px; }
+.public-facility-detail-design .facility-options-heading .muted { margin: 8px 0 0; }
+.public-facility-detail-design .facility-detail-actions { display: flex; padding-top: 8px; }
+.customer-unavailable-design .customer-unavailable-card { align-items: center; justify-items: center; gap: 16px; padding: 40px 24px; text-align: center; }
+.customer-unavailable-design .customer-unavailable-card .remaining-icon { width: 56px; height: 56px; flex-basis: 56px; border-radius: 16px; }
+.customer-unavailable-design .customer-unavailable-card h2 { margin: 0; font-size: 20px; }
+.customer-unavailable-design .customer-unavailable-card p { max-width: 520px; margin: 0; font-size: 14px; line-height: 1.7; }
+.customer-unavailable-design .unavailable-message { color: #475569; }
+.customer-unavailable-design .customer-tabs { margin-bottom: 24px; }
+@container access-visit (max-width: 760px) {
+  .customer-access-visit .access-contract-facts { grid-template-columns: 1fr; }
+  .customer-access-visit .flow-date-card { grid-template-columns: 1fr; }
+  .customer-access-visit .flow-date-card .form-field { grid-column: 1; grid-row: 1; }
+  .customer-access-visit .calendar-heading { grid-column: 1; grid-row: 2; }
+  .customer-access-visit .calendar-grid { grid-column: 1; grid-row: 3; }
+  .customer-access-visit .calendar-selected { grid-column: 1; grid-row: 4; }
+}
+@media (max-width: 767px) {
+  .public-facility-detail-design .public-facility-summary { grid-template-columns: 1fr; gap: 24px; }
+  :is(.customer-access-visit, .customer-payment-result) .remaining-actions .button { flex: 1 1 auto; }
+}
+@media (max-width: 600px) {
+  :is(.reservation-create-design, .reservation-sign-in-design).flow-dialog { padding: 20px; }
+  :is(.reservation-create-design, .reservation-sign-in-design).flow-dialog .dialog-subtitle { margin-left: 0; margin-top: 12px; }
+  .reservation-create-design .reservation-create-selection .detail-list { grid-template-columns: 1fr; }
+  .reservation-create-design .reservation-create-actions { grid-template-columns: 1fr; }
+  .customer-payment-result .payment-result-facts { grid-template-columns: 1fr; }
+}
