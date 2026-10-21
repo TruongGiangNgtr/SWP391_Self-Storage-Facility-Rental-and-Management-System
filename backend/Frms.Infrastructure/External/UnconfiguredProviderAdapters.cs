@@ -16,4 +16,6 @@ internal sealed class UnconfiguredEmailService : IEmailService
 internal sealed class UnconfiguredNotificationSender : INotificationSender
 {
     public Task EnsureConfiguredAsync(CancellationToken cancellationToken) => Task.FromException(new BusinessException("EXTERNAL_PROVIDER_NOT_CONFIGURED", "Notification provider is not configured.", 503));
+    public Task SendAsync(NotificationDeliveryRequest request, CancellationToken cancellationToken) =>
+        Task.FromException(new BusinessException("EXTERNAL_PROVIDER_NOT_CONFIGURED", "Notification provider is not configured.", 503));
 }

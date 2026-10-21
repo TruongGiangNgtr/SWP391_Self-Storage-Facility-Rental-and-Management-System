@@ -1,7 +1,4 @@
 using Frms.Business.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Frms.Api.BackgroundJobs;
 

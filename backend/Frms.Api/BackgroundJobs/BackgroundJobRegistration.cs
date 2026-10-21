@@ -1,5 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Frms.Api.BackgroundJobs;
 
 public static class BackgroundJobRegistration
@@ -9,6 +7,12 @@ public static class BackgroundJobRegistration
     {
         services.AddHostedService<
             ExpirePendingReservationsJob>();
+
+        // Financial jobs run in a single ordered pipeline: generate -> overdue -> late fee.
+        // Feature gates prevent unreviewed deployments from mutating finance state.
+        services.AddHostedService<BillingMaintenanceJob>();
+        services.AddHostedService<ProcessReservationNoShowJob>();
+        services.AddHostedService<RetryNotificationsJob>();
 
         return services;
     }

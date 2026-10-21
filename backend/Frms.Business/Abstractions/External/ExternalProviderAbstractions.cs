@@ -40,7 +40,15 @@ public interface IAiRecommendationProvider
 }
 
 /// <summary>Configuration boundary for retryable notification delivery.</summary>
+public sealed record NotificationDeliveryRequest(
+    Guid NotificationLogId, Guid UserAccountId, string RecipientEmail,
+    string NotificationType, string Content);
+
 public interface INotificationSender
 {
     Task EnsureConfiguredAsync(CancellationToken cancellationToken);
+
+    // May be delivered more than once after crash/retry. Providers should deduplicate
+    // on NotificationLogId; failures must throw, never acknowledge false success.
+    Task SendAsync(NotificationDeliveryRequest request, CancellationToken cancellationToken);
 }
