@@ -7,4 +7,5 @@ public interface IRecurringJobsService
     Task MarkOverdueInvoicesAsync(CancellationToken cancellationToken);
     Task RecalculateOpenLateFeesAsync(CancellationToken cancellationToken);
     Task RetryOnePendingNotificationAsync(CancellationToken cancellationToken);
+    Task<int> RetryPendingNotificationsAsync(int maxItems, CancellationToken cancellationToken);
 }

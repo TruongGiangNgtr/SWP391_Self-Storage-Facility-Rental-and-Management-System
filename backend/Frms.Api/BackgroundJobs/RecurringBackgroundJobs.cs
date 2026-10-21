@@ -97,5 +97,6 @@ internal sealed class RetryNotificationsJob(
     protected override string EnabledSetting => "BackgroundJobs:Notifications:Enabled";
     protected override TimeSpan Interval => TimeSpan.FromMinutes(5);
     protected override Task RunAsync(IRecurringJobsService jobs, CancellationToken token) =>
-        jobs.RetryOnePendingNotificationAsync(token);
+        jobs.RetryPendingNotificationsAsync(
+            Math.Clamp(config.GetValue<int>("BackgroundJobs:Notifications:BatchSize", 20), 1, 100), token);
 }

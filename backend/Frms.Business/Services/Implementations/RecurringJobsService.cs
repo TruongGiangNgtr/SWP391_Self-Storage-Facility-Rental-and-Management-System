@@ -21,16 +21,28 @@ internal sealed class RecurringJobsService(
 
     public async Task RetryOnePendingNotificationAsync(CancellationToken token)
     {
-        // A missing provider is not success. Do not claim or mark a row SENT.
-        await sender.EnsureConfiguredAsync(token);
-        await using var lease = await repository.TryAcquireNotificationAsync(token);
-        if (lease is null) return;
+        await RetryPendingNotificationsAsync(1, token);
+    }
 
-        var item = lease.Notification;
-        await sender.SendAsync(new NotificationDeliveryRequest(
-            item.NotificationLogId, item.UserAccountId, item.RecipientEmail,
-            item.NotificationType, item.Content), token);
-        // Only an acknowledged send transitions the PENDING row to SENT.
-        await lease.MarkSentAsync(token);
+    public async Task<int> RetryPendingNotificationsAsync(int maxItems, CancellationToken token)
+    {
+        if (maxItems is < 1 or > 100)
+            throw new ArgumentOutOfRangeException(nameof(maxItems));
+        // Validate provider once per tick; never mark SENT on failure.
+        await sender.EnsureConfiguredAsync(token);
+        var sent = 0;
+        for (var i = 0; i < maxItems; i++)
+        {
+            token.ThrowIfCancellationRequested();
+            await using var lease = await repository.TryAcquireNotificationAsync(token);
+            if (lease is null) break;
+            var item = lease.Notification;
+            await sender.SendAsync(new NotificationDeliveryRequest(
+                item.NotificationLogId, item.UserAccountId, item.RecipientEmail,
+                item.NotificationType, item.Content), token);
+            await lease.MarkSentAsync(token);
+            sent++;
+        }
+        return sent;
     }
 }

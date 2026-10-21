@@ -1,6 +1,7 @@
 using Frms.Business.Abstractions.External;
 using Frms.Infrastructure.External;
 using Frms.Infrastructure.Ai;
+using Frms.Infrastructure.Email;
 using Frms.Infrastructure.Payments;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,8 +24,30 @@ public static class InfrastructureServiceCollectionExtensions
                 .RemoveAllLoggers();
         else
             services.AddSingleton<IAiRecommendationProvider, UnconfiguredAiRecommendationProvider>();
-        services.AddSingleton<IEmailService, UnconfiguredEmailService>();
-        services.AddSingleton<INotificationSender, UnconfiguredNotificationSender>();
+
+        var emailProvider = configuration["Email:Provider"];
+        if (string.Equals(emailProvider, "Smtp", StringComparison.OrdinalIgnoreCase))
+        {
+            // Fail closed: reject incomplete SMTP settings at startup, without exposing secrets.
+            services.AddOptions<SmtpEmailOptions>()
+                .Bind(configuration.GetSection(SmtpEmailOptions.SectionName))
+                .Validate(SmtpEmailOptions.IsValid, "Email:Smtp configuration is invalid or incomplete.")
+                .ValidateOnStart();
+            services.AddTransient<ISmtpEmailTransport, SmtpEmailTransport>();
+            services.AddTransient<IEmailService, SmtpInitialCredentialEmailService>();
+            services.AddTransient<INotificationSender, SmtpNotificationSender>();
+        }
+        else if (string.IsNullOrWhiteSpace(emailProvider) ||
+                 string.Equals(emailProvider, "Unconfigured", StringComparison.OrdinalIgnoreCase))
+        {
+            // Legacy-safe default: never pretend that an email was sent.
+            services.AddSingleton<IEmailService, UnconfiguredEmailService>();
+            services.AddSingleton<INotificationSender, UnconfiguredNotificationSender>();
+        }
+        else
+        {
+            throw new InvalidOperationException("Unsupported Email:Provider. Expected Smtp or Unconfigured.");
+        }
         return services;
     }
 }
