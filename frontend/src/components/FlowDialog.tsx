@@ -3,6 +3,8 @@ import { FlowIcon } from './FlowIcon'
 import '../styles/customer.css'
 
 interface FlowDialogProps {
+  className?: string
+  headingIcon?: ReactNode
   title: string
   subtitle: string
   category: string
@@ -12,7 +14,7 @@ interface FlowDialogProps {
   children: ReactNode
 }
 
-export function FlowDialog({ title, subtitle, category, busy = false, trapFocus = false, onClose, children }: FlowDialogProps) {
+export function FlowDialog({ title, subtitle, category, className = '', headingIcon, busy = false, trapFocus = false, onClose, children }: FlowDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const restoreTarget = useRef<{ element: HTMLElement; href: string | null } | null>(null)
   const titleId = useId()
@@ -47,7 +49,7 @@ export function FlowDialog({ title, subtitle, category, busy = false, trapFocus 
 
   return (
     <dialog
-      className="frms-customer flow-dialog"
+      className={`frms-customer flow-dialog ${className}`}
       ref={dialogRef}
       aria-labelledby={titleId}
       onKeyDown={(event) => {
@@ -69,6 +71,7 @@ export function FlowDialog({ title, subtitle, category, busy = false, trapFocus 
       }}
     >
       <div className="flow-dialog-heading">
+        {headingIcon && <span className="flow-dialog-heading-icon" aria-hidden="true">{headingIcon}</span>}
         <div><p className="eyebrow">{category}</p><h1 id={titleId}>{title}</h1></div>
         <button className="dialog-close" type="button" disabled={busy} onClick={onClose} aria-label="Close">
           <FlowIcon name="close" />

@@ -1,0 +1,61 @@
+/* Request Extension: local export layout with SRS-owned renewal/payment semantics. */
+.customer-renewal.flow-dialog { width: 600px; padding: 28px; border-radius: 20px; }
+.customer-renewal .flow-dialog-heading { gap: 16px; }
+.customer-renewal .flow-dialog-heading > div { flex: 1; min-width: 0; }
+.customer-renewal .flow-dialog-heading-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; border: 1px solid #dbeafe; border-radius: 12px; background: #eff6ff; color: #2563eb; }
+.customer-renewal .flow-dialog-heading h1 { font-size: 24px; line-height: 1.35; letter-spacing: -.04em; }
+.customer-renewal .flow-dialog-heading .eyebrow { font-size: 11px; margin: 4px 0 6px; }
+.customer-renewal .dialog-close { width: 44px; height: 44px; flex-shrink: 0; margin: -12px -12px 0 -12px; background: transparent; color: #64748b; }
+.customer-renewal .dialog-close:hover { background: #f1f5f9; }
+.customer-renewal .dialog-subtitle { margin: 4px 0 8px 60px; font-size: 13px; line-height: 1.65; }
+.customer-renewal .customer-action-content { gap: 16px; }
+.customer-renewal .renewal-toolbar { display: flex; justify-content: flex-end; margin-block: -8px; }
+.customer-renewal .renewal-refresh { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0; border: 0; background: transparent; color: #2563eb; font-size: 11px; cursor: pointer; }
+.customer-renewal .renewal-refresh:disabled { color: #64748b; cursor: wait; }
+.customer-renewal .renewal-context, .customer-renewal .renewal-selection, .customer-renewal .renewal-summary, .customer-renewal .renewal-confirmation { min-width: 0; padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+.customer-renewal .renewal-context-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; }
+.customer-renewal .renewal-label { color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+.customer-renewal .renewal-context h2 { font-size: 14px; margin: 6px 0 0; overflow-wrap: anywhere; }
+.customer-renewal .renewal-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; }
+.customer-renewal .renewal-facts > div { min-width: 0; }
+.customer-renewal .renewal-facts dt { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 11px; color: #64748b; }
+.customer-renewal .renewal-facts dd { margin: 6px 0 0; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.customer-renewal .renewal-facts small { display: block; margin-top: 4px; font-size: 11px; font-weight: 400; }
+.customer-renewal .renewal-form { display: grid; gap: 16px; }
+.customer-renewal .renewal-selection { background: #eff6ff; border-color: #bfdbfe; }
+.customer-renewal .renewal-selection label { display: flex; align-items: center; gap: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: #1e40af; }
+.customer-renewal .renewal-selection input { width: 100%; min-width: 0; min-height: 44px; padding: 10px 14px; border: 1px solid #bfdbfe; border-radius: 12px; background: white; color: #0f172a; font-size: 14px; }
+.customer-renewal .renewal-selection .renewal-facts { margin-top: 14px; padding-top: 14px; border-top: 1px solid #dbeafe; }
+.customer-renewal .renewal-selection .renewal-facts > div + div { padding-left: 12px; border-left: 1px solid #dbeafe; }
+.customer-renewal .renewal-new-month { color: #1d4ed8; }
+.customer-renewal .renewal-duration { display: inline-flex; padding: 3px 6px; background: #dbeafe; color: #1e40af; border-radius: 4px; font-size: 10px; font-weight: 700; }
+.customer-renewal .renewal-helper { margin: 10px 0 0; font-size: 11px; line-height: 1.7; color: #64748b; }
+.customer-renewal .renewal-summary h2 { margin: 0 0 14px; text-transform: uppercase; color: #334155; font-size: 11px; letter-spacing: .04em; }
+.customer-renewal .renewal-summary dl { display: grid; gap: 10px; margin: 0; }
+.customer-renewal .renewal-summary dl > div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; font-size: 12px; }
+.customer-renewal .renewal-summary dt { color: #64748b; }
+.customer-renewal .renewal-summary dd { margin: 0; text-align: right; font-weight: 600; color: #334155; }
+.customer-renewal .renewal-summary > p { display: flex; align-items: flex-start; gap: 8px; margin: 14px 0 0; padding-top: 12px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 11px; line-height: 1.7; }
+.customer-renewal .renewal-summary > p svg { flex-shrink: 0; margin-top: 2px; }
+.customer-renewal .renewal-continuity { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid #a7f3d0; border-radius: 12px; background: #ecfdf5; color: #065f46; }
+.customer-renewal .renewal-continuity svg { flex-shrink: 0; margin-top: 2px; }
+.customer-renewal .renewal-continuity p { margin: 0; font-size: 12px; line-height: 1.7; }
+.customer-renewal .renewal-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+.customer-renewal .renewal-actions .button { min-height: 44px; border-radius: 12px; font-size: 13px; }
+.customer-renewal .renewal-confirmation { background: #ecfdf5; border-color: #a7f3d0; }
+.customer-renewal .renewal-section-heading { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; color: #047857; }
+.customer-renewal .renewal-section-heading h2 { margin: 0; font-size: 16px; }
+.customer-renewal .renewal-confirmation > p { font-size: 12px; line-height: 1.7; margin: 16px 0 0; color: #065f46; }
+.customer-renewal .form-error { margin: 0; }
+.customer-renewal.page-container .page-heading > div { display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.customer-renewal.page-container .page-heading .flow-dialog-heading-icon { grid-row: 1 / span 3; }
+.customer-renewal.page-container .page-heading h1 { font-size: 24px; margin: 0; }
+.customer-renewal.page-container .page-heading p { grid-column: 2; }
+@media (max-width: 600px) {
+  .customer-renewal.flow-dialog { padding: 20px; }
+  .customer-renewal .flow-dialog-heading { gap: 10px; }
+  .customer-renewal .flow-dialog-heading h1 { font-size: 20px; }
+  .customer-renewal .dialog-subtitle { margin-left: 0; margin-top: 12px; }
+  .customer-renewal .renewal-facts { gap: 12px; }
+  .customer-renewal .renewal-actions .button { flex: 1 1 auto; }
+}
