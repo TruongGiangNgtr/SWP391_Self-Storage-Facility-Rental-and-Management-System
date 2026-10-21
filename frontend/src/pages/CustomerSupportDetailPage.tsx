@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { ArrowLeft, ArrowRight, ClipboardCheck, Info, MessageSquareText, RefreshCw, Ticket, XCircle } from 'lucide-react'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { cancelSupportTicket, getSupportTicket } from '../api/supportTicketApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
@@ -10,6 +11,8 @@ import { CustomerFieldError } from '../components/CustomerFieldError'
 import { canCancelSupportTicket, isSupportTicket } from '../features/customer-support/supportValidation'
 import type { SupportTicketDetail } from '../features/manager-support/models/supportTicket'
 import { formatUtcDateTime } from '../utils/formatters'
+import '../styles/customer-support.css'
+import '../styles/customer-support-pages.css'
 
 export function CustomerSupportDetailPage() {
   const { ticketId = '' } = useParams()
@@ -55,20 +58,39 @@ export function CustomerSupportDetailPage() {
     } finally { busy.current = false; if (mounted.current) setWorking(false) }
   }
 
-  return <main className="page-container flow-page narrow-page">
-    <section className="page-heading page-heading-actions"><div><p className="eyebrow">Customer Support</p><h1>Support Ticket Details</h1></div><Link className="button button-secondary" to="/customer/support-tickets">My Support Tickets</Link></section>
+  return <main className="page-container flow-page customer-support customer-support-pages support-detail-page">
+    <div className="support-page-navigation">
+      <Link className="support-text-link" to="/customer/support-tickets"><ArrowLeft size={16} aria-hidden="true" />My Support Tickets</Link>
+      <button className="support-text-button" type="button" disabled={loading || working} onClick={() => { setActionError(null); setRetry(value => value + 1) }}><RefreshCw size={14} aria-hidden="true" />Refresh Ticket</button>
+    </div>
+    <header className="support-page-heading"><div><p className="eyebrow">Customer Support</p><h1>Support Ticket Details</h1><p className="muted">Review your request and the recorded Staff result.</p></div></header>
     <ApiErrorAlert error={actionError} /><ApiErrorAlert error={readError} />
-    <button className="button button-secondary" type="button" disabled={loading || working} onClick={() => { setActionError(null); setRetry(value => value + 1) }}>Refresh Ticket</button>
-    {loading ? <LoadingState label="Loading your support ticket..." /> : ticket && <section className="panel stack">
-      <div className="card-heading-row"><h2>{customerLabel(ticket.category)}</h2><StatusBadge status={ticket.status} /></div>
-      <dl className="detail-list"><div><dt>Related Contract</dt><dd><Link to={`/customer/contracts/${encodeURIComponent(ticket.contractId)}`}>View Contract</Link></dd></div><div><dt>Description</dt><dd>{ticket.description}</dd></div><div><dt>Staff Assignment</dt><dd>{ticket.assignedEmployeeId ? 'Assigned' : 'Not Assigned'}</dd></div><div><dt>Staff Result</dt><dd>{ticket.resultNote ?? 'No result recorded yet.'}</dd></div><div><dt>Created (GMT+7)</dt><dd>{formatUtcDateTime(ticket.createdAt)}</dd></div><div><dt>Completed (GMT+7)</dt><dd>{ticket.completedAt ? formatUtcDateTime(ticket.completedAt) : 'Not Completed'}</dd></div></dl>
-      <Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(ticket.contractId)}`}>View Contract</Link>
-      {canCancelSupportTicket(ticket) ? <form className="form-grid" onSubmit={cancel} noValidate>
-        <h2>Cancel Ticket</h2><div className="form-field"><label htmlFor="supportCancelReason">Cancellation Reason</label><textarea id="supportCancelReason" value={reason} disabled={working} aria-invalid={Boolean(reasonError)} aria-describedby={reasonError ? 'supportCancelReason-error' : undefined} onChange={event => { setReason(event.target.value); setReasonError(null) }} /><CustomerFieldError id="supportCancelReason-error" message={reasonError} /></div>
-        <p className="muted">Only eligible OPEN or IN_PROGRESS tickets can be cancelled. The backend checks the current state and ownership.</p>
-        <button className="button button-danger" type="submit" disabled={working}>{working ? 'Cancelling...' : 'Cancel Support Ticket'}</button>
-      </form> : <p className="notice">This ticket is {ticket.status}. It can no longer be cancelled.</p>}
-    </section>}
-    {actionError && <p className="notice">Review the refreshed ticket before retrying. No cancellation request is automatically replayed.</p>}
+    {loading ? <LoadingState label="Loading your support ticket..." /> : ticket && <>
+      <section className={`panel support-page-card support-detail-${ticket.status.toLowerCase().replaceAll('_', '-')}`} aria-label="Support ticket information">
+        <header className="support-page-card-heading"><span className="support-page-icon"><Ticket size={24} aria-hidden="true" /></span><div><span className="support-detail-label">Contract Support</span><h2>{customerLabel(ticket.category)}</h2></div><StatusBadge status={ticket.status} /></header>
+        <div className="support-detail-columns">
+          <dl className="support-detail-messages">
+            <div><dt><MessageSquareText size={18} aria-hidden="true" />Description</dt><dd>{ticket.description}</dd></div>
+            <div className="support-detail-result"><dt><ClipboardCheck size={18} aria-hidden="true" />Staff Result</dt><dd>{ticket.resultNote ?? 'No result recorded yet.'}</dd></div>
+          </dl>
+          <dl className="support-detail-facts">
+            <div><dt>Related Contract</dt><dd><Link className="support-text-link" to={`/customer/contracts/${encodeURIComponent(ticket.contractId)}`}>View Contract<ArrowRight size={14} aria-hidden="true" /></Link></dd></div>
+            <div><dt>Staff Assignment</dt><dd>{ticket.assignedEmployeeId ? 'Assigned' : 'Not Assigned'}</dd></div>
+            <div><dt>Created (GMT+7)</dt><dd>{formatUtcDateTime(ticket.createdAt)}</dd></div>
+            <div><dt>Completed (GMT+7)</dt><dd>{ticket.completedAt ? formatUtcDateTime(ticket.completedAt) : 'Not Completed'}</dd></div>
+          </dl>
+        </div>
+        <footer className="support-detail-footer"><Link className="button button-secondary" to={`/customer/contracts/${encodeURIComponent(ticket.contractId)}`}>View Contract<ArrowRight size={15} aria-hidden="true" /></Link></footer>
+      </section>
+      {canCancelSupportTicket(ticket) ? <section className="panel support-page-card support-cancel-card" aria-labelledby="support-cancel-heading">
+        <div className="support-page-card-heading"><span className="support-page-icon"><XCircle size={24} aria-hidden="true" /></span><h2 id="support-cancel-heading">Cancel Ticket</h2></div>
+        <form className="form-grid support-cancel-form" onSubmit={cancel} noValidate>
+          <div className="form-field"><label htmlFor="supportCancelReason">Cancellation Reason</label><textarea id="supportCancelReason" rows={4} value={reason} disabled={working} aria-invalid={Boolean(reasonError)} aria-describedby={reasonError ? 'supportCancelReason-error' : undefined} onChange={event => { setReason(event.target.value); setReasonError(null) }} /><CustomerFieldError id="supportCancelReason-error" message={reasonError} /></div>
+          <p className="support-page-note">Only eligible OPEN or IN_PROGRESS tickets can be cancelled. The backend checks the current state and ownership.</p>
+          <div className="support-form-actions"><button className="button button-danger" type="submit" disabled={working}><XCircle size={16} aria-hidden="true" />{working ? 'Cancelling...' : 'Cancel Support Ticket'}</button></div>
+        </form>
+      </section> : <p className="support-page-notice"><Info size={17} aria-hidden="true" /><span>This ticket is {ticket.status}. It can no longer be cancelled.</span></p>}
+    </>}
+    {actionError && <p className="support-page-notice support-page-warning"><Info size={17} aria-hidden="true" /><span>Review the refreshed ticket before retrying. No cancellation request is automatically replayed.</span></p>}
   </main>
 }
