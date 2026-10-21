@@ -8,6 +8,7 @@ interface CalendarDateFieldProps {
   label: string
   value: string
   initialMonth?: string
+  showCalendar?: boolean
   disabled?: boolean
   error?: string | null
   onChange(value: string): void
@@ -19,7 +20,7 @@ function moveMonth(month: string, step: number): string {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`
 }
 
-export function CalendarDateField({ id, label, value, initialMonth, disabled = false, error, onChange }: CalendarDateFieldProps) {
+export function CalendarDateField({ id, label, value, initialMonth, showCalendar = true, disabled = false, error, onChange }: CalendarDateFieldProps) {
   const [month, setMonth] = useState(() => value.slice(0, 7) || initialMonth || getCurrentBusinessMonth())
   const [year, monthNumber] = month.split('-').map(Number)
   const offset = (new Date(Date.UTC(year, monthNumber - 1, 1)).getUTCDay() + 6) % 7
@@ -46,7 +47,7 @@ export function CalendarDateField({ id, label, value, initialMonth, disabled = f
         />
         <CustomerFieldError id={`${id}-error`} message={error} />
       </div>
-      <div className="calendar-heading">
+      {showCalendar && <><div className="calendar-heading">
         <button type="button" disabled={disabled} aria-label="Previous Month" onClick={() => setMonth(moveMonth(month, -1))}><FlowIcon name="calendar-prev" /></button>
         <strong>{monthLabel}</strong>
         <button type="button" disabled={disabled} aria-label="Next Month" onClick={() => setMonth(moveMonth(month, 1))}><FlowIcon name="calendar-next" /></button>
@@ -59,7 +60,7 @@ export function CalendarDateField({ id, label, value, initialMonth, disabled = f
           return <button key={date} type="button" disabled={disabled} aria-label={`Select ${date}`} aria-pressed={value === date} onClick={() => onChange(date)}>{index + 1}</button>
         })}
       </div>
-      <p className="calendar-selected">Selected Date: <strong>{value || 'Not Selected'}</strong></p>
+      <p className="calendar-selected">Selected Date: <strong>{value || 'Not Selected'}</strong></p></>}
     </div>
   )
 }
