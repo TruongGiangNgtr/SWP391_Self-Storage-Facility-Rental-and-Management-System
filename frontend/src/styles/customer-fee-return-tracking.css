@@ -1,0 +1,72 @@
+/* Customer-only read presentation. No fee or settlement calculation lives here. */
+.customer-tracking-page { container-type: inline-size; }
+.customer-tracking-page .tracking-page-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.customer-tracking-page .tracking-page-heading > div { flex: 1; min-width: 0; }
+.customer-tracking-page .tracking-page-heading h1 { margin: 6px 0 8px; }
+.customer-tracking-page .tracking-page-heading p { margin-bottom: 0; }
+.customer-tracking-page .tracking-page-heading > .button { font-size: 12px; flex-shrink: 0; }
+.customer-tracking-page .tracking-navigation { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-block: -12px; }
+.customer-tracking-page .tracking-text-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 12px; font-weight: 600; color: var(--flow-brand); text-decoration: none; }
+.customer-tracking-page .tracking-text-link:hover { text-decoration: underline; }
+.frms-customer .customer-tracking-page :is(.tracking-contract, .tracking-card, .tracking-summary-status) { display: grid; gap: 20px; padding: 24px; border-radius: 16px; min-width: 0; }
+.customer-tracking-page .tracking-contract-heading { display: flex; align-items: center; gap: 12px; }
+.customer-tracking-page .tracking-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: 0 0 40px; border-radius: 10px; color: var(--flow-brand); background: #eff6ff; }
+.customer-tracking-page .tracking-contract-heading > div { flex: 1; min-width: 0; }
+.customer-tracking-page .tracking-contract h2 { font-size: 12px; font-family: Inter, sans-serif; font-weight: 500; letter-spacing: 0; color: var(--flow-muted); margin: 0 0 6px; }
+.customer-tracking-page .tracking-contract-heading p { font-size: 14px; font-weight: 600; line-height: 1.6; margin: 0; }
+.frms-customer .customer-tracking-page .customer-tabs { gap: 28px; }
+.customer-tracking-page .customer-tabs button { padding-inline: 0; }
+.customer-tracking-page .tracking-tab-panel { display: grid; gap: 24px; min-width: 0; }
+.customer-tracking-page .tracking-tab-panel > h2 { font-size: 18px; margin: 0; }
+.customer-tracking-page .tracking-columns { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.customer-tracking-page .tracking-stack { display: grid; gap: 24px; min-width: 0; }
+.customer-tracking-page .tracking-card-heading { display: flex; align-items: center; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9; flex-wrap: wrap; }
+.customer-tracking-page .tracking-card-heading > svg { color: var(--flow-brand); flex-shrink: 0; }
+.customer-tracking-page .tracking-card-heading h3 { font-size: 16px; margin: 0; flex: 1; }
+.customer-tracking-page .tracking-card-heading .status-badge { margin-left: auto; }
+.customer-tracking-page .tracking-record { display: grid; gap: 16px; min-width: 0; border: 1px solid var(--flow-border); border-radius: 12px; background: #f8fafc; padding: 16px; }
+.customer-tracking-page .tracking-record-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.customer-tracking-page .tracking-record-heading > :first-child { min-width: 0; }
+.customer-tracking-page .tracking-record h4 { font-size: 14px; margin: 0; font-weight: 600; }
+.customer-tracking-page .tracking-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; margin: 0; }
+.customer-tracking-page .tracking-facts > div { min-width: 0; }
+.customer-tracking-page .tracking-facts dt { color: var(--flow-muted); font-size: 11px; margin-bottom: 8px; }
+.customer-tracking-page .tracking-facts dd { font-size: 14px; font-weight: 600; margin: 0; }
+.customer-tracking-page .tracking-facts dd .tracking-text-link { margin-block: -12px; }
+.customer-tracking-page .tracking-record-link { justify-self: start; }
+.customer-tracking-page .tracking-late-fees .tracking-facts { grid-template-columns: 1fr; }
+.customer-tracking-page .tracking-amount-warning { color: #92400e; }
+.customer-tracking-page .tracking-notice { display: flex; align-items: flex-start; gap: 8px; background: #eff6ff; border-radius: 12px; padding: 14px; margin: 0; color: #334155; font-size: 12px; line-height: 1.7; }
+.customer-tracking-page .tracking-notice > svg { color: var(--flow-brand); flex-shrink: 0; margin-top: 2px; }
+.customer-tracking-page .tracking-warning { color: #92400e; background: #fffbeb; }
+.customer-tracking-page .tracking-warning > svg { color: #92400e; }
+.customer-tracking-page .tracking-note { font-size: 12px; line-height: 1.7; color: #475569; margin: 0; }
+.customer-tracking-page .tracking-condition-note { margin: 0; padding: 16px; background: #f8fafc; border-radius: 12px; font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
+.customer-tracking-page .tracking-completed { margin: 0; color: var(--flow-muted); font-size: 12px; line-height: 1.7; }
+.customer-tracking-page .tracking-completed strong { color: var(--flow-text); font-weight: 600; }
+.customer-tracking-page .tracking-record-amount { font-size: 12px; margin: 0; line-height: 1.7; }
+.customer-tracking-page .tracking-record-amount strong { font-size: 14px; }
+.customer-tracking-page .tracking-summary-status h3 { font-size: 14px; margin: 0; }
+.customer-tracking-page .tracking-settlement-metrics { display: grid; gap: 16px; margin: 0; }
+.customer-tracking-page .tracking-settlement-metrics > div { min-width: 0; border: 1px solid var(--flow-border); border-radius: 12px; padding: 16px; background: #f8fafc; }
+.customer-tracking-page .tracking-settlement-metrics dt { font-size: 12px; font-weight: 500; line-height: 1.6; }
+.customer-tracking-page .tracking-settlement-metrics dd { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; font-weight: 700; margin: 12px 0 0; }
+.customer-tracking-page .tracking-settlement-metrics .tracking-deduction { color: #92400e; border-color: #fde68a; background: #fffbeb; }
+.customer-tracking-page .tracking-settlement-metrics .tracking-refund { color: #047857; border-color: #a7f3d0; background: #ecfdf5; }
+.customer-tracking-page .tracking-settlement-metrics .tracking-additional { color: #92400e; border-color: #fde68a; background: #fffbeb; }
+.customer-tracking-page .tracking-card .page-state { padding: 20px 16px; font-size: 12px; line-height: 1.7; background: #f8fafc; }
+@container (max-width: 760px) {
+  .customer-tracking-page .tracking-columns { grid-template-columns: 1fr; }
+  .customer-tracking-page .tracking-late-fees .tracking-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .customer-tracking-page .tracking-settlement-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container (max-width: 540px) {
+  .customer-tracking-page .tracking-page-heading { flex-direction: column; align-items: stretch; }
+  .customer-tracking-page .tracking-page-heading > .button { align-self: flex-end; }
+  .customer-tracking-page .tracking-settlement-metrics { grid-template-columns: 1fr; }
+  .customer-tracking-page .tracking-contract-heading { flex-wrap: wrap; }
+}
+@container (max-width: 380px) {
+  .customer-tracking-page :is(.tracking-facts, .tracking-late-fees .tracking-facts) { grid-template-columns: 1fr; }
+  .customer-tracking-page .tracking-record-heading { flex-wrap: wrap; }
+}
