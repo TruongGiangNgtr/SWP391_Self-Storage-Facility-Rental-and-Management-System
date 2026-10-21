@@ -11,15 +11,18 @@ Patch baseline: GitHub `main` commit `8ca520300fae904ec86e282aa977a591062b6f6c`.
 | `ProcessReservationNoShowJob` | `usp_ProcessReservationNoShow` | Startup and every 24 hours | `BackgroundJobs:NoShow:Enabled` |
 | `RetryNotificationsJob` | Claim one pending notification, send through `INotificationSender`, then `usp_MarkNotificationSent` | Startup and every 5 minutes | `BackgroundJobs:Notifications:Enabled` |
 
-New flags default to **false**. Enable only after database migration and smoke/integration tests:
+Default behavior if the settings are absent: **Billing=true**, **NoShow=false**, **Notifications=false**. Billing starts processing immediately when the API starts and then every 24 hours; ensure Pg007/Pg001-Pg013 are deployed, validate the financial routines, and check no external scheduler already duplicates the work before deployment. An explicit `false` still disables Billing.
 
 ```sh
+# Explicit overrides; omitting Billing flag has the same enabled result.
 BackgroundJobs__Billing__Enabled=true
-BackgroundJobs__NoShow__Enabled=true
-# DO NOT enable the notification loop until a real INotificationSender adapter
-# is configured and tested; current DI still registers UnconfiguredNotificationSender.
+BackgroundJobs__NoShow__Enabled=false
+# DO NOT enable notifications until a real INotificationSender adapter
+# is configured and tested; DI still registers UnconfiguredNotificationSender.
 BackgroundJobs__Notifications__Enabled=false
 ```
+
+For emergency pause use `BackgroundJobs__Billing__Enabled=false` and restart the API.
 
 The cadence is interval-from-start, not a fixed midnight cron. `usp_GenerateMonthlyInvoices()` derives the current month in `Asia/Ho_Chi_Minh` at invocation time, so a restart or later run repairs missing current-month invoices. SQL prevents billing Contract.StartMonth or out-of-range months and deduplicates invoices.
 

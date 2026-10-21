@@ -9,18 +9,19 @@ namespace Frms.Api.BackgroundJobs;
 /// <summary>
 /// Scoped, failure-isolated recurring work. Each database routine enforces its own
 /// PostgreSQL concurrency/idempotency invariants; no HTTP actor is impersonated.
-/// Disabled by default until deployment review and integration tests pass.
+/// Billing is enabled by default; NoShow and Notifications remain opt-in.
 /// </summary>
 internal abstract class RecurringBackgroundJob(
     IServiceScopeFactory scopes, IConfiguration configuration, ILogger logger) : BackgroundService
 {
     protected abstract string EnabledSetting { get; }
+    protected virtual bool EnabledByDefault => false;
     protected abstract TimeSpan Interval { get; }
     protected abstract Task RunAsync(IRecurringJobsService jobs, CancellationToken token);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (!configuration.GetValue<bool>(EnabledSetting))
+        if (!configuration.GetValue<bool>(EnabledSetting, EnabledByDefault))
         {
             logger.LogInformation("Recurring background job {Job} disabled ({Setting}).",
                 GetType().Name, EnabledSetting);
@@ -68,6 +69,7 @@ internal sealed class BillingMaintenanceJob(
     : RecurringBackgroundJob(scopes, config, logger)
 {
     protected override string EnabledSetting => "BackgroundJobs:Billing:Enabled";
+    protected override bool EnabledByDefault => true;
     protected override TimeSpan Interval => TimeSpan.FromDays(1);
 
     protected override async Task RunAsync(IRecurringJobsService jobs, CancellationToken token)

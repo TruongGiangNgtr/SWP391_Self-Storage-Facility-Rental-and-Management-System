@@ -9,7 +9,7 @@ public static class BackgroundJobRegistration
             ExpirePendingReservationsJob>();
 
         // Financial jobs run in a single ordered pipeline: generate -> overdue -> late fee.
-        // Feature gates prevent unreviewed deployments from mutating finance state.
+        // Billing defaults on; NoShow/Notifications remain opt-in via configuration.
         services.AddHostedService<BillingMaintenanceJob>();
         services.AddHostedService<ProcessReservationNoShowJob>();
         services.AddHostedService<RetryNotificationsJob>();
