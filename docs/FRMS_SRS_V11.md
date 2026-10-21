@@ -16,6 +16,7 @@
 **V11 Reconciliation Date:** 2026-10-20 — `REV-2026-10-20-V11-CODE-ALIGNMENT` (draft), augmented by owner-approved decisions in §0.0.9
 **V11 Recurring Jobs Documentation Update:** 2026-10-21 — `REV-2026-10-21-BACKGROUNDJOBS` (source `main` `0219f30734b0`; code registered, runtime/test acceptance pending)
 **V11 Payment Documentation Cleanup:** 2026-10-21 — superseded provider-specific clauses removed; payOS-only active requirements and immutable historic payment evidence preserved
+**Customer Sent Notification Read Approval:** `REV-2026-10-22-CUSTOMER-NOTIFICATIONS-READ` — owner-approved read-only Notifications page and Overview preview, limited to §0.0.9 OD-06; no release-test certification
 **V11 API Specification:** [`FRMS_API_V11.md`](FRMS_API_V11.md) (HTTP contract companion)  
 **V11 Data Dictionary:** [`FRMS_Data_Dictionary_V11.md`](FRMS_Data_Dictionary_V11.md) (entity, PostgreSQL schema, routines and tests companion)
 **Status:** V11 REVIEW CANDIDATE — owner-approved decisions in §0.0.9 effective for V11 target; full document ratification, technical-architecture sign-off, API-code parity and release tests pending
@@ -238,7 +239,7 @@ The owner permits checking the existing FRMS baseline and applying forward EPS-0
 | V11-03 | `Pg013` `HandoverUnitAssignment` + `ACTIVE/REPLACED/CONSUMED/RELEASED` | Add persisted Manager assignment/reassignment/release/consumption lifecycle without modifying Reservation hold | **OWNER APPROVED — §0.0.9; implementation/SQL E2E not verified** |
 | V11-04 | `Pg010` StorageUnit timeline via `AuditLog` | Read-model, partial history, Manager own-Facility / BOM system / Administrator system-wide read-only permission | **ADMIN READ APPROVED — §0.0.9; security tests pending** |
 | V11-05 | `Pg012` optional UnitType `ImageUrl/VideoUrl` | Record actual CAT-003/004/005 public response `imageUrl`/`videoUrl` exposure; nullable length 2048 | **OBSERVED + OWNER ACKNOWLEDGED; media governance/Swagger tests pending** |
-| V11-06 | Customer Activity Controller Notifications/Transactions | Add read-only private history endpoints without a new table | CODE EXISTS; controller marks proposals; approval/testing pending |
+| V11-06 | Customer Activity Controller Notifications/Transactions | Read-only private history endpoints without a new table | **Notifications IMPL-CUSACT-01 APPROVED — OD-06; integration/security tests pending. Transactions IMPL-CUSACT-02 remains provisional.** |
 | V11-07 | Admin/Manager/Staff/BOM supplemental lookup and directory GETs | Provisional API appendix and Facility/ownership scope test matrix | CODE EXISTS; role/privacy review pending |
 | V11-08 | V10 profile prohibition subsequently revised by owner | Preserve `Customer.Address` as optional registration/profile-PATCH input/persistence (max 1000); no mandatory use or new sharing; own `cccd` remains target AUTH-004 | **OPTIONAL ADDRESS OWNER APPROVED — §0.0.9; CCCD read-model gap remains** |
 | V11-09 | Complete API §13 embedded in V10 | Extract into `FRMS_API_V11.md` preserving endpoint IDs/contracts | DOCUMENT STRUCTURE DRAFT; Swagger parity not tested |
@@ -254,11 +255,11 @@ The owner permits checking the existing FRMS baseline and applying forward EPS-0
 
 ### Implementation source-of-truth distinction
 
-`Observed in code` does NOT mean `approved business behavior`. V11 distinguishes (1) **owner-approved decision** (specifically §0.0.9), (2) **current implementation observation**, (3) **proposal requiring separate approval**, and (4) **tested/accepted release evidence**. V11-03 and Administrator timeline access in V11-04 are now approved; Customer activity and supplemental directories in V11-06/07 are still provisional. Media exposure in V11-05 is **verified + acknowledged**, not a blanket approval of future uploads, arbitrary URLs or content management. No sixth role, eighth business flow, first-month Invoice/Payment, new payment method or second gateway is introduced.
+`Observed in code` does NOT mean `approved business behavior`. V11 distinguishes (1) **owner-approved decision** (specifically §0.0.9), (2) **current implementation observation**, (3) **proposal requiring separate approval**, and (4) **tested/accepted release evidence**. V11-03, Administrator timeline access in V11-04 and the narrow sent-notification read in OD-06 are approved; Customer transactions and supplemental directories in V11-06/07 remain provisional. Media exposure in V11-05 is **verified + acknowledged**, not a blanket approval of future uploads, arbitrary URLs or content management. No sixth role, eighth business flow, first-month Invoice/Payment, new payment method or second gateway is introduced.
 
 ### Scope/release gate
 
-Current work is **SRS + API + Data Dictionary documentation drafting only**, not a production migration, a backend refactor, frontend implementation, GitHub commit, or release certification. Active reconciliation scope is documentation; original business scope is unchanged. No direct GitHub writes.
+The **initial V11 reconciliation package** was SRS + API + Data Dictionary documentation drafting only, not a production migration, backend refactor or release certification. The separately owner-approved OD-06 task authorizes the narrow Customer Notifications/Overview frontend read and its SRS/API synchronization; it does not authorize other provisional features, backend/database changes, provider activation or GitHub publication without a separate request.
 
 ## 0.0.9 Approved Owner Decisions — REV-2026-10-20-V11-OWNER-DECISIONS
 
@@ -293,7 +294,19 @@ Current work is **SRS + API + Data Dictionary documentation drafting only**, not
 - Public `CAT-003`, `CAT-004` and `CAT-005` response mappings/controllers already contain nullable `imageUrl` and `videoUrl` fields corresponding to Pg012 `UnitType.ImageUrl` / `UnitType.VideoUrl` (`varchar(2048)` nullable). **Record this as implementation fact**, not a speculative future DTO.
 - This acknowledgement does not authorize uploading media, external fetch of untrusted URLs, new media CMS, private asset access or unreviewed link content. URL validation, null serialization, cache/public disclosure and generated Swagger/FE parity remain verification gates.
 
-**Unchanged decisions:** payOS only for eligible Deposit and post-first-month Rental Fee invoices, offline first-month acknowledgment, policy/price snapshot rules, five roles, seven core flows, ownership guards, and the separate limited live-payment evidence scope. **Pending:** owner architecture ratification of PostgreSQL, Customer activity/supplemental directory proposals, AUTH-004 CCCD backend alignment, and all release-gate test evidence.
+### OD-06 — Customer sent-notification history approved
+
+**Change record:** `REV-2026-10-22-CUSTOMER-NOTIFICATIONS-READ`. The project owner approved the read-only Notifications page and shared Overview preview in the Notifications implementation task. This adds no entity, persisted state, business flow or write permission. It is a scoped approved requirement, not full V11 ratification or proof of runtime readiness.
+
+- Approve `IMPL-CUSACT-01`: `GET /api/v1/customers/me/notifications` for an authenticated **ACTIVE CUSTOMER**, restricted server-side to the actor's `UserAccountId`. No caller-supplied Customer/account scope. Only existing `NotificationLog` rows with `Status=SENT` and non-null `SentAt` are visible; pending/unsent content and initial credentials MUST NOT be exposed.
+- Response and errors follow companion API §13A.3. Pagination defaults to `page=1&pageSize=20`, maximum `pageSize=100`; order is `createdAt DESC`, then `notificationId DESC`. Each item contains `notificationId`, `notificationType`, `content`, `createdAt`, `sentAt`; UTC times are displayed in GMT+7.
+- Customer Notifications displays paginated sent delivery history. Overview reads the **first three records from the same endpoint** (`page=1&pageSize=3`) and links View All to `/customer/notifications`. Overview refresh also refreshes its notification preview. Empty/loading/validation/authorization/unexpected-error and safe read retry states are required; API failure must not be shown as an empty successful read.
+- This is **not** a read/unread inbox: no new/unread badges, unread counts, read markers, mark-as-read commands, fake notifications, content-derived resource URLs, or inferred Reservation/Contract/Visit IDs. Content is plain text. Display date grouping does not imply unread state. Opening the page does not write business state or initiate delivery.
+- `IMPL-CUSACT-02` Transaction History remains provisional and **outside this implementation**. Its existing tab stays visible with an unavailable message and does not call that endpoint. Delivery configuration, SMTP/job activation, live data seeding and changes to backend/database are outside this FE task.
+- Required verification: DTO/envelope parity; owner-only reads and Guest/Employee denial; pagination/order; malformed/null timestamps and duplicate IDs; plain-text rendering; loading/empty/API errors, abort/session switching and stale-response protection; same-source Overview preview and GMT+7 display. Mock UI tests do not certify server ownership, sender delivery or real database integration.
+- Traceability: Notifications page + Overview preview -> OD-06 -> `IMPL-CUSACT-01` (API §13A.3) -> `CustomerActivityService.NotificationsAsync` -> `CustomerActivityRepository.ListSentNotificationsAsync` -> existing `NotificationLog` -> the contract, authorization/privacy and UI verification above. No new persisted model is required.
+
+**Unchanged decisions:** payOS only for eligible Deposit and post-first-month Rental Fee invoices, offline first-month acknowledgment, policy/price snapshot rules, five roles, seven core flows, ownership guards, and the separate limited live-payment evidence scope. **Pending:** owner architecture ratification of PostgreSQL, Customer transactions/supplemental directory proposals, AUTH-004 CCCD backend alignment, and all release-gate test evidence.
 
 ## 0.0.10 Three-Document V11 Synchronization — 2026-10-20
 
@@ -5556,7 +5569,7 @@ Five roles and seven core flows; Reservation holds Facility+UnitType+month capac
 | V11-G01 | Approve PostgreSQL as replacement technical baseline | PENDING | Owner ADR/SRS approval + complete schema/SQL migration assurance |
 | V11-G02 | Owner approval for 28th entity, states and Manager handover workflow | **APPROVED — TESTS PENDING** | Verify migration application, index/trigger guards, SQL concurrency/rollback, full handover E2E |
 | V11-G03 | Approve three read-only SYSTEM_ADMINISTRATOR timeline GETs | **APPROVED — SECURITY TESTS PENDING** | Restrict exception to timeline; confirm own-Facility Manager and cross-Facility Admin/BOM reads; 401/403/404 |
-| V11-G04 | Approve Customer activity and supplemental directory APIs | PENDING | Need-to-know / PII scope, API errors, tests |
+| V11-G04 | Approve Customer activity and supplemental directory APIs | **PARTIAL: IMPL-CUSACT-01 APPROVED (OD-06); tests pending; transactions/directories still provisional** | Owner-only SENT history, no unread/derived links, pagination/API errors and security/integration tests; separate approval for remaining reads |
 | V11-G05 | Acknowledge public CAT-003/004/005 media URL response fields | **CODE VERIFIED / OWNER ACKNOWLEDGED — TESTS PENDING** | Media governance/URL validation and generated Swagger/FE null/shape parity; future upload/CMS not approved |
 | V11-G06 | Retain optional Customer.Address and align private AUTH-004 CCCD | **ADDRESS APPROVED + CODE OBSERVED; CCCD GET GAP PENDING** | Regression for AUTH-001/005 optional Address, no exposure without permission; add `profile.cccd` only to own Customer AUTH-004; Swagger/FE tests |
 | V11-G07 | Confirm exact endpoint registry vs running OpenAPI and FE | NOT VERIFIED | Diff generated Swagger against companion API spec |
@@ -5573,7 +5586,7 @@ Five roles and seven core flows; Reservation holds Facility+UnitType+month capac
 
 ## 27.4 Controlled rollout sequence (documentation only)
 
-1. Record accepted V11-OD-01..05 decisions; resolve remaining pending architecture/Customer activity/directory/media-governance decisions in the appropriate owning tasks.
+1. Record accepted V11-OD-01..06 decisions; resolve remaining pending architecture/Customer transactions/directory/media-governance decisions in the appropriate owning tasks.
 2. Produce approved SRS/API V11 release candidate; reconcile full `main`-to-V11 diff.
 3. Review the synchronized companion Data Dictionary V11 (`FRMS_Data_Dictionary_V11.md`); verify its physical schema/routine notes against actual PostgreSQL deployment in the owning implementation tasks only.
 4. Verify actual PostgreSQL migration history, SQL routine behavior, Swagger/TypeScript parity, auth/PII and negative tests, then E2E.

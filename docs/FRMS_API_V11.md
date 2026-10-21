@@ -3,7 +3,7 @@
 **Version:** V11.0 REVIEW CANDIDATE  
 **Date:** 2026-10-21 (recurring BackgroundJobs reconciliation; prior owner decisions dated 2026-10-20)  
 **Source:** `FRMS_SRS_V11.md` **§0.0.9 approved 2026-10-20 owner decisions**; locally supplied V10.2 API §13; historical V10 main profile revision (partially superseded); read-only GitHub `main` source at `0219f30734b0` (BackgroundJobs now registered; initial V11 audit at `90a6c5982d42`)  
-**Status:** **V11 REVIEW CANDIDATE / PARTIAL OWNER APPROVAL** — optional Customer.Address, persisted Manager handover assignment and Administrator timeline-only reads approved in governing SRS §0.0.9; supplemental routes and untested contracts remain gated. A route existing in code is not by itself a release-test pass.  
+**Status:** **V11 REVIEW CANDIDATE / PARTIAL OWNER APPROVAL** — optional Customer.Address, persisted Manager handover assignment, Administrator timeline-only reads and Customer sent-notification reads approved in governing SRS §0.0.9; other supplemental routes and untested contracts remain gated. A route existing in code is not by itself a release-test pass.
 **Repository:** https://github.com/TruongGiangNgtr/SWP391_Self-Storage-Facility-Rental-and-Management-System/tree/main  
 **Companion Data Dictionary:** [`FRMS_Data_Dictionary_V11.md`](FRMS_Data_Dictionary_V11.md) — 28-entity V11 target, PostgreSQL mapping, routines, integrity and DB tests
 
@@ -13,7 +13,7 @@ This file contains the extracted full API contract catalogue formerly embedded i
 
 - Approved business semantics, ownership, lifecycle, money, return, policy and capacity are defined in `FRMS_SRS_V11.md` (subject to owner approval). Database entities and stored invariants are in `FRMS_Data_Dictionary_V11.md` (28 target entities including approved handover assignment). This API document must not grant access or change business rules by itself.
 - When this file differs from the deployed controller, DTO or Swagger, log **CONTRACT DRIFT**; do not silently choose the more permissive behavior.
-- Existing V10 endpoint IDs (`AUTH-*`, `CAT-*`, `OPS-*`, etc.) are retained. `IMPL-*` identifiers are **stable reconciliation labels**, not automatic evidence of release acceptance. `IMPL-HOA-01..03` and SYSTEM_ADMINISTRATOR timeline RBAC are explicitly owner-approved in SRS §0.0.9; other `IMPL-*` scopes remain provisional.
+- Existing V10 endpoint IDs (`AUTH-*`, `CAT-*`, `OPS-*`, etc.) are retained. `IMPL-*` identifiers are **stable reconciliation labels**, not automatic evidence of release acceptance. `IMPL-HOA-01..03`, SYSTEM_ADMINISTRATOR timeline RBAC and `IMPL-CUSACT-01` sent-notification reads are explicitly owner-approved in SRS §0.0.9; other `IMPL-*` scopes remain provisional.
 - This is a separate, directly reviewable spec; SRS cross-references to historical “§13.x” now resolve to **this file §13.x**.
 - All API responses must remain JSON `camelCase`; UTC timestamps; month `YYYY-MM`; stable `error.code` and `traceId`; authenticated scope and server-side authorization. All mutation commands require authoritative service/repository validation.
 
@@ -26,7 +26,7 @@ This file contains the extracted full API contract catalogue formerly embedded i
 | PostgreSQL | SQL Server-specific backend conventions | PostgreSQL/Npgsql transaction, UUID, PL/pgSQL deployment; HTTP contract otherwise unchanged |
 | Persisted Manager assignment | Absent from §13 | **APPROVED §0.0.9:** `IMPL-HOA-01..03` with 28th entity/four statuses; tests pending |
 | Unit status timeline | Absent from §13 | **APPROVED RBAC §0.0.9:** read-only AuditLog-derived; System Administrator allowed these 3 GETs system-wide only |
-| Customer activity | Absent from §13 | `IMPL-CUSACT-01..02`, account-private read-only records |
+| Customer activity | Absent from §13 | `IMPL-CUSACT-01` sent history approved by SRS OD-06; `IMPL-CUSACT-02` transactions remains provisional |
 | Facility/BOM directories & lookups | Absent from §13 | `IMPL-RBAC-*` supplementary GETs, reconcile role/PII scopes |
 | UnitType media URLs | Not in canonical JSON | **Observed in public CAT-003/004/005 DTO/controller**: nullable `imageUrl`/`videoUrl` (Pg012); governance/Swagger test pending |
 | BackgroundJobs / billing read | Existing business routines; no scheduler status guarantee | **`main` `0219f307` registers four hosted services for six tasks**; no HTTP job-management API; persisted reads and payOS unchanged; notification sender not operational |
@@ -426,6 +426,7 @@ The CAT-001..005 public access/filter/view changes, PUB-POL-001/002 and Anonymou
 | `AUTH-003` | `POST` | `/api/v1/auth/employee/login` | Employee login by Email | Anonymous | Auth |
 | `AUTH-004` | `GET` | `/api/v1/auth/me` | Get current authenticated account/profile | Authenticated | Auth |
 | `AUTH-005` | `PATCH` | `/api/v1/customers/me/profile` | Update limited Customer profile fields | CUSTOMER | Supporting |
+| `IMPL-CUSACT-01` | `GET` | `/api/v1/customers/me/notifications` | Own sent delivery history; SRS OD-06 and §13A.3 | ACTIVE CUSTOMER only | Supporting Customer Notifications / Overview |
 | `CAT-001` | `GET` | `/api/v1/facilities` | Public active Facility search with matching UnitType/range filters | Public (Anonymous and authenticated same projection) | GWP-01 / CWP-01 |
 | `CAT-002` | `GET` | `/api/v1/facilities/{facilityId}` | Public active Facility detail | Public | GWP-01 / CWP-01 |
 | `CAT-003` | `GET` | `/api/v1/facilities/{facilityId}/unit-types` | Public UnitTypes and optional requested-period capacity; explicit protected operational view | Public; operational view: CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER | GWP-01 / CWP-01 / operational read |
@@ -1930,7 +1931,7 @@ Not every transport is JSON:
 
 # 13A. V11 API Additions — Approved Scope and Provisional Reads
 
-`IMPL-*` is a reconciliation label for endpoints observed in GitHub `main` at the anchored commit. **Approved by SRS §0.0.9:** handover assignment (`IMPL-HOA-01..03`) and the Administrator read-only RBAC for `IMPL-UNT-01..03`. **Observed and acknowledged:** UnitType public media projection and Admin deactivation-eligibility **501 stub**. Other supplemental reads remain provisional pending separate review. No endpoint is release-certified without tests.
+`IMPL-*` is a reconciliation label for endpoints observed in GitHub `main` at the anchored commit. **Approved by SRS §0.0.9:** handover assignment (`IMPL-HOA-01..03`), Administrator read-only RBAC for `IMPL-UNT-01..03` and Customer sent-notification history (`IMPL-CUSACT-01`, OD-06). **Observed and acknowledged:** UnitType public media projection and Admin deactivation-eligibility **501 stub**. Other supplemental reads remain provisional pending separate review. No endpoint is release-certified without tests.
 
 ## 13A.1 Owner-approved Manager handover-unit assignment (`IMPL-HOA-01..03`)
 
@@ -1993,12 +1994,16 @@ Not every transport is JSON:
 
 **Source:** `backend/Frms.Api/Controllers/CustomerActivityController.cs` and `backend/Frms.Api/DTOs/Responses/CustomerActivityResponses.cs`.
 
-| Provisional ID | Method / route | Observed role |
+| ID / approval | Method / route | Access |
 |---|---|---|
-| `IMPL-CUSACT-01` | `GET /api/v1/customers/me/notifications?page=1&pageSize=20` | CUSTOMER only |
-| `IMPL-CUSACT-02` | `GET /api/v1/customers/me/transactions?page=1&pageSize=20` | CUSTOMER only |
+| `IMPL-CUSACT-01` — **APPROVED SRS OD-06** | `GET /api/v1/customers/me/notifications?page=1&pageSize=20` | Authenticated ACTIVE CUSTOMER, own UserAccount only |
+| `IMPL-CUSACT-02` — provisional | `GET /api/v1/customers/me/transactions?page=1&pageSize=20` | CUSTOMER only; separate approval pending |
 
 `notifications`: derived from existing `NotificationLog`. **Actual `CustomerNotificationResponse` property name is `notificationId`** (not `notificationLogId`), followed by `notificationType`, `content`, `createdAt` and `sentAt`. The controller maps the persisted `NotificationLogId` to DTO field `NotificationId`; both time fields are non-null `DateTimeOffset` in the pinned DTO. This is delivery history, **not** a read/unread inbox or additional notification workflow.
+
+**Approved notification contract — `REV-2026-10-22-CUSTOMER-NOTIFICATIONS-READ`:** SRS §0.0.9 OD-06 authorizes only `IMPL-CUSACT-01`. Server scope derives from the authenticated ACTIVE Customer account, never request IDs. Return only own `SENT` rows with non-null `sentAt`, ordered by `createdAt DESC`, then `notificationId DESC`. Pagination uses the standard `data[]`/`pagination` envelope, defaults 1/20 and max pageSize 100; existing overflow-safe page bounds remain enforced. Zero results return `data: []` with totalItems/totalPages zero. Beyond the last page returns an empty data array with the requested page and actual totals. Invalid pagination -> HTTP 400 `VALIDATION_ERROR`; unauthenticated -> 401 `UNAUTHORIZED`; wrong role/inactive or missing active Customer -> 403 `FORBIDDEN` under the existing controller/service guards. Errors retain the standard code/message/traceId shape. No new error code or mutation endpoint is introduced.
+
+`notificationType` and `content` are strings, not a newly approved type enum or HTML. The response has **no** unread flag/count, resource IDs, action URL or title field. FE must render plain text, use a generic presentation for unknown types and must not infer links/state from content. Notifications page reads pageSize 20; Overview reads page 1/pageSize 3 from the same endpoint. Neither rendering nor navigating writes read state, retries delivery or triggers financial/business commands. Initial credential content is excluded from ordinary NotificationLog usage under the existing security requirements. Notification IDs are internal keys, not Customer-facing references.
 
 `transactions`: derived from owned `Payment`/`Invoice` evidence (`paymentId`, `invoiceId`, `invoiceType`, `amount`, `paymentMethod`, `status`, `paidAt`, `createdAt`). `paidAt` is nullable UTC; `amount` is decimal. Must exclude other Customers' records and preserve historical MOMO/VNPAY evidence without fabricating results.
 
@@ -2036,7 +2041,7 @@ The example above is for `/notifications`. `/transactions` has the same collecti
 
 Example values do not assert that these exact records exist; they illustrate the observed DTO properties. The runtime OpenAPI, authorization and actual database result remain unverified.
 
-The controller explicitly calls these endpoints proposals pending SRS approval; they should remain labelled **provisional**, including their pagination, privacy tests and missing-record handling.
+The controller comment predates OD-06 and still describes both reads as proposals. **Documentation/code-comment drift only:** Notifications is now owner-approved under OD-06; Transactions remains provisional. Runtime OpenAPI, live database output, ownership/security and delivery tests remain unverified by this approval. No backend modification, provider activation or transaction-history implementation is authorized by the FE notification task.
 
 ## 13A.4 Supplemental RBAC directories / operational lookup
 
@@ -2103,7 +2108,7 @@ VideoUrl: varchar(2048) NULL
 | Optional Customer.Address | **Latest owner decision SRS §0.0.9 supersedes historical V10 §0.0.7** | AUTH-001/005 optional input and persistence accepted; AUTH-004 own `cccd` still missing in BE |
 | Handover assignment | This file §13A.1; SRS §§0.0.9, 9.2A | **Owner-approved** 28th entity and 3 APIs; PostgreSQL/E2E tests pending |
 | Unit timeline and Admin scope | This file §13A.2; SRS §§0.0.9, 11A | **Owner-approved** read-only Administrator timeline; negative auth tests pending |
-| Customer activity | This file §13A.3 | Controller labels proposal; no read/unread inbox implied |
+| Customer activity | This file §13A.3 | Notifications approved by SRS OD-06; Transactions provisional; controller comment drift; no read/unread inbox implied |
 | Admin deactivation-eligibility | This file §13A.4 | **NOT IMPLEMENTED** (HTTP 501) despite existing route; separate feature required |
 | Public UnitType media URL | This file §13A.5 | **Already emitted in public DTO mapping**, owner acknowledged; validation/Swagger/FE tests pending |
 

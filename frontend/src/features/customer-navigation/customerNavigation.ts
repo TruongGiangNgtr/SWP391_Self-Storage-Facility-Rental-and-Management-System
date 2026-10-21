@@ -22,12 +22,11 @@ export const CUSTOMER_NAV_ITEMS: readonly CustomerNavigationItem[] = [
 ]
 
 export const CUSTOMER_NOTIFICATIONS = {
-  to: '/customer/notifications', label: 'Notifications & History', icon: Bell, unavailable: true,
+  to: '/customer/notifications', label: 'Notifications & History', icon: Bell,
 } as const
 
 export const CUSTOMER_UNAVAILABLE_PAGES = [
   ...CUSTOMER_NAV_ITEMS.filter(item => item.unavailable).map(item => ({ to: item.to, title: item.label, historyTabs: false })),
-  { to: CUSTOMER_NOTIFICATIONS.to, title: 'Notifications & Transaction History', historyTabs: true },
 ] as const
 
 export function getCustomerNavigationItem(pathname: string) {

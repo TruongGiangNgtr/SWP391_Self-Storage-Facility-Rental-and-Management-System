@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ArrowRight, ArrowUpRight, Bell, Building2, CalendarDays, CheckCircle2, ChevronRight, Headset, Info, KeyRound, MapPin, MessageSquare, Package, RefreshCw, WalletCards } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Building2, CalendarDays, CheckCircle2, ChevronRight, Headset, Info, KeyRound, MapPin, MessageSquare, Package, RefreshCw, WalletCards } from 'lucide-react'
 import { contractApi } from '../api/contractApi'
 import { reservationApi } from '../api/reservationApi'
 import { visitApi } from '../api/visitApi'
@@ -9,6 +9,8 @@ import { useAuth } from '../auth/auth.context'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState } from '../components/PageStates'
 import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
+import { CustomerNotificationList } from '../components/CustomerNotificationList'
+import { useNotifications } from '../features/customer-notifications/useNotifications'
 import { contractTitle, contractUnit, customerLabel } from '../utils/customerPresentation'
 import { useOverviewCollection, useOverviewDetail } from '../features/customer-overview/useOverviewCollection'
 import { useOverviewContracts } from '../features/customer-overview/useOverviewContracts'
@@ -36,6 +38,7 @@ export function CustomerPortalPage() {
   const [revision, setRevision] = useState(0)
   const [selectedContractId, setSelectedContractId] = useState('')
   const contracts = useOverviewContracts(revision)
+  const notifications = useNotifications(1, 3, true, revision)
   const visits = useOverviewCollection(readVisits, revision, isOverviewVisit)
   const tickets = useOverviewCollection(readTickets, revision, isSupportTicket)
   const activeContracts = contracts.response?.data.filter(item => item.status === 'ACTIVE') ?? []
@@ -61,7 +64,7 @@ export function CustomerPortalPage() {
   const deposit = activeContract ? rentalData : handoverData
   const depositLoading = contracts.loading || (activeContract ? rental.loading : visits.loading || handover.loading)
   const settlement = returnSummary.data?.settlement
-  const busy = contracts.loading || visits.loading || tickets.loading || rental.loading || handover.loading || returnSummary.loading
+  const busy = contracts.loading || visits.loading || tickets.loading || rental.loading || handover.loading || returnSummary.loading || notifications.loading
   const contractPath = activeContract ? `/customer/contracts/${encodeURIComponent(activeContract.contractId)}` : '/customer/contracts'
   const trackingPath = activeContract ? `${contractPath}/fees-return` : handoverData ? `/customer/reservations/${encodeURIComponent(handoverData.reservationId)}` : '/customer/invoices'
   const scopeNote = 'Counts cover the first 20 records returned by each list, not account-wide totals.'
@@ -91,7 +94,10 @@ export function CustomerPortalPage() {
         </div>
       </OverviewSection>
       <OverviewSection title="Notifications" className="overview-notifications" aside={<Link className="overview-section-link" to="/customer/notifications">View All <ChevronRight size={14} aria-hidden="true" /></Link>}>
-        <div className="panel overview-unavailable"><span className="overview-icon"><Bell size={24} aria-hidden="true" /></span><h3>Notifications are not available yet</h3><p className="muted">This feature is not available yet. Please try again later.</p><p className="muted">You can review your visits, reservations and support tickets in the Customer Portal.</p><Link className="overview-section-link" to="/customer/notifications">Open Notifications <ArrowRight size={16} aria-hidden="true" /></Link></div>
+        <div className="panel overview-notification-card"><ApiErrorAlert error={notifications.error} />
+          {notifications.loading ? <LoadingState label="Loading notifications…" /> : notifications.response && (notifications.response.data.length ? <><CustomerNotificationList items={notifications.response.data} compact /><p className="overview-notification-note">Latest {notifications.response.data.length} sent notifications. Open View All for the full history.</p></> : <EmptyState message="No sent notifications yet. Sent notifications will appear here when they are available." />)}
+          {notifications.error && <button className="button button-secondary overview-notification-retry" type="button" onClick={notifications.refresh}>Retry Notifications</button>}
+        </div>
       </OverviewSection>
       <OverviewSection title="Upcoming Check-in" className="overview-checkin" aside={<span className="overview-section-meta">{upcomingVisit ? overviewDate(upcomingVisit.visitDate) : 'Handover visits'}</span>}>
         <div className="panel overview-checkin-card"><ApiErrorAlert error={visits.error} />
