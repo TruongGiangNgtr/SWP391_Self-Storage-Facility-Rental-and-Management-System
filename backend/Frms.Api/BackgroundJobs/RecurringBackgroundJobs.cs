@@ -16,6 +16,7 @@ internal abstract class RecurringBackgroundJob(
 {
     protected abstract string EnabledSetting { get; }
     protected virtual bool EnabledByDefault => false;
+    protected IConfiguration Configuration => configuration;
     protected abstract TimeSpan Interval { get; }
     protected abstract Task RunAsync(IRecurringJobsService jobs, CancellationToken token);
 
@@ -98,5 +99,5 @@ internal sealed class RetryNotificationsJob(
     protected override TimeSpan Interval => TimeSpan.FromMinutes(5);
     protected override Task RunAsync(IRecurringJobsService jobs, CancellationToken token) =>
         jobs.RetryPendingNotificationsAsync(
-            Math.Clamp(config.GetValue<int>("BackgroundJobs:Notifications:BatchSize", 20), 1, 100), token);
+            Math.Clamp(Configuration.GetValue<int>("BackgroundJobs:Notifications:BatchSize", 20), 1, 100), token);
 }
