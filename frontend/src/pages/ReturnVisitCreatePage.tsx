@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { CalendarCheck2, CalendarDays, CheckCircle2, Info, MapPin, RefreshCw, Send, TriangleAlert, Undo2, Warehouse } from 'lucide-react'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { ApiRequestError } from '../api/httpClient'
 import { visitApi } from '../api/visitApi'
@@ -12,11 +13,14 @@ import { contractTitle, contractUnit } from '../utils/customerPresentation'
 import { isUuid } from '../features/handover/handoverValidation'
 import { isCalendarDate } from '../features/visits/accessValidation'
 import { useAccessContract } from '../features/visits/useAccessContract'
-import { formatMonthRange } from '../utils/formatters'
+import { useReservationFacilities } from '../features/reservations/useReservationUnitTypes'
+import '../styles/customer-return-request.css'
 
 export function ReturnVisitCreatePage() {
   const { contractId = '' } = useParams()
   const { contract, loading, error, refresh } = useAccessContract(contractId)
+  const facilities = useReservationFacilities(contract ? [contract.facilityId] : [])
+  const facility = contract ? facilities.reads[contract.facilityId]?.data : null
   const [visitDate, setVisitDate] = useState('')
   const [dateError, setDateError] = useState<string | null>(null)
   const [working, setWorking] = useState(false)
@@ -63,33 +67,32 @@ export function ReturnVisitCreatePage() {
     }
   }
 
-  return (
-    <CustomerActionFrame contractId={contractId} title="Schedule Return Visit" category="Storage Return" subtitle="Choose a date to return your rented storage unit at the facility." busy={working}>
-
+  return <CustomerActionFrame contractId={contractId} title="Request Storage Return" category="Storage Return" subtitle="Choose your requested return date. The facility records the physical return, then completes inspection and settlement." className="customer-return-request" headingIcon={<Undo2 size={24} />} busy={working}>
+    {close => <>
       <ApiErrorAlert error={actionError ?? error} />
-      <button className="button button-secondary" type="button" disabled={loading || working} onClick={() => { setActionError(null); refresh() }}>Refresh Contract</button>
+      <div className="return-request-toolbar"><button className="return-request-text-button" type="button" disabled={loading || working} onClick={() => { setActionError(null); facilities.retry(); refresh() }}><RefreshCw size={14} aria-hidden="true" />{loading ? 'Refreshing…' : 'Refresh Contract'}</button></div>
       {loading ? <LoadingState label="Loading your contract..." /> : contract && <>
-        <section className="panel stack" aria-label="Return contract">
-          <div className="card-heading-row"><h2>Selected Contract</h2><StatusBadge status={contract.status} /></div>
-          <dl className="detail-list compact">
-            <div><dt>Unit Type</dt><dd>{contractTitle(contract)}</dd></div>
-            <div><dt>Storage Unit</dt><dd>{contractUnit(contract)}</dd></div>
-            <div><dt>Rental Period</dt><dd>{formatMonthRange(contract.startMonth, contract.endMonth)}</dd></div>
+        <section className="return-request-context" aria-label="Return contract">
+          <dl className="return-request-facts">
+            <div><dt>Contract</dt><dd className="return-request-contract-title"><h2>{contractTitle(contract)}</h2><StatusBadge status={contract.status} /></dd></div>
+            <div><dt>Current Storage Unit</dt><dd><Warehouse size={15} aria-hidden="true" />{contractUnit(contract)}</dd></div>
+            <div><dt>Facility Location</dt><dd><MapPin size={15} aria-hidden="true" />{facility?.name ?? (facilities.loading ? 'Loading facility…' : 'Facility unavailable')}</dd></div>
+            <div><dt>Contract End Month</dt><dd><CalendarDays size={15} aria-hidden="true" />{contract.endMonth}</dd></div>
           </dl>
+          <ApiErrorAlert error={facilities.error} />
         </section>
-        {contract.status === 'ACTIVE' ? <section className="panel stack" aria-label="Schedule return visit">
-          <h2>Return Visit Date</h2>
-          <form className="form-grid" onSubmit={handleCreate} noValidate>
-            <CalendarDateField id="returnVisitDate" label="Return Visit Date (GMT+7)" value={visitDate} disabled={working} error={dateError} onChange={value => { setVisitDate(value); setDateError(null) }} />
-            <p className="notice">While a return visit is pending, you cannot schedule new access visits or renew this contract.</p>
-            <p className="muted">Your selected date and return eligibility will be checked when you submit.</p>
-            <p className="muted">Scheduling a visit does not end your contract. The facility records your actual return date, then completes inspection and settlement.</p>
-            <button className="button" type="submit" disabled={working}>{working ? 'Scheduling...' : 'Confirm Return Visit'}</button>
-          </form>
-        </section> : <p className="notice">This contract is not ACTIVE. You cannot schedule a return visit.</p>}
+        {contract.status === 'ACTIVE' ? <form id="return-request-form" className="return-request-form" aria-label="Schedule return visit" onSubmit={handleCreate} noValidate>
+          <section className="return-request-date" aria-label="Choose requested return date"><CalendarDateField id="returnVisitDate" label="Requested Return Date (GMT+7)" showCalendar={false} value={visitDate} disabled={working} error={dateError} onChange={value => { setVisitDate(value); setDateError(null) }} /><p className="return-request-helper">Choose the day you plan to return your storage at the facility. Your requested date and eligibility are checked when you submit.</p></section>
+          <section className="return-request-policy" aria-labelledby="return-policy-heading"><div className="return-request-section-heading"><h2 id="return-policy-heading">Return Policy Overview</h2><span>Based on actual return</span></div><div className="return-request-policy-grid">
+            <article className="return-policy-normal"><h3><CalendarCheck2 size={18} aria-hidden="true" />Normal Return</h3><p>Any refundable deposit is confirmed after inspection and settlement.</p><p className="return-policy-detail">Applicable late fees, extra fees and approved damage charges are considered in the final settlement.</p></article>
+            <article className="return-policy-early"><h3><TriangleAlert size={18} aria-hidden="true" />Early Return</h3><p>An early return has no deposit refund. The final amount due is determined through settlement.</p><p className="return-policy-detail">The actual return recorded by the facility determines classification, not this requested date.</p></article>
+          </div></section>
+          <div className="return-request-notice"><Info size={20} aria-hidden="true" /><div><h2>A visit, not a contract cancellation</h2><p>Scheduling this visit does not end your contract or confirm a refund. While a return visit is pending, new access visits and contract renewal are blocked.</p></div></div>
+          <p className="return-request-outcome"><CheckCircle2 size={17} aria-hidden="true" /><span>Your final return outcome is confirmed after staff records the actual return, inspection is completed and settlement is finalized.</span></p>
+        </form> : <p className="notice">This contract is not ACTIVE. You cannot schedule a return visit.</p>}
       </>}
-      {actionError && <p className="muted">If the request may already have been processed, check My Visits before retrying to avoid scheduling a duplicate return visit.</p>}
-      <Link className="button button-secondary" to="/customer/visits">My Visits</Link>
-    </CustomerActionFrame>
-  )
+      {actionError && <p className="return-request-helper" role="note">If the request may already have been processed, check My Visits before retrying to avoid scheduling a duplicate return visit. This page never automatically resubmits your request.</p>}
+      <footer className="return-request-actions"><div><button className="button button-secondary" type="button" disabled={working} onClick={close}>Cancel</button>{contract?.status === 'ACTIVE' && !loading && <button className="button" type="submit" form="return-request-form" disabled={working}>{working ? 'Submitting…' : 'Submit Return Request'}<Send size={16} aria-hidden="true" /></button>}</div><p>Submitting a request does not end your contract immediately.</p><Link className="return-request-text-link" to="/customer/visits" aria-disabled={working || undefined} onClick={event => { if (working) event.preventDefault() }}>View My Visits</Link></footer>
+    </>}
+  </CustomerActionFrame>
 }
