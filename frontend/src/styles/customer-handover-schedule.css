@@ -1,0 +1,43 @@
+/* Handover scheduling only; dates, payment and eligibility remain API-owned. */
+.customer-handover-schedule.flow-dialog { width: 640px; padding: 28px; border-radius: 20px; }
+.customer-handover-schedule.flow-dialog::backdrop { background: #0f172a8c; backdrop-filter: blur(2px); }
+.customer-handover-schedule .flow-dialog-heading { gap: 16px; }
+.customer-handover-schedule .flow-dialog-heading > div { flex: 1; min-width: 0; }
+.customer-handover-schedule .flow-dialog-heading-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; background: #eff6ff; color: #2563eb; }
+.customer-handover-schedule .flow-dialog-heading h1 { font-size: 20px; line-height: 1.35; font-weight: 800; }
+.customer-handover-schedule .flow-dialog-heading .eyebrow { font-size: 11px; margin: 3px 0 6px; }
+.customer-handover-schedule .dialog-close { width: 44px; height: 44px; flex-shrink: 0; margin: -6px -6px 0 -6px; color: #64748b; }
+.customer-handover-schedule.flow-dialog .dialog-subtitle { margin: 4px 0 4px 60px; font-size: 12px; line-height: 1.7; }
+.customer-handover-schedule .handover-schedule-content { gap: 20px; }
+.customer-handover-schedule .handover-schedule-facts { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+.customer-handover-schedule .handover-schedule-facts > div { min-width: 0; }
+.customer-handover-schedule .handover-schedule-facts dt { margin-bottom: 6px; color: #64748b; text-transform: uppercase; font-size: 11px; font-weight: 600; letter-spacing: .04em; }
+.customer-handover-schedule .handover-schedule-facts dd { margin: 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.customer-handover-schedule .handover-schedule-form { display: grid; gap: 16px; }
+.customer-handover-schedule .handover-schedule-type { display: flex; align-items: center; gap: 8px; color: #1e40af; font-size: 12px; font-weight: 600; }
+.customer-handover-schedule .flow-date-card { display: block; padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+.customer-handover-schedule .flow-date-card label { font-size: 12px; }
+.customer-handover-schedule .flow-date-card input { min-height: 44px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 12px; background: #fff; font-size: 14px; font-weight: 600; }
+.customer-handover-schedule .calendar-heading { margin: 16px 0 12px; }
+.customer-handover-schedule .calendar-heading strong { font-size: 14px; }
+.customer-handover-schedule .calendar-selected { margin: 12px 0 0; font-size: 12px; }
+.customer-handover-schedule .handover-schedule-notice { display: flex; align-items: flex-start; gap: 10px; padding: 14px; border: 1px solid #bfdbfe; border-radius: 12px; background: #eff6ff; color: #1e40af; }
+.customer-handover-schedule .handover-schedule-notice > .flow-icon { flex-shrink: 0; margin-top: 2px; }
+.customer-handover-schedule .handover-schedule-notice p { margin: 0; font-size: 12px; line-height: 1.7; }
+.customer-handover-schedule .handover-schedule-ineligible { border-color: #fde68a; background: #fffbeb; color: #92400e; }
+.customer-handover-schedule .handover-schedule-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+.customer-handover-schedule .handover-schedule-actions .button, .customer-handover-schedule .handover-schedule-back { min-height: 44px; border-radius: 12px; font-size: 12px; }
+.customer-handover-schedule .handover-schedule-back { justify-self: start; }
+.customer-handover-schedule .form-error { margin: 0; }
+.customer-handover-schedule.page-container .page-heading > div { display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.customer-handover-schedule.page-container .page-heading .flow-dialog-heading-icon { grid-row: 1 / span 3; }
+.customer-handover-schedule.page-container .page-heading p { grid-column: 2; }
+.customer-handover-schedule.page-container .page-heading h1 { font-size: 24px; margin: 0; }
+@media (max-width: 600px) {
+  .customer-handover-schedule.flow-dialog { padding: 20px; }
+  .customer-handover-schedule .flow-dialog-heading { gap: 10px; }
+  .customer-handover-schedule.flow-dialog .dialog-subtitle { margin-left: 0; margin-top: 12px; }
+  .customer-handover-schedule .handover-schedule-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .customer-handover-schedule .handover-schedule-period { grid-column: 1 / -1; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }
+  .customer-handover-schedule .handover-schedule-actions .button { flex: 1 1 auto; }
+}
