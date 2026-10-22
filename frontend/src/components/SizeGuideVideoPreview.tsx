@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { PlayCircle, VideoOff } from 'lucide-react'
+import { VideoOff } from 'lucide-react'
 
 // Keep the video's own final frame on screen; no separate image or new API field.
-export function SizeGuideVideoPreview({ src, suspended }: { src: string; suspended: boolean }) {
+export function SizeGuideVideoPreview({ src }: { src: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'playing' | 'blocked' | 'failed'>('loading')
@@ -28,7 +28,7 @@ export function SizeGuideVideoPreview({ src, suspended }: { src: string; suspend
       else if (video!.readyState >= 2) setStatus(blocked ? 'blocked' : 'ready')
     }
     function startPlayback() {
-      if (disposed || !wantsPlayback || !visible || suspended || document.hidden) return
+      if (disposed || !wantsPlayback || !visible || document.hidden) return
       if (video!.readyState < 1) return // loadedmetadata resumes the requested preview.
       const currentAttempt = ++attempt
       video!.muted = true
@@ -49,7 +49,7 @@ export function SizeGuideVideoPreview({ src, suspended }: { src: string; suspend
       else if (video!.readyState >= 1) showStill()
     }
     function enter(event: PointerEvent) {
-      if (event.pointerType !== 'mouse' || !mousePointer.matches || reducedMotion.matches || suspended || !visible || video!.error) return
+      if (event.pointerType !== 'mouse' || !mousePointer.matches || reducedMotion.matches || !visible || video!.error) return
       blocked = false
       wantsPlayback = true
       loadPreview()
@@ -67,7 +67,7 @@ export function SizeGuideVideoPreview({ src, suspended }: { src: string; suspend
       if (!wantsPlayback && !video!.seeking && video!.readyState >= 2 && !video!.error) setStatus(blocked ? 'blocked' : 'ready')
     }
     function playing() {
-      if (!wantsPlayback || !visible || suspended || document.hidden || reducedMotion.matches) showStill()
+      if (!wantsPlayback || !visible || document.hidden || reducedMotion.matches) showStill()
     }
     function failed() { wantsPlayback = false; attempt++; setStatus('failed') }
     function ended() { wantsPlayback = false; setStatus('ready') }
@@ -96,7 +96,6 @@ export function SizeGuideVideoPreview({ src, suspended }: { src: string; suspend
     })
     if (observer) observer.observe(container)
     else { visible = true; loadPreview() }
-    if (suspended) showStill()
 
     return () => {
       disposed = true
@@ -116,12 +115,11 @@ export function SizeGuideVideoPreview({ src, suspended }: { src: string; suspend
       document.removeEventListener('visibilitychange', visibilityChanged)
       video.pause()
     }
-  }, [src, suspended])
+  }, [src])
 
   return <div className="size-guide-video-preview" ref={containerRef}>
     <video ref={videoRef} muted playsInline preload="metadata" aria-hidden="true" tabIndex={-1} />
     {status === 'loading' && <div className="size-guide-media-fallback size-guide-preview-feedback" role="status">Loading video preview…</div>}
-    {status === 'failed' && <div className="size-guide-media-fallback size-guide-preview-feedback" role="status"><VideoOff size={28} aria-hidden="true" /><span>Video preview unavailable. Try opening the video.</span></div>}
-    {status !== 'loading' && status !== 'failed' && <span className="size-guide-preview-hint"><PlayCircle size={16} aria-hidden="true" />{status === 'playing' ? 'Muted preview' : status === 'blocked' ? 'Select View Video to play' : 'Hover to preview · Select View Video to watch'}</span>}
+    {status === 'failed' && <div className="size-guide-media-fallback size-guide-preview-feedback" role="status"><VideoOff size={28} aria-hidden="true" /><span>Video preview unavailable.</span></div>}
   </div>
 }
