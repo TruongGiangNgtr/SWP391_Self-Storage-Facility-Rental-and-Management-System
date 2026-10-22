@@ -35,6 +35,7 @@ public static class BusinessServiceCollectionExtensions
         services.AddScoped<IBillingService, BillingService>();
         services.AddScoped<IFacilityOperationsReportService, FacilityOperationsReportService>();
         services.AddScoped<IReportRevenueService, ReportRevenueService>();
+        services.AddScoped<IReportReadService, ReportReadService>();
         services.AddScoped<IBusinessOverviewService, BusinessOverviewService>();
         services.AddScoped<IUnitTypeService, UnitTypeService>();
         services.AddScoped<IPolicyService, PolicyService>();
