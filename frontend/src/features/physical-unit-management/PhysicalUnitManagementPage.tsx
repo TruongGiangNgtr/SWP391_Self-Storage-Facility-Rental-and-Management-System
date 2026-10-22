@@ -1,3 +1,4 @@
+import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
 import {
   AlertTriangle,
   Check,
@@ -120,11 +121,6 @@ function ManagerDialog({
   )
 }
 
-function shortId(value: string) {
-  return value.length <= 14
-    ? value
-    : `${value.slice(0, 8)}…${value.slice(-4)}`
-}
 
 function statusLabel(status: StorageUnitStatus) {
   switch (status) {
@@ -246,7 +242,7 @@ export function PhysicalUnitManagementPage() {
         return next
       })
     } catch {
-      // Unit management still remains usable through CAT-004 verification by Unit Type ID.
+      // Retain cached named options; Refresh retries the Facility catalogue.
       setFacilityUnitTypes([])
     } finally {
       setIsLoadingUnitTypes(false)
@@ -310,7 +306,7 @@ export function PhysicalUnitManagementPage() {
           unitTypeId,
           label: detail
             ? `${detail.name} · ${detail.mode}`
-            : `Unit Type ${shortId(unitTypeId)}`,
+            : 'Unit type name unavailable',
         }
       })
       .sort((a, b) => a.label.localeCompare(b.label))
@@ -514,8 +510,8 @@ export function PhysicalUnitManagementPage() {
     setFormError(null)
 
     try {
-      const response = await storageUnitApi.create(facilityId, request)
-      setSuccessMessage(`StorageUnit ${unitCode} created as AVAILABLE. ID: ${shortId(response.data)}.`)
+      await storageUnitApi.create(facilityId, request)
+      setSuccessMessage(`Storage unit ${unitCode} created as AVAILABLE.`)
       closeDialogAfterSubmit()
       await loadUnits()
       await loadUnitTypes()
@@ -723,7 +719,7 @@ export function PhysicalUnitManagementPage() {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search unit code, location, Unit Type or ID"
+              placeholder="Search unit code, location or unit type"
             />
           </label>
 
@@ -758,7 +754,7 @@ export function PhysicalUnitManagementPage() {
             <span>{filteredUnits.length} shown · {units.length} total</span>
           </div>
           <span className="physical-facility-id">
-            Facility {facilityId ? shortId(facilityId) : 'unassigned'}
+            <EmployeeEntityLabel kind="facility" id={facilityId} />
           </span>
         </div>
 
@@ -798,15 +794,14 @@ export function PhysicalUnitManagementPage() {
                           <span><Warehouse size={17} /></span>
                           <div>
                             <strong>{unit.unitCode}</strong>
-                            <small>{shortId(unit.storageUnitId)}</small>
                           </div>
                         </div>
                       </td>
                       <td>
                         <div className="physical-type-cell">
-                          <strong>{unitType?.name ?? `Unit Type ${shortId(unit.unitTypeId)}`}</strong>
+                          <strong>{unitType?.name ?? 'Unit type name unavailable'}</strong>
                           <span>
-                            {unitType ? `${unitType.mode} · ${unitType.size} · ${formatMoney(unitType.rentalPrice)}` : shortId(unit.unitTypeId)}
+                            {unitType ? `${unitType.mode} · ${unitType.size} · ${formatMoney(unitType.rentalPrice)}` : 'Unit type details unavailable'}
                           </span>
                         </div>
                       </td>
@@ -940,12 +935,12 @@ export function PhysicalUnitManagementPage() {
             <>
               <div className="physical-detail-grid">
                 <div><span>Status</span><strong className={statusClass(selectedUnit.status)}>{statusLabel(selectedUnit.status)}</strong></div>
-                <div><span>StorageUnit ID</span><strong>{selectedUnit.storageUnitId}</strong></div>
-                <div><span>Facility ID</span><strong>{selectedUnit.facilityId}</strong></div>
+                <div><span>StorageUnit</span><strong>{selectedUnit.unitCode}</strong></div>
+                <div><span>Facility</span><strong><EmployeeEntityLabel kind="facility" id={selectedUnit.facilityId} /></strong></div>
                 <div><span>Location</span><strong>{selectedUnit.locationInfo || 'Not specified'}</strong></div>
                 <div className="physical-detail-wide">
                   <span>Unit Type</span>
-                  <strong>{unitTypeDisplay(verifiedUnitType) ?? selectedUnit.unitTypeId}</strong>
+                  <strong>{unitTypeDisplay(verifiedUnitType) ?? 'Unit type name unavailable'}</strong>
                   {verifiedUnitType && <small>{formatMoney(verifiedUnitType.rentalPrice)} / month · read-only master price</small>}
                 </div>
               </div>
@@ -1007,14 +1002,6 @@ export function PhysicalUnitManagementPage() {
         </ManagerDialog>
       )}
 
-      <datalist id="physical-unit-type-options">
-        {knownUnitTypes.map((unitType) => (
-          <option key={unitType.unitTypeId} value={unitType.unitTypeId}>
-            {unitType.name} · {unitType.mode} · {unitType.size}
-          </option>
-        ))}
-      </datalist>
-
       {isLoadingUnitTypes && <span className="physical-sr-only">Loading Unit Type suggestions</span>}
     </section>
   )
@@ -1060,15 +1047,17 @@ function UnitFormFields({
       <label className="physical-field">
         <span>Unit Type <strong>*</strong></span>
         <div className="physical-verify-row">
-          <input
+          <select
             value={form.unitTypeId}
             onChange={(event) => onChange({ ...form, unitTypeId: event.target.value })}
-            placeholder={knownUnitTypes.length ? 'Choose a suggestion or paste Unit Type ID' : 'Paste an existing Unit Type ID'}
-            list="physical-unit-type-options"
-            autoComplete="off"
             disabled={unitTypeDisabled}
             required
-          />
+          >
+            <option value="">Choose a unit type</option>
+            {form.unitTypeId && !knownUnitTypes.some(type => type.unitTypeId === form.unitTypeId) &&
+              <option value={form.unitTypeId} disabled>{verifiedUnitType?.name || 'Current unit type unavailable'}</option>}
+            {knownUnitTypes.map(type => <option key={type.unitTypeId} value={type.unitTypeId}>{type.name} · {type.mode} · {type.size}</option>)}
+          </select>
           <button type="button" onClick={onVerify} disabled={unitTypeDisabled || verifying || !form.unitTypeId.trim()}>
             {verifying ? 'Checking…' : 'Verify'}
           </button>

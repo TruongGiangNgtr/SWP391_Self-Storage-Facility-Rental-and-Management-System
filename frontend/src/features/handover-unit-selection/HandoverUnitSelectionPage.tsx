@@ -1,3 +1,4 @@
+import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
 import {
   Check,
   ClipboardCopy,
@@ -22,11 +23,6 @@ import { ApiRequestError } from '../../api/httpClient'
 import { useAuth } from '../../auth/auth.context'
 import type { ReservationDetail } from '../reservations/reservation.types'
 
-function shortId(value: string) {
-  return value.length <= 12
-    ? value
-    : `${value.slice(0, 8)}…${value.slice(-4)}`
-}
 
 function reservationErrorMessage(error: unknown) {
   if (!(error instanceof ApiRequestError)) {
@@ -165,6 +161,10 @@ export function HandoverUnitSelectionPage() {
       return [
         reservation.reservationId,
         reservation.unitTypeId,
+        reservation.startMonth,
+        reservation.endMonth,
+        reservation.status,
+        visit.visitDate,
         visit.visitId,
       ].some((value) =>
         value.toLowerCase().includes(normalizedSearch),
@@ -387,7 +387,7 @@ export function HandoverUnitSelectionPage() {
               onChange={(event) =>
                 setReservationSearch(event.target.value)
               }
-              placeholder="Search Reservation, Visit or Unit Type ID"
+              placeholder="Search rental period or status"
             />
           </label>
 
@@ -428,17 +428,17 @@ export function HandoverUnitSelectionPage() {
                   >
                     <div>
                       <strong>
-                        Reservation {shortId(reservation.reservationId)}
+                        <EmployeeEntityLabel kind="customer" id={reservation.customerId} /> · {reservation.startMonth} → {reservation.endMonth}
                       </strong>
                       <span>
-                        Visit {shortId(reservation.reservationVisit?.visitId ?? '')}
+                        Reservation visit · {reservation.reservationVisit?.visitDate}
                       </span>
                     </div>
 
                     <dl>
                       <div>
                         <dt>Unit Type</dt>
-                        <dd>{shortId(reservation.unitTypeId)}</dd>
+                        <dd><EmployeeEntityLabel kind="unitType" id={reservation.unitTypeId} /></dd>
                       </div>
                       <div>
                         <dt>Visit Date</dt>
@@ -474,7 +474,7 @@ export function HandoverUnitSelectionPage() {
               onChange={(event) =>
                 setUnitSearch(event.target.value)
               }
-              placeholder="Search unit code, location or ID"
+              placeholder="Search unit code or location"
               disabled={!selectedReservation}
             />
           </label>
@@ -538,7 +538,7 @@ export function HandoverUnitSelectionPage() {
                         <span>AVAILABLE</span>
                       </div>
                       <p>{unit.locationInfo || 'No location information'}</p>
-                      <small>{shortId(unit.storageUnitId)}</small>
+                      <small><EmployeeEntityLabel kind="unitType" id={unit.unitTypeId} /></small>
                     </div>
 
                     <button
@@ -575,8 +575,8 @@ export function HandoverUnitSelectionPage() {
             <span>Selected for handover</span>
             <h2>{selectedUnit.unitCode}</h2>
             <p>
-              Reservation {shortId(selectedReservation.reservationId)} ·
-              {' '}StorageUnit {shortId(selectedUnit.storageUnitId)}
+              <EmployeeEntityLabel kind="customer" id={selectedReservation.customerId} /> · {selectedReservation.startMonth} → {selectedReservation.endMonth} ·
+              {' '}Unit {selectedUnit.unitCode}
             </p>
           </div>
 
@@ -587,7 +587,7 @@ export function HandoverUnitSelectionPage() {
               onClick={() => void copySelectedUnitId()}
             >
               <ClipboardCopy size={16} />
-              {copyFeedback ? 'Copied' : 'Copy StorageUnit ID'}
+              {copyFeedback ? 'Copied' : 'Copy handover reference'}
             </button>
 
             <button

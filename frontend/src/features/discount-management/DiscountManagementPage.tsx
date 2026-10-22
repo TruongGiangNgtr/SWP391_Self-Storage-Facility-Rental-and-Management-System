@@ -555,7 +555,7 @@ export function DiscountManagementPage() {
               setSearchTerm(event.target.value)
               setCurrentPage(1)
             }}
-            placeholder="Search by name, percentage or Discount ID..."
+            placeholder="Search by name or percentage..."
             className="facility-search-input"
             disabled={!loadedCustomerId}
           />
@@ -670,7 +670,6 @@ export function DiscountManagementPage() {
                     <td>
                       <div className="facility-name-cell">
                         <strong>{discount.name}</strong>
-                        <span>{discount.discountId}</span>
                       </div>
                     </td>
                     <td>

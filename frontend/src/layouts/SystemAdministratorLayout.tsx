@@ -1,3 +1,4 @@
+import { EmployeeLabelsProvider } from '../components/EmployeeEntityLabel'
 import {
   ClipboardList,
   FileText,
@@ -139,7 +140,7 @@ export function SystemAdministratorLayout() {
         </aside>
 
         <main className="admin-main">
-          <Outlet />
+          <EmployeeLabelsProvider><Outlet /></EmployeeLabelsProvider>
         </main>
       </div>
 

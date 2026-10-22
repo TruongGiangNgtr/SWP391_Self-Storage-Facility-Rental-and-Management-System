@@ -1,3 +1,4 @@
+import { EmployeeEntityLabel } from '../components/EmployeeEntityLabel'
 import { CheckCircle2, LifeBuoy, RefreshCw, Search, ShieldAlert } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -16,9 +17,6 @@ import {
 import { formatUtcDateTime } from '../utils/formatters'
 import '../styles/staff.css'
 
-function shortId(value: string) {
-  return value.length <= 18 ? value : `${value.slice(0, 8)}…${value.slice(-6)}`
-}
 
 function readable(value: string) {
   return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (part) => part.toUpperCase())
@@ -190,10 +188,10 @@ export function StaffSupportPage() {
                 <tbody>
                   {visibleTickets.map((ticket) => (
                     <tr key={ticket.supportTicketId} className={selectedId === ticket.supportTicketId ? 'fwp-row-selected' : ''}>
-                      <td><div className="fwp-customer-cell"><strong>{shortId(ticket.supportTicketId)}</strong><span>Contract {shortId(ticket.contractId)}</span></div></td>
+                      <td><div className="fwp-customer-cell"><strong>{ticket.category.replaceAll('_', ' ')} · {formatUtcDateTime(ticket.createdAt)}</strong><span><EmployeeEntityLabel kind="contract" id={ticket.contractId} /></span></div></td>
                       <td>{readable(ticket.category)}</td>
                       <td><StatusBadge status={ticket.status} /></td>
-                      <td>{ticket.assignedEmployeeId === user?.employeeId ? <strong>You</strong> : ticket.assignedEmployeeId ? shortId(ticket.assignedEmployeeId) : <span className="fwp-muted">Unassigned</span>}</td>
+                      <td>{ticket.assignedEmployeeId === user?.employeeId ? <strong>You</strong> : ticket.assignedEmployeeId ? <EmployeeEntityLabel kind="employee" id={ticket.assignedEmployeeId} /> : <span className="fwp-muted">Unassigned</span>}</td>
                       <td>{formatUtcDateTime(ticket.createdAt)}</td>
                       <td><button className="fwp-link-button" type="button" onClick={() => selectTicket(ticket.supportTicketId)}>Open</button></td>
                     </tr>
@@ -220,15 +218,15 @@ export function StaffSupportPage() {
           ) : (
             <>
               <div className="fwp-card-header fwp-detail-title">
-                <div><span className="fwp-eyebrow">Support Ticket</span><h2>{shortId(detail.supportTicketId)}</h2></div>
+                <div><span className="fwp-eyebrow">Support Ticket</span><h2>{detail.category.replaceAll('_', ' ')}</h2></div>
                 <StatusBadge status={detail.status} />
               </div>
 
               <dl className="fwp-detail-grid fwp-support-detail-grid">
-                <div><dt>Contract</dt><dd>{detail.contractId}</dd></div>
-                <div><dt>Customer</dt><dd>{detail.customerId}</dd></div>
+                <div><dt>Contract</dt><dd><EmployeeEntityLabel kind="contract" id={detail.contractId} /></dd></div>
+                <div><dt>Customer</dt><dd><EmployeeEntityLabel kind="customer" id={detail.customerId} /></dd></div>
                 <div><dt>Category</dt><dd>{readable(detail.category)}</dd></div>
-                <div><dt>Assigned employee</dt><dd>{detail.assignedEmployeeId ?? 'Not assigned'}</dd></div>
+                <div><dt>Assigned employee</dt><dd><EmployeeEntityLabel kind="employee" id={detail.assignedEmployeeId} empty={'Not assigned'} /></dd></div>
                 <div><dt>Created (GMT+7)</dt><dd>{formatUtcDateTime(detail.createdAt)}</dd></div>
                 <div><dt>Completed (GMT+7)</dt><dd>{detail.completedAt ? formatUtcDateTime(detail.completedAt) : 'Not completed'}</dd></div>
               </dl>

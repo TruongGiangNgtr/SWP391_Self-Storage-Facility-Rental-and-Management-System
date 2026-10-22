@@ -1,3 +1,4 @@
+import { EmployeeEntityLabel } from '../components/EmployeeEntityLabel'
 import { Camera, CheckCircle2, RefreshCw, RotateCcw, ShieldAlert, WalletCards } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -47,9 +48,6 @@ function isReturnTab(value: string | null): value is ReturnTab {
   return value === 'confirmation' || value === 'inspection' || value === 'fees'
 }
 
-function shortId(value: string) {
-  return value.length <= 18 ? value : `${value.slice(0, 8)}…${value.slice(-6)}`
-}
 
 function ReturnConfirmationPanel() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -137,7 +135,7 @@ function ReturnConfirmationPanel() {
           <CheckCircle2 size={18} />
           <div>
             <strong>{result.returnClassification} return confirmed.</strong>
-            <span>Inspection {shortId(result.inspectionId)} is {result.inspectionStatus}; StorageUnit is {result.storageUnitStatus}.</span>
+            <span>Inspection is {result.inspectionStatus}; StorageUnit is {result.storageUnitStatus}.</span>
           </div>
           <button type="button" className="fwp-link-button" onClick={() => setSearchParams({ tab: 'inspection', inspectionId: result.inspectionId })}>Open Inspection</button>
         </div>
@@ -156,8 +154,8 @@ function ReturnConfirmationPanel() {
                 {returns.map((item) => (
                   <tr key={item.referenceId} className={requestedVisitId === item.referenceId ? 'fwp-row-selected' : ''}>
                     <td>{item.customer ? <div className="fwp-customer-cell"><strong>{item.customer.fullName}</strong><span>{item.customer.phoneNumber}</span></div> : <span className="fwp-muted">Customer context unavailable</span>}</td>
-                    <td><code>{shortId(item.referenceId)}</code></td>
-                    <td><code>{item.entityId ? shortId(item.entityId) : '—'}</code></td>
+                    <td>Return visit · {item.scheduledDate}</td>
+                    <td><EmployeeEntityLabel kind="contract" id={item.entityId} /></td>
                     <td><StatusBadge status={item.status} /></td>
                     <td>
                       {item.status === 'CHECKED_IN' ? (
@@ -386,7 +384,7 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
           <div className="fwp-inspection-list">
             {(list?.data ?? []).map((item) => (
               <button key={item.inspectionId} type="button" className={selectedId === item.inspectionId ? 'fwp-inspection-item active' : 'fwp-inspection-item'} onClick={() => chooseInspection(item.inspectionId)}>
-                <div><strong>{shortId(item.inspectionId)}</strong><span>Contract {shortId(item.contractId)}</span></div>
+                <div><strong>{item.status.replaceAll('_', ' ')} inspection</strong><span><EmployeeEntityLabel kind="contract" id={item.contractId} /></span></div>
                 <StatusBadge status={item.status} />
               </button>
             ))}
@@ -403,14 +401,14 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
         ) : (
           <>
             <div className="fwp-card-header fwp-detail-title">
-              <div><span className="fwp-eyebrow">Inspection</span><h2>{shortId(detail.inspectionId)}</h2></div>
+              <div><span className="fwp-eyebrow">Inspection</span><h2>Inspection findings</h2></div>
               <StatusBadge status={detail.status} />
             </div>
             <dl className="fwp-detail-grid">
-              <div><dt>Contract</dt><dd>{detail.contractId}</dd></div>
-              <div><dt>Storage Unit</dt><dd>{detail.storageUnitId}</dd></div>
+              <div><dt>Contract</dt><dd><EmployeeEntityLabel kind="contract" id={detail.contractId} /></dd></div>
+              <div><dt>Storage Unit</dt><dd><EmployeeEntityLabel kind="contractUnit" id={detail.contractId} /></dd></div>
               <div><dt>RETURN Visit</dt><dd>{detail.visitId ?? 'External recovery / no Visit'}</dd></div>
-              <div><dt>Claimed by</dt><dd>{detail.employeeId ?? 'Unclaimed'}</dd></div>
+              <div><dt>Claimed by</dt><dd><EmployeeEntityLabel kind="employee" id={detail.employeeId} empty={'Unclaimed'} /></dd></div>
               <div><dt>Completed</dt><dd>{detail.completedAt ? formatUtcDateTime(detail.completedAt) : 'Not completed'}</dd></div>
               <div><dt>Condition note</dt><dd>{detail.conditionNote ?? '—'}</dd></div>
             </dl>
@@ -502,8 +500,8 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
                   <section className="fwp-action-card">
                     <h3>Recorded fees and Damage</h3>
                     <div className="fwp-record-list">
-                      {detail.damages.map((item) => <div key={item.damageRecordId}><span>Damage · {shortId(item.damageTypeId)}</span><strong>{formatMoney(item.damageAmount)}</strong><StatusBadge status={item.status} /></div>)}
-                      {detail.extraFees.map((item) => <div key={item.extraFeeId}><span>Extra Fee · {shortId(item.extraFeeTypeId)}</span><strong>{formatMoney(item.amount)}</strong><span>{item.reason}</span></div>)}
+                      {detail.damages.map((item) => <div key={item.damageRecordId}><span>Damage · {item.damageTypeName || damageTypes.find(type => type.damageTypeId === item.damageTypeId)?.name || 'Damage type unavailable'}</span><strong>{formatMoney(item.damageAmount)}</strong><StatusBadge status={item.status} /></div>)}
+                      {detail.extraFees.map((item) => <div key={item.extraFeeId}><span>Extra Fee · {extraFeeTypes.find(type => type.extraFeeTypeId === item.extraFeeTypeId)?.name.replaceAll('_', ' ') || 'Fee type unavailable'}</span><strong>{formatMoney(item.amount)}</strong><span>{item.reason}</span></div>)}
                     </div>
                   </section>
                 )}

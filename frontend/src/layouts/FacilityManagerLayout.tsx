@@ -1,3 +1,4 @@
+import { EmployeeLabelsProvider } from '../components/EmployeeEntityLabel'
 import {
   ChartNoAxesCombined,
   ClipboardCheck,
@@ -147,7 +148,7 @@ export function FacilityManagerLayout() {
         </aside>
 
         <main className="manager-main">
-          <Outlet />
+          <EmployeeLabelsProvider><Outlet /></EmployeeLabelsProvider>
         </main>
       </div>
 

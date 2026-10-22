@@ -1,3 +1,4 @@
+import { EmployeeLabelsProvider } from '../components/EmployeeEntityLabel'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   AtSign,
@@ -46,7 +47,7 @@ export function BusinessOperationsLayout({
           </span>
         </div>
 
-        
+
       </div>
     </header>
 
@@ -150,7 +151,7 @@ export function BusinessOperationsLayout({
       </aside>
 
       <main className="bo-main">
-        <Outlet />
+        <EmployeeLabelsProvider><Outlet /></EmployeeLabelsProvider>
       </main>
     </div>
 
@@ -186,7 +187,7 @@ export function BusinessOperationsLayout({
 
         <div className="bo-footer__column">
           <strong>ACCOUNT</strong>
-          
+
 
           <button
             type="button"

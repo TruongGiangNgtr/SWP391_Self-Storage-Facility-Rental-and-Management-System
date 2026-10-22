@@ -446,7 +446,7 @@ export function PolicyVersionManagementPage() {
               setSearchTerm(event.target.value)
               setCurrentPage(1)
             }}
-            placeholder="Search by version or Policy ID..."
+            placeholder="Search by version..."
             className="facility-search-input"
           />
         </div>
@@ -546,7 +546,6 @@ export function PolicyVersionManagementPage() {
                     <td>
                       <div className="facility-name-cell">
                         <strong>Version {policy.version}</strong>
-                        <span>{policy.policyId}</span>
                       </div>
                     </td>
                     <td>
@@ -626,7 +625,7 @@ export function PolicyVersionManagementPage() {
                       <div className="facility-state-content">
                         <strong>No matching policy versions</strong>
                         <span>
-                          Try another version/Policy ID or clear the current
+                          Try another version or clear the current
                           filters.
                         </span>
                         <button
@@ -892,7 +891,7 @@ export function PolicyVersionManagementPage() {
             </div>
 
             <div className="facility-detail-body">
-              <PolicyDetailRow label="Policy ID" value={selectedPolicy.policyId} />
+              <PolicyDetailRow label="Policy" value={`Version ${selectedPolicy.version}`} />
               <PolicyDetailRow
                 label="Status"
                 value={selectedPolicy.status}

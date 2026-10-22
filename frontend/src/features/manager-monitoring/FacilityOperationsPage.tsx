@@ -1,3 +1,5 @@
+import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
+import type { ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Activity, ArrowUpRight, CalendarDays, ClipboardList, CreditCard, FileText, RefreshCw, Search, Warehouse, X } from 'lucide-react'
 import { useAuth } from '../../auth/auth.context'
@@ -30,7 +32,6 @@ const tabs: { key: Tab; label: string; icon: typeof ClipboardList }[] = [
   { key: 'units', label: 'Storage units', icon: Warehouse },
 ]
 
-const shortId = (id?: string | null) => id ? `${id.slice(0, 8)}…${id.slice(-4)}` : '—'
 const money = (amount: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(amount)
 const date = (input?: string | null) => input ? input.slice(0, 10) : '—'
 const errorText = (error: unknown) => {
@@ -49,34 +50,39 @@ function itemId(tab: Tab, item: RecordItem): string {
     case 'units': return (item as StorageUnit).storageUnitId
   }
 }
-function titleOf(tab: Tab, item: RecordItem): string {
-  return tab === 'units' ? (item as StorageUnit).unitCode : shortId(itemId(tab, item))
+function titleOf(tab: Tab, item: RecordItem) {
+  if (tab === 'units') return (item as StorageUnit).unitCode
+  if (tab === 'reservations') { const r = item as ReservationDetail; return <>Reservation · <EmployeeEntityLabel kind="unitType" id={r.unitTypeId} /></> }
+  if (tab === 'contracts') { const c = item as HandoverContractDetail; return c.unitCode || c.storageUnit?.unitCode || 'Rental contract' }
+  if (tab === 'visits') { const v = item as VisitDetail; return `${v.visitType.replaceAll('_', ' ')} visit · ${date(v.visitDate)}` }
+  const i = item as InvoiceDetail
+  return `${i.invoiceType.replaceAll('_', ' ')} invoice · ${i.billingMonth ?? date(i.dueDate)}`
 }
 function itemSearch(tab: Tab, item: RecordItem): string {
   return JSON.stringify(item).toLowerCase() + (tab === 'units' ? ` ${(item as StorageUnit).unitCode}` : '')
 }
 function ListRow({ tab, item, onSelect, unitTypeNames }: { tab: Tab; item: RecordItem; onSelect: () => void; unitTypeNames: Record<string, string> }) {
-  let sub = ''
-  let secondary = ''
+  let sub: ReactNode = ''
+  let secondary: ReactNode = ''
   let state = ''
   switch (tab) {
     case 'reservations': {
       const r = item as ReservationDetail
-      sub = `Customer ${shortId(r.customerId)} · ${r.startMonth} → ${r.endMonth}`
+      sub = <><EmployeeEntityLabel kind="customer" id={r.customerId} /> · {r.startMonth} → {r.endMonth}</>
       secondary = `Deposit: ${r.depositInvoice?.status ?? '—'}`
       state = r.status
       break
     }
     case 'contracts': {
       const r = item as HandoverContractDetail
-      sub = `Customer ${shortId(r.customerId)} · ${r.startMonth} → ${r.endMonth}`
-      secondary = `Unit ${shortId(r.storageUnitId)}`
+      sub = <><EmployeeEntityLabel kind="customer" id={r.customerId} /> · {r.startMonth} → {r.endMonth}</>
+      secondary = r.unitCode || r.storageUnit?.unitCode || <EmployeeEntityLabel kind="unit" id={r.storageUnitId} />
       state = r.status
       break
     }
     case 'visits': {
       const r = item as VisitDetail
-      sub = `${r.visitType} · ${date(r.visitDate)} · Ref ${shortId(r.entityId)}`
+      sub = `${r.visitType} · ${date(r.visitDate)}`
       secondary = r.actualReturnDate ? `Returned ${date(r.actualReturnDate)}` : 'Not physically returned'
       state = r.status
       break
@@ -102,7 +108,7 @@ function ListRow({ tab, item, onSelect, unitTypeNames }: { tab: Tab; item: Recor
     <ArrowUpRight size={17} aria-hidden="true" />
   </button>
 }
-function DetailField({ label, value }: { label: string; value?: string | number | null }) {
+function DetailField({ label, value }: { label: string; value?: ReactNode }) {
   return <div className="mop-detail-field"><dt>{label}</dt><dd>{value ?? '—'}</dd></div>
 }
 function RecordDetail({ detail, close, refreshing, facilityName, unitTypeNames }: { detail: DetailState; close: () => void; refreshing: boolean; facilityName: string; unitTypeNames: Record<string, string> }) {
@@ -112,18 +118,18 @@ function RecordDetail({ detail, close, refreshing, facilityName, unitTypeNames }
       <div className="mop-drawer-head"><div><small>Facility monitoring · Read only</small><h2>{tab === 'units' ? 'Storage unit' : tab.slice(0, -1)} detail</h2></div><button type="button" className="mop-icon-button" onClick={close} aria-label="Close details"><X size={20} /></button></div>
       <p className="mop-muted">Backend-authorized record. Monitoring does not change any lifecycle state.</p>
       <dl className="mop-detail-grid">
-        {tab !== 'units' && <DetailField label="Record ID" value={itemId(tab, item)} />}
+        <DetailField label="Record" value={titleOf(tab, item)} />
         {tab === 'reservations' && (() => { const r = item as ReservationDetail; return <>
-          <DetailField label="Status" value={r.status}/><DetailField label="Customer ID" value={r.customerId}/><DetailField label="Unit type ID" value={r.unitTypeId}/><DetailField label="Rental period" value={`${r.startMonth} → ${r.endMonth}`}/><DetailField label="Locked first-month rent" value={money(r.lockedRentalPrice)}/><DetailField label="Deposit" value={`${money(r.depositAmount)} · ${r.depositInvoice?.status ?? '—'}`}/><DetailField label="Reservation visit" value={r.reservationVisit ? `${date(r.reservationVisit.visitDate)} · ${r.reservationVisit.status}` : 'Not scheduled'} />
+          <DetailField label="Status" value={r.status}/><DetailField label="Customer" value={<EmployeeEntityLabel kind="customer" id={r.customerId} />}/><DetailField label="Unit type" value={<EmployeeEntityLabel kind="unitType" id={r.unitTypeId} />}/><DetailField label="Rental period" value={`${r.startMonth} → ${r.endMonth}`}/><DetailField label="Locked first-month rent" value={money(r.lockedRentalPrice)}/><DetailField label="Deposit" value={`${money(r.depositAmount)} · ${r.depositInvoice?.status ?? '—'}`}/><DetailField label="Reservation visit" value={r.reservationVisit ? `${date(r.reservationVisit.visitDate)} · ${r.reservationVisit.status}` : 'Not scheduled'} />
         </> })()}
         {tab === 'contracts' && (() => { const c = item as HandoverContractDetail; return <>
-          <DetailField label="Status" value={c.status}/><DetailField label="Customer ID" value={c.customerId}/><DetailField label="Storage unit ID" value={c.storageUnitId}/><DetailField label="Reservation ID" value={c.reservationId}/><DetailField label="Rental period" value={`${c.startMonth} → ${c.endMonth}`}/><DetailField label="Discount ID" value={c.discountId}/>
+          <DetailField label="Status" value={c.status}/><DetailField label="Customer" value={<EmployeeEntityLabel kind="customer" id={c.customerId} />}/><DetailField label="Storage unit" value={<EmployeeEntityLabel kind="unit" id={c.storageUnitId} />}/><DetailField label="Original reservation" value={`${c.startMonth} → ${c.endMonth}`}/><DetailField label="Rental period" value={`${c.startMonth} → ${c.endMonth}`}/><DetailField label="Captured discount" value={<EmployeeEntityLabel kind="discount" id={c.discountId} scope={c.customerId} empty="No discount" />}/>
         </> })()}
         {tab === 'visits' && (() => { const v = item as VisitDetail; return <>
-          <DetailField label="Type" value={v.visitType}/><DetailField label="Status" value={v.status}/><DetailField label="Reservation/contract ID" value={v.entityId}/><DetailField label="Scheduled date" value={date(v.visitDate)}/><DetailField label="Actual return date" value={date(v.actualReturnDate)}/><DetailField label="Staff actor ID" value={v.employeeId}/>
+          <DetailField label="Type" value={v.visitType}/><DetailField label="Status" value={v.status}/><DetailField label="Related rental" value={v.visitType === 'RESERVATION' ? 'Reservation visit' : <EmployeeEntityLabel kind="contract" id={v.entityId} />}/><DetailField label="Scheduled date" value={date(v.visitDate)}/><DetailField label="Actual return date" value={date(v.actualReturnDate)}/><DetailField label="Handling staff" value={<EmployeeEntityLabel kind="employee" id={v.employeeId} />}/>
         </> })()}
         {tab === 'invoices' && (() => { const i = item as InvoiceDetail; return <>
-          <DetailField label="Type" value={i.invoiceType}/><DetailField label="Status" value={i.status}/><DetailField label="Reservation/contract ID" value={i.entityId}/><DetailField label="Billing month" value={i.billingMonth}/><DetailField label="Amount due" value={money(i.amountDue)}/><DetailField label="Discount" value={money(i.discountAmount)}/><DetailField label="Due date" value={date(i.dueDate)}/><DetailField label="Paid at (UTC)" value={i.paidAt}/>
+          <DetailField label="Type" value={i.invoiceType}/><DetailField label="Status" value={i.status}/><DetailField label="Related rental" value={i.invoiceType === 'DEPOSIT' ? 'Reservation deposit' : <EmployeeEntityLabel kind="contract" id={i.entityId} />}/><DetailField label="Billing month" value={i.billingMonth}/><DetailField label="Amount due" value={money(i.amountDue)}/><DetailField label="Discount" value={money(i.discountAmount)}/><DetailField label="Due date" value={date(i.dueDate)}/><DetailField label="Paid at (UTC)" value={i.paidAt}/>
         </> })()}
         {tab === 'units' && (() => { const u = item as StorageUnit; return <>
           <DetailField label="Unit code" value={u.unitCode}/><DetailField label="Status" value={u.status}/><DetailField label="Location" value={u.locationInfo}/><DetailField label="Facility" value={facilityName}/><DetailField label="Unit type" value={unitTypeNames[u.unitTypeId] || 'Type name unavailable'}/>
