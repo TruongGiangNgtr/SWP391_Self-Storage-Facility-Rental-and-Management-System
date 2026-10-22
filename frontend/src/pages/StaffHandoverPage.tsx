@@ -1,4 +1,5 @@
-import { EmployeeEntityLabel, RentalPeriodLabel } from '../components/EmployeeEntityLabel'
+import { employeeText } from '../utils/employeePresentation'
+import { EmployeeEntityLabel, EmployeeReservationLabel } from '../components/EmployeeEntityLabel'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
@@ -63,10 +64,10 @@ export function StaffHandoverPage() {
       {loading ? <LoadingState label="Loading reservation and visit..." /> : context && (
         <>
           <section className="panel stack" aria-label="Reservation and customer">
-            <div className="card-heading-row"><h2>{customer?.fullName ?? 'Reservation Details'}</h2><StatusBadge status={context.reservation.status} /></div>
+            <div className="card-heading-row"><h2>{employeeText(customer?.fullName, 'Reservation Details')}</h2><StatusBadge status={context.reservation.status} /></div>
             {customer ? <p className="muted">{customer.phoneNumber}</p> : <p className="notice">Customer identification is not in the current work-list page. Return to Work List to review the customer; a missing work item is not evidence of a different reservation.</p>}
             <dl className="detail-list">
-              <div><dt>Reservation</dt><dd><RentalPeriodLabel startMonth={context.reservation.startMonth} endMonth={context.reservation.endMonth} /></dd></div>
+              <div><dt>Reservation</dt><dd><EmployeeReservationLabel customerId={context.reservation.customerId} customerName={customer?.fullName} /></dd></div>
               <div><dt>Rental Period</dt><dd>{formatMonthRange(context.reservation.startMonth, context.reservation.endMonth)}</dd></div>
               <div><dt>Facility</dt><dd><EmployeeEntityLabel kind="facility" id={context.reservation.facilityId} /></dd></div>
               <div><dt>Unit Type</dt><dd><EmployeeEntityLabel kind="unitType" id={context.reservation.unitTypeId} /></dd></div>
@@ -96,8 +97,8 @@ export function StaffHandoverPage() {
                   <h3>Manager-assigned Unit</h3>
                   {validAssignment ? (
                     <dl className="detail-list">
-                      <div><dt>Unit Code</dt><dd>{assignment.unitCode}</dd></div>
-                      <div><dt>Location</dt><dd>{assignment.locationInfo || 'No location information'}</dd></div>
+                      <div><dt>Unit Code</dt><dd>{employeeText(assignment.unitCode)}</dd></div>
+                      <div><dt>Location</dt><dd>{employeeText(assignment.locationInfo)}</dd></div>
                       <div><dt>Status</dt><dd>{assignment.status}</dd></div>
                       <div><dt>Assigned At</dt><dd>{new Date(assignment.assignedAt).toLocaleString('en-GB', { timeZone: 'Asia/Ho_Chi_Minh' })} (GMT+7)</dd></div>
                     </dl>

@@ -1,3 +1,4 @@
+import { employeeText } from '../../utils/employeePresentation'
 import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
 import {
   Check,
@@ -467,7 +468,7 @@ export function HandoverUnitSelectionPage() {
                         <EmployeeEntityLabel kind="customer" id={reservation.customerId} /> · {reservation.startMonth} → {reservation.endMonth}
                       </strong>
                       <span>
-                        Reservation visit · {reservation.reservationVisit?.visitDate}
+                        Reservation visit · {employeeText(reservation.reservationVisit?.visitDate)}
                       </span>
                     </div>
 
@@ -478,7 +479,7 @@ export function HandoverUnitSelectionPage() {
                       </div>
                       <div>
                         <dt>Visit Date</dt>
-                        <dd>{reservation.reservationVisit?.visitDate}</dd>
+                        <dd>{employeeText(reservation.reservationVisit?.visitDate)}</dd>
                       </div>
                     </dl>
 
@@ -574,7 +575,7 @@ export function HandoverUnitSelectionPage() {
 
                     <div className="handover-unit-content">
                       <div className="handover-unit-title-row">
-                        <strong>{unit.unitCode}</strong>
+                        <strong>{employeeText(unit.unitCode)}</strong>
                         <span>AVAILABLE</span>
                       </div>
                       <p>{unit.locationInfo || 'No location information'}</p>
@@ -613,10 +614,10 @@ export function HandoverUnitSelectionPage() {
         <section className="handover-selection-summary">
           <div>
             <span>Selected for handover</span>
-            <h2>{selectedUnit.unitCode}</h2>
+            <h2>{employeeText(selectedUnit.unitCode)}</h2>
             <p>
               <EmployeeEntityLabel kind="customer" id={selectedReservation.customerId} /> · {selectedReservation.startMonth} → {selectedReservation.endMonth} ·
-              {' '}Unit {selectedUnit.unitCode}
+              {' '}Unit {employeeText(selectedUnit.unitCode)}
             </p>
           </div>
 

@@ -1,5 +1,6 @@
+import { employeeContractLabel, employeeMonthRange, employeeUnitLabel } from '../../utils/employeePresentation'
 import type { ReactNode } from 'react'
-import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
+import { EmployeeEntityLabel, EmployeeReservationLabel } from '../../components/EmployeeEntityLabel'
 import { useEffect, useMemo, useState } from 'react'
 import {
   Activity, ArrowRight, Building2, CalendarDays, CreditCard, FileText,
@@ -58,7 +59,7 @@ function activityId(tab: ActivityTab, item: ActivityRecord): string {
 }
 
 function activityTitle(tab: ActivityTab, item: ActivityRecord): ReactNode {
-  if (tab === 'contracts') return (item as BusinessContractSummary).unitCode || 'Rental contract'
+  if (tab === 'contracts') return employeeContractLabel(item as BusinessContractSummary)
   if (tab === 'reservations') { const r = item as ReservationDetail; return <>Reservation · <EmployeeEntityLabel kind="unitType" id={r.unitTypeId} /></> }
   if (tab === 'visits') { const v = item as VisitDetail; return `${readableStatus(v.visitType)} visit · ${textDate(v.visitDate)}` }
   const i = item as InvoiceDetail
@@ -139,9 +140,9 @@ function detailFields(detail: DetailState): { label: string; value: ReactNode }[
   if (tab === 'reservations') {
     const r = record as ReservationDetail
     return [
-      { label: 'Reservation', value: `${r.startMonth} → ${r.endMonth}` }, { label: 'Facility', value: <EmployeeEntityLabel kind="facility" id={r.facilityId} /> },
+      { label: 'Reservation', value: <EmployeeReservationLabel customerId={r.customerId} /> }, { label: 'Facility', value: <EmployeeEntityLabel kind="facility" id={r.facilityId} /> },
       { label: 'Customer', value: <EmployeeEntityLabel kind="customer" id={r.customerId} /> }, { label: 'Unit Type', value: <EmployeeEntityLabel kind="unitType" id={r.unitTypeId} /> },
-      { label: 'Rental period', value: `${r.startMonth} → ${r.endMonth}` },
+      { label: 'Rental period', value: employeeMonthRange(r.startMonth, r.endMonth) },
       { label: 'Status', value: r.status }, { label: 'Deposit invoice status', value: r.depositInvoice?.status },
       { label: 'Locked monthly price', value: vnd(r.lockedRentalPrice) },
     ]
@@ -149,10 +150,10 @@ function detailFields(detail: DetailState): { label: string; value: ReactNode }[
   if (tab === 'contracts') {
     const r = record as HandoverContractDetail
     return [
-      { label: 'Contract', value: r.unitCode || r.storageUnit?.unitCode || 'Rental contract' }, { label: 'Facility', value: <EmployeeEntityLabel kind="facility" id={r.facilityId} /> },
-      { label: 'Customer', value: <EmployeeEntityLabel kind="customer" id={r.customerId} /> }, { label: 'Reservation', value: `${r.startMonth} → ${r.endMonth}` },
-      { label: 'Storage Unit', value: r.unitCode || r.storageUnit?.unitCode || 'Unit code unavailable' }, { label: 'Status', value: r.status },
-      { label: 'Rental period', value: `${r.startMonth} → ${r.endMonth}` },
+      { label: 'Contract', value: employeeContractLabel(r) }, { label: 'Facility', value: <EmployeeEntityLabel kind="facility" id={r.facilityId} /> },
+      { label: 'Customer', value: <EmployeeEntityLabel kind="customer" id={r.customerId} /> }, { label: 'Reservation', value: r.reservationId ? <EmployeeReservationLabel customerId={r.customerId} /> : '—' },
+      { label: 'Storage Unit', value: employeeUnitLabel(r) }, { label: 'Status', value: r.status },
+      { label: 'Rental period', value: employeeMonthRange(r.startMonth, r.endMonth) },
       { label: 'Captured policy', value: <EmployeeEntityLabel kind="policy" id={r.policyId} /> },
       { label: 'Captured discount', value: <EmployeeEntityLabel kind="discount" id={r.discountId} scope={r.customerId} empty="No discount" /> },
     ]
@@ -308,6 +309,7 @@ export function MultiFacilityMonitoringPage() {
     setDetailLoading(true)
     try {
       const record = await loadDetail(tab, item)
+      if (!record) { setDetailError('Record details are not available. Refresh to retry.'); return }
       setDetail({ tab, record })
     } catch (error) {
       setDetailError(readableError(error))

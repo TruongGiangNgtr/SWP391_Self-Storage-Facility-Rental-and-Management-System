@@ -1,11 +1,10 @@
-import { contractOption, contractUnit } from '../utils/customerPresentation'
+import { employeeContractLabel, employeeMonthRange, employeeText, employeeUnitLabel } from '../utils/employeePresentation'
 import { EmployeeEntityLabel } from '../components/EmployeeEntityLabel'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { LoadingState } from '../components/PageStates'
 import { StatusBadge } from '../components/StatusBadge'
 import { useStaffAccessVisit } from '../features/visits/useStaffAccessVisit'
-import { formatMonthRange } from '../utils/formatters'
 import '../styles/staff.css'
 
 export function StaffAccessVisitPage() {
@@ -26,7 +25,7 @@ export function StaffAccessVisitPage() {
       <button className="button button-secondary" type="button" disabled={busy} onClick={() => refresh()}>Refresh Details</button>
       {loading ? <LoadingState label="Loading access visit and contract..." /> : context && <>
         <section className="panel stack" aria-label="Access visit and customer">
-          <div className="card-heading-row"><h2>Access Visit</h2><StatusBadge status={context.visit.status} /></div>
+          <div className="card-heading-row"><h2>Access Visit</h2><StatusBadge status={employeeText(context.visit.status)} /></div>
           {context.workItem ? <p><strong>{context.workItem.customer.fullName}</strong><br /><span className="muted">{context.workItem.customer.phoneNumber}</span></p>
             : <p className="notice">Customer identification is not in this work-list page. Return to Work List to verify the arriving customer; no customer details are inferred from URL IDs.</p>}
           <dl className="detail-list">
@@ -46,12 +45,12 @@ export function StaffAccessVisitPage() {
           {(context.visit.status === 'CHECKED_OUT' || context.visit.status === 'CANCELLED') && <p className="notice">This visit is {context.visit.status}. No further check-in or check-out action is available.</p>}
         </section>
         <section className="panel stack" aria-label="Access contract details">
-          <div className="card-heading-row"><h2>Related Contract</h2><StatusBadge status={context.contract.status} /></div>
+          <div className="card-heading-row"><h2>Related Contract</h2><StatusBadge status={employeeText(context.contract.status)} /></div>
           <dl className="detail-list">
-            <div><dt>Contract</dt><dd>{contractOption(context.contract)}</dd></div>
+            <div><dt>Contract</dt><dd>{employeeContractLabel(context.contract)}</dd></div>
             <div><dt>Facility</dt><dd><EmployeeEntityLabel kind="facility" id={context.contract.facilityId} /></dd></div>
-            <div><dt>Storage Unit</dt><dd>{contractUnit(context.contract)}</dd></div>
-            <div><dt>Rental Period</dt><dd>{formatMonthRange(context.contract.startMonth, context.contract.endMonth)}</dd></div>
+            <div><dt>Storage Unit</dt><dd>{employeeUnitLabel(context.contract)}</dd></div>
+            <div><dt>Rental Period</dt><dd>{employeeMonthRange(context.contract.startMonth, context.contract.endMonth)}</dd></div>
           </dl>
           <p className="muted">Access processing changes the Visit only. It does not perform handover, return finalization or unit reassignment.</p>
         </section>
