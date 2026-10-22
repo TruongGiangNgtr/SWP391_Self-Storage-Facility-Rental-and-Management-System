@@ -57,17 +57,19 @@ export function StaffHandoverPage() {
     <main className="page-container flow-page narrow-page staff-flow">
       <section className="page-heading page-heading-actions">
         <div><p className="eyebrow">Facility Staff</p><h1>Reservation Check-in &amp; Handover</h1></div>
-        <Link className="button button-secondary" to="/staff">Work List</Link>
+        <div className="employee-page-actions">
+          <Link className="button button-secondary" to="/staff">Work List</Link>
+          <button className="button button-secondary" type="button" disabled={busy} onClick={() => { resetAcknowledgment(); void refresh() }}>Refresh Details</button>
+        </div>
       </section>
       <ApiErrorAlert error={validationError ?? error} />
-      <button className="button button-secondary" type="button" disabled={busy} onClick={() => { resetAcknowledgment(); void refresh() }}>Refresh Details</button>
       {loading ? <LoadingState label="Loading reservation and visit..." /> : context && (
         <>
           <section className="panel stack" aria-label="Reservation and customer">
             <div className="card-heading-row"><h2>{employeeText(customer?.fullName, 'Reservation Details')}</h2><StatusBadge status={context.reservation.status} /></div>
             {customer ? <p className="muted">{customer.phoneNumber}</p> : <p className="notice">Customer identification is not in the current work-list page. Return to Work List to review the customer; a missing work item is not evidence of a different reservation.</p>}
             <dl className="detail-list">
-              <div><dt>Reservation</dt><dd><EmployeeReservationLabel customerId={context.reservation.customerId} customerName={customer?.fullName} /></dd></div>
+              <div><dt>Reservation</dt><dd><EmployeeReservationLabel customerId={context.reservation.customerId} customerName={customer?.fullName} startMonth={context.reservation.startMonth} endMonth={context.reservation.endMonth} visitDate={context.visit.visitDate} /></dd></div>
               <div><dt>Rental Period</dt><dd>{formatMonthRange(context.reservation.startMonth, context.reservation.endMonth)}</dd></div>
               <div><dt>Facility</dt><dd><EmployeeEntityLabel kind="facility" id={context.reservation.facilityId} /></dd></div>
               <div><dt>Unit Type</dt><dd><EmployeeEntityLabel kind="unitType" id={context.reservation.unitTypeId} /></dd></div>
@@ -81,17 +83,18 @@ export function StaffHandoverPage() {
             </dl>
             {context.reservation.status === 'CONFIRMED' && context.visit.status === 'SCHEDULED' ? (
               <>
-                <p className="muted">Verify the arriving customer before check-in. The backend checks the visit date, Facility and current state.</p>
+                <p className="muted">Verify the arriving customer and scheduled visit before check-in.</p>
                 <button className="button" type="button" disabled={busy} onClick={() => { resetAcknowledgment(); void checkIn() }}>{action === 'check-in' ? 'Checking In...' : 'Check In Customer'}</button>
               </>
             ) : <p className="muted">{context.visit.status === 'CHECKED_IN' ? 'The customer is checked in. Continue with the Manager-selected unit and offline receipt.' : 'Check-in is not available in the current reservation/visit state.'}</p>}
           </section>
-          {(context.reservation.status === 'CONFIRMED' || context.reservation.status === 'COMPLETED') && (
+          {(context.reservation.status === 'COMPLETED' || (context.reservation.status === 'CONFIRMED' && context.visit.status !== 'CHECKED_IN')) && (
             <FirstMonthHandoverInfo lockedRentalPrice={context.reservation.lockedRentalPrice} handoverCompleted={context.reservation.status === 'COMPLETED'} audience="staff" />
           )}
           {context.reservation.status === 'CONFIRMED' && context.visit.status === 'CHECKED_IN' && (
-            <section className="panel stack" aria-label="Complete handover">
+            <section className="panel stack handover-operation" aria-label="Complete handover">
               <h2>Complete Handover</h2>
+              <FirstMonthHandoverInfo lockedRentalPrice={context.reservation.lockedRentalPrice} handoverCompleted={false} audience="staff" />
               <form className="form-grid" onSubmit={handleComplete}>
                 <section className="stack" aria-label="Assigned storage unit">
                   <h3>Manager-assigned Unit</h3>
@@ -99,12 +102,13 @@ export function StaffHandoverPage() {
                     <dl className="detail-list">
                       <div><dt>Unit Code</dt><dd>{employeeText(assignment.unitCode)}</dd></div>
                       <div><dt>Location</dt><dd>{employeeText(assignment.locationInfo)}</dd></div>
-                      <div><dt>Status</dt><dd>{assignment.status}</dd></div>
+                      <div><dt>Status</dt><dd><StatusBadge status={assignment.status} /></dd></div>
                       <div><dt>Assigned At</dt><dd>{new Date(assignment.assignedAt).toLocaleString('en-GB', { timeZone: 'Asia/Ho_Chi_Minh' })} (GMT+7)</dd></div>
                     </dl>
                   ) : <p className="notice">No valid active assignment. Ask the Manager to save a unit, then refresh details.</p>}
                 </section>
-                <section className="stack" aria-label="Contract discount">
+                <details className="stack employee-discount" aria-label="Contract discount">
+                  <summary>Optional discount for later months</summary>
                   <div className="form-field">
                     <label htmlFor="discountId">Contract Discount (Optional, Later Months Only)</label>
                     <select id="discountId" value={discountId} disabled={busy || discounts.loading || !discounts.response} onChange={(event) => { setDiscountId(event.target.value); setAcknowledgedKey('') }}>
@@ -113,20 +117,20 @@ export function StaffHandoverPage() {
                         <option key={item.discountId} value={item.discountId} disabled={item.status !== 'ACTIVE'}>{item.name} — {item.percentage}% ({item.status})</option>
                       ))}
                     </select>
-                    <small className="muted">First-month rent remains {formatMoney(context.reservation.lockedRentalPrice)}. The backend validates discount ownership and effective dates for eligible later invoices.</small>
+                    <small className="muted">First-month rent remains {formatMoney(context.reservation.lockedRentalPrice)}. Discounts apply only to eligible later invoices.</small>
                   </div>
                   {discounts.loading && <LoadingState label="Loading customer discounts..." />}
                   <ApiErrorAlert error={discounts.error} />
                   {discounts.error && <><p className="muted">Discounts could not be loaded. You may explicitly continue with no discount or retry the read.</p><button className="button button-secondary" type="button" disabled={busy} onClick={() => { setDiscountId(''); discounts.refresh() }}>Retry Discounts</button></>}
                   {!customer && <p className="muted">Return to the matching Work List page to load this customer's discount catalogue. No discount is selected.</p>}
                   {discounts.response?.data.length === 0 && <p className="muted">No customer discounts.</p>}
-                  {discounts.response && <PaginationControls pagination={discounts.response.pagination} disabled={busy || discounts.loading} onPageChange={(nextPage) => { setDiscountId(''); setAcknowledgedKey(''); setDiscountPage(nextPage) }} />}
-                </section>
+                  {discounts.response && <footer><PaginationControls pagination={discounts.response.pagination} disabled={busy || discounts.loading} onPageChange={(nextPage) => { setDiscountId(''); setAcknowledgedKey(''); setDiscountPage(nextPage) }} /></footer>}
+                </details>
                 <label className="receipt-confirmation">
                   <input type="checkbox" checked={receiptAcknowledged} disabled={busy || !validAssignment} onChange={(event) => setAcknowledgedKey(event.target.checked ? confirmationKey : '')} />
                   <span>I confirm that I have received the full first-month rent of {formatMoney(context.reservation.lockedRentalPrice)} offline and completed the physical handover.</span>
                 </label>
-                <p className="muted">This command records receipt through Contract creation. It does not create a first-month Invoice or Payment. If a retry is needed, do not collect the same rent twice.</p>
+                <p className="muted">Completing handover records the first-month receipt. No separate first-month invoice or online payment is created. If you retry, do not collect rent again.</p>
                 <button className="button" type="submit" disabled={busy || !validAssignment || !receiptAcknowledged}>{action === 'handover' ? 'Completing Handover...' : 'Complete Handover'}</button>
               </form>
             </section>

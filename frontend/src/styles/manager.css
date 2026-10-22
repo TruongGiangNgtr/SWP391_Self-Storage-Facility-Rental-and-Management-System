@@ -1,3 +1,5 @@
+@import './employeePortal.css';
+
 /* Facility Manager portal + MWP feature styles.
    Kept outside index.css so Manager-specific UI remains isolated. */
 

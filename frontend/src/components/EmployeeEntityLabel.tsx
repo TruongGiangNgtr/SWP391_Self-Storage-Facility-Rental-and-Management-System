@@ -129,7 +129,11 @@ export function EmployeeEntityLabel({ kind, id, scope, empty = 'Not assigned', f
   return <span title="Reload the page to retry loading this name">{fallback}</span>
 }
 
-export function EmployeeReservationLabel({ customerId, customerName }: { customerId?: string | null; customerName?: string | null }) {
+export function EmployeeReservationLabel({ customerId, customerName, startMonth, endMonth, visitDate }: { customerId?: string | null; customerName?: string | null; startMonth?: string | null; endMonth?: string | null; visitDate?: string | null }) {
   const name = employeeText(customerName, '')
-  return name ? <>{name}</> : <EmployeeEntityLabel kind="customer" id={customerId} empty="—" fallback="—" />
+  return <span className="employee-reservation-label">
+    {name || <EmployeeEntityLabel kind="customer" id={customerId} empty="—" fallback="—" />}
+    {startMonth && endMonth && <> · {startMonth} → {endMonth}</>}
+    {visitDate && <> · Visit {visitDate}</>}
+  </span>
 }

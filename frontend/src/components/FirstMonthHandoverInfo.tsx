@@ -20,7 +20,7 @@ export function FirstMonthHandoverInfo({ lockedRentalPrice, handoverCompleted, a
         {handoverCompleted
           ? 'Handover is complete. The contract records settlement of the first month. Rental invoices begin with the second rental month.'
           : audience === 'staff'
-            ? 'Collect the full first-month rent offline at the facility. Completing handover acknowledges receipt through Contract creation. There is no first-month Invoice or Payment.'
+            ? 'Collect the full first-month rent at the facility. Complete handover only after receiving rent and handing over the unit. No separate first-month invoice or online payment is created.'
             : 'Pay the first month offline at the facility. Staff acknowledges receipt when completing handover. There is no online payment or invoice for the first rental month.'}
       </div>
       {!handoverCompleted && <p className="muted">{audience === 'staff'

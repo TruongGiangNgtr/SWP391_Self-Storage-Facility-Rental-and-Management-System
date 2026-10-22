@@ -636,11 +636,10 @@ export function PhysicalUnitManagementPage() {
           <div className="handover-breadcrumb">
             Facility Manager / Physical Unit Management
           </div>
-          <span className="handover-eyebrow">MWP-02</span>
+          <span className="handover-eyebrow">Facility inventory</span>
           <h1>Manage Physical Units</h1>
           <p>
-            Create and maintain StorageUnits in your assigned Facility, assign an existing Unit Type,
-            update location information, and perform Manager-allowed operational status transitions.
+            Manage unit types, physical locations and maintenance availability at your facility.
           </p>
         </div>
 
@@ -843,8 +842,7 @@ export function PhysicalUnitManagementPage() {
       </section>
 
       <p className="physical-boundary-note">
-        Facility Manager manages physical StorageUnit records only. Unit Type master data and Rental Price remain read-only here.
-        AVAILABLE → IN_USE is performed by Complete Handover; IN_USE → INSPECTION and return release are handled by the return workflow, not MWP-02.
+        Unit type definitions and rental prices are read-only here. Handover and return processing update occupancy and inspection status.
       </p>
 
       {dialogMode === 'create' && (

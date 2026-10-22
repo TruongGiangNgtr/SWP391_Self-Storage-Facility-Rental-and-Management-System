@@ -63,17 +63,19 @@ export function StaffContractPage() {
     <main className="page-container flow-page narrow-page staff-flow">
       <section className="page-heading page-heading-actions">
         <div><p className="eyebrow">Facility Staff</p><h1>Handover Contract</h1></div>
-        <Link className="button button-secondary" to="/staff">Work List</Link>
+        <div className="employee-page-actions">
+          <Link className="button button-secondary" to="/staff">Work List</Link>
+          <button className="button button-secondary" type="button" disabled={loading} onClick={() => setRetry((value) => value + 1)}>Refresh Contract</button>
+        </div>
       </section>
       <ApiErrorAlert error={error} />
-      <button className="button button-secondary" type="button" disabled={loading} onClick={() => setRetry((value) => value + 1)}>Refresh Contract</button>
       {loading ? <LoadingState label="Loading Contract and settlement record..." /> : context && (
         <>
           <section className="panel stack" aria-label="Contract details">
             <div className="card-heading-row"><h2>Contract Details</h2><StatusBadge status={employeeText(context.contract.status)} /></div>
             <dl className="detail-list">
               <div><dt>Contract</dt><dd>{employeeContractLabel(context.contract)}</dd></div>
-              <div><dt>Reservation</dt><dd><EmployeeReservationLabel customerId={context.reservation?.customerId} /></dd></div>
+              <div><dt>Reservation</dt><dd><EmployeeReservationLabel customerId={context.reservation?.customerId} startMonth={context.reservation?.startMonth} endMonth={context.reservation?.endMonth} visitDate={context.reservation?.reservationVisit?.visitDate} /></dd></div>
               <div><dt>Storage Unit</dt><dd>{employeeUnitLabel(context.contract)}</dd></div>
               <div><dt>Facility</dt><dd><EmployeeEntityLabel kind="facility" id={context.contract.facilityId} /></dd></div>
               <div><dt>Rental Period</dt><dd>{employeeMonthRange(context.contract.startMonth, context.contract.endMonth)}</dd></div>
@@ -87,7 +89,7 @@ export function StaffContractPage() {
             <div className="card-heading-row"><h2>Handover Visit</h2><StatusBadge status={employeeText(context.visit.status)} /></div>
             <p>Visit Date: {employeeText(context.visit.visitDate)}</p>
           </section>}
-          <p className="notice">These values are read from the backend. Contract existence records the original first-month settlement, including when the Contract later completes or terminates.</p>
+          <p className="notice">First-month settlement remains recorded here after the contract completes or terminates.</p>
         </>
       )}
     </main>
