@@ -29,8 +29,9 @@ internal sealed class StaffWorkItemRepository(
             int page,
             int pageSize,
             CancellationToken cancellationToken) {
-        // RESERVATION visits
-        var reservationVisits = await (
+        // Build a common scalar projection before UNION ALL, so PostgreSQL
+        // filters/scopes, counts, sorts and pages the complete combined dataset.
+        var reservationVisits =
             from visit in dbContext.Visits.AsNoTracking()
             join reservation in dbContext.Reservations.AsNoTracking()
                 on visit.EntityId equals reservation.ReservationId
@@ -41,21 +42,19 @@ internal sealed class StaffWorkItemRepository(
             where reservation.FacilityId == facilityId
                 && visit.VisitType == "RESERVATION"
                 && visit.VisitDate == date
-                && (visit.Status == "SCHEDULED"
-                    || visit.Status == "CHECKED_IN")
-            select new StaffWorkItemRecord(
-                "RESERVATION_VISIT",
-                visit.VisitId,
-                visit.EntityId,
-                visit.VisitDate,
-                visit.Status,
-                customer.CustomerId,
-                customer.FullName,
-                account.PhoneNumber)
-        ).ToListAsync(cancellationToken);
+                && (visit.Status == "SCHEDULED" || visit.Status == "CHECKED_IN")
+            select new {
+                WorkType = "RESERVATION_VISIT",
+                ReferenceId = visit.VisitId,
+                EntityId = (Guid?)visit.EntityId,
+                ScheduledDate = (DateOnly?)visit.VisitDate,
+                Status = visit.Status,
+                CustomerId = (Guid?)customer.CustomerId,
+                CustomerName = (string?)customer.FullName,
+                CustomerPhone = (string?)account.PhoneNumber
+            };
 
-        // ACCESS and RETURN visits
-        var contractVisits = await (
+        var contractVisits =
             from visit in dbContext.Visits.AsNoTracking()
             join contract in dbContext.Contracts.AsNoTracking()
                 on visit.EntityId equals contract.ContractId
@@ -64,91 +63,74 @@ internal sealed class StaffWorkItemRepository(
             join account in dbContext.UserAccounts.AsNoTracking()
                 on customer.UserAccountId equals account.UserAccountId
             where contract.FacilityId == facilityId
-                && (visit.VisitType == "ACCESS"
-                    || visit.VisitType == "RETURN")
+                && (visit.VisitType == "ACCESS" || visit.VisitType == "RETURN")
                 && visit.VisitDate == date
-                && (visit.Status == "SCHEDULED"
-                    || visit.Status == "CHECKED_IN")
-            select new StaffWorkItemRecord(
-                visit.VisitType == "ACCESS"
-                    ? "ACCESS_VISIT"
-                    : "RETURN_VISIT",
-                visit.VisitId,
-                visit.EntityId,
-                visit.VisitDate,
-                visit.Status,
-                customer.CustomerId,
-                customer.FullName,
-                account.PhoneNumber)
-        ).ToListAsync(cancellationToken);
+                && (visit.Status == "SCHEDULED" || visit.Status == "CHECKED_IN")
+            select new {
+                WorkType = visit.VisitType == "ACCESS" ? "ACCESS_VISIT" : "RETURN_VISIT",
+                ReferenceId = visit.VisitId,
+                EntityId = (Guid?)visit.EntityId,
+                ScheduledDate = (DateOnly?)visit.VisitDate,
+                Status = visit.Status,
+                CustomerId = (Guid?)customer.CustomerId,
+                CustomerName = (string?)customer.FullName,
+                CustomerPhone = (string?)account.PhoneNumber
+            };
 
-        // Pending Inspections and Inspections claimed by this Staff
-        var inspections = await (
+        var inspections =
             from inspection in dbContext.Inspections.AsNoTracking()
             join contract in dbContext.Contracts.AsNoTracking()
                 on inspection.ContractId equals contract.ContractId
             where contract.FacilityId == facilityId
-                && (
-                    inspection.Status == "PENDING"
-                    || (
-                        inspection.Status == "IN_PROGRESS"
-                        && inspection.EmployeeId == employeeId
-                    )
-                )
-            select new StaffWorkItemRecord(
-                "INSPECTION",
-                inspection.InspectionId,
-                null,
-                null,
-                inspection.Status,
-                null,
-                null,
-                null)
-        ).ToListAsync(cancellationToken);
+                && (inspection.Status == "PENDING"
+                    || (inspection.Status == "IN_PROGRESS" && inspection.EmployeeId == employeeId))
+            select new {
+                WorkType = "INSPECTION",
+                ReferenceId = inspection.InspectionId,
+                EntityId = (Guid?)null,
+                ScheduledDate = (DateOnly?)null,
+                Status = inspection.Status,
+                CustomerId = (Guid?)null,
+                CustomerName = (string?)null,
+                CustomerPhone = (string?)null
+            };
 
-        // Support tickets assigned to current Staff
-        var tickets = await (
+        var tickets =
             from ticket in dbContext.SupportTickets.AsNoTracking()
             join contract in dbContext.Contracts.AsNoTracking()
                 on ticket.ContractId equals contract.ContractId
             where contract.FacilityId == facilityId
                 && ticket.AssignedEmployeeId == employeeId
-                && (
-                    ticket.Status == "OPEN"
-                    || ticket.Status == "IN_PROGRESS"
-                )
-            select new StaffWorkItemRecord(
-                "SUPPORT_TICKET",
-                ticket.SupportTicketId,
-                null,
-                null,
-                ticket.Status,
-                null,
-                null,
-                null)
-        ).ToListAsync(cancellationToken);
+                && (ticket.Status == "OPEN" || ticket.Status == "IN_PROGRESS")
+            select new {
+                WorkType = "SUPPORT_TICKET",
+                ReferenceId = ticket.SupportTicketId,
+                EntityId = (Guid?)null,
+                ScheduledDate = (DateOnly?)null,
+                Status = ticket.Status,
+                CustomerId = (Guid?)null,
+                CustomerName = (string?)null,
+                CustomerPhone = (string?)null
+            };
 
-        // Merge before pagination so metadata covers every work type
-        var allItems = reservationVisits
-            .Concat(contractVisits)
-            .Concat(inspections)
-            .Concat(tickets)
+        var allItems = reservationVisits.Concat(contractVisits)
+            .Concat(inspections).Concat(tickets);
+        var totalItems = await allItems.CountAsync(cancellationToken);
+        var skip = ((long)page - 1) * pageSize;
+        if (skip > int.MaxValue || skip >= totalItems)
+            return (Array.Empty<StaffWorkItemRecord>(), totalItems);
+
+        var items = await allItems
             .OrderBy(x => x.ScheduledDate.HasValue ? 0 : 1)
             .ThenBy(x => x.ScheduledDate)
             .ThenBy(x => x.WorkType)
             .ThenBy(x => x.ReferenceId)
-            .ToList();
-
-        var totalItems = allItems.Count;
-
-        var skip = (int)Math.Min(
-            (long)(page - 1) * pageSize,
-            totalItems);
-
-        var items = allItems
-            .Skip(skip)
+            .Skip((int)skip)
             .Take(pageSize)
-            .ToArray();
+            .Select(x => new StaffWorkItemRecord(
+                x.WorkType, x.ReferenceId, x.EntityId, x.ScheduledDate, x.Status,
+                x.CustomerId, x.CustomerName, x.CustomerPhone))
+            .ToArrayAsync(cancellationToken);
 
         return (items, totalItems);
     }

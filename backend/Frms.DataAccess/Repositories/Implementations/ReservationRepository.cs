@@ -369,15 +369,55 @@ internal sealed class ReservationRepository(
                 .ToListAsync(
                     cancellationToken);
 
-        var items =
-            new List<ReservationDetailRecord>(
-                reservations.Count);
+        // Resolve the already-authorized page's related data in bounded batches.
+        // The original per-row BuildDetailAsync path caused 2N extra SQL queries.
+        var reservationIds = reservations.Select(x => x.ReservationId).ToArray();
+        var invoicesByReservation = reservationIds.Length == 0
+            ? new Dictionary<Guid, Invoice>()
+            : await dbContext.Invoices.AsNoTracking()
+                .Where(x => x.InvoiceType == "DEPOSIT" && reservationIds.Contains(x.EntityId))
+                .ToDictionaryAsync(x => x.EntityId, cancellationToken);
 
+        var reservationVisits = reservationIds.Length == 0
+            ? new List<Visit>()
+            : await dbContext.Visits.AsNoTracking()
+                .Where(x => x.VisitType == "RESERVATION" && reservationIds.Contains(x.EntityId))
+                .OrderByDescending(x => x.VisitDate)
+                .ThenByDescending(x => x.VisitId)
+                .ToListAsync(cancellationToken);
+        var visitsByReservation = reservationVisits
+            .GroupBy(x => x.EntityId)
+            .ToDictionary(x => x.Key, x => x.First());
+
+        var items = new List<ReservationDetailRecord>(reservations.Count);
         foreach (var reservation in reservations) {
-            items.Add(
-                await BuildDetailAsync(
-                    reservation,
-                    cancellationToken));
+            if (!invoicesByReservation.TryGetValue(reservation.ReservationId, out var invoice)) {
+                throw new InvalidOperationException(
+                    $"Reservation {reservation.ReservationId} has no DEPOSIT invoice.");
+            }
+            visitsByReservation.TryGetValue(reservation.ReservationId, out var visit);
+            items.Add(new ReservationDetailRecord(
+                reservation.ReservationId,
+                reservation.CustomerId,
+                reservation.FacilityId,
+                reservation.UnitTypeId,
+                reservation.PolicyId,
+                reservation.StartMonth,
+                reservation.EndMonth,
+                reservation.LockedRentalPrice,
+                reservation.DepositAmount,
+                reservation.Status,
+                new DepositInvoiceRecord(
+                    invoice.InvoiceId,
+                    invoice.Status,
+                    invoice.AmountDue,
+                    invoice.DueDate),
+                visit is null ? null : new ReservationVisitRecord(
+                    visit.VisitId,
+                    visit.VisitType,
+                    visit.VisitDate,
+                    visit.Status),
+                reservation.CreatedAt));
         }
 
         var totalPages =
