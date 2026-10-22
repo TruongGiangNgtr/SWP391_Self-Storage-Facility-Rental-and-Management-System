@@ -226,7 +226,20 @@ export function FacilityOperationsPage() {
   }, [facilityId, tab, page, revision])
 
   const visible = useMemo(() => records.filter(r => itemSearch(tab, r).includes(query.trim().toLowerCase())), [records, tab, query])
-  const chooseTab = (next: Tab) => { setTab(next); setPage(1); setQuery(''); setSelected(null) }
+  const chooseTab = (next: Tab) => {
+    if (next === tab) return
+    // Clear the previous record type before rendering the newly selected tab.
+    setRecords([])
+    setLoading(true)
+    setError('')
+    setTotalPages(0)
+    setTotalItems(0)
+    setTab(next)
+    setPage(1)
+    setQuery('')
+    setSelected(null)
+    setDetailError('')
+  }
   const refresh = () => { setRevision(v => v + 1); setSelected(null); setDetailError('') }
   const openRecord = useCallback(async (record: RecordItem, currentTab: Tab) => {
     const id = itemId(currentTab, record)
