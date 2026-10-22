@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { ImageOff } from 'lucide-react'
 import { PublicStorageSearchForm } from '../components/PublicStorageSearchForm'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState } from '../components/PageStates'
@@ -24,6 +25,15 @@ const PURPOSES = [
 function DesignIcon({ name }: { name: string }) {
   return <img className="public-design-icon" src={`/figma/gwp-01/${name}.svg`} alt="" aria-hidden="true" />
 }
+function HomeIllustration({ className, src, alt, width, height, priority = false }: {
+  className: string; src: string; alt: string; width: number; height: number; priority?: boolean
+}) {
+  const [failed, setFailed] = useState(false)
+  return <figure className={`public-home-illustration ${className}`}>
+    {failed ? <div className="public-illustration-fallback" role="img" aria-label={alt}><ImageOff size={28} aria-hidden="true" /><span>Illustration unavailable</span></div>
+      : <img src={src} alt={alt} width={width} height={height} loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : undefined} decoding="async" onError={() => setFailed(true)} />}
+  </figure>
+}
 export function HomePage() {
   const { hash } = useLocation()
   const facilities = usePublicFacilities({ page: 1, pageSize: 3, sortBy: 'name', sortDirection: 'asc' })
@@ -37,15 +47,15 @@ export function HomePage() {
         <h1>Space for what matters.</h1>
         <p className="public-hero-description">Find the right storage space for your belongings, reserve online, and manage your rental with ease.</p>
         <div className="public-hero-benefits"><span><DesignIcon name="imgIcon1" />Monthly rental periods</span><span><DesignIcon name="imgIcon1" />Compare facility locations</span></div>
-      </div><div className="public-hero-media" aria-hidden="true" /></div>
+      </div><HomeIllustration className="public-hero-media" src="/images/home/fstorent-facility.webp" alt="Illustration of the FStoRent reception building and storage area entrance." width={1536} height={1024} priority /></div>
       <div className="public-hero-search"><PublicStorageSearchForm embedded /></div>
     </div></section>
     <section className="public-benefits-section"><div className="gwp-container public-benefits-grid">{BENEFITS.map(item => <article className="public-benefit-card" key={item.title}><span className="public-icon-tile"><DesignIcon name={item.icon} /></span><div><h2>{item.title}</h2><p>{item.text}</p></div></article>)}</div></section>
     <section className="public-home-section public-home-tint"><div className="gwp-container">
       <div className="public-section-heading"><p className="eyebrow">Choose Your Storage</p><h2>Choose the storage experience that works for you</h2><p className="muted">Compare Public and Private Storage, then check available types and prices for your rental period.</p></div>
       <div className="public-mode-grid">
-        <article className="public-mode-card"><div className="public-mode-art"><DesignIcon name="imgIcon5" /></div><div className="public-mode-copy"><h3>Public Storage</h3><p className="eyebrow">Shared Storage Space</p><p>Store belongings in a shared storage area, using the offered storage types and sizes at your chosen facility.</p><strong>Find a size that fits your needs</strong></div><Link className="public-mode-link" to="/facilities?mode=PUBLIC">View Public Storage<DesignIcon name="imgIcon6" /></Link></article>
-        <article className="public-mode-card"><div className="public-mode-art"><DesignIcon name="imgIcon7" /></div><div className="public-mode-copy"><h3>Private Storage</h3><p className="eyebrow">Your Rental Space</p><p>Choose a private storage type and rental period. Your specific storage unit is selected during handover, not at reservation.</p><strong>Choose your storage type and period</strong></div><Link className="public-mode-link" to="/facilities?mode=PRIVATE">View Private Storage<DesignIcon name="imgIcon6" /></Link></article>
+        <article className="public-mode-card"><HomeIllustration className="public-mode-art" src="/images/home/public-storage.webp" alt="Illustration of three separate groups of belongings in a shared storage area." width={2172} height={724} /><div className="public-mode-copy"><h3>Public Storage</h3><p className="eyebrow">Shared Storage Space</p><p>Store belongings in a shared storage area, using the offered storage types and sizes at your chosen facility.</p><strong>Find a size that fits your needs</strong></div><Link className="public-mode-link" to="/facilities?mode=PUBLIC">View Public Storage<DesignIcon name="imgIcon6" /></Link></article>
+        <article className="public-mode-card"><HomeIllustration className="public-mode-art" src="/images/home/private-storage.webp" alt="Illustration of belongings inside a private storage unit beside a closed, locked unit." width={2172} height={724} /><div className="public-mode-copy"><h3>Private Storage</h3><p className="eyebrow">Your Rental Space</p><p>Choose a private storage type and rental period. Your specific storage unit is selected during handover, not at reservation.</p><strong>Choose your storage type and period</strong></div><Link className="public-mode-link" to="/facilities?mode=PRIVATE">View Private Storage<DesignIcon name="imgIcon6" /></Link></article>
       </div><div className="public-section-action"><Link className="button button-secondary" to="/size-guide">Explore Size Guide</Link></div>
     </div></section>
     <section className="public-home-section"><div className="gwp-container">
@@ -53,7 +63,7 @@ export function HomePage() {
       <ol className="public-steps-grid">{STEPS.map((step, index) => <li key={step.title}><span className="public-step-number">{String(index + 1).padStart(2, '0')}</span><h3>{step.title}</h3><p>{step.text}</p></li>)}</ol><div className="public-section-action"><Link className="public-text-link" to="/how-it-works">Learn How It Works<DesignIcon name="imgIcon6" /></Link></div>
     </div></section>
     <section className="public-home-section public-home-tint"><div className="gwp-container public-lifestyle-grid">
-      <div className="public-lifestyle-media" aria-hidden="true" /><div><p className="eyebrow">When You Need More Space</p><h2>Make room for life's changes.</h2><p className="public-section-description">Storage can help you keep belongings organized when your home or work needs more space.</p><div className="public-purpose-grid">{PURPOSES.map(item => <div className="public-purpose-card" key={item.title}><span className="public-icon-tile"><DesignIcon name={item.icon} /></span><strong>{item.title}</strong></div>)}</div></div>
+      <HomeIllustration className="public-lifestyle-media" src="/images/home/fstorent-customer-assistance.webp" alt="Illustration of a FStoRent employee helping a customer with boxes at the reception forecourt." width={1421} height={1107} /><div><p className="eyebrow">When You Need More Space</p><h2>Make room for life's changes.</h2><p className="public-section-description">Storage can help you keep belongings organized when your home or work needs more space.</p><div className="public-purpose-grid">{PURPOSES.map(item => <div className="public-purpose-card" key={item.title}><span className="public-icon-tile"><DesignIcon name={item.icon} /></span><strong>{item.title}</strong></div>)}</div></div>
     </div></section>
     <section className="public-home-section"><div className="gwp-container">
       <div className="public-section-heading"><h2>Find FStoRent near you</h2><p className="muted">Explore facilities from the current public catalog. Choose rental months to check availability.</p></div>
