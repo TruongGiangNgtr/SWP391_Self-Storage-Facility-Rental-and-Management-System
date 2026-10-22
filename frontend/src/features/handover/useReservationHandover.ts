@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../../api/apiErrorPresentation'
 import { ApiRequestError } from '../../api/httpClient'
+import { handoverAssignmentApi } from '../../api/handoverAssignmentApi'
 import { reservationApi } from '../../api/reservationApi'
 import { visitApi } from '../../api/visitApi'
 import type { ReservationDetail } from '../reservations/reservation.types'
 import type { VisitDetail } from '../visits/visit.types'
-import { isReservationWorkItem, type CompleteHandoverRequest, type CompleteHandoverResult, type ReservationWorkItem } from './handover.types'
-import { getHandoverContextError, isUuid } from './handoverValidation'
+import { isReservationWorkItem, type CompleteHandoverRequest, type CompleteHandoverResult, type ReservationWorkItem, type HandoverUnitAssignment } from './handover.types'
+import { getHandoverContextError, isUuid, isActiveHandoverAssignment, sameHandoverAssignment } from './handoverValidation'
 
 interface HandoverContext {
+  assignment: HandoverUnitAssignment | null
   reservation: ReservationDetail
   visit: VisitDetail
   workItem: ReservationWorkItem | null
@@ -44,11 +46,14 @@ export function useReservationHandover(reservationId: string, visitId: string, w
           return
         }
         // Read exactly the work-list page from navigation, not an unbounded list scan.
-        const workResponse = await visitApi.listStaffWorkItems({ date: visit.visitDate, page: workPage })
+        const [workResponse, assignmentResponse] = await Promise.all([
+          visitApi.listStaffWorkItems({ date: visit.visitDate, page: workPage }),
+          handoverAssignmentApi.get(reservationId),
+        ])
         if (current !== revision.current) return
         const workItem = workResponse.data.find((item): item is ReservationWorkItem =>
           isReservationWorkItem(item) && item.referenceId === visitId && item.entityId === reservationId) ?? null
-        setSnapshot({ key, context: { reservation, visit, workItem }, error: null })
+        setSnapshot({ key, context: { reservation, visit, workItem, assignment: assignmentResponse.data }, error: null })
       } catch (caughtError) {
         if (current === revision.current) setSnapshot({ key, context: null, error: presentApiError(caughtError) })
       }
@@ -84,14 +89,22 @@ export function useReservationHandover(reservationId: string, visitId: string, w
     }
   }
 
-  async function complete(request: CompleteHandoverRequest): Promise<CompleteHandoverResult | null> {
-    if (actionBusy.current || !context || context.reservation.status !== 'CONFIRMED' || context.visit.status !== 'CHECKED_IN') return null
+  async function complete(request: Omit<CompleteHandoverRequest, 'storageUnitId'>): Promise<CompleteHandoverResult | null> {
+    if (actionBusy.current || !context || context.reservation.status !== 'CONFIRMED' || context.visit.status !== 'CHECKED_IN' ||
+      !isActiveHandoverAssignment(context.assignment, reservationId)) return null
     actionBusy.current = true
     const current = revision.current
     setAction('handover')
     setActionError(null)
     try {
-      const response = await visitApi.completeHandover(reservationId, request)
+      // Re-read immediately before submitting; the backend still owns the atomic race check.
+      const latest = (await handoverAssignmentApi.get(reservationId)).data
+      if (current !== revision.current) return null
+      if (!isActiveHandoverAssignment(latest, reservationId) || !sameHandoverAssignment(context.assignment, latest)) {
+        refresh(presentValidationError('The unit assignment changed or was released. Review the latest assignment and confirm payment receipt and physical handover again.'))
+        return null
+      }
+      const response = await visitApi.completeHandover(reservationId, { ...request, storageUnitId: latest.storageUnitId })
       if (current !== revision.current) return null
       const result = response?.data
       if (!result?.contract?.contractId || !isUuid(result.contract.contractId) || result.contract.status !== 'ACTIVE' ||
@@ -103,7 +116,7 @@ export function useReservationHandover(reservationId: string, visitId: string, w
     } catch (caughtError) {
       if (current === revision.current) {
         const presentation = presentApiError(caughtError)
-        if (caughtError instanceof ApiRequestError && caughtError.status === 409) refresh(presentation)
+        if (caughtError instanceof ApiRequestError && (caughtError.status === 409 || caughtError.code.startsWith('HANDOVER_UNIT_'))) refresh(presentation)
         else setActionError(presentation)
       }
       return null
@@ -113,5 +126,5 @@ export function useReservationHandover(reservationId: string, visitId: string, w
     }
   }
 
-  return { context, loading, action, error, refresh, checkIn, complete }
+  return { context, loading, action, error, refresh, checkIn, complete, confirmationKey: `${key}:${context?.assignment?.assignmentId ?? ''}` }
 }

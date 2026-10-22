@@ -6,7 +6,7 @@ import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { FirstMonthHandoverInfo } from '../components/FirstMonthHandoverInfo'
 import { LoadingState, PaginationControls } from '../components/PageStates'
 import { StatusBadge } from '../components/StatusBadge'
-import { getHandoverInputError } from '../features/handover/handoverValidation'
+import { getHandoverInputError, isActiveHandoverAssignment } from '../features/handover/handoverValidation'
 import { useCustomerDiscounts } from '../features/handover/useCustomerDiscounts'
 import { useReservationHandover } from '../features/handover/useReservationHandover'
 import { formatMonthRange, formatMoney } from '../utils/formatters'
@@ -17,11 +17,13 @@ export function StaffHandoverPage() {
   const [searchParams] = useSearchParams()
   const requestedPage = Number(searchParams.get('workPage') ?? 1)
   const workPage = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1
-  const { context, loading, action, error, refresh, checkIn, complete } = useReservationHandover(reservationId, visitId, workPage)
-  const [storageUnitId, setStorageUnitId] = useState('')
+  const { context, loading, action, error, refresh, checkIn, complete, confirmationKey } = useReservationHandover(reservationId, visitId, workPage)
   const [discountId, setDiscountId] = useState('')
   const [discountPage, setDiscountPage] = useState(1)
-  const [receiptAcknowledged, setReceiptAcknowledged] = useState(false)
+  const [acknowledgedKey, setAcknowledgedKey] = useState('')
+  const receiptAcknowledged = acknowledgedKey === confirmationKey
+  const assignment = context?.assignment ?? null
+  const validAssignment = isActiveHandoverAssignment(assignment, reservationId)
   const [validationError, setValidationError] = useState<ApiErrorPresentation | null>(null)
   const customer = context?.workItem?.customer
   const discounts = useCustomerDiscounts(context?.reservation.status === 'CONFIRMED' ? customer?.customerId : undefined, discountPage)
@@ -29,7 +31,7 @@ export function StaffHandoverPage() {
   const busy = loading || action !== null
 
   function resetAcknowledgment() {
-    setReceiptAcknowledged(false)
+    setAcknowledgedKey('')
     setValidationError(null)
     setDiscountId('')
     setDiscountPage(1)
@@ -38,15 +40,15 @@ export function StaffHandoverPage() {
   async function handleComplete(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setValidationError(null)
-    const inputError = getHandoverInputError(storageUnitId, receiptAcknowledged)
+    const inputError = getHandoverInputError(validAssignment ? assignment.storageUnitId : '', receiptAcknowledged)
     if (inputError) { setValidationError(presentValidationError(inputError)); return }
     if (discountId && !discounts.response?.data.some((item) =>
       item.discountId === discountId && item.customerId === customer?.customerId && item.status === 'ACTIVE')) {
       setValidationError(presentValidationError('Refresh and select a discount from this customer’s current list, or choose no discount.'))
       return
     }
-    setReceiptAcknowledged(false)
-    const result = await complete({ visitId, storageUnitId: storageUnitId.trim(), discountId: discountId || null })
+    setAcknowledgedKey('')
+    const result = await complete({ visitId, discountId: discountId || null })
     if (result) navigate(`/staff/contracts/${encodeURIComponent(result.contract.contractId)}`)
   }
 
@@ -90,15 +92,21 @@ export function StaffHandoverPage() {
             <section className="panel stack" aria-label="Complete handover">
               <h2>Complete Handover</h2>
               <form className="form-grid" onSubmit={handleComplete}>
-                <div className="form-field">
-                  <label htmlFor="storageUnitId">Manager-selected Storage Unit ID</label>
-                  <input id="storageUnitId" value={storageUnitId} disabled={busy} autoComplete="off" onChange={(event) => { setStorageUnitId(event.target.value); setReceiptAcknowledged(false) }} aria-describedby="unitHelp" />
-                  <small id="unitHelp" className="muted">Enter the ID provided by the Manager. The backend verifies availability and matching Facility/UnitType; Staff does not select a physical unit from a Manager-only API.</small>
-                </div>
+                <section className="stack" aria-label="Assigned storage unit">
+                  <h3>Manager-assigned Unit</h3>
+                  {validAssignment ? (
+                    <dl className="detail-list">
+                      <div><dt>Unit Code</dt><dd>{assignment.unitCode}</dd></div>
+                      <div><dt>Location</dt><dd>{assignment.locationInfo || 'No location information'}</dd></div>
+                      <div><dt>Status</dt><dd>{assignment.status}</dd></div>
+                      <div><dt>Assigned At</dt><dd>{new Date(assignment.assignedAt).toLocaleString('en-GB', { timeZone: 'Asia/Ho_Chi_Minh' })} (GMT+7)</dd></div>
+                    </dl>
+                  ) : <p className="notice">No valid active assignment. Ask the Manager to save a unit, then refresh details.</p>}
+                </section>
                 <section className="stack" aria-label="Contract discount">
                   <div className="form-field">
                     <label htmlFor="discountId">Contract Discount (Optional, Later Months Only)</label>
-                    <select id="discountId" value={discountId} disabled={busy || discounts.loading || !discounts.response} onChange={(event) => { setDiscountId(event.target.value); setReceiptAcknowledged(false) }}>
+                    <select id="discountId" value={discountId} disabled={busy || discounts.loading || !discounts.response} onChange={(event) => { setDiscountId(event.target.value); setAcknowledgedKey('') }}>
                       <option value="">No discount</option>
                       {discounts.response?.data.filter((item) => item.customerId === customer?.customerId).map((item) => (
                         <option key={item.discountId} value={item.discountId} disabled={item.status !== 'ACTIVE'}>{item.name} — {item.percentage}% ({item.status})</option>
@@ -111,14 +119,14 @@ export function StaffHandoverPage() {
                   {discounts.error && <><p className="muted">Discounts could not be loaded. You may explicitly continue with no discount or retry the read.</p><button className="button button-secondary" type="button" disabled={busy} onClick={() => { setDiscountId(''); discounts.refresh() }}>Retry Discounts</button></>}
                   {!customer && <p className="muted">Return to the matching Work List page to load this customer's discount catalogue. No discount is selected.</p>}
                   {discounts.response?.data.length === 0 && <p className="muted">No customer discounts.</p>}
-                  {discounts.response && <PaginationControls pagination={discounts.response.pagination} disabled={busy || discounts.loading} onPageChange={(nextPage) => { setDiscountId(''); setReceiptAcknowledged(false); setDiscountPage(nextPage) }} />}
+                  {discounts.response && <PaginationControls pagination={discounts.response.pagination} disabled={busy || discounts.loading} onPageChange={(nextPage) => { setDiscountId(''); setAcknowledgedKey(''); setDiscountPage(nextPage) }} />}
                 </section>
                 <label className="receipt-confirmation">
-                  <input type="checkbox" checked={receiptAcknowledged} disabled={busy} onChange={(event) => setReceiptAcknowledged(event.target.checked)} />
+                  <input type="checkbox" checked={receiptAcknowledged} disabled={busy || !validAssignment} onChange={(event) => setAcknowledgedKey(event.target.checked ? confirmationKey : '')} />
                   <span>I confirm that I have received the full first-month rent of {formatMoney(context.reservation.lockedRentalPrice)} offline and completed the physical handover.</span>
                 </label>
                 <p className="muted">This command records receipt through Contract creation. It does not create a first-month Invoice or Payment. If a retry is needed, do not collect the same rent twice.</p>
-                <button className="button" type="submit" disabled={busy || !receiptAcknowledged}>{action === 'handover' ? 'Completing Handover...' : 'Complete Handover'}</button>
+                <button className="button" type="submit" disabled={busy || !validAssignment || !receiptAcknowledged}>{action === 'handover' ? 'Completing Handover...' : 'Complete Handover'}</button>
               </form>
             </section>
           )}

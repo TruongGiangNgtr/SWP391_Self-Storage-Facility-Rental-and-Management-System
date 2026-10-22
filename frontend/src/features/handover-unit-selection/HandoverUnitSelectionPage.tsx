@@ -1,7 +1,6 @@
 import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
 import {
   Check,
-  ClipboardCopy,
   ClipboardList,
   RefreshCw,
   Search,
@@ -11,8 +10,14 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
+import { handoverAssignmentApi } from '../../api/handoverAssignmentApi'
+import { presentApiError, type ApiErrorPresentation } from '../../api/apiErrorPresentation'
+import { ApiErrorAlert } from '../../components/ApiErrorAlert'
+import type { HandoverUnitAssignment } from '../handover/handover.types'
+import { isActiveHandoverAssignment } from '../handover/handoverValidation'
 import { reservationApi } from '../../api/reservationApi'
 import { visitApi } from '../../api/visitApi'
 import {
@@ -65,8 +70,20 @@ export function HandoverUnitSelectionPage() {
   const [units, setUnits] = useState<StorageUnit[]>([])
   const [selectedReservationId, setSelectedReservationId] =
     useState<string | null>(null)
-  const [selectedUnit, setSelectedUnit] =
-    useState<StorageUnit | null>(null)
+  const [assignmentSnapshot, setAssignmentSnapshot] = useState<{
+    key: string; assignment: HandoverUnitAssignment | null; error: ApiErrorPresentation | null
+  } | null>(null)
+  const [assignmentRetry, setAssignmentRetry] = useState(0)
+  const [assignmentActionError, setAssignmentActionError] = useState<ApiErrorPresentation | null>(null)
+  const [savingAssignment, setSavingAssignment] = useState(false)
+  const assignmentBusy = useRef(false)
+  const assignmentKey = `${selectedReservationId}:${assignmentRetry}`
+  const loadingAssignment = selectedReservationId !== null && assignmentSnapshot?.key !== assignmentKey
+  const selectedUnit = !loadingAssignment && assignmentSnapshot?.key === assignmentKey &&
+    isActiveHandoverAssignment(assignmentSnapshot.assignment, selectedReservationId ?? '')
+    ? assignmentSnapshot.assignment : null
+  const assignmentError = assignmentActionError ?? (!loadingAssignment ? assignmentSnapshot?.error ?? null : null)
+
   const [reservationSearch, setReservationSearch] = useState('')
   const [unitSearch, setUnitSearch] = useState('')
   const [isLoadingReservations, setIsLoadingReservations] =
@@ -81,7 +98,19 @@ export function HandoverUnitSelectionPage() {
   const [unitError, setUnitError] = useState<string | null>(null)
   const [selectionError, setSelectionError] =
     useState<string | null>(null)
-  const [copyFeedback, setCopyFeedback] = useState(false)
+
+  const busy = savingAssignment || loadingAssignment || verifyingReservationId !== null || verifyingUnitId !== null
+
+  useEffect(() => {
+    if (!selectedReservationId) return
+    let active = true
+    void handoverAssignmentApi.get(selectedReservationId).then((response) => {
+      if (active) setAssignmentSnapshot({ key: assignmentKey, assignment: response.data, error: null })
+    }).catch((error: unknown) => {
+      if (active) setAssignmentSnapshot({ key: assignmentKey, assignment: null, error: presentApiError(error) })
+    })
+    return () => { active = false }
+  }, [selectedReservationId, assignmentKey])
 
   const loadReservations = useCallback(async () => {
     setIsLoadingReservations(true)
@@ -125,7 +154,8 @@ export function HandoverUnitSelectionPage() {
   }, [facilityId])
 
   const refresh = useCallback(async () => {
-    setSelectedUnit(null)
+    setAssignmentRetry((value) => value + 1)
+    setAssignmentActionError(null)
     setSelectionError(null)
     await Promise.all([
       loadReservations(),
@@ -189,7 +219,6 @@ export function HandoverUnitSelectionPage() {
       )
     ) {
       setSelectedReservationId(null)
-      setSelectedUnit(null)
     }
   }, [handoverReservations, selectedReservationId])
 
@@ -229,7 +258,7 @@ export function HandoverUnitSelectionPage() {
   async function selectReservation(
     reservation: ReservationDetail,
   ) {
-    if (verifyingReservationId) {
+    if (busy || assignmentBusy.current) {
       return
     }
 
@@ -245,6 +274,7 @@ export function HandoverUnitSelectionPage() {
     setVerifyingReservationId(reservation.reservationId)
     setReservationError(null)
     setSelectionError(null)
+    setAssignmentActionError(null)
 
     try {
       const [reservationResponse, visitResponse] =
@@ -265,7 +295,6 @@ export function HandoverUnitSelectionPage() {
 
       if (!stillReady) {
         setSelectedReservationId(null)
-        setSelectedUnit(null)
         setReservationError(
           'This Reservation is no longer ready for Manager unit selection. Refresh the handover queue.',
         )
@@ -274,11 +303,10 @@ export function HandoverUnitSelectionPage() {
       }
 
       setSelectedReservationId(currentReservation.reservationId)
-      setSelectedUnit(null)
+      setAssignmentRetry((value) => value + 1)
       setUnitSearch('')
     } catch (error) {
       setSelectedReservationId(null)
-      setSelectedUnit(null)
       setReservationError(reservationErrorMessage(error))
     } finally {
       setVerifyingReservationId(null)
@@ -286,11 +314,13 @@ export function HandoverUnitSelectionPage() {
   }
 
   async function verifyAndSelectUnit(unit: StorageUnit) {
-    if (!selectedReservation || verifyingUnitId) {
+    if (!selectedReservation || busy || assignmentBusy.current) {
       return
     }
 
+    assignmentBusy.current = true
     setVerifyingUnitId(unit.storageUnitId)
+    setAssignmentActionError(null)
     setSelectionError(null)
 
     try {
@@ -305,36 +335,41 @@ export function HandoverUnitSelectionPage() {
         current.unitTypeId === selectedReservation.unitTypeId
 
       if (!stillEligible) {
-        setSelectedUnit(null)
         setSelectionError(
           'This unit is no longer eligible for the selected Reservation. Refresh and choose another AVAILABLE matching unit.',
         )
+        setAssignmentRetry((value) => value + 1)
         await loadUnits()
         return
       }
 
-      setSelectedUnit(current)
+      const saved = await handoverAssignmentApi.save(selectedReservation.reservationId, current.storageUnitId)
+      setAssignmentSnapshot({ key: assignmentKey, assignment: saved.data, error: null })
     } catch (error) {
-      setSelectedUnit(null)
-      setSelectionError(unitErrorMessage(error))
+      setAssignmentActionError(presentApiError(error))
+      setAssignmentRetry((value) => value + 1)
+      await loadUnits()
     } finally {
+      assignmentBusy.current = false
       setVerifyingUnitId(null)
     }
   }
 
-  async function copySelectedUnitId() {
-    if (!selectedUnit) {
-      return
-    }
-
+  async function releaseAssignment() {
+    if (!selectedReservation || busy || assignmentBusy.current) return
+    assignmentBusy.current = true
+    setSavingAssignment(true)
+    setAssignmentActionError(null)
     try {
-      await navigator.clipboard.writeText(
-        selectedUnit.storageUnitId,
-      )
-      setCopyFeedback(true)
-      window.setTimeout(() => setCopyFeedback(false), 1600)
-    } catch {
-      setCopyFeedback(false)
+      await handoverAssignmentApi.release(selectedReservation.reservationId)
+    } catch (error) {
+      setAssignmentActionError(presentApiError(error))
+    } finally {
+      // Always re-read, including ambiguous network outcomes and conflicts.
+      setAssignmentRetry((value) => value + 1)
+      await loadUnits()
+      assignmentBusy.current = false
+      setSavingAssignment(false)
     }
   }
 
@@ -357,7 +392,7 @@ export function HandoverUnitSelectionPage() {
           type="button"
           className="handover-refresh-button"
           onClick={() => void refresh()}
-          disabled={isLoadingReservations || isLoadingUnits}
+          disabled={busy || isLoadingReservations || isLoadingUnits}
         >
           <RefreshCw size={17} />
           Refresh
@@ -383,6 +418,7 @@ export function HandoverUnitSelectionPage() {
           <label className="handover-search">
             <Search size={17} />
             <input
+              disabled={busy}
               value={reservationSearch}
               onChange={(event) =>
                 setReservationSearch(event.target.value)
@@ -423,7 +459,7 @@ export function HandoverUnitSelectionPage() {
                         ? 'handover-reservation-card handover-reservation-card-selected'
                         : 'handover-reservation-card'
                     }
-                    disabled={verifyingReservationId !== null}
+                    disabled={busy}
                     onClick={() => void selectReservation(reservation)}
                   >
                     <div>
@@ -484,6 +520,10 @@ export function HandoverUnitSelectionPage() {
               {unitError}
             </div>
           )}
+
+          <ApiErrorAlert error={assignmentError} />
+          {loadingAssignment && <p role="status">Loading saved assignment…</p>}
+          {selectedReservation && !loadingAssignment && !selectedUnit && !assignmentError && <p>No unit assignment saved. Choose a unit to save it for Staff.</p>}
 
           {selectionError && (
             <div className="handover-alert handover-alert-error">
@@ -548,17 +588,17 @@ export function HandoverUnitSelectionPage() {
                           ? 'handover-select-button handover-select-button-selected'
                           : 'handover-select-button'
                       }
-                      disabled={verifyingUnitId !== null}
+                      disabled={busy || isLoadingReservations || isLoadingUnits || !!assignmentSnapshot?.error}
                       onClick={() => void verifyAndSelectUnit(unit)}
                     >
                       {isSelected ? (
                         <>
-                          <Check size={16} /> Selected
+                          <Check size={16} /> Saved
                         </>
                       ) : isVerifying ? (
-                        'Checking…'
+                        'Saving…'
                       ) : (
-                        'Select'
+                        'Save assignment'
                       )}
                     </button>
                   </article>
@@ -583,26 +623,17 @@ export function HandoverUnitSelectionPage() {
           <div className="handover-summary-actions">
             <button
               type="button"
-              className="handover-copy-button"
-              onClick={() => void copySelectedUnitId()}
-            >
-              <ClipboardCopy size={16} />
-              {copyFeedback ? 'Copied' : 'Copy handover reference'}
-            </button>
-
-            <button
-              type="button"
               className="handover-clear-button"
-              onClick={() => setSelectedUnit(null)}
+              disabled={busy}
+              onClick={() => void releaseAssignment()}
             >
-              Clear selection
+              {savingAssignment ? 'Releasing…' : 'Release assignment'}
             </button>
           </div>
 
           <p className="handover-boundary-note">
-            This Manager selection is intentionally not persisted. Facility
-            Staff performs Complete Handover and submits the selected
-            StorageUnit ID through the Staff handover command.
+            Assignment saved. Staff can open this Reservation to view the unit
+            and complete handover. Select another unit to replace this assignment.
           </p>
         </section>
       )}

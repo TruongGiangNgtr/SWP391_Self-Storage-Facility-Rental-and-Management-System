@@ -120,6 +120,10 @@ export const httpClient = {
     })
   },
 
+  delete<T = void>(path: string): Promise<T> {
+    return request<T>(path, { method: 'DELETE' })
+  },
+
   patch<T>(path: string, body: unknown): Promise<T> {
     return request<T>(path, {
       method: 'PATCH',
