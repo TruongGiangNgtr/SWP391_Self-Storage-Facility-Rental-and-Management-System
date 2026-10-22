@@ -86,9 +86,10 @@ internal sealed class StorageUnitTimelineService(
         DateTime monthEndUtc, CancellationToken ct)
     {
         if (units.Count == 0) return [];
-        // Never extrapolate a known state into the future.
-        var now = clock.UtcNow.UtcDateTime;
-        var end = monthEndUtc < now ? monthEndUtc : now;
+        // Timeline business rule: default unrecorded periods to AVAILABLE,
+        // including past and future dates in the requested month.
+        // A recorded state persists until the next status event.
+        var end = monthEndUtc;
         IReadOnlyList<StorageUnitStatusAuditRecord> audit = end > monthStartUtc
             ? await repository.ListStatusEventsAsync(
                 units.Select(x => x.StorageUnitId).ToArray(), monthStartUtc, end, ct)
@@ -104,28 +105,24 @@ internal sealed class StorageUnitTimelineService(
     private static IReadOnlyList<StorageUnitStatusIntervalResult> BuildIntervals(
         IReadOnlyList<StorageUnitStatusAuditRecord> events, DateTime start, DateTime end)
     {
-        if (start >= end || events.Count == 0) return [];
+        if (start >= end) return [];
         var intervals = new List<StorageUnitStatusIntervalResult>();
-        string? known = null;
+        var known = "AVAILABLE";
         var cursor = start;
         foreach (var entry in events.OrderBy(x => x.CreatedAt).ThenBy(x => x.AuditLogId))
         {
             var at = entry.CreatedAt < start ? start : entry.CreatedAt;
             if (at > end) break;
-            // An inconsistent old-status snapshot means an unrecorded transition:
-            // do not claim the preceding segment was continuously in the known state.
+            // Even if audit continuity is incomplete, a missing interval is AVAILABLE.
             var oldStatus = ParseStatus(entry.OldValue);
-            if (entry.Action == "CHANGE_STORAGE_UNIT_STATUS" && known is not null &&
-                oldStatus != known)
-            {
-                known = null;
-            }
-            if (known is not null && at > cursor)
+            if (entry.Action == "CHANGE_STORAGE_UNIT_STATUS" && oldStatus != known)
+                known = "AVAILABLE";
+            if (at > cursor)
                 intervals.Add(new StorageUnitStatusIntervalResult(known, AsUtc(cursor), AsUtc(at)));
-            known = ParseStatus(entry.NewValue);
+            known = ParseStatus(entry.NewValue) ?? "AVAILABLE";
             cursor = at;
         }
-        if (known is not null && cursor < end)
+        if (cursor < end)
             intervals.Add(new StorageUnitStatusIntervalResult(known, AsUtc(cursor), AsUtc(end)));
         return intervals;
     }
