@@ -1,3 +1,5 @@
+import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
+import type { ReactNode } from 'react'
 import {
   Activity,
   ChevronRight,
@@ -121,9 +123,6 @@ function hcmLocalToUtcIso(value: string) {
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }
 
-function shortId(value: string) {
-  return value.length <= 16 ? value : `${value.slice(0, 8)}…${value.slice(-4)}`
-}
 
 function formatCode(value: string) {
   return value
@@ -134,14 +133,30 @@ function formatCode(value: string) {
     .join(' ')
 }
 
-function prettyJson(value: string | null) {
+// Keep the immutable audit payload untouched; present named fields and omit
+// persistence identifiers from the rendered snapshot.
+function snapshotFields(value: unknown): ReactNode {
+  if (Array.isArray(value)) return <ul>{value.map((item, index) => <li key={index}>{snapshotFields(item)}</li>)}</ul>
+  if (value && typeof value === 'object') return <dl>{Object.entries(value).filter(([key]) => !/(?:^id$|^ids$|Id$|Ids$|ID$|IDs$|_id$|_ids$)/.test(key)).map(([key, item]) => <div key={key}><dt>{key.replace(/([a-z])([A-Z])/g, '$1 $2').replaceAll('_', ' ')}</dt><dd>{snapshotFields(item)}</dd></div>)}</dl>
+  if (typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(value)) return 'Related record'
+  return String(value ?? '—')
+}
+function prettySnapshot(value: string | null): ReactNode {
   if (!value) return null
-
-  try {
-    return JSON.stringify(JSON.parse(value), null, 2)
-  } catch {
-    return value
+  try { return snapshotFields(JSON.parse(value)) } catch { return snapshotFields(value) }
+}
+function AuditResource({ entry }: { entry: AdminAuditLogEntry }) {
+  if (entry.entityType === 'USER_ACCOUNT') return <EmployeeEntityLabel kind="account" id={entry.entityId} />
+  for (const snapshot of [entry.newValue, entry.oldValue]) {
+    try {
+      const data = JSON.parse(snapshot ?? 'null')
+      if (data && typeof data === 'object') {
+        for (const field of ['fullName', 'name', 'unitCode']) if (typeof data[field] === 'string' && data[field].trim()) return <>{data[field]}</>
+        if (typeof data.version === 'number') return <>Policy version {data.version}</>
+      }
+    } catch { /* Older events may contain plain text rather than JSON. */ }
   }
+  return <>{formatCode(entry.entityType)} · {formatDateTime(entry.createdAt)}</>
 }
 
 function resultSummary(item: AdminAuditLogEntry) {
@@ -178,8 +193,8 @@ function AuditLogDetailDrawer({
   entry: AdminAuditLogEntry
   onClose: () => void
 }) {
-  const oldValue = prettyJson(entry.oldValue)
-  const newValue = prettyJson(entry.newValue)
+  const oldValue = prettySnapshot(entry.oldValue)
+  const newValue = prettySnapshot(entry.newValue)
 
   return (
     <aside className="awp07-drawer" role="dialog" aria-modal="true" aria-labelledby="awp07-drawer-title">
@@ -187,7 +202,7 @@ function AuditLogDetailDrawer({
         <div>
           <p className="awp01-eyebrow">Activity detail</p>
           <h2 id="awp07-drawer-title">{formatCode(entry.action)}</h2>
-          <code title={entry.auditLogId}>{entry.auditLogId}</code>
+          <span>{formatDateTime(entry.createdAt)}</span>
         </div>
         <button className="awp07-icon-button" type="button" onClick={onClose} aria-label="Close audit log detail">
           <X size={18} />
@@ -197,35 +212,35 @@ function AuditLogDetailDrawer({
       <div className="awp07-drawer__body">
         <section className="awp07-detail-grid" aria-label="Audit event metadata">
           <div><span>Recorded (GMT+7)</span><strong>{formatDateTime(entry.createdAt)}</strong></div>
-          <div><span>Actor</span><strong>{entry.userAccountId ? shortId(entry.userAccountId) : 'SYSTEM / BACKGROUND'}</strong></div>
+          <div><span>Actor</span><strong>{entry.userAccountId ? <EmployeeEntityLabel kind="account" id={entry.userAccountId} /> : 'SYSTEM / BACKGROUND'}</strong></div>
           <div><span>Action</span><strong>{entry.action}</strong></div>
           <div><span>Entity type</span><strong>{entry.entityType}</strong></div>
-          <div><span>Entity ID</span><strong>{entry.entityId ? shortId(entry.entityId) : '—'}</strong></div>
+          <div><span>Business resource</span><strong><AuditResource entry={entry} /></strong></div>
           <div><span>Result history</span><strong>{resultSummary(entry)}</strong></div>
         </section>
 
         {entry.userAccountId ? (
           <section className="awp07-identifier-block">
-            <span>Actor UserAccountId</span>
-            <code>{entry.userAccountId}</code>
+            <span>Actor</span>
+            <EmployeeEntityLabel kind="account" id={entry.userAccountId} />
           </section>
         ) : null}
 
         {entry.entityId ? (
           <section className="awp07-identifier-block">
-            <span>Business resource ID</span>
-            <code>{entry.entityId}</code>
+            <span>Business resource</span>
+            <AuditResource entry={entry} />
           </section>
         ) : null}
 
         <section className="awp07-snapshot-section">
           <div className="awp07-snapshot-card">
             <div className="awp07-snapshot-card__title">Previous state</div>
-            {oldValue ? <pre>{oldValue}</pre> : <p>No previous-state snapshot was stored for this event.</p>}
+            {oldValue ? <div>{oldValue}</div> : <p>No previous-state snapshot was stored for this event.</p>}
           </div>
           <div className="awp07-snapshot-card">
             <div className="awp07-snapshot-card__title">Resulting state</div>
-            {newValue ? <pre>{newValue}</pre> : <p>No resulting-state snapshot was stored for this event.</p>}
+            {newValue ? <div>{newValue}</div> : <p>No resulting-state snapshot was stored for this event.</p>}
           </div>
         </section>
 
@@ -483,7 +498,7 @@ export default function ActivityLogManagementPage() {
                     <td>{formatDateTime(item.createdAt)}</td>
                     <td>
                       {item.userAccountId ? (
-                        <code title={item.userAccountId}>{shortId(item.userAccountId)}</code>
+                        <EmployeeEntityLabel kind="account" id={item.userAccountId} />
                       ) : (
                         <span className="awp07-system-actor">SYSTEM</span>
                       )}
@@ -492,7 +507,7 @@ export default function ActivityLogManagementPage() {
                     <td>
                       <div className="awp07-resource-cell">
                         <strong>{item.entityType}</strong>
-                        <code title={item.entityId ?? ''}>{item.entityId ? shortId(item.entityId) : 'No entity ID'}</code>
+                        <span><AuditResource entry={item} /></span>
                       </div>
                     </td>
                     <td>

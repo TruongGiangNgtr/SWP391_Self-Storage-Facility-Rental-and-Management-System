@@ -1,3 +1,4 @@
+import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
 import { RefreshCw, Search, ShieldCheck } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -27,9 +28,6 @@ function hcmLocalToUtcIso(value: string) {
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }
 
-function shortId(value: string) {
-  return value.length <= 16 ? value : `${value.slice(0, 8)}…${value.slice(-4)}`
-}
 
 const EMPTY_FILTERS: AdminLoginHistoryFilters = { userAccountId: '', status: 'ALL', fromLocal: '', toLocal: '' }
 
@@ -133,8 +131,8 @@ export default function LoginHistoryPage() {
 
       {!loading && !error && items.length > 0 && (
         <section className="awp01-table-card">
-          <div className="awp01-table-wrap"><table className="awp01-table awp06-table"><thead><tr><th>Attempt (GMT+7)</th><th>Status</th><th>User Account</th><th>IP address</th><th>Device</th><th>History ID</th></tr></thead><tbody>{items.map((item) => (
-            <tr key={item.loginHistoryId}><td>{formatDateTime(item.loginAt)}</td><td><span className={`awp06-status awp06-status--${item.status.toLowerCase()}`}>{item.status}</span></td><td><code title={item.userAccountId}>{shortId(item.userAccountId)}</code></td><td>{item.ipAddress ?? '—'}</td><td><span className="awp06-device" title={item.deviceInfo ?? ''}>{item.deviceInfo ?? '—'}</span></td><td><code title={item.loginHistoryId}>{shortId(item.loginHistoryId)}</code></td></tr>
+          <div className="awp01-table-wrap"><table className="awp01-table awp06-table"><thead><tr><th>Attempt (GMT+7)</th><th>Status</th><th>User Account</th><th>IP address</th><th>Device</th></tr></thead><tbody>{items.map((item) => (
+            <tr key={item.loginHistoryId}><td>{formatDateTime(item.loginAt)}</td><td><span className={`awp06-status awp06-status--${item.status.toLowerCase()}`}>{item.status}</span></td><td><EmployeeEntityLabel kind="account" id={item.userAccountId} /></td><td>{item.ipAddress ?? '—'}</td><td><span className="awp06-device" title={item.deviceInfo ?? ''}>{item.deviceInfo ?? '—'}</span></td></tr>
           ))}</tbody></table></div>
           <footer className="awp01-pagination"><span>Page {pagination.page} of {Math.max(pagination.totalPages, 1)} · {pagination.totalItems} attempts</span><div><button className="awp01-button awp01-button--secondary" disabled={pagination.page <= 1} onClick={() => void load(pagination.page - 1, appliedFilters)}>Previous</button><button className="awp01-button awp01-button--secondary" disabled={pagination.page >= pagination.totalPages} onClick={() => void load(pagination.page + 1, appliedFilters)}>Next</button></div></footer>
         </section>

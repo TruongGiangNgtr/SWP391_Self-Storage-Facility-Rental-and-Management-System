@@ -1,3 +1,4 @@
+import { EmployeeEntityLabel } from '../../../components/EmployeeEntityLabel'
 import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent, MouseEvent } from "react";
 import type { ApiErrorShape, FacilityStaffLookupItem, PaginationMeta, SupportTicketDetail } from "../models/supportTicket";
@@ -98,8 +99,8 @@ export function AssignSupportStaffDialog({
         </div>
 
         <div className="mwp05-ticket-context">
-          <div><span>Ticket</span><strong>{ticket.supportTicketId}</strong></div>
-          <div><span>Contract</span><strong>{ticket.contractId}</strong></div>
+          <div><span>Ticket</span><strong>{ticket.category.replaceAll('_', ' ')} · {new Date(ticket.createdAt).toLocaleString('en-GB', { timeZone: 'Asia/Ho_Chi_Minh' })}</strong></div>
+          <div><span>Contract</span><strong><EmployeeEntityLabel kind="contract" id={ticket.contractId} /></strong></div>
           <div><span>Category</span><strong>{ticket.category.replaceAll("_", " ")}</strong></div>
         </div>
 
@@ -116,7 +117,7 @@ export function AssignSupportStaffDialog({
             >
               <option value="">{loading ? "Loading staff..." : "Select a staff member"}</option>
               {staff.map((member) => (
-                <option key={member.employeeId} value={member.employeeId}>{member.fullName} - {member.employeeId}</option>
+                <option key={member.employeeId} value={member.employeeId}>{member.fullName}</option>
               ))}
             </select>
             <small>Choose an active staff member in your facility.</small>

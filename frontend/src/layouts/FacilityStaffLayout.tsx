@@ -1,3 +1,4 @@
+import { EmployeeLabelsProvider } from '../components/EmployeeEntityLabel'
 import {
   ClipboardCheck,
   ClipboardList,
@@ -88,7 +89,7 @@ export function FacilityStaffLayout() {
         </aside>
 
         <main className="staff-main">
-          <Outlet />
+          <EmployeeLabelsProvider><Outlet /></EmployeeLabelsProvider>
         </main>
       </div>
 

@@ -1438,6 +1438,7 @@
 }
 
 .physical-field input,
+.physical-field select,
 .physical-field textarea {
   width: 100%;
   box-sizing: border-box;
@@ -1450,7 +1451,8 @@
   font-size: 11px;
 }
 
-.physical-field input {
+.physical-field input,
+.physical-field select {
   min-height: 40px;
   padding: 0 11px;
 }
@@ -1463,12 +1465,14 @@
 }
 
 .physical-field input:focus,
+.physical-field select:focus,
 .physical-field textarea:focus {
   border-color: #9bb2fa;
   box-shadow: 0 0 0 3px rgb(69 105 235 / 10%);
 }
 
 .physical-field input:disabled,
+.physical-field select:disabled,
 .physical-field textarea:disabled {
   cursor: not-allowed;
   color: #7e8a9d;

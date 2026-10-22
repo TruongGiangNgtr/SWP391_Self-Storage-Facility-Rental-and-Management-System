@@ -1,3 +1,4 @@
+import { EmployeeEntityLabel } from '../../../components/EmployeeEntityLabel'
 import type { ChangeEvent, MouseEvent } from "react";
 import { useState } from "react";
 import { useAuth } from "../../../auth/auth.context";
@@ -25,9 +26,6 @@ function formatCreatedAt(value: string) {
   }).format(date);
 }
 
-function shortId(value: string) {
-  return `${value.slice(0, 8)}…${value.slice(-4)}`;
-}
 
 export default function ManagerSupportTicketsPage() {
   const { user } = useAuth();
@@ -100,7 +98,7 @@ export default function ManagerSupportTicketsPage() {
           <input
             value={filters.search}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, search: e.target.value })}
-            placeholder="Ticket, contract, customer, staff ID…"
+            placeholder="Search ticket description…"
           />
         </label>
       </section>
@@ -145,11 +143,11 @@ export default function ManagerSupportTicketsPage() {
               <tbody>
                 {tickets.map((ticket) => (
                   <tr key={ticket.supportTicketId} data-testid={`mwp05-ticket-${ticket.supportTicketId}`}>
-                    <td><code title={ticket.supportTicketId}>{shortId(ticket.supportTicketId)}</code></td>
+                    <td><span>{ticket.category.replaceAll("_", " ")} · {formatCreatedAt(ticket.createdAt)}</span></td>
                     <td>{ticket.category.replaceAll("_", " ")}</td>
                     <td className="mwp05-table__description" title={ticket.description}>{ticket.description}</td>
                     <td><SupportStatusBadge status={ticket.status} /></td>
-                    <td>{ticket.assignedEmployeeId ? <code title={ticket.assignedEmployeeId}>{shortId(ticket.assignedEmployeeId)}</code> : <span className="mwp05-muted">Unassigned</span>}</td>
+                    <td>{ticket.assignedEmployeeId ? <EmployeeEntityLabel kind="employee" id={ticket.assignedEmployeeId} /> : <span className="mwp05-muted">Unassigned</span>}</td>
                     <td>{formatCreatedAt(ticket.createdAt)}</td>
                     <td>
                       <button className="mwp05-link-button" type="button" onClick={() => openTicket(ticket)}>View</button>

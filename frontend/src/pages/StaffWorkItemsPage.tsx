@@ -1,3 +1,4 @@
+import { EmployeeEntityLabel } from '../components/EmployeeEntityLabel'
 import { CalendarDays, RefreshCw, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -181,7 +182,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
           <span>Search current page</span>
           <div className="fwp-input-with-icon">
             <Search size={16} aria-hidden="true" />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Customer, phone, Visit/Contract ID…" />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Customer, phone or status…" />
           </div>
         </label>
         <p className="fwp-toolbar-note">Date and pagination are server-authoritative. The queue/search view only narrows rows already returned on this API page.</p>
@@ -212,7 +213,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
                   <th>Customer</th>
                   <th>Scheduled</th>
                   <th>Status</th>
-                  <th>Reference</th>
+                  <th>Related rental</th>
                   <th aria-label="Actions" />
                 </tr>
               </thead>
@@ -232,7 +233,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
                       </td>
                       <td>{item.scheduledDate}</td>
                       <td><StatusBadge status={item.status} /></td>
-                      <td><code>{item.referenceId}</code></td>
+                      <td>{item.entityId && item.workType !== 'RESERVATION_VISIT' ? <EmployeeEntityLabel kind="contract" id={item.entityId} /> : <span>{readableWorkType(item.workType)} · {item.scheduledDate}</span>}</td>
                       <td>
                         {link ? <Link className="fwp-link-button" to={link}>{actionLabel(item)}</Link> : <span className="fwp-muted">Read only</span>}
                       </td>

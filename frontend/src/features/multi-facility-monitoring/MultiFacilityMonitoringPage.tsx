@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
 import { useEffect, useMemo, useState } from 'react'
 import {
   Activity, ArrowRight, Building2, CalendarDays, CreditCard, FileText,
@@ -37,7 +39,6 @@ const number = (value: number) => new Intl.NumberFormat('en-US').format(value)
 const vnd = (value: number) => new Intl.NumberFormat('vi-VN', {
   style: 'currency', currency: 'VND', maximumFractionDigits: 0,
 }).format(value)
-const shortId = (value: string | null | undefined) => value ? `${value.slice(0, 8)}…` : '—'
 const textDate = (value: string | null | undefined) => value?.slice(0, 10) ?? '—'
 const readableStatus = (value: string | null | undefined) => typeof value === 'string' ? value.replaceAll('_', ' ') : 'UNKNOWN'
 const scopedTab = (tab: ActivityTab) => tab === 'reservations' || tab === 'contracts'
@@ -56,12 +57,12 @@ function activityId(tab: ActivityTab, item: ActivityRecord): string {
   }
 }
 
-function activityTitle(tab: ActivityTab, item: ActivityRecord): string {
-  if (tab === 'contracts') {
-    const contract = item as BusinessContractSummary
-    return contract.unitCode || shortId(contract.contractId)
-  }
-  return shortId(activityId(tab, item))
+function activityTitle(tab: ActivityTab, item: ActivityRecord): ReactNode {
+  if (tab === 'contracts') return (item as BusinessContractSummary).unitCode || 'Rental contract'
+  if (tab === 'reservations') { const r = item as ReservationDetail; return <>Reservation · <EmployeeEntityLabel kind="unitType" id={r.unitTypeId} /></> }
+  if (tab === 'visits') { const v = item as VisitDetail; return `${readableStatus(v.visitType)} visit · ${textDate(v.visitDate)}` }
+  const i = item as InvoiceDetail
+  return `${readableStatus(i.invoiceType)} invoice · ${i.billingMonth ?? textDate(i.dueDate)}`
 }
 
 function activityStatus(tab: ActivityTab, item: ActivityRecord): string {
@@ -83,7 +84,7 @@ function activityDescription(tab: ActivityTab, item: ActivityRecord, facilityNam
     }
     case 'visits': {
       const row = item as VisitDetail
-      return `${readableStatus(row.visitType)} · ${textDate(row.visitDate)} · Related ID ${shortId(row.entityId)}`
+      return `${readableStatus(row.visitType)} · ${textDate(row.visitDate)}`
     }
     case 'invoices': {
       const row = item as InvoiceDetail
@@ -133,13 +134,13 @@ async function loadDetail(tab: ActivityTab, item: ActivityRecord): Promise<Detai
   }
 }
 
-function detailFields(detail: DetailState): { label: string; value: string | number | null | undefined }[] {
+function detailFields(detail: DetailState): { label: string; value: ReactNode }[] {
   const { tab, record } = detail
   if (tab === 'reservations') {
     const r = record as ReservationDetail
     return [
-      { label: 'Reservation ID', value: r.reservationId }, { label: 'Facility ID', value: r.facilityId },
-      { label: 'Customer ID', value: r.customerId }, { label: 'Unit Type ID', value: r.unitTypeId },
+      { label: 'Reservation', value: `${r.startMonth} → ${r.endMonth}` }, { label: 'Facility', value: <EmployeeEntityLabel kind="facility" id={r.facilityId} /> },
+      { label: 'Customer', value: <EmployeeEntityLabel kind="customer" id={r.customerId} /> }, { label: 'Unit Type', value: <EmployeeEntityLabel kind="unitType" id={r.unitTypeId} /> },
       { label: 'Rental period', value: `${r.startMonth} → ${r.endMonth}` },
       { label: 'Status', value: r.status }, { label: 'Deposit invoice status', value: r.depositInvoice?.status },
       { label: 'Locked monthly price', value: vnd(r.lockedRentalPrice) },
@@ -148,25 +149,26 @@ function detailFields(detail: DetailState): { label: string; value: string | num
   if (tab === 'contracts') {
     const r = record as HandoverContractDetail
     return [
-      { label: 'Contract ID', value: r.contractId }, { label: 'Facility ID', value: r.facilityId },
-      { label: 'Customer ID', value: r.customerId }, { label: 'Reservation ID', value: r.reservationId },
-      { label: 'Storage Unit ID', value: r.storageUnitId }, { label: 'Status', value: r.status },
+      { label: 'Contract', value: r.unitCode || r.storageUnit?.unitCode || 'Rental contract' }, { label: 'Facility', value: <EmployeeEntityLabel kind="facility" id={r.facilityId} /> },
+      { label: 'Customer', value: <EmployeeEntityLabel kind="customer" id={r.customerId} /> }, { label: 'Reservation', value: `${r.startMonth} → ${r.endMonth}` },
+      { label: 'Storage Unit', value: r.unitCode || r.storageUnit?.unitCode || 'Unit code unavailable' }, { label: 'Status', value: r.status },
       { label: 'Rental period', value: `${r.startMonth} → ${r.endMonth}` },
-      { label: 'Captured Policy ID', value: r.policyId }, { label: 'Discount ID', value: r.discountId },
+      { label: 'Captured policy', value: <EmployeeEntityLabel kind="policy" id={r.policyId} /> },
+      { label: 'Captured discount', value: <EmployeeEntityLabel kind="discount" id={r.discountId} scope={r.customerId} empty="No discount" /> },
     ]
   }
   if (tab === 'visits') {
     const r = record as VisitDetail
     return [
-      { label: 'Visit ID', value: r.visitId }, { label: 'Related Reservation / Contract ID', value: r.entityId },
+      { label: 'Visit', value: `${readableStatus(r.visitType)} · ${textDate(r.visitDate)}` }, { label: 'Related rental', value: r.visitType === 'RESERVATION' ? 'Reservation visit' : <EmployeeEntityLabel kind="contract" id={r.entityId} /> },
       { label: 'Visit type', value: r.visitType }, { label: 'Status', value: r.status },
       { label: 'Scheduled date', value: textDate(r.visitDate) },
-      { label: 'Actual return', value: textDate(r.actualReturnDate) }, { label: 'Actual staff actor', value: r.employeeId },
+      { label: 'Actual return', value: textDate(r.actualReturnDate) }, { label: 'Actual staff actor', value: <EmployeeEntityLabel kind="employee" id={r.employeeId} /> },
     ]
   }
   const r = record as InvoiceDetail
   return [
-    { label: 'Invoice ID', value: r.invoiceId }, { label: 'Related Reservation / Contract ID', value: r.entityId },
+    { label: 'Invoice', value: `${readableStatus(r.invoiceType)} · ${r.billingMonth ?? textDate(r.dueDate)}` }, { label: 'Related rental', value: r.invoiceType === 'DEPOSIT' ? 'Reservation deposit' : <EmployeeEntityLabel kind="contract" id={r.entityId} /> },
     { label: 'Type', value: r.invoiceType }, { label: 'Billing month', value: r.billingMonth },
     { label: 'Status', value: r.status }, { label: 'Base amount', value: vnd(r.baseAmount) },
     { label: 'Discount', value: vnd(r.discountAmount) }, { label: 'Amount due', value: vnd(r.amountDue) },
@@ -260,7 +262,7 @@ export function MultiFacilityMonitoringPage() {
   }, [detail])
 
   const facilityNames = useMemo(() => new Map(facilities.map(item => [item.facilityId, item.name])), [facilities])
-  const facilityName = (id: string) => facilityNames.get(id) ?? `Facility ${shortId(id)}`
+  const facilityName = (id: string) => facilityNames.get(id) ?? 'Facility name unavailable'
   const filteredFacilities = useMemo(() => facilities.filter(item =>
     (facilityStatus === 'ALL' || item.status === facilityStatus) &&
     `${item.name} ${item.address} ${item.contactInfo ?? ''}`.toLowerCase().includes(facilitySearch.trim().toLowerCase()),

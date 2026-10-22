@@ -1,3 +1,4 @@
+import { EmployeeEntityLabel, RentalPeriodLabel } from '../components/EmployeeEntityLabel'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
@@ -63,16 +64,16 @@ export function StaffHandoverPage() {
             <div className="card-heading-row"><h2>{customer?.fullName ?? 'Reservation Details'}</h2><StatusBadge status={context.reservation.status} /></div>
             {customer ? <p className="muted">{customer.phoneNumber}</p> : <p className="notice">Customer identification is not in the current work-list page. Return to Work List to review the customer; a missing work item is not evidence of a different reservation.</p>}
             <dl className="detail-list">
-              <div><dt>Reservation ID</dt><dd>{context.reservation.reservationId}</dd></div>
+              <div><dt>Reservation</dt><dd><RentalPeriodLabel startMonth={context.reservation.startMonth} endMonth={context.reservation.endMonth} /></dd></div>
               <div><dt>Rental Period</dt><dd>{formatMonthRange(context.reservation.startMonth, context.reservation.endMonth)}</dd></div>
-              <div><dt>Facility ID</dt><dd>{context.reservation.facilityId}</dd></div>
-              <div><dt>Unit Type ID</dt><dd>{context.reservation.unitTypeId}</dd></div>
+              <div><dt>Facility</dt><dd><EmployeeEntityLabel kind="facility" id={context.reservation.facilityId} /></dd></div>
+              <div><dt>Unit Type</dt><dd><EmployeeEntityLabel kind="unitType" id={context.reservation.unitTypeId} /></dd></div>
             </dl>
           </section>
           <section className="panel stack" aria-label="Reservation visit">
             <div className="card-heading-row"><h2>Reservation Visit</h2><StatusBadge status={context.visit.status} /></div>
             <dl className="detail-list">
-              <div><dt>Visit ID</dt><dd>{context.visit.visitId}</dd></div>
+              <div><dt>Visit</dt><dd>Reservation visit · {context.visit.visitDate}</dd></div>
               <div><dt>Visit Date</dt><dd>{context.visit.visitDate}</dd></div>
             </dl>
             {context.reservation.status === 'CONFIRMED' && context.visit.status === 'SCHEDULED' ? (

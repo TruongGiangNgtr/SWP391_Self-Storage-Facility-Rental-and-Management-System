@@ -1,3 +1,5 @@
+import { contractOption, contractUnit } from '../utils/customerPresentation'
+import { EmployeeEntityLabel } from '../components/EmployeeEntityLabel'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { LoadingState } from '../components/PageStates'
@@ -28,9 +30,9 @@ export function StaffAccessVisitPage() {
           {context.workItem ? <p><strong>{context.workItem.customer.fullName}</strong><br /><span className="muted">{context.workItem.customer.phoneNumber}</span></p>
             : <p className="notice">Customer identification is not in this work-list page. Return to Work List to verify the arriving customer; no customer details are inferred from URL IDs.</p>}
           <dl className="detail-list">
-            <div><dt>Visit ID</dt><dd>{context.visit.visitId}</dd></div>
+            <div><dt>Visit</dt><dd>Access visit · {context.visit.visitDate}</dd></div>
             <div><dt>Visit Date (GMT+7)</dt><dd>{context.visit.visitDate}</dd></div>
-            <div><dt>Handling Staff ID</dt><dd>{context.visit.employeeId ?? 'Not Recorded'}</dd></div>
+            <div><dt>Handling Staff</dt><dd><EmployeeEntityLabel kind="employee" id={context.visit.employeeId} empty={'Not Recorded'} /></dd></div>
           </dl>
           {context.visit.status === 'SCHEDULED' && context.contract.status === 'ACTIVE' && <>
             <p className="muted">Verify the arriving customer. The backend validates your current Facility assignment, visit date and lifecycle.</p>
@@ -46,9 +48,9 @@ export function StaffAccessVisitPage() {
         <section className="panel stack" aria-label="Access contract details">
           <div className="card-heading-row"><h2>Related Contract</h2><StatusBadge status={context.contract.status} /></div>
           <dl className="detail-list">
-            <div><dt>Contract ID</dt><dd>{context.contract.contractId}</dd></div>
-            <div><dt>Facility ID</dt><dd>{context.contract.facilityId}</dd></div>
-            <div><dt>Storage Unit ID</dt><dd>{context.contract.storageUnitId}</dd></div>
+            <div><dt>Contract</dt><dd>{contractOption(context.contract)}</dd></div>
+            <div><dt>Facility</dt><dd><EmployeeEntityLabel kind="facility" id={context.contract.facilityId} /></dd></div>
+            <div><dt>Storage Unit</dt><dd>{contractUnit(context.contract)}</dd></div>
             <div><dt>Rental Period</dt><dd>{formatMonthRange(context.contract.startMonth, context.contract.endMonth)}</dd></div>
           </dl>
           <p className="muted">Access processing changes the Visit only. It does not perform handover, return finalization or unit reassignment.</p>

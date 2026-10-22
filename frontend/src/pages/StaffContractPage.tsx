@@ -1,3 +1,5 @@
+import { contractOption, contractUnit } from '../utils/customerPresentation'
+import { EmployeeEntityLabel, RentalPeriodLabel } from '../components/EmployeeEntityLabel'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
@@ -66,18 +68,18 @@ export function StaffContractPage() {
           <section className="panel stack" aria-label="Contract details">
             <div className="card-heading-row"><h2>Contract Details</h2><StatusBadge status={context.contract.status} /></div>
             <dl className="detail-list">
-              <div><dt>Contract ID</dt><dd>{context.contract.contractId}</dd></div>
-              <div><dt>Reservation ID</dt><dd>{context.contract.reservationId}</dd></div>
-              <div><dt>Storage Unit ID</dt><dd>{context.contract.storageUnitId}</dd></div>
-              <div><dt>Facility ID</dt><dd>{context.contract.facilityId}</dd></div>
+              <div><dt>Contract</dt><dd>{contractOption(context.contract)}</dd></div>
+              <div><dt>Reservation</dt><dd><RentalPeriodLabel startMonth={context.reservation.startMonth} endMonth={context.reservation.endMonth} /></dd></div>
+              <div><dt>Storage Unit</dt><dd>{contractUnit(context.contract)}</dd></div>
+              <div><dt>Facility</dt><dd><EmployeeEntityLabel kind="facility" id={context.contract.facilityId} /></dd></div>
               <div><dt>Rental Period</dt><dd>{formatMonthRange(context.contract.startMonth, context.contract.endMonth)}</dd></div>
-              <div><dt>Captured Contract Discount ID</dt><dd>{context.contract.discountId ?? 'No discount'}</dd></div>
+              <div><dt>Captured Contract Discount</dt><dd><EmployeeEntityLabel kind="discount" id={context.contract.discountId} scope={context.contract.customerId} empty="No discount" /></dd></div>
             </dl>
           </section>
           <FirstMonthHandoverInfo lockedRentalPrice={context.reservation.lockedRentalPrice} handoverCompleted audience="staff" />
           {context.visit && <section className="panel stack" aria-label="Handover visit details">
             <div className="card-heading-row"><h2>Handover Visit</h2><StatusBadge status={context.visit.status} /></div>
-            <p>Visit Date: {context.visit.visitDate}</p><p>Visit ID: <span className="staff-id">{context.visit.visitId}</span></p>
+            <p>Visit Date: {context.visit.visitDate}</p>
           </section>}
           <p className="notice">These values are read from the backend. Contract existence records the original first-month settlement, including when the Contract later completes or terminates.</p>
         </>

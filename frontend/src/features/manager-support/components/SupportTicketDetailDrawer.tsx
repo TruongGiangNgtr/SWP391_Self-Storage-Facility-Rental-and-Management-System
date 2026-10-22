@@ -1,3 +1,4 @@
+import { EmployeeEntityLabel } from '../../../components/EmployeeEntityLabel'
 import type { ApiErrorShape, SupportTicketDetail } from "../models/supportTicket";
 import { SupportStatusBadge } from "./SupportStatusBadge";
 
@@ -29,7 +30,7 @@ export function SupportTicketDetailDrawer({ ticket, loading, error, onClose, onA
       <div className="mwp05-drawer__header">
         <div>
           <p className="mwp05-eyebrow">Support ticket detail</p>
-          <h2>{ticket ? ticket.supportTicketId.slice(0, 12) : "Loading"}</h2>
+          <h2>{ticket ? ticket.category.replaceAll("_", " ") : "Loading"}</h2>
         </div>
         <button className="mwp05-icon-button" type="button" onClick={onClose} aria-label="Close detail">×</button>
       </div>
@@ -51,9 +52,9 @@ export function SupportTicketDetailDrawer({ ticket, loading, error, onClose, onA
           </div>
 
           <dl className="mwp05-detail-grid">
-            <div><dt>Contract</dt><dd>{ticket.contractId}</dd></div>
-            <div><dt>Customer</dt><dd>{ticket.customerId}</dd></div>
-            <div><dt>Assigned employee</dt><dd>{ticket.assignedEmployeeId ?? "Not assigned"}</dd></div>
+            <div><dt>Contract</dt><dd><EmployeeEntityLabel kind="contract" id={ticket.contractId} /></dd></div>
+            <div><dt>Customer</dt><dd><EmployeeEntityLabel kind="customer" id={ticket.customerId} /></dd></div>
+            <div><dt>Assigned employee</dt><dd><EmployeeEntityLabel kind="employee" id={ticket.assignedEmployeeId} empty={"Not assigned"} /></dd></div>
             <div><dt>Created (GMT+7)</dt><dd>{formatDateTime(ticket.createdAt)}</dd></div>
             <div><dt>Completed (GMT+7)</dt><dd>{formatDateTime(ticket.completedAt)}</dd></div>
           </dl>
