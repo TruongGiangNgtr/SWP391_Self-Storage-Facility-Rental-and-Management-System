@@ -35,9 +35,15 @@ internal sealed class InspectionWorkflowRepository(
     {
         var query = Scoped(facilityId);
         var total = await query.CountAsync(ct);
+        // Project only required columns within the SQL page, rather than
+        // materializing full Inspection entities and mapping in memory.
         var rows = await query.OrderByDescending(x => x.Status == "PENDING")
-            .ThenBy(x => x.InspectionId).Skip(skip).Take(take).ToListAsync(ct);
-        return (rows.Select(Map).ToArray(), total);
+            .ThenBy(x => x.InspectionId).Skip(skip).Take(take)
+            .Select(x => new InspectionRecord(x.InspectionId, x.ContractId,
+                x.StorageUnitId, x.VisitId, x.EmployeeId, x.Status,
+                x.ConditionNote, x.CompletedAt))
+            .ToArrayAsync(ct);
+        return (rows, total);
     }
 
     public async Task<InspectionWorkflowDetailRecord?> GetDetailAsync(

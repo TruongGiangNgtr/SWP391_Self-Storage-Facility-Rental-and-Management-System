@@ -28,7 +28,9 @@ internal sealed class FacilityCatalogRepository(
                 u.FacilityId == f.FacilityId && dbContext.UnitTypes.Any(t =>
                     t.UnitTypeId == u.UnitTypeId &&
                     (mode == null || t.Mode == mode) &&
-                    (size == null || t.Size.ToLower() == size) &&
+                    // Size uses the canonical frms_ci_as case-insensitive collation.
+                    // Avoid LOWER(column) so a suitable index can be considered.
+                    (size == null || t.Size == size) &&
                     (!unitTypeId.HasValue || t.UnitTypeId == unitTypeId.Value))));
         }
 
@@ -59,7 +61,7 @@ internal sealed class FacilityCatalogRepository(
                 on unit.UnitTypeId equals type.UnitTypeId
             where ids.Contains(unit.FacilityId) &&
                   (mode == null || type.Mode == mode) &&
-                  (size == null || type.Size.ToLower() == size) &&
+                  (size == null || type.Size == size) &&
                   (!unitTypeId.HasValue || type.UnitTypeId == unitTypeId.Value)
             select new { unit.FacilityId, type.UnitTypeId })
             .Distinct()

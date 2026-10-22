@@ -15,9 +15,17 @@ internal sealed class BusinessPortfolioRepository(FrmsDbContext dbContext)
         var facilities = await dbContext.Facilities.AsNoTracking().CountAsync(cancellationToken);
         var active = await dbContext.Contracts.AsNoTracking()
             .CountAsync(x => x.Status == "ACTIVE", cancellationToken);
-        var allUnits = await dbContext.StorageUnits.AsNoTracking().CountAsync(cancellationToken);
-        var inUse = await dbContext.StorageUnits.AsNoTracking()
-            .CountAsync(x => x.Status == "IN_USE", cancellationToken);
-        return new BusinessPortfolioRecord(facilities, active, inUse, allUnits);
+
+        // Calculate both unit metrics in one SQL aggregation rather than
+        // scanning StorageUnit with two independent COUNT queries.
+        var unitCounts = await dbContext.StorageUnits.AsNoTracking()
+            .GroupBy(_ => 1)
+            .Select(g => new {
+                Total = g.Count(),
+                InUse = g.Count(x => x.Status == "IN_USE")
+            })
+            .SingleOrDefaultAsync(cancellationToken);
+        return new BusinessPortfolioRecord(
+            facilities, active, unitCounts?.InUse ?? 0, unitCounts?.Total ?? 0);
     }
 }

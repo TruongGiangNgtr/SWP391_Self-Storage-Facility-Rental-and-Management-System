@@ -109,53 +109,56 @@ internal sealed class CapacityRepository(
                     contract.EndMonth))
             .ToListAsync(cancellationToken);
 
+        // Both SQL queries above are restricted to the selected unit types and
+        // requested period. A sweep over interval boundaries avoids re-scanning
+        // every reservation/contract for every month and every unit type.
+        var reservationHoldsByType = reservationHolds.ToLookup(x => x.UnitTypeId);
+        var contractOccupanciesByType = contractOccupancies.ToLookup(x => x.UnitTypeId);
+        var monthCount = (endMonth.Year - startMonth.Year) * 12
+            + endMonth.Month - startMonth.Month + 1;
         var result = new Dictionary<Guid, int>();
 
         foreach (var unitTypeId in ids)
         {
-            var physicalCapacity =
-                eligibleCapacity.GetValueOrDefault(unitTypeId, 0);
+            var physicalCapacity = eligibleCapacity.GetValueOrDefault(unitTypeId, 0);
+            var reservationDeltas = new int[monthCount + 1];
+            var contractDeltas = new int[monthCount + 1];
 
-            var minimumAvailable = int.MaxValue;
-
-            var month = startMonth;
-
-            while (month <= endMonth)
+            foreach (var range in reservationHoldsByType[unitTypeId])
             {
-                var heldReservations = reservationHolds.Count(x =>
-                    x.UnitTypeId == unitTypeId &&
-                    x.StartMonth <= month &&
-                    x.EndMonth >= month);
-
-                var occupiedContracts = contractOccupancies.Count(x =>
-                    x.UnitTypeId == unitTypeId &&
-                    x.StartMonth <= month &&
-                    x.EndMonth >= month);
-
-                var available =
-                    physicalCapacity
-                    - heldReservations
-                    - occupiedContracts;
-
-                minimumAvailable = Math.Min(
-                    minimumAvailable,
-                    Math.Max(available, 0));
-
-                if (month == endMonth)
-                {
-                    break;
-                }
-
-                month = month.AddMonths(1);
+                AddRange(reservationDeltas, startMonth, range, monthCount);
+            }
+            foreach (var range in contractOccupanciesByType[unitTypeId])
+            {
+                AddRange(contractDeltas, startMonth, range, monthCount);
             }
 
-            result[unitTypeId] =
-                minimumAvailable == int.MaxValue
-                    ? 0
-                    : minimumAvailable;
+            var held = 0;
+            var occupied = 0;
+            var minimumAvailable = int.MaxValue;
+            for (var index = 0; index < monthCount; index++)
+            {
+                held += reservationDeltas[index];
+                occupied += contractDeltas[index];
+                minimumAvailable = Math.Min(minimumAvailable,
+                    Math.Max(physicalCapacity - held - occupied, 0));
+            }
+            result[unitTypeId] = minimumAvailable == int.MaxValue ? 0 : minimumAvailable;
         }
 
         return result;
+    }
+
+    private static void AddRange(int[] deltas, DateOnly startMonth,
+        CapacityRangeRow range, int monthCount)
+    {
+        var startIndex = Math.Max(0, (range.StartMonth.Year - startMonth.Year) * 12
+            + range.StartMonth.Month - startMonth.Month);
+        var endIndex = Math.Min(monthCount - 1, (range.EndMonth.Year - startMonth.Year) * 12
+            + range.EndMonth.Month - startMonth.Month);
+        if (startIndex > endIndex) return;
+        deltas[startIndex]++;
+        deltas[endIndex + 1]--;
     }
 
     private IQueryable<UnitType> UnitTypesAtFacility(Guid facilityId)

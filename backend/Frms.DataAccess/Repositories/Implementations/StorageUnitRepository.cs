@@ -73,6 +73,7 @@ internal sealed class StorageUnitRepository(
 
         var items = await query
             .OrderBy(x => x.UnitCode)
+            .ThenBy(x => x.StorageUnitId)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);

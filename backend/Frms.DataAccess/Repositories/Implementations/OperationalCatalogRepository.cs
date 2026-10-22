@@ -38,7 +38,8 @@ internal sealed class OperationalCatalogRepository(FrmsDbContext db) : IOperatio
         IQueryable<UnitType> query = db.UnitTypes.AsNoTracking().Where(x =>
             db.StorageUnits.Any(u => u.FacilityId == facilityId && u.UnitTypeId == x.UnitTypeId));
         if (mode is not null) query = query.Where(x => x.Mode == mode);
-        if (size is not null) query = query.Where(x => x.Size.ToLower() == size);
+        // frms_ci_as provides case-insensitive equality without LOWER(column).
+        if (size is not null) query = query.Where(x => x.Size == size);
         if (unitTypeId.HasValue) query = query.Where(x => x.UnitTypeId == unitTypeId.Value);
         var total = await query.CountAsync(ct);
         query = sortBy == "rentalPrice"

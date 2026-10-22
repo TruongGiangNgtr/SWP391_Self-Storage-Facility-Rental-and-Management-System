@@ -21,8 +21,16 @@ internal sealed class AdminUserRepository(
             .AsNoTracking()
             .CountAsync(cancellationToken);
 
+        // Page the root entity BEFORE joining optional profile tables.
+        // Customer.UserAccountId and Employee.UserAccountId are unique.
+        var accounts = dbContext.UserAccounts.AsNoTracking()
+            .OrderByDescending(x => x.CreatedAt)
+            .ThenBy(x => x.UserAccountId)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize);
+
         var query =
-            from account in dbContext.UserAccounts.AsNoTracking()
+            from account in accounts
 
             join role in dbContext.UserRoles.AsNoTracking()
                 on account.RoleId equals role.RoleId
@@ -46,11 +54,11 @@ internal sealed class AdminUserRepository(
                 Employee = employee
             };
 
+        // Re-apply the public ordering after the joins; pagination is already
+        // completed in the account subquery above.
         var rows = await query
             .OrderByDescending(x => x.Account.CreatedAt)
             .ThenBy(x => x.Account.UserAccountId)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
             .ToListAsync(cancellationToken);
 
         var items = rows
