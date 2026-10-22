@@ -19,12 +19,14 @@
 .frms-customer .size-guide-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
 .frms-customer .size-guide-card { display: flex; flex-direction: column; min-width: 0; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background: #fff; box-shadow: var(--customer-shadow); }
 .frms-customer .size-guide-card-media { position: relative; display: grid; min-height: 240px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; }
-.frms-customer .size-guide-card-media > img { width: 100%; height: 240px; display: block; object-fit: contain; background: #fff; }
+.frms-customer .size-guide-video-preview { position: relative; height: 300px; background: #fff; }
+.frms-customer .size-guide-video-preview > video { display: block; width: 100%; height: 100%; object-fit: contain; }
+.frms-customer .size-guide-preview-feedback { position: absolute; inset: 0; margin: 0; background: #f1f5f9; }
+.frms-customer .size-guide-preview-hint { position: absolute; left: 16px; bottom: 68px; display: inline-flex; align-items: center; gap: 6px; max-width: calc(100% - 32px); padding: 6px 10px; border-radius: 8px; background: #fffffff2; color: #475569; font-size: 12px; pointer-events: none; }
 .frms-customer .size-guide-media-fallback { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 184px; padding: 24px; color: #64748b; text-align: center; line-height: 1.6; }
 .frms-customer .size-guide-video-button { position: absolute; right: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 16px; border: 1px solid #dbeafe; border-radius: 12px; background: #fff; color: #2563eb; font: inherit; font-weight: 600; box-shadow: var(--customer-shadow); cursor: pointer; }
 .frms-customer .size-guide-video-button:hover { background: #eff6ff; }
 .frms-customer .size-guide-media-note { color: #64748b; font-size: 12px; line-height: 1.6; }
-.frms-customer .size-guide-video-unavailable { margin: 0; padding: 8px 16px; text-align: center; }
 .frms-customer.size-guide-video-dialog { width: 880px; }
 .frms-customer.size-guide-video-dialog .dialog-close { min-width: 44px; min-height: 44px; }
 .frms-customer .size-guide-video-content { display: grid; gap: 16px; }
@@ -87,6 +89,7 @@
   .frms-customer .size-guide-catalog, .frms-customer .size-guide-assistant-section { padding: 32px 0; }
   .frms-customer .size-guide-grid, .frms-customer .size-guide-assistant-controls { grid-template-columns: 1fr; }
   .frms-customer .size-guide-card-media { min-height: 160px; }
+  .frms-customer .size-guide-video-preview { height: 240px; }
   .frms-customer .size-guide-card-content, .frms-customer .size-guide-assistant { padding: 24px; }
   .frms-customer .size-guide-toolbar { align-items: stretch; }
   .frms-customer .size-guide-toolbar .form-field { width: 100%; }
