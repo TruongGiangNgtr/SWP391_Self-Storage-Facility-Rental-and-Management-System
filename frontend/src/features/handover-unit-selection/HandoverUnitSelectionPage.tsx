@@ -1,5 +1,5 @@
 import { employeeText } from '../../utils/employeePresentation'
-import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
+import { EmployeeEntityLabel, EmployeeReservationLabel } from '../../components/EmployeeEntityLabel'
 import {
   Check,
   ClipboardList,
@@ -381,11 +381,10 @@ export function HandoverUnitSelectionPage() {
           <div className="handover-breadcrumb">
             Facility Manager / Handover Unit Selection
           </div>
-          <span className="handover-eyebrow">MWP-01</span>
+          <span className="handover-eyebrow">Handover coordination</span>
           <h1>Select Handover Unit</h1>
           <p>
-            Select an AVAILABLE StorageUnit for a CONFIRMED
-            Reservation after its RESERVATION Visit has been checked in.
+            Choose an available matching unit for a checked-in customer, then save the assignment for staff.
           </p>
         </div>
 
@@ -424,6 +423,7 @@ export function HandoverUnitSelectionPage() {
               onChange={(event) =>
                 setReservationSearch(event.target.value)
               }
+              aria-label="Search reservations by rental period or status"
               placeholder="Search rental period or status"
             />
           </label>
@@ -441,8 +441,7 @@ export function HandoverUnitSelectionPage() {
               <ClipboardList size={28} />
               <strong>No checked-in handover Reservation</strong>
               <span>
-                Only CONFIRMED Reservations whose RESERVATION Visit is
-                CHECKED_IN are eligible for Manager unit selection.
+                Reservations appear here once confirmed and checked in by staff.
               </span>
             </div>
           ) : (
@@ -465,7 +464,7 @@ export function HandoverUnitSelectionPage() {
                   >
                     <div>
                       <strong>
-                        <EmployeeEntityLabel kind="customer" id={reservation.customerId} /> · {reservation.startMonth} → {reservation.endMonth}
+                        <EmployeeReservationLabel customerId={reservation.customerId} startMonth={reservation.startMonth} endMonth={reservation.endMonth} />
                       </strong>
                       <span>
                         Reservation visit · {employeeText(reservation.reservationVisit?.visitDate)}
@@ -511,6 +510,7 @@ export function HandoverUnitSelectionPage() {
               onChange={(event) =>
                 setUnitSearch(event.target.value)
               }
+              aria-label="Search available units by code or location"
               placeholder="Search unit code or location"
               disabled={!selectedReservation}
             />
@@ -537,8 +537,7 @@ export function HandoverUnitSelectionPage() {
               <Warehouse size={28} />
               <strong>Select a Reservation first</strong>
               <span>
-                Unit eligibility is evaluated against that Reservation's
-                Facility and Unit Type.
+                Matching units must belong to the reservation’s facility and unit type.
               </span>
             </div>
           ) : isLoadingUnits ? (
@@ -548,8 +547,7 @@ export function HandoverUnitSelectionPage() {
               <Warehouse size={28} />
               <strong>No AVAILABLE matching StorageUnit</strong>
               <span>
-                MWP-01 cannot select an IN_USE, INSPECTION, MAINTENANCE,
-                different-Facility or different-UnitType unit.
+                Only available units with a matching facility and unit type can be selected.
               </span>
             </div>
           ) : (

@@ -22,22 +22,22 @@ const PAGE_COPY: Record<StaffQueueMode, { feature: string; title: string; descri
   daily: {
     feature: 'FWP-01',
     title: 'Daily Work List',
-    description: 'Facility-scoped work derived from Visits, Inspections and assigned Support Tickets. Open the authoritative resource before acting.',
+    description: 'Today’s visits, inspections and assigned support tickets. Open an item to review its details and next action.',
   },
   'reservation-check-in': {
     feature: 'FWP-02',
     title: 'Reservation Check-in',
-    description: 'Reservation visits awaiting Staff check-in. The server remains authoritative for visit date, Facility scope and lifecycle state.',
+    description: 'Review scheduled reservation visits and verify arriving customers before check-in.',
   },
   handover: {
     feature: 'FWP-03',
     title: 'Handover Processing',
-    description: 'Checked-in reservation visits ready for the offline first-month receipt acknowledgement and atomic Complete Handover.',
+    description: 'Complete physical handover and acknowledge first-month rent for checked-in customers.',
   },
   access: {
     feature: 'FWP-04',
     title: 'Access Visit Processing',
-    description: 'Process ACCESS visits without changing Contract ownership, rental period or StorageUnit assignment.',
+    description: 'Check customers in and out for access to their rented units.',
   },
 }
 
@@ -148,15 +148,11 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
 
       <section className="fwp-summary" aria-label="Work list summary">
         <div className="fwp-summary-card">
-          <span>Server total</span>
+          <span>Total work items</span>
           <strong>{response?.pagination.totalItems ?? '—'}</strong>
         </div>
         <div className="fwp-summary-card">
-          <span>Current API page</span>
-          <strong>{response?.pagination.page ?? page}</strong>
-        </div>
-        <div className="fwp-summary-card">
-          <span>Matching rows</span>
+          <span>Matching items on this page</span>
           <strong>{loading ? '—' : visibleItems.length}</strong>
         </div>
       </section>
@@ -179,13 +175,13 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
           </div>
         </label>
         <label className="fwp-toolbar-search">
-          <span>Search current page</span>
+          <span>Search this page</span>
           <div className="fwp-input-with-icon">
             <Search size={16} aria-hidden="true" />
             <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Customer, phone or status…" />
           </div>
         </label>
-        <p className="fwp-toolbar-note">Date and pagination are server-authoritative. The queue/search view only narrows rows already returned on this API page.</p>
+        <p className="fwp-toolbar-note">Search applies to this page. Use Previous and Next to review more work items for the selected date.</p>
       </section>
 
       <ApiErrorAlert error={error} />
@@ -199,7 +195,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
       {!loading && !error && visibleItems.length === 0 && (
         <div className="fwp-state-card">
           <strong>No matching work items</strong>
-          <p>No rows on this API page match the selected Facility Staff queue and current-page search.</p>
+          <p>No work items on this page match your filters. Try another page or date.</p>
         </div>
       )}
 

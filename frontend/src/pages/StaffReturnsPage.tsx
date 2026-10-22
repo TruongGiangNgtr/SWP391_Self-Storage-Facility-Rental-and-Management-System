@@ -30,7 +30,7 @@ const TAB_META: Record<ReturnTab, { feature: string; label: string; description:
   confirmation: {
     feature: 'FWP-05',
     label: 'Return Confirmation',
-    description: 'Check in the RETURN Visit and confirm the actual physical return date. The server derives Normal vs Early Return and creates the PENDING Inspection atomically.',
+    description: 'Check in the return visit and confirm the physical return date to begin inspection.',
   },
   inspection: {
     feature: 'FWP-06',
@@ -125,7 +125,7 @@ function ReturnConfirmationPanel() {
         <button className="fwp-button fwp-button-secondary" type="button" disabled={loading} onClick={() => setRetry((value) => value + 1)}>
           <RefreshCw size={16} /> Refresh
         </button>
-        <p className="fwp-toolbar-note">OPS-001 remains the Facility Staff work source. This tab only narrows RETURN_VISIT rows on the current API page.</p>
+        <p className="fwp-toolbar-note">Showing return visits on this page. Use Previous and Next to review more visits.</p>
       </section>
 
       <ApiErrorAlert error={error} />
@@ -388,7 +388,7 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
                 <StatusBadge status={item.status} />
               </button>
             ))}
-            {list?.data.length === 0 && <p className="fwp-muted">No inspections on this API page.</p>}
+            {list?.data.length === 0 && <p className="fwp-muted">No inspections on this page.</p>}
           </div>
         )}
         {list && list.pagination.totalPages > 1 && <div className="fwp-mini-pagination"><button type="button" disabled={list.pagination.page <= 1} onClick={() => setPage(list.pagination.page - 1)}>‹</button><span>{list.pagination.page}/{list.pagination.totalPages}</span><button type="button" disabled={list.pagination.page >= list.pagination.totalPages} onClick={() => setPage(list.pagination.page + 1)}>›</button></div>}
@@ -418,7 +418,7 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
                 {detail.status === 'PENDING' && (
                   <section className="fwp-action-card">
                     <h3>Claim Inspection</h3>
-                    <p>Claim is atomic. Another Staff member can win the claim before this request commits.</p>
+                    <p>Claim this inspection before recording findings. If another staff member claims it first, refresh to see the current owner.</p>
                     <button className="fwp-button fwp-button-primary" type="button" disabled={busy !== null} onClick={() => void runAction('claim', () => inspectionApi.claim(detail.inspectionId))}>{busy === 'claim' ? 'Claiming…' : 'Claim Inspection'}</button>
                   </section>
                 )}
@@ -449,7 +449,7 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
                   </>
                 )}
 
-                {detail.status === 'COMPLETED' && <div className="fwp-banner fwp-banner-success"><CheckCircle2 size={18} /><div><strong>Inspection completed.</strong><span>The Unit is still INSPECTION. Continue to Fees & Finalize for the atomic release.</span></div><button className="fwp-link-button" type="button" onClick={() => setSearchParams({ tab: 'fees', inspectionId: detail.inspectionId })}>Open Fees & Finalize</button></div>}
+                {detail.status === 'COMPLETED' && <div className="fwp-banner fwp-banner-success"><CheckCircle2 size={18} /><div><strong>Inspection completed.</strong><span>The unit remains under inspection. Continue to Fees & Finalize to review charges and release it.</span></div><button className="fwp-link-button" type="button" onClick={() => setSearchParams({ tab: 'fees', inspectionId: detail.inspectionId })}>Open Fees & Finalize</button></div>}
               </div>
             ) : (
               <div className="fwp-workspace-stack">
@@ -507,7 +507,7 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
                 )}
 
                 <section className="fwp-action-card fwp-finalize-card">
-                  <div><h3><WalletCards size={17} /> Atomic Finalize Return</h3><p>Settlement amounts are server-calculated. The chosen Unit state is a command parameter only and is committed together with terminal Contract/settlement state.</p></div>
+                  <div><h3><WalletCards size={17} /> Finalize Return</h3><p>Review recorded charges and choose the unit’s next status. Finalizing records the settlement and closes the return together.</p></div>
                   {detail.status !== 'COMPLETED' && <div className="fwp-banner fwp-banner-warning"><ShieldAlert size={18} /><span>Inspection must be COMPLETED before Finalize Return.</span></div>}
                   {pendingDamageCount > 0 && <div className="fwp-banner fwp-banner-warning"><ShieldAlert size={18} /><span>{pendingDamageCount} Damage decision(s) are still PENDING. Manager resolution is required.</span></div>}
                   <label className="fwp-final-status"><span>Final StorageUnit status</span><select value={finalStatus} onChange={(event) => setFinalStatus(event.target.value as FinalStorageUnitStatus)} disabled={busy !== null}><option value="AVAILABLE">AVAILABLE</option><option value="MAINTENANCE">MAINTENANCE</option></select></label>
@@ -552,7 +552,7 @@ export function StaffReturnsPage() {
         <div>
           <p className="fwp-eyebrow">Facility Staff · FWP-05 → FWP-07</p>
           <h1>Handle Returns</h1>
-          <p>One operational workspace for physical return confirmation, claim-based Inspection, fee recording and atomic return finalization.</p>
+          <p>Confirm the physical return, inspect the unit, record fees and finalize the return.</p>
         </div>
         <RotateCcw size={30} className="fwp-header-icon" aria-hidden="true" />
       </header>
