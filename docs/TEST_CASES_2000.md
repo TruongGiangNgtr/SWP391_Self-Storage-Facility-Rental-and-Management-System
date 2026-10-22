@@ -1,8 +1,8 @@
-# Backend Test Cases — Batch 2 (10/20/2026)
+# Backend Test Cases — Milestone 1,500 → 2,000 (10/22/2026)
 
-> **Basis:** current backend source code, not the SRS. This file is the continuation of `TEST_CASES_1000.md` and lists only the 500 test cases added after that file (1,000 → 1,500 total). Expected results describe current code behavior, not a promise that unimplemented workflows exist.
+> **Basis:** current backend source code and user-reported test output, not the SRS. This file preserves the 1,000 → 1,500 milestone notes and adds the latest 1,501 → 2,000 execution report. Expected results describe the behavior under test; a failing assertion is a candidate defect or a test-contract mismatch to investigate, not proof by itself.
 >
-> **Documentation status:** 150 of the 500 new cases are documented below (section 1). The remaining 350 (unit 250 + API 100) belong to test files that have not been reviewed yet — see section 2.
+> **Documentation layout:** test cases 1,501–2,000 are documented in five separate Markdown files, 100 cases per file, under `backend/test-case-docs/`. See section 5 for the run summary and links/filenames.
 
 ## 1. Customer registration matrix (unit tests)
 
@@ -71,9 +71,9 @@ Source: `KnownDefectEmailCases` (same test method as 1.1). Marked `Ignore("F-001
 
 Counts come from the project totals: `Frms.UnitTests` 624 → 1,024 (+400, of which 150 are section 1) and `Frms.ApiTests` 349 → 449 (+100).
 
-## 3. Execution status
+## 3. Historical execution status at 1,500 cases
 
-**Latest user-reported run: PASS — 1,493 passed / 0 failed / 7 skipped / 1,500 total.**
+**Historical run: PASS — 1,493 passed / 0 failed / 7 skipped / 1,500 total.** This is the earlier 1,500-case run, not the latest 2,000-case result documented in section 5.
 
 Reported command (from `backend/`):
 
@@ -133,3 +133,65 @@ private static bool IsValidEmail(string email) =>
 
 - `TrimmedEmailCases` only assert that registration succeeds and the repository receives a registration; they do not assert the stored email value.
 - Reproduce from `backend/`: `dotnet test Frms.slnx`.
+
+
+## 5. Batch 4 — cases 1,501–2,000 and latest execution
+
+### 5.1 Documentation files (100 cases each)
+
+| Range | Focus | Markdown file |
+|---|---|---|
+| 1501–1600 | Policy version validator boundaries | `TEST_CASES_1501_1600.md` |
+| 1601–1700 | Customer profile validation boundaries and update-field behavior | `TEST_CASES_1601_1700.md` |
+| 1701–1800 | Customer registration accepted boundaries | `TEST_CASES_1701_1800.md` |
+| 1801–1900 | Registration API request Data Annotations | `TEST_CASES_1801_1900.md` |
+| 1901–2000 | Employee login, role/status/password matrix | `TEST_CASES_1901_2000.md` |
+
+The files are included in `backend-batch4-500-testcases.zip` under `backend/test-case-docs/`. These are the five 100-case documents; this overview file is not intended to replace them.
+
+### 5.2 Latest user-reported run
+
+Command, run from `backend/`:
+
+```powershell
+dotnet test Frms.slnx
+```
+
+**Result: FAIL — 1,991 passed / 2 failed / 7 skipped / 2,000 total.** All projects compiled, but `dotnet test` ended with test errors; do not describe this run as a successful test run.
+
+| Test project | Discovered | Result from the supplied log |
+|---|---:|---|
+| `Frms.UnitTests` | 1,424 | 1,416 passed, 1 failed, 7 skipped |
+| `Frms.ArchitectureTests` | 13 | 13 passed |
+| `Frms.IntegrationTests` | 14 | 14 passed |
+| `Frms.ApiTests` | 549 | 548 passed, 1 failed |
+| **Total** | **2,000** | **1,991 passed, 2 failed, 7 skipped** |
+
+Reported duration: 37.8 seconds for test execution; build/test command ended with `Build failed with 2 error(s) in 71.0s` because of the two test failures. The seven skipped tests remain the known email cases `invalid_email_known_defect_*` associated with F-001.
+
+### 5.3 New failures to investigate
+
+#### F-002 — Customer profile validator validates an unselected address
+
+- **Failing test:** `unselected_long_address_should_be_ignored` in `CustomerProfileAdvancedBoundaryMatrixTests`.
+- **Input intent:** `updateAddress = false`, `address` contains 1,001 characters, `updateCccd = true`, `cccd = "123"`.
+- **Test expectation:** valid, because the address field is not selected for update.
+- **Observed:** `CustomerProfileValidator.ValidateAndNormalize` throws `BusinessException: Customer profile fields are invalid` at `CustomerProfileValidator.cs:19`.
+- **Assessment:** candidate patch/update semantics defect. Confirm the intended contract with the owner before changing production code or the assertion. If unselected fields must be ignored, validation should apply only to fields whose update flags are true.
+- **Status:** Open; production code not changed.
+
+#### F-003 — Registration request accepts an email containing embedded whitespace
+
+- **Failing test:** `request_email_invalid_9` in `RegistrationRequestValidationMatrixTests`.
+- **Input:** `a b@example.test`.
+- **Test expectation:** invalid (`expectedValid = false`).
+- **Observed:** `Validator.TryValidateObject` returns `true`; the request DTO's current Data Annotations accept the value.
+- **Assessment:** candidate request-validation weakness, consistent with the broader email-validation concern in F-001. Check the DTO attributes and service validation together so the API and business layer enforce a consistent email contract.
+- **Status:** Open; production code not changed.
+
+### 5.4 How to interpret this run
+
+- The 2 failures are not to be made green by blindly changing expectations. First decide whether each test expresses the intended contract; if it does, treat it as a backend finding and fix the implementation only with approval.
+- The 7 skipped F-001 cases are known defect probes, not passing tests.
+- This run establishes that the 2,000-case suite was discovered in the reported environment. It does **not** establish a clean test run because two tests failed.
+- Earlier section 3 records the historical 1,500-case run. Its pass result is historical and is superseded as the latest run status by this section; it should not be rewritten as though it described the 2,000-case run.
