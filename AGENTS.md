@@ -12,15 +12,16 @@ The implementation target is a React + TypeScript frontend, an ASP.NET Core Web 
 
 Use this order when requirements conflict:
 
-1. `project_sources/02-FRMS_SRS_V10.md`
-2. `project_sources/03-FRMS_Data_Dictionary_V2_1.md`
-3. FRMS Scope V8, when added to the repository
-4. Approved ADRs and implementation decisions that do not change SRS semantics
-5. Existing implementation details
+1. `project_sources/FRMS_SRS_V11.md`
+2. `project_sources/FRMS_Data_Dictionary_V11.md`
+3. `project_sources/FRMS_API_V11.md`
+4. FRMS Scope V8, when added to the repository
+5. Approved ADRs and implementation decisions that do not change SRS semantics
+6. Existing implementation details
 
 `project_sources/01-Topic.pdf` is a scope summary, not a replacement for the SRS.
 
-FRMS SRS V10 FINAL at `project_sources/02-FRMS_SRS_V10.md` is the sole governing SRS and implementation baseline. Earlier SRS versions must not be used as implementation authority.
+FRMS SRS V11 FINAL at `project_sources/FRMS_SRS_V11.md` is the sole governing SRS and implementation baseline. Earlier SRS versions must not be used as implementation authority.
 
 An ADR or change record alone does not override the SRS. A semantic change becomes authoritative only after it is incorporated into an approved SRS revision. Record ambiguity and request an approved clarification instead of resolving it only in code or an ADR.
 
