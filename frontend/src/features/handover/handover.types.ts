@@ -50,3 +50,14 @@ export interface CompleteHandoverResult {
   visitStatus: 'CHECKED_OUT'
   storageUnitStatus: 'IN_USE'
 }
+
+export interface HandoverUnitAssignment {
+  assignmentId: string
+  reservationId: string
+  storageUnitId: string
+  unitCode: string
+  locationInfo: string | null
+  assignedByEmployeeId: string
+  assignedAt: string
+  status: 'ACTIVE' | 'REPLACED' | 'CONSUMED' | 'RELEASED'
+}

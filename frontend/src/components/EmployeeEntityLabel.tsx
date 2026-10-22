@@ -9,10 +9,9 @@ import { contractApi } from '../api/contractApi'
 import { businessApi } from '../api/businessApi'
 import { listAdminUsers, listAllAdminFacilities } from '../api/adminApi'
 import { storageUnitApi } from '../api/storageUnitApi'
-import { formatMonthRange } from '../utils/formatters'
 import { authToken } from '../api/authToken'
 import type { HandoverContractDetail } from '../features/handover/contract.types'
-import { contractOption, contractUnit } from '../utils/customerPresentation'
+import { employeeContractLabel, employeeText, employeeUnitLabel } from '../utils/employeePresentation'
 
 type Kind = 'facility' | 'unitType' | 'customer' | 'employee' | 'account' | 'unit' | 'contract' | 'discount' | 'contractUnit' | 'policy'
 type Entry = { id: string; label: string }
@@ -32,7 +31,7 @@ function directory(read: Reader) {
     while (!entries.has(id) && nextPage <= totalPages) {
       if (!pending) {
         pending = read(nextPage).then(result => {
-          result.entries.forEach(entry => { if (entry.label.trim()) entries.set(entry.id, entry.label) })
+          result.entries.forEach(entry => { const label = employeeText(entry.label, ''); if (label) entries.set(entry.id, label) })
           totalPages = result.totalPages
           nextPage += 1
         }).finally(() => { pending = undefined })
@@ -71,7 +70,7 @@ function createResolver(user: AuthUser): Resolver {
       page => httpClient.get<ApiCollectionResponse<{ employeeId: string; fullName: string }>>(`/facilities/${encodeURIComponent(facility)}/staff/lookup?page=${page}&pageSize=100`),
       row => ({ id: row.employeeId, label: row.fullName }),
     )
-    if (manager || business) readers.contract = collection(page => contractApi.list(page, 100), row => ({ id: row.contractId, label: contractOption(row) }))
+    if (manager || business) readers.contract = collection(page => contractApi.list(page, 100), row => ({ id: row.contractId, label: employeeContractLabel(row) }))
     if (business) readers.policy = collection(page => businessApi.listPolicies(page, 100), row => ({ id: row.policyId, label: `Policy version ${row.version}` }))
     if (manager && facility) readers.unit = collection(page => storageUnitApi.listByFacility(facility, page, 100), row => ({ id: row.storageUnitId, label: row.unitCode }))
   } else {
@@ -86,7 +85,7 @@ function createResolver(user: AuthUser): Resolver {
     if ((kind === 'contract' || kind === 'contractUnit') && user.role === 'FACILITY_STAFF') {
       if (!details.has(id)) details.set(id, contractApi.get(id).then(result => result.data).catch(error => { details.delete(id); throw error }))
       const contract = await details.get(id)!
-      return sameSession() ? (kind === 'contractUnit' ? contractUnit(contract) : contractOption(contract)) : undefined
+      return sameSession() ? (kind === 'contractUnit' ? employeeUnitLabel(contract) : employeeContractLabel(contract)) : undefined
     }
     const cacheKey = `${kind}:${scope ?? ''}`
     const read = kind === 'discount' && scope && !admin
@@ -113,7 +112,7 @@ export function EmployeeLabelsProvider({ children }: { children: ReactNode }) {
   return user ? <ScopedLabels key={`${user.userAccountId}:${user.role}:${user.facilityId}:${location.pathname}`} user={user}>{children}</ScopedLabels> : children
 }
 
-export function EmployeeEntityLabel({ kind, id, scope, empty = 'Not assigned' }: { kind: Kind; id?: string | null; scope?: string; empty?: string }) {
+export function EmployeeEntityLabel({ kind, id, scope, empty = 'Not assigned', fallback = 'Name unavailable' }: { kind: Kind; id?: string | null; scope?: string; empty?: string; fallback?: string }) {
   const resolve = useContext(Labels)
   const key = `${kind}:${scope}:${id}`
   const [result, setResult] = useState<{ key: string; label?: string } | null>(null)
@@ -126,10 +125,11 @@ export function EmployeeEntityLabel({ kind, id, scope, empty = 'Not assigned' }:
   }, [resolve, kind, id, scope, key])
   if (!id) return <>{empty}</>
   if (resolve && result?.key !== key) return <span role="status">Loading name…</span>
-  if (result?.key === key && result.label) return <>{result.label}</>
-  return <span title="Reload the page to retry loading this name">Name unavailable</span>
+  if (result?.key === key && employeeText(result.label, '')) return <>{employeeText(result.label)}</>
+  return <span title="Reload the page to retry loading this name">{fallback}</span>
 }
 
-export function RentalPeriodLabel({ startMonth, endMonth, prefix = 'Reservation' }: { startMonth: string; endMonth: string; prefix?: string }) {
-  return <>{prefix} · {formatMonthRange(startMonth, endMonth)}</>
+export function EmployeeReservationLabel({ customerId, customerName }: { customerId?: string | null; customerName?: string | null }) {
+  const name = employeeText(customerName, '')
+  return name ? <>{name}</> : <EmployeeEntityLabel kind="customer" id={customerId} empty="—" fallback="—" />
 }

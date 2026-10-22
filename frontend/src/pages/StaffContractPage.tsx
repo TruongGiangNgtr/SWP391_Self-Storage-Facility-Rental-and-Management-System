@@ -1,5 +1,5 @@
-import { contractOption, contractUnit } from '../utils/customerPresentation'
-import { EmployeeEntityLabel, RentalPeriodLabel } from '../components/EmployeeEntityLabel'
+import { employeeContractLabel, employeeMonthRange, employeeText, employeeUnitLabel } from '../utils/employeePresentation'
+import { EmployeeEntityLabel, EmployeeReservationLabel } from '../components/EmployeeEntityLabel'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
@@ -13,10 +13,9 @@ import { StatusBadge } from '../components/StatusBadge'
 import type { HandoverContractDetail } from '../features/handover/contract.types'
 import type { ReservationDetail } from '../features/reservations/reservation.types'
 import type { VisitDetail } from '../features/visits/visit.types'
-import { formatMonthRange } from '../utils/formatters'
 import '../styles/staff.css'
 
-interface ContractContext { contract: HandoverContractDetail; reservation: ReservationDetail; visit: VisitDetail | null }
+interface ContractContext { contract: HandoverContractDetail; reservation: ReservationDetail | null; visit: VisitDetail | null }
 
 export function StaffContractPage() {
   const { contractId = '' } = useParams()
@@ -33,16 +32,21 @@ export function StaffContractPage() {
       try {
         const { data: contract } = await contractApi.get(contractId)
         if (!active) return
-        const { data: reservation } = await reservationApi.get(contract.reservationId)
+        if (!contract || contract.contractId !== contractId) {
+          setSnapshot({ key, context: null, error: presentValidationError('The contract details are unavailable. Refresh before continuing.') })
+          return
+        }
+        const reservation = contract.reservationId ? (await reservationApi.get(contract.reservationId)).data : null
         if (!active) return
-        if (contract.contractId !== contractId || reservation.reservationId !== contract.reservationId ||
-          reservation.facilityId !== contract.facilityId || !Number.isFinite(reservation.lockedRentalPrice) || reservation.lockedRentalPrice < 0) {
+        if (reservation && (reservation.reservationId !== contract.reservationId ||
+          reservation.facilityId !== contract.facilityId || reservation.customerId !== contract.customerId ||
+          !Number.isFinite(reservation.lockedRentalPrice) || reservation.lockedRentalPrice < 0)) {
           setSnapshot({ key, context: null, error: presentValidationError('The server returned inconsistent Contract/Reservation data. Refresh before continuing.') })
           return
         }
-        const visit = reservation.reservationVisit ? (await visitApi.get(reservation.reservationVisit.visitId)).data : null
+        const visit = reservation?.reservationVisit ? (await visitApi.get(reservation.reservationVisit.visitId)).data : null
         if (!active) return
-        if (visit && (visit.visitId !== reservation.reservationVisit?.visitId || visit.visitType !== 'RESERVATION' || visit.entityId !== reservation.reservationId)) {
+        if (visit && (visit.visitId !== reservation?.reservationVisit?.visitId || visit.visitType !== 'RESERVATION' || visit.entityId !== reservation?.reservationId)) {
           setSnapshot({ key, context: null, error: presentValidationError('The handover visit does not match the Contract reservation.') })
           return
         }
@@ -66,20 +70,22 @@ export function StaffContractPage() {
       {loading ? <LoadingState label="Loading Contract and settlement record..." /> : context && (
         <>
           <section className="panel stack" aria-label="Contract details">
-            <div className="card-heading-row"><h2>Contract Details</h2><StatusBadge status={context.contract.status} /></div>
+            <div className="card-heading-row"><h2>Contract Details</h2><StatusBadge status={employeeText(context.contract.status)} /></div>
             <dl className="detail-list">
-              <div><dt>Contract</dt><dd>{contractOption(context.contract)}</dd></div>
-              <div><dt>Reservation</dt><dd><RentalPeriodLabel startMonth={context.reservation.startMonth} endMonth={context.reservation.endMonth} /></dd></div>
-              <div><dt>Storage Unit</dt><dd>{contractUnit(context.contract)}</dd></div>
+              <div><dt>Contract</dt><dd>{employeeContractLabel(context.contract)}</dd></div>
+              <div><dt>Reservation</dt><dd><EmployeeReservationLabel customerId={context.reservation?.customerId} /></dd></div>
+              <div><dt>Storage Unit</dt><dd>{employeeUnitLabel(context.contract)}</dd></div>
               <div><dt>Facility</dt><dd><EmployeeEntityLabel kind="facility" id={context.contract.facilityId} /></dd></div>
-              <div><dt>Rental Period</dt><dd>{formatMonthRange(context.contract.startMonth, context.contract.endMonth)}</dd></div>
+              <div><dt>Rental Period</dt><dd>{employeeMonthRange(context.contract.startMonth, context.contract.endMonth)}</dd></div>
               <div><dt>Captured Contract Discount</dt><dd><EmployeeEntityLabel kind="discount" id={context.contract.discountId} scope={context.contract.customerId} empty="No discount" /></dd></div>
             </dl>
           </section>
-          <FirstMonthHandoverInfo lockedRentalPrice={context.reservation.lockedRentalPrice} handoverCompleted audience="staff" />
+          {context.reservation
+            ? <FirstMonthHandoverInfo lockedRentalPrice={context.reservation.lockedRentalPrice} handoverCompleted audience="staff" />
+            : <p className="notice">Original reservation details are not available.</p>}
           {context.visit && <section className="panel stack" aria-label="Handover visit details">
-            <div className="card-heading-row"><h2>Handover Visit</h2><StatusBadge status={context.visit.status} /></div>
-            <p>Visit Date: {context.visit.visitDate}</p>
+            <div className="card-heading-row"><h2>Handover Visit</h2><StatusBadge status={employeeText(context.visit.status)} /></div>
+            <p>Visit Date: {employeeText(context.visit.visitDate)}</p>
           </section>}
           <p className="notice">These values are read from the backend. Contract existence records the original first-month settlement, including when the Contract later completes or terminates.</p>
         </>

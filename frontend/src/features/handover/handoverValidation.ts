@@ -1,3 +1,4 @@
+import type { HandoverUnitAssignment } from './handover.types'
 import type { ReservationDetail } from '../reservations/reservation.types'
 import type { VisitDetail } from '../visits/visit.types'
 
@@ -17,7 +18,17 @@ export function getHandoverContextError(reservation: ReservationDetail, visit: V
 }
 
 export function getHandoverInputError(storageUnitId: string, receiptAcknowledged: boolean): string | null {
-  if (!isUuid(storageUnitId.trim())) return 'Enter the valid Storage Unit ID supplied by the Manager.'
+  if (!isUuid(storageUnitId.trim())) return 'A valid active Manager assignment is required before completing handover.'
   if (!receiptAcknowledged) return 'Confirm that you have received the full first-month rent offline before completing handover.'
   return null
+}
+
+export function isActiveHandoverAssignment(assignment: HandoverUnitAssignment | null | undefined, reservationId: string): assignment is HandoverUnitAssignment {
+  return assignment != null && assignment.status === 'ACTIVE' &&
+    assignment.reservationId === reservationId && isUuid(assignment.assignmentId) && isUuid(assignment.storageUnitId)
+}
+
+export function sameHandoverAssignment(left: HandoverUnitAssignment, right: HandoverUnitAssignment): boolean {
+  return left.assignmentId === right.assignmentId && left.storageUnitId === right.storageUnitId &&
+    left.assignedAt === right.assignedAt && left.unitCode === right.unitCode && left.locationInfo === right.locationInfo
 }
