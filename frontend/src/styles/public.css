@@ -46,6 +46,10 @@
 .frms-customer .public-month > img { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; }
 .frms-customer .public-month input::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }
 .frms-customer .public-field-note { color: #64748b; font-size: 12px; margin: 14px 0 0; }
+.frms-customer .public-search-start { display: flex; align-items: flex-start; gap: 16px; }
+.frms-customer .public-search-start h2 { margin: 0 0 8px; font-size: 20px; }
+.frms-customer .public-search-start p { margin: 0; color: #64748b; line-height: 1.6; }
+.frms-customer .public-search-start .public-icon-tile { flex-shrink: 0; }
 .frms-customer .public-options-notice { display: grid; gap: 12px; margin-top: 16px; }
 .frms-customer .public-options-notice p { margin: 0; }
 .frms-customer .public-options-notice button { justify-self: start; }

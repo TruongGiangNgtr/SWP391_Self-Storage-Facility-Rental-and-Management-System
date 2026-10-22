@@ -193,6 +193,7 @@ export function AppRouter() {
         <Route path="customer/support-tickets/:ticketId" element={<CustomerSupportDetailPage key={location.pathname} />} />
 
         <Route path="customer/account-settings" element={<CustomerAccountSettingsPage />} />
+        <Route path="customer/identity-verification" element={<Navigate to="/customer/account-settings" replace />} />
         <Route path="customer/notifications" element={<CustomerNotificationsPage />} />
         {CUSTOMER_UNAVAILABLE_PAGES.map(page => <Route key={page.to} path={page.to.slice(1)} element={<CustomerUnavailablePage title={page.title} historyTabs={page.historyTabs} />} />)}
 

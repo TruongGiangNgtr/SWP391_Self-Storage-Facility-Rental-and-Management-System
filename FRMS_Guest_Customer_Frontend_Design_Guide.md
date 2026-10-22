@@ -1,12 +1,14 @@
 # FRMS — Hướng dẫn thiết kế Frontend thống nhất Guest & Customer
 
-**Phiên bản:** 1.2 · **Ngày:** 14/10/2026\
+**Phiên bản:** 1.3 · **Ngày:** 22/10/2026\
 **Mục đích:** Sử dụng tài liệu này cùng hai bộ mẫu Guest Page và Customer Portal để dựng một trải nghiệm liên tục, dễ sử dụng và nhất quán.\
 **Phạm vi:** Thiết kế giao diện, bố cục, component dùng chung, điều hướng và tiêu chí nghiệm thu UX. Tài liệu không thay thế SRS, không tự cấp quyền API và không xác nhận các chức năng đã được triển khai.
 
 **Cập nhật UX 1.1 theo yêu cầu chủ dự án:** Navigation Customer phải hiển thị đủ các mục đã thiết kế, kể cả mục chưa triển khai chức năng; khi mở mục chưa triển khai phải có trang thông báo rõ. Icon sidebar kế thừa màu mục menu thay vì xanh cố định. Logo footer dùng cùng icon, ô xanh, typography và kích thước với header; chỉ đổi màu chữ FSto để đọc được trên nền tối. Đây là quyết định trình bày, không bổ sung nghiệp vụ hoặc quyền API.
 
 **Cập nhật UX 1.2 theo phê duyệt chủ dự án ngày 14/10/2026:** Đợt đồng bộ này ưu tiên web trên máy tính/laptop cho Guest và Customer, nghiệm thu tại 1024, 1280, 1440 và 1920 CSS px. Mobile không là điều kiện hoàn tất của đợt này; giữ hỗ trợ co giãn/drawer đã có, không ép toàn trang có chiều rộng tối thiểu hoặc xóa responsive. Không thay đổi nghiệp vụ SRS, backend, database hoặc portal nhân viên. Các yêu cầu keyboard, modal, zoom và trạng thái lỗi vẫn áp dụng trên desktop.
+
+**Cập nhật UX 1.3 theo phê duyệt chủ dự án ngày 22/10/2026:** Find Storage chỉ hiển thị kết quả sau khi có kỳ thuê hợp lệ được gửi qua form hoặc URL; mở trang chưa tìm không tự liệt kê toàn bộ Facility. Size Guide đọc `imageUrl`/`videoUrl` của chính UnitType, mở video khi khách yêu cầu và có trạng thái thay thế khi media thiếu/lỗi. Bỏ trang/menu Identity Verification riêng: thông tin họ tên và CCCD nằm trong Account Settings, đường dẫn cũ chuyển về trang này. Đây là thay đổi UX/tích hợp đọc API hiện có, không bổ sung xác minh danh tính, trạng thái Verified, quyền đọc hay sửa BE/database; quy tắc bảy mục menu ở dưới thay thế quy tắc tám mục trước đây.
 
 ## 1. Nguồn tham chiếu và thứ tự ưu tiên
 
@@ -186,11 +188,11 @@ Active item: nền brand tint, chữ/icon primary, viền trái 4px; dùng `aria
 - Không tạo thêm một nghiệp vụ Booking độc lập từ nhãn My Bookings.
 - Khi dựng navigation, dùng một cấu hình chung và ánh xạ rõ Reservations ↔ reservation, Visits ↔ visit.
 - Dashboard làm chuẩn hình thức sidebar; tên/mục được ánh xạ đúng ngữ nghĩa SRS. Không ẩn mục chỉ vì chức năng của trang đó chưa được triển khai.
-- Sidebar và drawer Customer dùng cùng một cấu hình, cùng thứ tự đủ 8 mục: **Overview → My Visits → My Reservations → My Contracts → Deposit & Invoices → Identity Verification → Support Tickets → Account Settings**, sau đó divider và Sign Out.
-- Identity Verification và Account Settings vẫn là mục điều hướng có thể mở; khi chưa triển khai, có chú thích **Not available yet** và dẫn tới trang thông báo trong cùng Customer Layout. Không dùng link `#`, không đưa tới 404, không gọi API chưa có và không báo giả thành công.
+- Sidebar và drawer Customer dùng cùng một cấu hình, cùng thứ tự đủ 7 mục: **Overview → My Visits → My Reservations → My Contracts → Deposit & Invoices → Support Tickets → Account Settings**, sau đó divider và Sign Out. Không có mục Identity Verification riêng.
+- Account Settings chứa Profile Information với Full Name và National ID / CCCD theo AUTH-004/005. CCCD chỉ cho sửa khi own-profile GET có field hợp lệ (`string | null`); missing/malformed là chưa hỗ trợ, không phải giá trị rỗng để ghi đè. Phone Number và Email vẫn chỉ đọc. Các mục thật sự chưa triển khai có chú thích **Not available yet**, không dùng link `#`, không đưa tới 404 hay báo giả thành công.
 - Icon của mọi mục sidebar/drawer dùng `currentColor`: màu trung tính `#334155` / `#475569` khi chưa chọn; primary `#2563EB` khi active. My Reservations/My Contracts không được có fill/stroke xanh hard-code lúc inactive. Active chỉ theo route hiện tại, không theo tiến độ triển khai.
 - Notifications / Transaction History nằm chung một khu vực truy cập qua chuông header, không tạo hai mục sidebar riêng chỉ vì bộ mẫu có hai folder. Khi chưa triển khai, cả hai tab vẫn hiển thị và có thông báo tương ứng.
-- Mục Identity Verification không trở thành bước bắt buộc sau login, không tạo thêm trạng thái APPROVED, workflow xét duyệt hoặc quyền API. Việc hiển thị navigation/page scaffold không chứng minh chức năng thuộc Release 1 đã hoàn tất.
+- Họ tên/CCCD là thông tin hồ sơ, không phải kết quả xác minh danh tính. Không tạo trạng thái APPROVED/Verified, workflow xét duyệt hoặc bước bắt buộc sau login. `/customer/identity-verification` chỉ là alias chuyển về Account Settings sau các guard đăng nhập/role hiện có; không xóa dữ liệu Customer hay policy công khai về giấy tờ.
 
 ### 5.3 Shared Footer
 
@@ -284,6 +286,9 @@ Filters có thể lưu trong URL để quay lại, tải lại hoặc chia sẻ 
 
 ### 8.2 Search Results
 
+- Mở Find Storage khi chưa có kỳ thuê đã gửi: chỉ hiện form và hướng dẫn bắt đầu; chưa hiện Facility/UnitType results, số lượng, applied-search summary hoặc sort. Tháng mặc định trong form không có nghĩa đã chạy tìm kiếm.
+- Bấm Find Storage với kỳ thuê hợp lệ hoặc mở URL có kỳ thuê hợp lệ mới tải kết quả. Link từ Home/Size Guide, reload, Back/Forward và phân trang giữ bộ lọc đã gửi; link chỉ có mode/size từ Size Guide vẫn chờ khách xác nhận kỳ thuê và tìm kiếm.
+- Location/type/size vẫn tùy chọn theo SRS/API; không ép đủ năm trường chỉ vì đổi UX. API đọc gợi ý location/size vẫn độc lập và không phải kết quả available. Không thay quyền general browsing của BE hoặc bỏ featured facilities trên Home.
 - Có tóm tắt địa điểm và kỳ thuê đang xem.
 - Giữ giá trị filter khi chỉnh hoặc quay lại.
 - Phân nhóm unit type theo facility theo ảnh mẫu.
@@ -369,11 +374,13 @@ AI nằm trong Size Guide như chatbot đã thống nhất. Khu vực input/reco
 | `contract_details_request_extension_modal` | Contract Detail + Renewal | Thông tin contract và chọn kỳ gia hạn |
 | `contract_details_request_return_modal` | Contract Detail + Return | Chọn ngày, ghi chú, giải thích tác động và xác nhận |
 | `deposit_charges` | Deposit & Charges | Chọn contract, số liệu và lịch sử liên quan |
-| `identity_verification` | Identity information | Bố cục định danh; chỉ dùng dữ liệu/trạng thái hợp lệ |
+| `identity_verification` | Tham khảo phần hồ sơ trong Account Settings | Không còn trang/menu riêng; chỉ dùng field hợp lệ, không hiển thị Verified hay workflow xét duyệt |
 | `support_tickets` | Support Tickets | Search/filter, ticket card, phản hồi gần nhất, tạo/xem ticket |
 | `notifications_history_notifications` | Notifications tab | Thông báo, thời điểm, hành động về tài nguyên liên quan |
 | `notifications_history` | Transaction History tab | Giao dịch/điều chỉnh được hệ thống ghi nhận |
 | `account_settings` | Account Settings | Profile/password theo API được hỗ trợ |
+
+**Media Size Guide:** `imageUrl`/`videoUrl` thuộc UnitType và được đọc từ public catalog; không suy từ Facility/name hoặc ảnh mẫu. Chấp nhận URL HTTPS không chứa credentials; missing/unsupported/broken image có fallback rõ. Ảnh giữ tỷ lệ nội dung; video chỉ tải player khi bấm Watch Video, không autoplay. Video trực tiếp dùng native controls; YouTube/Vimeo hợp lệ dùng URL embed đã chuẩn hóa thay vì nhúng HTML/iframe tùy ý. Có Close/Escape/focus return và Open Video in New Tab khi provider hạn chế phát nhúng. Không bịa dimensions, vật dụng chứa vừa, capacity hoặc unit assignment từ media. Kiểm thử mock không xác nhận URL thật/provider/CORS/codec đang hoạt động.
 
 Notifications và Transaction History là hai tab của một khu vực trong mẫu, không nhân bản hai layout. Hành động ở dashboard dẫn tới đúng tài nguyên/nhóm quản lý, không dùng mọi link về một trang chung.
 
@@ -401,11 +408,11 @@ Giữ các route hiện có tương thích khi thay hình thức. Tên dưới �
 | Contracts — đang có | `/customer/contracts` |
 | Invoices — đang có | `/customer/invoices` |
 | Support — đang có | `/customer/support-tickets` |
-| Identity Verification — UI scaffold | `/customer/identity-verification` |
-| Account Settings — UI scaffold | `/customer/account-settings` |
+| Identity Verification — legacy redirect, không menu riêng | `/customer/identity-verification` → `/customer/account-settings` |
+| Account Settings — own profile | `/customer/account-settings` |
 | Notifications / Transaction History — UI scaffold | `/customer/notifications`, tab lịch sử dùng `?tab=history` |
 
-Các route UI scaffold ở trên thuộc Customer Layout và giữ RequireAuth/RequireRole CUSTOMER như các trang Customer khác. Chúng chỉ hiển thị tên trang, thông báo chưa triển khai và đường quay về Overview; không bổ sung API, dữ liệu mẫu, thao tác nghiệp vụ hoặc quyền đọc dữ liệu. Hai tab Notifications/Transaction History giữ cùng shell và hoạt động với keyboard, back/refresh/direct URL.
+Các route Customer ở trên giữ Customer Layout và RequireAuth/RequireRole CUSTOMER. Account Settings đọc/cập nhật own profile theo AUTH-004/005; không có workflow xác minh danh tính riêng. Mục/tab chưa triển khai hiển thị thông báo rõ, không bổ sung API, dữ liệu mẫu, thao tác nghiệp vụ hoặc quyền đọc dữ liệu. Hai tab Notifications/Transaction History giữ cùng shell và hoạt động với keyboard, back/refresh/direct URL; quyền và phạm vi dữ liệu luôn theo SRS/API hiện hành.
 
 Nếu bổ sung public search, tái sử dụng page/catalog logic và giữ route Customer cũ hoạt động bằng alias hoặc redirect giữ filters. Không đổi toàn bộ route chỉ để giống tên folder UX.
 
@@ -477,7 +484,7 @@ Các quyết định UX trong tài liệu đã được chủ dự án đồng �
 
 SRS V10 hiện hành đã phê duyệt revision Guest ngày 13/10/2026, gồm public catalog/policy, optional AI và login continuation. Phê duyệt yêu cầu không có nghĩa backend/frontend đã triển khai và kiểm thử đầy đủ; khi nối API phải kiểm tra contract và implementation theo baseline hiện hành. Không dùng guide UX để tự bỏ authorization hoặc mở dữ liệu cá nhân.
 
-Việc giữ đủ navigation Customer và dựng page scaffold là phạm vi UI đã được chủ dự án yêu cầu; không xác nhận rằng Identity Verification, Account Settings, Notifications hoặc Transaction History đã có chức năng. Public pages đầy đủ và login continuation vẫn được triển khai trong task riêng, không phát sinh chỉ vì thêm menu/placeholder.
+Việc giữ đủ navigation Customer theo bảy mục hiện hành không xác nhận mọi chức năng đã hoàn tất. Identity Verification đã được gộp vào Account Settings theo UX 1.3, không phải một workflow còn chờ dựng. Account Settings/Notifications và các task public/login continuation được triển khai theo phạm vi phê duyệt riêng; menu/placeholder hoặc ảnh đẹp không chứng minh API/nghiệp vụ đã được kiểm thử.
 
 Các trang auth/profile/identity chưa có contract đầy đủ phải được xác định theo SRS/API. Việc có screenshot không đồng nghĩa chức năng thuộc Release 1.
 
@@ -507,7 +514,7 @@ Không sửa đồng loạt HTML nguồn chỉ để có cảm giác thống nh�
 - [ ] Logo header/footer cùng icon, ô xanh, font/cỡ/gap tại cùng breakpoint; Rent cùng primary, FSto có màu phù hợp nền.
 - [ ] Public pages giữ cùng chiều rộng/bố cục khi Customer mở.
 - [ ] Portal pages có sidebar và active item đúng nhóm chức năng.
-- [ ] Sidebar và drawer có đủ 8 mục, không biến mất theo tiến độ triển khai; icon inactive trung tính, active primary.
+- [ ] Sidebar và drawer có đủ 7 mục hiện hành, không có Identity Verification riêng; icon inactive trung tính, active primary; link identity cũ chuyển về Account Settings.
 - [ ] Không còn nền tím/theme khác ở component dùng chung.
 - [ ] Không tràn ngang toàn trang ở các viewport kiểm tra.
 

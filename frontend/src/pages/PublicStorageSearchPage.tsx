@@ -1,4 +1,5 @@
 import { useId, useMemo, useState } from 'react'
+import { Search } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { PublicStorageSearchForm } from '../components/PublicStorageSearchForm'
 import { PublicUnitTypeList } from '../components/PublicUnitTypeList'
@@ -26,18 +27,21 @@ function PublicSearchResults() {
   const [dirty, setDirty] = useState(false)
   const { filters } = query
   const hasPeriod = Boolean(filters.startMonth && filters.endMonth)
-  const results = usePublicFacilities({ ...filters, page: query.page, pageSize: query.pageSize, sortBy: 'name', sortDirection: query.sortDirection }, !query.error)
-  const inputValues = hasPeriod ? filters : { ...filters, startMonth: initialPublicFilters().startMonth, endMonth: initialPublicFilters().endMonth }
+  // A valid submitted period (also carried by direct/back URLs) starts a search.
+  // General catalogue reads for the location/size controls remain independent.
+  const results = usePublicFacilities({ ...filters, page: query.page, pageSize: query.pageSize, sortBy: 'name', sortDirection: query.sortDirection }, hasPeriod && !query.error)
+  const inputValues = filters.startMonth || filters.endMonth ? filters : { ...filters, startMonth: initialPublicFilters().startMonth, endMonth: initialPublicFilters().endMonth }
   const url = (extra: { page?: number; sortDirection?: 'asc' | 'desc' } = {}) => `/facilities?${publicSearchQuery(filters, { pageSize: query.pageSize, page: query.page, sortDirection: query.sortDirection, ...extra })}`
   return <main className="page-container flow-page public-search-page">
     <section className="page-heading"><nav className="flow-breadcrumb" aria-label="Breadcrumb"><Link to="/">Home</Link><span aria-hidden="true">/</span><span aria-current="page">Find Storage</span></nav><p className="eyebrow">Find Your Space</p><h1>Find Storage</h1><p className="muted">Compare storage types and choose a space that fits your belongings.</p></section>
     <PublicStorageSearchForm initialValues={inputValues} onDirtyChange={setDirty} onSearch={next => navigate(`/facilities?${publicSearchQuery(next)}`)} />
-    {dirty && <p className="notice">Filters changed. Select Find Storage to update these results before reserving.</p>}
-    <section className="panel public-search-summary" aria-label="Applied search"><div><strong>{filters.location || 'All locations'}</strong><p className="muted">{hasPeriod ? formatMonthRange(filters.startMonth, filters.endMonth) : 'Browsing facilities — no rental period checked'} · {filters.mode === 'PRIVATE' ? 'Private Storage' : filters.mode === 'PUBLIC' ? 'Public Storage' : 'All storage types'} · {filters.size || 'All sizes'}</p></div><div className="form-field"><label htmlFor="facility-sort">Sort Facilities</label><select id="facility-sort" value={query.sortDirection} onChange={event => navigate(url({ page: 1, sortDirection: event.target.value as 'asc' | 'desc' }))}><option value="asc">Name A–Z</option><option value="desc">Name Z–A</option></select></div></section>
+    {dirty && hasPeriod && <p className="notice">Filters changed. Select Find Storage to update these results before reserving.</p>}
+    {!hasPeriod && !query.error && <section className="panel public-search-start" aria-labelledby="search-start-heading"><span className="public-icon-tile"><Search size={24} aria-hidden="true" /></span><div><h2 id="search-start-heading">Find storage for your rental period</h2><p>Review your rental months, add any location, type or size preferences, then select Find Storage. Matching facilities will appear here after you search.</p></div></section>}
+    {hasPeriod && !query.error && <section className="panel public-search-summary" aria-label="Applied search"><div><strong>{filters.location || 'All locations'}</strong><p className="muted">{formatMonthRange(filters.startMonth, filters.endMonth)} · {filters.mode === 'PRIVATE' ? 'Private Storage' : filters.mode === 'PUBLIC' ? 'Public Storage' : 'All storage types'} · {filters.size || 'All sizes'}</p></div><div className="form-field"><label htmlFor="facility-sort">Sort Facilities</label><select id="facility-sort" value={query.sortDirection} onChange={event => navigate(url({ page: 1, sortDirection: event.target.value as 'asc' | 'desc' }))}><option value="asc">Name A–Z</option><option value="desc">Name Z–A</option></select></div></section>}
     <ApiErrorAlert error={query.error ? presentValidationError(query.error) : results.error} />
     {!query.error && results.error && <button className="button button-secondary" type="button" onClick={results.refresh}>Retry Search</button>}
     {results.loading ? <LoadingState label="Finding matching facilities…" /> : results.data && <>
-      <div className="section-heading"><h2>{hasPeriod ? 'Storage Search Results' : 'Storage Facilities'}</h2><span className="result-count">{results.data.pagination.totalItems} matching {results.data.pagination.totalItems === 1 ? 'facility' : 'facilities'}</span></div>
+      <div className="section-heading"><h2>Storage Search Results</h2><span className="result-count">{results.data.pagination.totalItems} matching {results.data.pagination.totalItems === 1 ? 'facility' : 'facilities'}</span></div>
       {results.data.data.length === 0 ? <EmptyState message="No facilities match this search. Try a different location, storage size or rental period." /> : results.data.data.map((facility, index) => <FacilitySearchGroup key={facility.facilityId} facility={facility} filters={filters} search={search} dirty={dirty} initiallyOpen={index === 0} />)}
       <PaginationControls pagination={results.data.pagination} disabled={results.loading} onPageChange={page => navigate(url({ page }))} />
     </>}

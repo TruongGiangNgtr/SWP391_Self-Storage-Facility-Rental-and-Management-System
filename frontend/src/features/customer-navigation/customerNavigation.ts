@@ -1,4 +1,4 @@
-import { Bell, Bookmark, CalendarDays, FileText, LayoutGrid, Settings, ShieldCheck, Ticket, WalletCards, type LucideIcon } from 'lucide-react'
+import { Bell, Bookmark, CalendarDays, FileText, LayoutGrid, Settings, Ticket, WalletCards, type LucideIcon } from 'lucide-react'
 
 interface CustomerNavigationItem {
   to: string
@@ -16,7 +16,6 @@ export const CUSTOMER_NAV_ITEMS: readonly CustomerNavigationItem[] = [
   { to: '/customer/reservations', label: 'My Reservations', icon: CalendarDays },
   { to: '/customer/contracts', label: 'My Contracts', icon: FileText },
   { to: '/customer/invoices', label: 'Deposit & Invoices', icon: WalletCards },
-  { to: '/customer/identity-verification', label: 'Identity Verification', icon: ShieldCheck, unavailable: true },
   { to: '/customer/support-tickets', label: 'Support Tickets', icon: Ticket },
   { to: '/customer/account-settings', label: 'Account Settings', icon: Settings },
 ]

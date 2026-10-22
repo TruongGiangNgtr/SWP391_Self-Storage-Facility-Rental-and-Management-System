@@ -24,10 +24,12 @@ export interface UnitTypeAvailability {
   description: string | null
   requestedPeriod: RequestedPeriod | null
   availableCapacity: number | null
+  imageUrl?: string | null
+  videoUrl?: string | null
 }
 
 export type PublicUnitTypeSummary = Pick<UnitTypeAvailability,
-  'unitTypeId' | 'name' | 'mode' | 'size' | 'rentalPrice' | 'description'>
+  'unitTypeId' | 'name' | 'mode' | 'size' | 'rentalPrice' | 'description' | 'imageUrl' | 'videoUrl'>
 
 export interface PublicCatalogFilters {
   location: string
