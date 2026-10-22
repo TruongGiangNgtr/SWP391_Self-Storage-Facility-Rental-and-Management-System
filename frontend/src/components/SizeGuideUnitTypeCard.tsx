@@ -3,13 +3,12 @@ import { Link } from 'react-router-dom'
 import type { PublicUnitTypeSummary } from '../features/catalog/catalog.types'
 import { sizeGuideStorageUrl } from '../features/catalog/sizeGuideSearch'
 import { formatMoney } from '../utils/formatters'
+import { SizeGuideUnitTypeMedia } from './SizeGuideUnitTypeMedia'
 
 export function SizeGuideUnitTypeCard({ item }: { item: PublicUnitTypeSummary }) {
   const headingId = useId()
   return <article className="size-guide-card" aria-labelledby={headingId}>
-    {/* No image/dimensions/fit-list is supplied by CAT-005. This neutral design
-        slot is decorative, not a photo or a scale model of an actual unit. */}
-    <div className="size-guide-card-media" aria-hidden="true" />
+    <SizeGuideUnitTypeMedia name={item.name} imageUrl={item.imageUrl} videoUrl={item.videoUrl} />
     <div className="size-guide-card-content">
       <div className="size-guide-card-heading"><h3 id={headingId}>{item.name}</h3><span className="size-guide-size">{item.size}</span></div>
       <p className="size-guide-mode">{item.mode === 'PRIVATE' ? 'Private Storage' : 'Public Storage'}</p>

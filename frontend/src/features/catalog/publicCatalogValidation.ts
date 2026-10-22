@@ -19,7 +19,8 @@ export function isPublicUnitType(value: unknown): value is PublicUnitTypeSummary
   const item = value as PublicUnitTypeSummary
   return isUuid(item.unitTypeId) && typeof item.name === 'string' && Boolean(item.name.trim()) &&
     ['PRIVATE', 'PUBLIC'].includes(item.mode) && typeof item.size === 'string' && Boolean(item.size.trim()) &&
-    typeof item.rentalPrice === 'number' && Number.isFinite(item.rentalPrice) && item.rentalPrice >= 0 && nullableText(item.description)
+    typeof item.rentalPrice === 'number' && Number.isFinite(item.rentalPrice) && item.rentalPrice >= 0 && nullableText(item.description) &&
+    (item.imageUrl === undefined || nullableText(item.imageUrl)) && (item.videoUrl === undefined || nullableText(item.videoUrl))
 }
 export function isPublicAvailability(value: unknown): value is UnitTypeAvailability {
   if (!isPublicUnitType(value)) return false
