@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ImageOff, PlayCircle, VideoOff } from 'lucide-react'
-import { publicMediaUrl, unitTypeVideo, type UnitTypeVideo } from '../features/catalog/unitTypeMedia'
+import { PlayCircle, VideoOff } from 'lucide-react'
+import { unitTypeVideo, type UnitTypeVideo } from '../features/catalog/unitTypeMedia'
 import { FlowDialog } from './FlowDialog'
+import { SizeGuideVideoPreview } from './SizeGuideVideoPreview'
 
 function UnitTypeVideoPlayer({ video, name }: { video: UnitTypeVideo; name: string }) {
   const [failed, setFailed] = useState(false)
@@ -16,17 +17,14 @@ function UnitTypeVideoPlayer({ video, name }: { video: UnitTypeVideo; name: stri
   </div>
 }
 
-export function SizeGuideUnitTypeMedia({ name, imageUrl, videoUrl }: { name: string; imageUrl?: string | null; videoUrl?: string | null }) {
-  const image = publicMediaUrl(imageUrl)
+export function SizeGuideUnitTypeMedia({ name, videoUrl }: { name: string; videoUrl?: string | null }) {
   const video = unitTypeVideo(videoUrl)
-  const [failedImage, setFailedImage] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   return <>
     <div className="size-guide-card-media">
-      {image && failedImage !== image ? <img src={image} alt={`Storage type illustration: ${name}`} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setFailedImage(image)} />
-        : <div className="size-guide-media-fallback"><ImageOff size={28} aria-hidden="true" /><span>{image ? 'Image unavailable' : 'No image available yet'}</span></div>}
-      {video ? <button className="size-guide-video-button" type="button" aria-label={`Watch video for ${name}`} onClick={() => setOpen(true)}><PlayCircle size={20} aria-hidden="true" />Watch Video</button>
-        : videoUrl ? <p className="size-guide-media-note size-guide-video-unavailable">Video unavailable</p> : null}
+      {video?.kind === 'file' ? <SizeGuideVideoPreview key={video.src} src={video.src} suspended={open} />
+        : <div className="size-guide-media-fallback"><VideoOff size={28} aria-hidden="true" /><span>{video ? 'Select View Video to watch this storage illustration.' : videoUrl ? 'Video unavailable' : 'No video available yet'}</span></div>}
+      {video && <button className="size-guide-video-button" type="button" aria-label={`View video for ${name}`} onClick={() => setOpen(true)}><PlayCircle size={20} aria-hidden="true" />View Video</button>}
     </div>
     {open && video && createPortal(<FlowDialog trapFocus className="size-guide-video-dialog" title={`${name} — Storage Video`} subtitle="View the illustration provided for this storage type." category="Size Guide" onClose={() => setOpen(false)}>
       <UnitTypeVideoPlayer key={video.src} video={video} name={name} />
