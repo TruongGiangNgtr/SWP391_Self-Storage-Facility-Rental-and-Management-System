@@ -5,7 +5,7 @@ import { isRentalMonth } from '../renewal/renewalValidation'
 import { isSupportPagination } from '../customer-support/supportValidation'
 
 export class PublicCatalogContractError extends Error {
-  constructor() { super('Storage data could not be verified for this request. Refresh or contact the facility.'); this.name = 'PublicCatalogContractError' }
+  constructor() { super('We could not load the latest storage information. Refresh the page or contact the facility for help.'); this.name = 'PublicCatalogContractError' }
 }
 const nullableText = (value: unknown) => value === null || typeof value === 'string'
 export function isPublicFacility(value: unknown): value is FacilitySummary {

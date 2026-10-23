@@ -5,7 +5,8 @@
 .frms-customer .how-hero h1 { font-size: 48px; line-height: 1.18; letter-spacing: -.025em; margin: 12px 0 20px; }
 .frms-customer .how-intro { max-width: 560px; color: #475569; font-size: 16px; margin: 0 0 24px; }
 .frms-customer .how-hero .eyebrow { margin: 0; }
-.frms-customer .how-hero-media { display: flex; align-items: center; justify-content: center; min-height: 280px; border: 1px solid #dbeafe; border-radius: 16px; background: #eff6ff; color: var(--flow-brand); }
+.frms-customer .how-hero-media { display: flex; align-items: center; justify-content: center; width: 100%; aspect-ratio: 1672 / 941; overflow: hidden; border: 1px solid #dbeafe; border-radius: 16px; background: #eff6ff; color: var(--flow-brand); }
+.frms-customer .how-hero-media > img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .frms-customer .how-section { padding: 64px 0; background: #fff; }
 .frms-customer .how-tint { background: var(--customer-canvas); }
 .frms-customer .how-section-heading { max-width: 720px; margin: 0 auto 32px; text-align: center; }
@@ -55,7 +56,6 @@
   .frms-customer .how-hero { padding: 24px 0 32px; }
   .frms-customer .how-hero-grid { grid-template-columns: 1fr; padding-top: 24px; gap: 24px; }
   .frms-customer .how-hero h1 { font-size: 32px; }
-  .frms-customer .how-hero-media { min-height: 176px; }
   .frms-customer .how-section { padding: 32px 0; }
   .frms-customer .how-step { padding: 20px; gap: 12px; }
   .frms-customer .how-step-number { min-width: 36px; min-height: 36px; border-radius: 8px; }

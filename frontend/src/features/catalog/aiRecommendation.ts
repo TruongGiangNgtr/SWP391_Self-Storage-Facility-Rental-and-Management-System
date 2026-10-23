@@ -37,7 +37,7 @@ export interface ResolvedAiRecommendation {
 
 export class AiRecommendationContractError extends Error {
   constructor() {
-    super('The suggested storage types could not be verified against the current catalog. Please try again or choose a type manually.')
+    super('We could not match this suggestion to the available storage types. Try again or compare storage types manually.')
     this.name = 'AiRecommendationContractError'
   }
 }
@@ -74,9 +74,10 @@ export function presentAiError(error: unknown): ApiErrorPresentation {
   const presentation = presentApiError(error)
   if (!(error instanceof ApiRequestError)) return presentation
   const messages: Record<string, string> = {
-    RATE_LIMIT_EXCEEDED: 'Too many AI requests. Please wait before trying again. You can still choose a storage type manually.',
+    RATE_LIMIT_EXCEEDED: 'You have asked for several suggestions in a short time. Please wait a moment before trying again, or choose a storage type manually.',
     EXTERNAL_PROVIDER_UNAVAILABLE: 'AI recommendations are temporarily unavailable. Please try again later or choose a storage type manually.',
     ENDPOINT_NOT_IMPLEMENTED: 'AI recommendations are not available from the server yet. You can still choose a storage type manually.',
   }
-  return { ...presentation, message: messages[error.code] ?? presentation.message }
+  const message = Object.hasOwn(messages, error.code) ? messages[error.code] : undefined
+  return { ...presentation, message: message ?? presentation.message, customerMessage: message }
 }

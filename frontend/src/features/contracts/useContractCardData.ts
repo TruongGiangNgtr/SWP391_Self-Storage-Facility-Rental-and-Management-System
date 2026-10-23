@@ -44,7 +44,7 @@ export function useContractCardData(items: readonly ContractListItem[]) {
           try {
             const { data: detail } = await contractApi.get(item.contractId)
             if (!matchesDetail(detail, item)) {
-              result.error = presentValidationError('Contract details have changed or could not be verified. Refresh the list before choosing an action.')
+              result.error = presentValidationError('We could not load the latest contract details. Refresh My Contracts before choosing an action.')
             } else {
               result.contract = detail
               let pending = reservations.get(detail.reservationId)
@@ -55,7 +55,7 @@ export function useContractCardData(items: readonly ContractListItem[]) {
                 original.facilityId === detail.facilityId && (!item.unitTypeId || original.unitTypeId === item.unitTypeId) &&
                 (detail.storageUnit === undefined || (detail.storageUnit && original.unitTypeId === detail.storageUnit.unitTypeId)) &&
                 invoice && Number.isFinite(invoice.amountDue) && invoice.amountDue >= 0) result.reservation = original
-              else result.error = presentValidationError('The original rental and deposit snapshot could not be verified. Please retry.')
+              else result.error = presentValidationError('We could not load the original rental and deposit details. Refresh the storage details or contact the facility for help.')
             }
           } catch (error) { result.error = presentApiError(error) }
           if (!result.error && active) cache.current.set(cacheKey, result)

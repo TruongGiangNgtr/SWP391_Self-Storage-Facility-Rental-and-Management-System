@@ -15,7 +15,7 @@ export function useAccessContract(contractId: string) {
       .then(({ data }) => {
         if (!active) return
         if (!data || data.contractId !== contractId) {
-          setSnapshot({ key, contract: null, error: presentValidationError('The server returned a different contract. Refresh before continuing.') })
+          setSnapshot({ key, contract: null, error: presentValidationError('We could not load the selected contract. Return to My Contracts and open it again.') })
           return
         }
         setSnapshot({ key, contract: data, error: null })

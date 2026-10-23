@@ -1,21 +1,33 @@
-import { useEffect, useRef } from 'react'
-import { Link, Outlet, useLocation, useNavigationType } from 'react-router-dom'
+import { useEffect, useLayoutEffect, useRef } from 'react'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import { BrandLogo } from '../components/BrandLogo'
 import { CustomerLayout } from './CustomerLayout'
 
 export function RootLayout() {
   const location = useLocation()
-  const navigationType = useNavigationType()
-  const previousPath = useRef<string | null>(null)
+  const previousPage = useRef<{ pathname: string; hash: string } | null>(null)
   const publicPath = location.pathname === '/' || location.pathname === '/customer/storage-search' || location.pathname === '/facilities' || location.pathname.startsWith('/facilities/') ||
     ['/how-it-works', '/size-guide', '/help'].includes(location.pathname) || location.pathname.startsWith('/help/')
 
+  const customerPage = publicPath || location.pathname === '/customer' || location.pathname.startsWith('/customer/') || location.pathname.startsWith('/auth/customer/')
+
   useEffect(() => {
-    const stayingInSizeGuide = previousPath.current === '/size-guide' && location.pathname === '/size-guide'
-    previousPath.current = location.pathname
-    // Size Guide moves between tabs/pages at its catalog heading, not the hero.
-    if (publicPath && navigationType !== 'POP' && !location.hash && !stayingInSizeGuide) window.scrollTo({ top: 0, behavior: 'instant' })
-  }, [publicPath, navigationType, location.pathname, location.search, location.hash])
+    if (!customerPage) return
+    const previous = window.history.scrollRestoration
+    window.history.scrollRestoration = 'manual'
+    return () => { window.history.scrollRestoration = previous }
+  }, [customerPage])
+
+  useLayoutEffect(() => {
+    const previous = previousPage.current
+    previousPage.current = { pathname: location.pathname, hash: location.hash }
+    // New Guest/Customer pages start at the top, including after sign-in and
+    // Back/Forward. Same-page filters/tabs and dialog backgrounds keep position;
+    // explicit anchors continue to use their page's existing scroll behavior.
+    if (customerPage && !location.hash && (previous?.pathname !== location.pathname || previous.hash)) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    }
+  }, [customerPage, location.pathname, location.hash])
 
   if (publicPath) {
     return <CustomerLayout publicPage><Outlet /></CustomerLayout>

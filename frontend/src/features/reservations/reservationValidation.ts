@@ -38,7 +38,7 @@ export function validateMonthRange(
 
   const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/
   if (!monthPattern.test(startMonth) || !monthPattern.test(endMonth)) {
-    return 'Rental months must use a valid YYYY-MM format.'
+    return 'Choose valid check-in and check-out months using the month selectors.'
   }
 
   if (startMonth <= currentMonth) {
@@ -56,7 +56,7 @@ export function validateCreateReservation(
   request: CreateReservationRequest,
 ): string | null {
   if (!request.facilityId || !request.unitTypeId) {
-    return 'The selected storage information is incomplete.'
+    return 'Please return to Find Storage and select a facility and storage type before reserving.'
   }
 
   return validateMonthRange(request.startMonth, request.endMonth)

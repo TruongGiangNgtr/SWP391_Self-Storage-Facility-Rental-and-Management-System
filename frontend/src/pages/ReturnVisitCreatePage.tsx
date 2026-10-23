@@ -52,7 +52,7 @@ export function ReturnVisitCreatePage() {
       if (!visit || !isUuid(visit.visitId) || visit.entityId !== contractId ||
         visit.visitType !== 'RETURN' || visit.status !== 'SCHEDULED' ||
         visit.visitDate !== visitDate || visit.actualReturnDate !== null || visit.employeeId !== null) {
-        setActionError(presentValidationError('The server returned an unexpected return visit. Check My Visits before submitting again.'))
+        setActionError(presentValidationError('We could not confirm your return visit. Check My Visits before submitting again, as your visit may already have been scheduled.'))
         refresh()
         return
       }
@@ -89,7 +89,7 @@ export function ReturnVisitCreatePage() {
           </div></section>
           <div className="return-request-notice"><Info size={20} aria-hidden="true" /><div><h2>A visit, not a contract cancellation</h2><p>Scheduling this visit does not end your contract or confirm a refund. While a return visit is pending, new access visits and contract renewal are blocked.</p></div></div>
           <p className="return-request-outcome"><CheckCircle2 size={17} aria-hidden="true" /><span>Your final return outcome is confirmed after staff records the actual return, inspection is completed and settlement is finalized.</span></p>
-        </form> : <p className="notice">This contract is not ACTIVE. You cannot schedule a return visit.</p>}
+        </form> : <p className="notice">You can only schedule a return visit for an active contract. Open My Contracts to check its latest status.</p>}
       </>}
       {actionError && <p className="return-request-helper" role="note">If the request may already have been processed, check My Visits before retrying to avoid scheduling a duplicate return visit. This page never automatically resubmits your request.</p>}
       <footer className="return-request-actions"><div><button className="button button-secondary" type="button" disabled={working} onClick={close}>Cancel</button>{contract?.status === 'ACTIVE' && !loading && <button className="button" type="submit" form="return-request-form" disabled={working}>{working ? 'Submitting…' : 'Submit Return Request'}<Send size={16} aria-hidden="true" /></button>}</div><p>Submitting a request does not end your contract immediately.</p><Link className="return-request-text-link" to="/customer/visits" aria-disabled={working || undefined} onClick={event => { if (working) event.preventDefault() }}>View My Visits</Link></footer>

@@ -52,7 +52,7 @@ export function CustomerContractListPage() {
     let active = true
     contractApi.list(page).then(result => {
       if (active) setSnapshot(isContractListResponse(result, page) ? { key, response: result, error: null }
-        : { key, response: null, error: presentValidationError('The contract list could not be verified. Please refresh before continuing.') })
+        : { key, response: null, error: presentValidationError('We could not load your contracts. Refresh the page to check your latest rentals.') })
     }).catch((caught: unknown) => { if (active) setSnapshot({ key, response: null, error: presentApiError(caught) }) })
     return () => { active = false }
   }, [page, key])

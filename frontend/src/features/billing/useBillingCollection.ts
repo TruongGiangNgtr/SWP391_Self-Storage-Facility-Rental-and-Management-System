@@ -37,7 +37,7 @@ export function useBillingCollection<T>(page: number, revision: number,
     let active = true
     load(page).then(response => {
       if (active) setSnapshot(valid(response, page) ? { key, response, error: null }
-        : { key, response: null, error: presentValidationError('These records could not be verified. Please refresh before continuing.') })
+        : { key, response: null, error: presentValidationError('We could not load your billing records. Refresh the page to check the latest invoices and payments.') })
     }).catch((error: unknown) => { if (active) setSnapshot({ key, response: null, error: presentApiError(error) }) })
     return () => { active = false }
   }, [page, key, load, valid])

@@ -34,7 +34,7 @@ export function CustomerRegisterPage() {
     if (!phoneNumber) nextErrors.phoneNumber = 'Enter your phone number.'
     const emailInput = event.currentTarget.elements.namedItem('email') as HTMLInputElement
     if (!email || emailInput.validity.typeMismatch) nextErrors.email = 'Enter a valid email address.'
-    const passwordError = getPasswordValidationMessage(password)
+    const passwordError = getPasswordValidationMessage(password, true)
     if (passwordError) nextErrors.password = passwordError
     if (!form.get('confirmPassword')) nextErrors.confirmPassword = 'Re-enter your password.'
     else if (password !== form.get('confirmPassword')) nextErrors.confirmPassword = 'The passwords do not match.'
@@ -52,7 +52,7 @@ export function CustomerRegisterPage() {
         cccd: String(form.get('cccd') ?? '').trim() || null,
       })
       if (!isUuid(response?.data?.userAccountId) || !isUuid(response?.data?.customerId)) {
-        setError(presentValidationError('The account response could not be verified. Try signing in or contact support before registering again.')); return
+        setError(presentValidationError('We could not confirm that your account was created. Try signing in or contact support before registering again.')); return
       }
       navigate('/auth/customer/login', { replace: true, state: { ...authState, registrationComplete: true } })
     } catch (caughtError) { setError(presentApiError(caughtError)) }
@@ -65,7 +65,7 @@ export function CustomerRegisterPage() {
       <div className="form-field"><label htmlFor="registerEmail">Email Address</label><input id="registerEmail" name="email" type="email" autoComplete="email" placeholder="you@example.com" required aria-invalid={Boolean(fieldErrors.email)} aria-describedby={fieldErrors.email ? 'emailError' : undefined} /><CustomerFieldError id="emailError" message={fieldErrors.email} /></div>
       <div className="form-field"><label htmlFor="registerPhoneNumber">Phone Number</label><input id="registerPhoneNumber" name="phoneNumber" type="tel" autoComplete="tel" placeholder="Enter your phone number" required aria-invalid={Boolean(fieldErrors.phoneNumber)} aria-describedby={fieldErrors.phoneNumber ? 'phoneError' : undefined} /><CustomerFieldError id="phoneError" message={fieldErrors.phoneNumber} /></div>
       <CustomerPasswordField name="password" autoComplete="new-password" describedBy="password-guidance" error={fieldErrors.password} />
-      <p id="password-guidance" className="muted customer-auth-small">8–64 characters, no more than 72 UTF-8 bytes.</p>
+      <p id="password-guidance" className="muted customer-auth-small">Use 8–64 characters. Emoji and accented letters may require a shorter password.</p>
       <CustomerPasswordField name="confirmPassword" label="Confirm Password" autoComplete="new-password" error={fieldErrors.confirmPassword} />
       <details className="customer-auth-optional"><summary>Additional profile information (optional)</summary><div className="form-grid"><div className="form-field"><label htmlFor="registerCccd">National ID / CCCD</label><input id="registerCccd" name="cccd" autoComplete="off" maxLength={20} /></div></div></details>
       <ApiErrorAlert error={error} />

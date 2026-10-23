@@ -76,7 +76,7 @@ export function ReservationDetailPage() {
       const paymentUrl = response.data.paymentUrl ? getSafePaymentUrl(response.data.paymentUrl) : null
       if (!paymentUrl) {
         setError(
-          presentValidationError('The payment gateway returned an invalid redirect URL.'),
+          presentValidationError('We could not open a secure payment page. Check your deposit invoice and payment status before trying again.'),
         )
         return
       }

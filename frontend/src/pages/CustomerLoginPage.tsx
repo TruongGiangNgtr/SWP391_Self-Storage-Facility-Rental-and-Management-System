@@ -30,7 +30,7 @@ export function CustomerLoginPage() {
     const password = String(form.get('password') ?? '')
     const nextErrors: Record<string, string> = {}
     if (!phoneNumber) nextErrors.phoneNumber = 'Please enter your phone number.'
-    const passwordError = getPasswordValidationMessage(password)
+    const passwordError = getPasswordValidationMessage(password, true)
     if (passwordError) nextErrors.password = passwordError
     setFieldErrors(nextErrors)
     if (Object.keys(nextErrors).length) {

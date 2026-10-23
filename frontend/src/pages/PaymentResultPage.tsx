@@ -29,7 +29,7 @@ export function PaymentResultPage() {
     pendingPayment
       ? null
       : presentValidationError(
-          'No payment reference was found in this browser session.',
+          'We could not identify the payment on this page. Open your reservation or invoice to check its payment status before paying again.',
         ),
   )
 

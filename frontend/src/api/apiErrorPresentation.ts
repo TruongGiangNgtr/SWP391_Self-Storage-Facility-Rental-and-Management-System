@@ -4,6 +4,10 @@ export interface ApiErrorPresentation {
   message: string
   traceId?: string
   details: string[]
+  api?: { code: string; status: number; fields: string[] }
+  connectionFailure?: boolean
+  unavailable?: boolean
+  customerMessage?: string
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -53,13 +57,15 @@ export function presentApiError(error: unknown): ApiErrorPresentation {
     return {
       message: 'Unable to connect to the server. Please try again.',
       details: [],
+      connectionFailure: true,
     }
   }
 
   return {
-    message: ERROR_MESSAGES[error.code] ?? 'The request could not be completed. Please try again.',
+    message: Object.hasOwn(ERROR_MESSAGES, error.code) ? ERROR_MESSAGES[error.code] : 'The request could not be completed. Please try again.',
     traceId: error.traceId,
     details: error.errors ? Object.values(error.errors).flat() : [],
+    api: { code: error.code, status: error.status, fields: error.errors ? Object.keys(error.errors) : [] },
   }
 }
 

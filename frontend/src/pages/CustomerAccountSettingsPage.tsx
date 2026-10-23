@@ -36,7 +36,7 @@ export function CustomerAccountSettingsPage() {
         if (controller.signal.aborted) return
         const profile = readCustomerProfile(response?.data, user?.userAccountId ?? '')
         if (!profile) {
-          setError(presentValidationError('Your profile could not be verified. Reload your profile before making changes.'))
+          setError(presentValidationError('We could not load your current profile. Reload your profile before making changes.'))
           return
         }
         setSnapshot(profile); setFullName(profile.fullName); setCccd(profile.cccd ?? '')

@@ -24,7 +24,7 @@ export function useCustomerContractDetails(contractId: string) {
   const root = useAccessContract(contractId)
   const [revision, setRevision] = useState(0)
   const contract = root.contract && isDisplayContract(root.contract) && root.contract.customerId === user?.customerId ? root.contract : null
-  const error = root.error ?? (root.contract && !contract ? presentValidationError('Contract details could not be verified. Refresh before choosing an action.') : null)
+  const error = root.error ?? (root.contract && !contract ? presentValidationError('We could not load this contract safely. Return to My Contracts and open it again before choosing an action.') : null)
   const original = useOverviewDetail(contract?.reservationId ?? '', revision, reservationApi.get, isOverviewReservation)
   const matches = !original.data || Boolean(contract && original.data.customerId === contract.customerId && original.data.facilityId === contract.facilityId)
   const facilities = useReservationFacilities(contract ? [contract.facilityId] : [])
@@ -32,7 +32,7 @@ export function useCustomerContractDetails(contractId: string) {
     contract, error, loading: root.loading,
     reservation: matches ? original.data : null,
     originalLoading: original.loading,
-    originalError: original.error ?? (!matches ? presentValidationError('The original reservation does not match this contract. Refresh to verify the rental and deposit snapshot.') : null),
+    originalError: original.error ?? (!matches ? presentValidationError('We could not load the original rental and deposit details for this contract. Refresh the page or contact the facility for help.') : null),
     facility: contract ? facilities.reads[contract.facilityId]?.data ?? null : null,
     facilityLoading: facilities.loading,
     facilityError: facilities.error,

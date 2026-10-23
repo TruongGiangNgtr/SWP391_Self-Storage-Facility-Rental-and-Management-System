@@ -32,7 +32,7 @@ export function useContractRenewal(contractId: string) {
   async function renew(newEndMonth: string) {
     if (busy.current || reader.loading || !reader.contract || result) return
     if (reader.contract.status !== 'ACTIVE') {
-      setActionError(presentValidationError('Only an ACTIVE contract can be renewed.'))
+      setActionError(presentValidationError('You can only renew an active contract. Open My Contracts to check its latest status.'))
       return
     }
     const inputError = validateRenewalMonth(reader.contract.endMonth, newEndMonth)
@@ -46,7 +46,7 @@ export function useContractRenewal(contractId: string) {
       const response = await contractApi.renew(contractId, { newEndMonth })
       if (!mounted.current || current !== revision.current) return
       if (!isRenewContractResult(response?.data, contractId, newEndMonth)) {
-        setActionError(presentValidationError('The server returned an unexpected renewal result. Refresh and review the contract before retrying; the request may already have been processed.'))
+        setActionError(presentValidationError('We could not confirm your renewal result. Refresh the contract and check its end month before submitting again; your renewal may already have been processed.'))
       } else {
         setResult(response.data)
       }

@@ -46,7 +46,7 @@ export function AccessVisitCreatePage() {
       if (!active.current) return
       if (!visit || !isUuid(visit.visitId) || visit.visitType !== 'ACCESS' || visit.entityId !== contractId ||
         visit.status !== 'SCHEDULED' || visit.visitDate !== visitDate || visit.actualReturnDate !== null) {
-        setActionError(presentValidationError('The server returned an unexpected access visit. Check My Visits before submitting again.'))
+        setActionError(presentValidationError('We could not confirm your access visit. Check My Visits before submitting again, as your visit may already have been scheduled.'))
         refresh()
         return
       }
@@ -88,7 +88,7 @@ export function AccessVisitCreatePage() {
             <p className="remaining-helper">Choose a date to visit your rented unit. This does not create a new reservation or change your rental period.</p>
             <div className="remaining-actions"><Link className="button button-secondary" to="/customer/visits">My Visits</Link><button className="button" type="submit" disabled={working}><CalendarDays size={16} aria-hidden="true" />{working ? 'Scheduling...' : 'Confirm Access Visit'}</button></div>
           </form>
-        </section> : <p className="notice">This contract is not ACTIVE. You cannot schedule an access visit.</p>}
+        </section> : <p className="notice">You can only schedule access visits for an active contract. Open My Contracts to check its latest status.</p>}
       </>}
       {actionError && <p className="muted">If the request may already have been processed, check My Visits before retrying to avoid scheduling a duplicate visit.</p>}
       {(!contract || contract.status !== 'ACTIVE') && <Link className="button button-secondary access-back" to="/customer/visits">My Visits</Link>}

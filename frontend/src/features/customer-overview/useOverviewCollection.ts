@@ -33,7 +33,7 @@ export function useOverviewDetail<T>(id: string, revision: number, read: (id: st
     read(id).then(response => {
       if (active) setSnapshot(valid(response?.data, id)
         ? { key, data: response.data, error: null }
-        : { key, data: null, error: presentValidationError('These details could not be verified. Refresh the overview or open the full details.') })
+        : { key, data: null, error: presentValidationError('We could not load these details. Refresh Overview or open the full details page.') })
     }).catch((error: unknown) => { if (active) setSnapshot({ key, data: null, error: presentApiError(error) }) })
     return () => { active = false }
   }, [id, key, enabled, read, valid])
