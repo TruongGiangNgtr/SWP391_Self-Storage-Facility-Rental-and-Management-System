@@ -67,6 +67,7 @@ import { StaffAccessVisitPage } from '../pages/StaffAccessVisitPage'
 import { StaffContractPage } from '../pages/StaffContractPage'
 import { StaffReturnsPage } from '../pages/StaffReturnsPage'
 import { StaffSupportPage } from '../pages/StaffSupportPage'
+import { CustomerErrorAudience } from '../components/ErrorAudienceContext'
 
 export function AppRouter() {
   const location = useLocation()
@@ -75,9 +76,12 @@ export function AppRouter() {
     /^\/customer\/reservations\/[^/]+\/confirm$/.test(location.pathname) ||
     /^\/customer\/contracts\/[^/]+\/(renew|return-visits\/new)$/.test(location.pathname)
   const backgroundLocation = isDialog ? state?.backgroundLocation : undefined
+  const customerAudience = location.pathname === '/' || location.pathname === '/customer' ||
+    ['/customer/', '/auth/customer/', '/facilities/', '/help/'].some(path => location.pathname.startsWith(path)) ||
+    ['/facilities', '/help', '/size-guide', '/how-it-works'].includes(location.pathname)
 
   return (
-    <>
+    <CustomerErrorAudience.Provider value={customerAudience}>
     <Routes location={backgroundLocation ?? location}>
   {/* ROOT LAYOUT + CUSTOMER */}
   <Route element={<RootLayout />}>
@@ -412,6 +416,6 @@ export function AppRouter() {
         </Route>
       </Routes>
     )}
-    </>
+    </CustomerErrorAudience.Provider>
   )
 }

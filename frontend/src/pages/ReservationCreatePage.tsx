@@ -55,7 +55,7 @@ export function ReservationCreatePage() {
     try {
       const response = await reservationApi.create(request)
       if (!isUuid(response?.data?.reservationId)) {
-        setActionError(presentValidationError('The reservation response could not be verified. Check My Reservations before trying again.')); setNeedsRefresh(true); return
+        setActionError(presentValidationError('We could not confirm your reservation. Check My Reservations before trying again, as it may already have been created.')); setNeedsRefresh(true); return
       }
       navigate(`/customer/reservations/${response.data.reservationId}`, { replace: true })
     } catch (error) {

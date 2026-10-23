@@ -57,7 +57,7 @@ export function VisitListPage() {
     let active = true
     visitApi.list(page).then(result => {
       if (active) setSnapshot(isVisitListResponse(result, page) ? { key, response: result, error: null }
-        : { key, response: null, error: presentValidationError('The visit list could not be verified. Please refresh before continuing.') })
+        : { key, response: null, error: presentValidationError('We could not load your visits. Refresh the page to check your latest appointments.') })
     }).catch((caught: unknown) => { if (active) setSnapshot({ key, response: null, error: presentApiError(caught) }) })
     return () => { active = false }
   }, [key, page])

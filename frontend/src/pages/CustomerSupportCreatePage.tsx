@@ -39,7 +39,7 @@ export function CustomerSupportCreatePage() {
     contractApi.list(page).then(response => {
       if (!active) return
       if (!Array.isArray(response.data) || !response.data.every(contract => isUuid(contract.contractId)) || !isSupportPagination(response.pagination)) {
-        setSnapshot({ key, response: null, error: presentValidationError('The server returned an unexpected contract list. Refresh before continuing.') })
+        setSnapshot({ key, response: null, error: presentValidationError('We could not load the contracts for your support request. Refresh the contract list before continuing.') })
       } else setSnapshot({ key, response, error: null })
     })
       .catch((error: unknown) => { if (active) setSnapshot({ key, response: null, error: presentApiError(error) }) })
@@ -62,7 +62,7 @@ export function CustomerSupportCreatePage() {
       if (!mounted.current) return
       if (!isSupportTicket(data) || data.contractId !== contractId || data.category !== category ||
         data.status !== 'OPEN' || data.assignedEmployeeId !== null || data.completedAt !== null || data.resultNote !== null) {
-        setActionError(presentValidationError('The server returned an unexpected ticket. Check My Support Tickets before submitting again.'))
+        setActionError(presentValidationError('We could not confirm your support request. Check My Support Tickets before submitting again, as your request may already have been created.'))
         return
       }
       navigate(`/customer/support-tickets/${encodeURIComponent(data.supportTicketId)}`)

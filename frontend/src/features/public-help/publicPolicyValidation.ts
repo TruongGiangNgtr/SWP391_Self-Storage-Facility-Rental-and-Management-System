@@ -2,7 +2,7 @@ import { isUuid } from '../handover/handoverValidation'
 import { PUBLIC_POLICY_TOPICS, type PublicPolicyDetail, type PublicPolicyKey, type PublicPolicySummary } from './publicPolicy.types'
 
 export class PublicPolicyContractError extends Error {
-  constructor() { super('Public policy content could not be verified. Please refresh or contact the facility.'); this.name = 'PublicPolicyContractError' }
+  constructor() { super('We could not load the current policy article. Refresh the page or contact the facility for help.'); this.name = 'PublicPolicyContractError' }
 }
 export function isPublicPolicyKey(value: unknown): value is PublicPolicyKey {
   return PUBLIC_POLICY_TOPICS.some(topic => topic.key === value)

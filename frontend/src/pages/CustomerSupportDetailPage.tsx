@@ -33,7 +33,7 @@ export function CustomerSupportDetailPage() {
     let active = true
     getSupportTicket(ticketId).then(({ data }) => {
       if (!active) return
-      if (!isSupportTicket(data) || data.supportTicketId !== ticketId) setSnapshot({ key, ticket: null, error: presentValidationError('The server returned an unexpected ticket. Refresh before continuing.') })
+      if (!isSupportTicket(data) || data.supportTicketId !== ticketId) setSnapshot({ key, ticket: null, error: presentValidationError('We could not load this support request. Return to My Support Tickets and open it again.') })
       else setSnapshot({ key, ticket: data, error: null })
     }).catch((error: unknown) => { if (active) setSnapshot({ key, ticket: null, error: presentApiError(error) }) })
     return () => { active = false }
@@ -49,7 +49,7 @@ export function CustomerSupportDetailPage() {
       const { data } = await cancelSupportTicket(ticketId, { reason: reason.trim() })
       if (!mounted.current) return
       if (!isSupportTicket(data) || data.supportTicketId !== ticketId || data.contractId !== ticket.contractId || data.status !== 'CANCELLED') {
-        setActionError(presentValidationError('The server returned an unexpected cancellation result. Review the refreshed ticket before retrying.'))
+        setActionError(presentValidationError('We could not confirm the cancellation. Check the latest support request status before cancelling again.'))
       } else setReason('')
       setRetry(value => value + 1)
     } catch (error) {

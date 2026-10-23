@@ -41,7 +41,7 @@ export function CustomerSupportListPage() {
     listSupportTickets({ page, pageSize: 20 }).then(response => {
       if (!active) return
       if (!isSupportTicketListResponse(response, page)) {
-        setSnapshot({ key, response: null, error: presentValidationError('The server returned an unexpected support-ticket list. Refresh before continuing.') })
+        setSnapshot({ key, response: null, error: presentValidationError('We could not load your support requests. Refresh the page to check their latest status.') })
       } else setSnapshot({ key, response, error: null })
     }).catch((error: unknown) => { if (active) setSnapshot({ key, response: null, error: presentApiError(error) }) })
     return () => { active = false }

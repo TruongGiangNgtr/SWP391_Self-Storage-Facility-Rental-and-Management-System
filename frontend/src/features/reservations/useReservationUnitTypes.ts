@@ -52,7 +52,7 @@ function useReservationCatalog<T>(catalogIds: readonly string[], read: (id: stri
           }
         } catch (error) {
           result = { data: null, error: error instanceof ReservationCatalogContractError
-            ? presentValidationError('Storage details could not be verified. Please retry.') : presentApiError(error) }
+            ? presentValidationError('We could not load the latest storage details. Please refresh the storage details and try again.') : presentApiError(error) }
         }
         if (!active) return
         setSnapshot(current => ({ key, reads: { ...(current?.key === key ? current.reads : {}), [id]: result } }))

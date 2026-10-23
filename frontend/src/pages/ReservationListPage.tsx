@@ -50,7 +50,7 @@ export function ReservationListPage() {
     reservationApi.list(page).then(result => {
       if (active) setSnapshot(isReservationListResponse(result, page)
         ? { key, response: result, error: null }
-        : { key, response: null, error: presentValidationError('The reservation list could not be verified. Please refresh before continuing.') })
+        : { key, response: null, error: presentValidationError('We could not load your reservations. Refresh the page to check your latest bookings.') })
     }).catch((caught: unknown) => { if (active) setSnapshot({ key, response: null, error: presentApiError(caught) }) })
     return () => { active = false }
   }, [key, page])
@@ -110,7 +110,7 @@ export function ReservationListPage() {
   }
 
   return <main className="page-container flow-page customer-reservations">
-    <section className="page-heading reservations-heading"><div><p className="eyebrow reservations-eyebrow"><CalendarDays size={13} aria-hidden="true" />Reservation Management</p><h1>My Reservations</h1><p className="muted">Track your reservations, settle deposit invoices and manage your handover visits.</p></div><div className="reservations-heading-actions"><button className="button button-secondary" type="button" disabled={loading} onClick={refresh} aria-label="Refresh Reservations" title="Refresh Reservations"><RefreshCw size={16} aria-hidden="true" /></button><Link className="button" to="/customer/storage-search"><Plus size={18} aria-hidden="true" />New Storage Reservation</Link></div></section>
+    <section className="page-heading reservations-heading"><div><p className="eyebrow reservations-eyebrow"><CalendarDays size={13} aria-hidden="true" />Reservation Management</p><h1>My Reservations</h1><p className="muted">Track your reservations, settle deposit invoices and manage your handover visits.</p></div><div className="reservations-heading-actions"><button className="button button-secondary" type="button" disabled={loading} onClick={refresh} aria-label="Refresh Reservations" title="Refresh Reservations"><RefreshCw size={16} aria-hidden="true" /></button><Link className="button reservations-new-button" to="/customer/storage-search"><Plus size={16} aria-hidden="true" />New Storage Reservation</Link></div></section>
     <ApiErrorAlert error={error} />
     {(unitTypes.error || facilities.error) && <div className="panel stack"><p className="muted">Some storage names could not be loaded. Your reservation amounts and statuses still come from the reservation service.</p><ApiErrorAlert error={unitTypes.error} /><ApiErrorAlert error={facilities.error} /><button className="button button-secondary" type="button" onClick={() => { unitTypes.retry(); facilities.retry() }} disabled={unitTypes.loading || facilities.loading}>Retry Storage Details</button></div>}
     <div className="reservations-tabs"><CustomerTabs labels={RESERVATION_LIST_TABS} counts={loading || error || catalogPending ? undefined : counts} ariaLabel="Reservation status" selected={selectedTab} onChange={index => applyFilters({ ...filters, status: RESERVATION_LIST_STATUSES[index] })}>{({ tabId, panelId }) => <>

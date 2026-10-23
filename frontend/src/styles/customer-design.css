@@ -84,6 +84,17 @@
 .frms-customer .detail-list dt { font-size: 12px; }
 .frms-customer .detail-list dd { font-size: 14px; }
 .frms-customer :is(.notice, .form-error, .danger-zone) { border-radius: 12px; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.frms-customer .customer-error-alert { display: flex; align-items: flex-start; gap: 12px; padding: 16px; }
+.frms-customer .customer-error-icon { flex-shrink: 0; margin-top: 2px; }
+.frms-customer .customer-error-content { min-width: 0; flex: 1; }
+.frms-customer .customer-error-title { display: block; margin-bottom: 4px; font-size: 14px; }
+.frms-customer .customer-error-content > p { margin: 0; }
+.frms-customer .customer-error-content > ul { margin: 8px 0 0; padding-left: 20px; }
+.frms-customer .customer-error-reference { margin-top: 12px; color: #475569; font-size: 12px; }
+.frms-customer .customer-error-reference > summary { display: list-item; width: fit-content; padding: 4px 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.frms-customer .customer-error-reference > summary:focus-visible { outline: 2px solid var(--flow-brand); outline-offset: 3px; border-radius: 4px; }
+.frms-customer .customer-error-reference > p { margin: 4px 0; }
+.frms-customer .customer-error-reference > small { display: block; overflow-wrap: anywhere; }
 .frms-customer .page-state { border-radius: 16px; box-shadow: none; }
 .frms-customer .page-state[role='status'] { min-height: 144px; }
 .frms-customer .page-state[role='status']::after { content: ''; display: block; width: min(100%, 420px); height: 48px; margin: 16px auto 0; border-radius: 8px; background: linear-gradient(#e2e8f0 0 12px, transparent 12px 24px, #f1f5f9 24px 36px, transparent 36px); }

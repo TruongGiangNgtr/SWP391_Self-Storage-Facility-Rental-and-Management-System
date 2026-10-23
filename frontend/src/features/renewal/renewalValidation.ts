@@ -12,9 +12,9 @@ export function getExtensionStartMonth(oldEndMonth: string): string | null {
 }
 
 export function validateRenewalMonth(oldEndMonth: string, newEndMonth: string): string | null {
-  if (!isRentalMonth(oldEndMonth)) return 'The server has not supplied a valid current end month. Refresh the contract.'
+  if (!isRentalMonth(oldEndMonth)) return 'We could not load your current contract end month. Refresh the contract before renewing.'
   if (!newEndMonth) return 'Please select the new end month.'
-  if (!isRentalMonth(newEndMonth)) return 'The new end month must use a valid YYYY-MM format.'
+  if (!isRentalMonth(newEndMonth)) return 'Choose a valid new end month using the month selector.'
   if (newEndMonth <= oldEndMonth) return 'The new end month must be after the current contract end month.'
   return null
 }

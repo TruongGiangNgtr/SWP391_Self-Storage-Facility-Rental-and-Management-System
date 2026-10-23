@@ -37,13 +37,13 @@ export function CustomerFeeReturnPage() {
       if (!active) return
       setBilling(isBillingSummary(data, contractId)
         ? { key, data, error: null }
-        : { key, data: null, error: presentValidationError('Billing details could not be verified for this contract. Refresh or contact support.') })
+        : { key, data: null, error: presentValidationError('We could not load the billing details for this contract. Refresh the page or contact support for help.') })
     }).catch((error: unknown) => { if (active) setBilling({ key, data: null, error: presentApiError(error) }) })
     contractApi.getReturnSummary(contractId).then(({ data }) => {
       if (!active) return
       setReturn(isReturnSummary(data, contractId)
         ? { key, data, error: null }
-        : { key, data: null, error: presentValidationError('Return details could not be verified for this contract. Refresh before relying on the amounts.') })
+        : { key, data: null, error: presentValidationError('We could not load the latest return and settlement details. Refresh the page before checking the amounts, or contact the facility for help.') })
     }).catch((error: unknown) => { if (active) setReturn({ key, data: null, error: presentApiError(error) }) })
     return () => { active = false }
   }, [contractId, key])

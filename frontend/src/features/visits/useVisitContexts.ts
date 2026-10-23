@@ -50,7 +50,7 @@ export function useVisitContexts(visits: readonly VisitDetail[]) {
             }
           }
           if (data && active) cache.current.set(ref, data)
-          result = data ? { data, error: null } : { data: null, error: presentValidationError('The related reservation or contract could not be verified. Please retry.') }
+          result = data ? { data, error: null } : { data: null, error: presentValidationError('We could not load the rental details for this visit. Refresh the storage details or open your reservation or contract.') }
         } catch (error) { result = { data: null, error: presentApiError(error) } }
         if (!active) return
         results[ref] = result

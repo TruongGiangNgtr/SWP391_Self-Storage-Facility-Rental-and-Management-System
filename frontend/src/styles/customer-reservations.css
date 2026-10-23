@@ -6,7 +6,8 @@
 .frms-customer .customer-reservations .reservations-eyebrow { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 999px; background: #eff6ff; margin-bottom: 8px; font-size: 10px; }
 .customer-reservations .reservations-heading-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .customer-reservations .reservations-heading-actions > .button:first-child { padding: 10px 12px; }
-.customer-reservations .reservations-heading-actions > .button:last-child { max-width: 200px; }
+.frms-customer .customer-reservations .reservations-new-button { gap: 8px; min-height: 44px; padding: 10px 14px; font-size: 12px; line-height: 20px; white-space: nowrap; }
+.customer-reservations .reservations-new-button > svg { flex-shrink: 0; }
 .customer-reservations .reservations-tabs { display: grid; gap: 16px; min-width: 0; }
 .frms-customer .customer-reservations .customer-tabs { border: 0; gap: 8px; }
 .frms-customer .customer-reservations .customer-tabs button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 14px; border: 1px solid var(--flow-border); border-radius: 12px; background: #fff; color: #475569; font-size: 12px; font-weight: 500; }

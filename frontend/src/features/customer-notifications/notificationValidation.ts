@@ -4,7 +4,7 @@ import { isUuid } from '../handover/handoverValidation'
 import type { CustomerNotification } from './notification.types'
 
 export class NotificationContractError extends Error {
-  constructor() { super('Notification data could not be verified. Refresh and try again.'); this.name = 'NotificationContractError' }
+  constructor() { super('We could not load your notifications. Refresh the page to check for updates.'); this.name = 'NotificationContractError' }
 }
 
 function isUtcTimestamp(value: unknown): value is string {

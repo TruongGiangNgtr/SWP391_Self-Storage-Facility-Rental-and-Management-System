@@ -7,7 +7,7 @@ import type { PublicFacilityQuery, PublicUnitTypeQuery } from './catalog.types'
 
 export function publicCatalogError(error: unknown): ApiErrorPresentation {
   if (error instanceof PublicCatalogContractError) return presentValidationError(error.message)
-  if (error instanceof ApiRequestError && error.status === 401) return { message: 'Public storage browsing is not available from the server yet. Please try again later.', traceId: error.traceId, details: [] }
+  if (error instanceof ApiRequestError && error.status === 401) return { message: 'Public storage browsing is not available from the server yet. Please try again later.', traceId: error.traceId, details: [], unavailable: true }
   return presentApiError(error)
 }
 export function usePublicRead<T>(key: string, read: (key: string, signal: AbortSignal) => Promise<T>, enabled = true, presentError = publicCatalogError) {
