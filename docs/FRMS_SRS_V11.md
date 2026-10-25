@@ -18,6 +18,7 @@
 **V11 Payment Documentation Cleanup:** 2026-10-21 — superseded provider-specific clauses removed; payOS-only active requirements and immutable historic payment evidence preserved
 **Customer Sent Notification Read Approval:** `REV-2026-10-22-CUSTOMER-NOTIFICATIONS-READ` — owner-approved read-only Notifications page and Overview preview, limited to §0.0.9 OD-06; no release-test certification
 **Customer Transaction History Approval:** `REV-2026-10-22-CUSTOMER-TRANSACTION-HISTORY-READ` — owner-approved own Payment history requirements in §0.0.9 OD-07; requirement approval only, implementation and test evidence remain separate
+**Customer CCCD / Operation Continuation Approval:** 2026-10-25 — `REV-2026-10-25-CUSTOMER-CCCD-CONTINUATION`, team approval confirmed by owner; §0.0.9 OD-09 and §14.15 define the approved target, not implementation/release acceptance
 **V11 API Specification:** [`FRMS_API_V11.md`](FRMS_API_V11.md) (HTTP contract companion)  
 **V11 Data Dictionary:** [`FRMS_Data_Dictionary_V11.md`](FRMS_Data_Dictionary_V11.md) (entity, PostgreSQL schema, routines and tests companion)
 **Status:** V11 REVIEW CANDIDATE — owner-approved decisions in §0.0.9 effective for V11 target; full document ratification, technical-architecture sign-off, API-code parity and release tests pending
@@ -59,6 +60,7 @@
 | **V11.0 REVIEW CANDIDATE — 2026-10-20 owner decision update** | **PARTIAL BUSINESS APPROVAL / NOT RELEASE ACCEPTANCE** | Approves optional `Customer.Address` input/persistence; Manager-owned persisted handover assignment and its four-state lifecycle; read-only SYSTEM_ADMINISTRATOR StorageUnit timeline. Records admin deactivation-eligibility as HTTP 501 scaffold and public UnitType `imageUrl`/`videoUrl` as implemented. Other provisional behaviors, PostgreSQL architecture sign-off and testing remain gated. |
 | **V11.0 REVIEW CANDIDATE — 2026-10-21 payment-documentation cleanup** | Editorial only — no business/API/code change | Removes superseded provider-specific historical text and configuration from this SRS. payOS remains the sole active gateway; historical payment preservation and existing release gates remain unchanged. |
 | **V11.0 — 2026-10-22 Customer Transaction History decision** | **TRANSACTION HISTORY REQUIREMENTS APPROVED / IMPLEMENTATION AND TESTS PENDING** | `REV-2026-10-22-CUSTOMER-TRANSACTION-HISTORY-READ` approves ACTIVE Customer own Payment history under OD-07: actual Deposit/subsequent Rental Fee attempts, all three Payment statuses, pagination and View Invoice; no offline-first-month Payment, fabricated deduction/refund/wallet balance, or approval of other pending V11 decisions. |
+| **V11.0 — 2026-10-25 Customer CCCD and continuation decision** | **TEAM-APPROVED REQUIREMENTS / IMPLEMENTATION AND TESTS SEPARATE** | OD-09 keeps CCCD optional at registration and nullable in Customer, requires it for new RES-001, and preserves the pending operation through authentication/profile completion. No LegalName, verification status, new table or endpoint; missing CCCD uses existing HTTP 400 VALIDATION_ERROR with errors.cccd. |
 
 ## V5 Review Summary
 
@@ -226,7 +228,7 @@ The owner permits checking the existing FRMS baseline and applying forward EPS-0
 - AUTH-004 Customer `data.profile.cccd: string | null` is private to the logged-in Customer. The FE-first implementation must treat missing/malformed fields as unavailable and disable CCCD editing until verified BE support exists.
 - This does not add identity verification or a new role. Existing Customer.Address persistence cannot be dropped or overwritten without an independently reviewed migration and deployment/backfill/data-retention plan.
 
-**Source:** `docs/FRMS_SRS_V10.md` §0.0.7 at anchored GitHub HEAD. Code on `main` accepts and stores the optional Address; this now accords with the §0.0.9 owner reversal, subject to data-security and regression checks. `AUTH-004`'s missing CCCD field remains an implementation gap.
+**Source:** `docs/FRMS_SRS_V10.md` §0.0.7 at anchored GitHub HEAD. Code on `main` accepts and stores the optional Address; this now accords with the §0.0.9 owner reversal, subject to data-security and regression checks. The missing AUTH-004 CCCD response was an implementation gap at that historical review; source at `2945788` now contains the owner-only nullable projection (OD-09), without certifying deployed/runtime behavior.
 
 ## 0.0.8 Draft Change Register — REV-2026-10-20-V11-CODE-ALIGNMENT
 
@@ -245,7 +247,7 @@ The owner permits checking the existing FRMS baseline and applying forward EPS-0
 | V11-05 | `Pg012` optional UnitType `ImageUrl/VideoUrl` | Record actual CAT-003/004/005 public response `imageUrl`/`videoUrl` exposure; nullable length 2048 | **OBSERVED + OWNER ACKNOWLEDGED; media governance/Swagger tests pending** |
 | V11-06 | Customer Activity Controller Notifications/Transactions | Read-only private history endpoints without a new table | **Notifications IMPL-CUSACT-01 APPROVED — OD-06; Transaction History IMPL-CUSACT-02 REQUIREMENTS APPROVED — OD-07. Implementation/integration/security acceptance remains separate.** |
 | V11-07 | Admin/Manager/Staff/BOM supplemental lookup and directory GETs | Provisional API appendix and Facility/ownership scope test matrix | CODE EXISTS; role/privacy review pending |
-| V11-08 | V10 profile prohibition subsequently revised by owner | Preserve `Customer.Address` as optional registration/profile-PATCH input/persistence (max 1000); no mandatory use or new sharing; own `cccd` remains target AUTH-004 | **OPTIONAL ADDRESS OWNER APPROVED — §0.0.9; CCCD read-model gap remains** |
+| V11-08 | V10 profile prohibition subsequently revised by owner | Preserve optional Customer.Address and private AUTH-004 CCCD; OD-09 adds conditional CCCD requirement for new RES-001, not a NOT NULL column | **APPROVED — OD-01/09; AUTH-004 projection observed in source at 2945788; new reservation gate/continuation and runtime acceptance pending** |
 | V11-09 | Complete API §13 embedded in V10 | Extract into `FRMS_API_V11.md` preserving endpoint IDs/contracts | DOCUMENT STRUCTURE DRAFT; Swagger parity not tested |
 | V11-10 | Existing historical payOS and first-month offline | Preserve payment semantics and historical evidence, no gateway switch | INVARIANT, regression acceptance pending |
 | V11-11 | Dev-only override for out-of-date Visit check-in | Document non-production opt-in and boundary | CODE EXISTS; verify Production cannot enable |
@@ -275,7 +277,7 @@ The **initial V11 reconciliation package** was SRS + API + Data Dictionary docum
 - Collection is **optional**, not a condition for account creation, reservation, visit, payment or any current workflow. Its potential future business uses are *not authorized or defined* by retaining the field. Do not add geolocation, ID verification, public listing or cross-role exposure by inference.
 - Customer login `PhoneNumber` and account `Email` remain non-editable through AUTH-005. `Facility.Address` is unrelated and remains mandatory. No Address data may be deleted automatically as part of this decision.
 - Current frontend Account Settings need **not** add an Address editor; any future UI that does must follow the optional-field API, validation and privacy rules. In particular, retaining the field does **not** independently approve its inclusion in AUTH-004 own-profile responses or other directory/public projections.
-- **Overrides:** The 2026-10-20 `REV-2026-10-20-CUSTOMER-NO-ADDRESS` requirement prohibiting collection/update in AUTH-001/AUTH-005 and the target entity is **superseded**. The earlier decision for `AUTH-004` Customer own-profile `cccd: string | null`, private to the owner, **continues to apply**; current backend DTO still omits CCCD and requires alignment.
+- **Overrides:** The 2026-10-20 `REV-2026-10-20-CUSTOMER-NO-ADDRESS` requirement prohibiting collection/update in AUTH-001/AUTH-005 and the target entity is **superseded**. The earlier decision for `AUTH-004` Customer own-profile `cccd: string | null`, private to the owner, **continues to apply**. That projection is present in source at `2945788`; runtime/Swagger acceptance remains separate. OD-09 adds a new-Reservation precondition without changing optional Address or adding identity verification.
 
 ### OD-02 — Manager handover assignment approved
 
@@ -323,7 +325,7 @@ The **initial V11 reconciliation package** was SRS + API + Data Dictionary docum
 - **Scope and acceptance:** this decision leaves supplemental directories/RBAC, billing backfill, scheduling, technical-architecture decisions and all other pending matters unchanged for later team discussion. Required verification includes exact DTO/envelope parity; cross-Customer/Guest/Employee/inactive-account denial; pagination/order and empty pages; all three statuses and multiple attempts per Invoice; nullable paid time/GMT+7 display; correct View Invoice targets; no fabricated offline-first-month/refund/balance records; safe loading/errors, account switching and no write side effects. Test results must be recorded separately from this approved requirement status.
 - **Traceability:** Customer Transaction History tab -> OD-07 -> `IMPL-CUSACT-02` (API §13A.3) -> `CustomerActivityService.PaymentsAsync` -> `CustomerActivityRepository.ListPaymentsAsync` -> existing `Payment`/`Invoice` with `Reservation`/`Contract` ownership -> the contract, authorization and UI checks above. View Invoice reuses `BIL-002`; no new persisted model or payment endpoint is required.
 
-**Unchanged decisions:** payOS only for eligible Deposit and post-first-month Rental Fee invoices, offline first-month acknowledgment, policy/price snapshot rules, five roles, seven core flows, ownership guards, and the separate limited live-payment evidence scope. **Pending:** owner architecture ratification of PostgreSQL, supplemental directory proposals, billing backfill/scheduling decisions, AUTH-004 CCCD backend alignment, and release-gate test evidence. Transaction History requirements are approved; implementation/testing is tracked separately.
+**Unchanged decisions:** payOS only for eligible Deposit and post-first-month Rental Fee invoices, offline first-month acknowledgment, policy/price snapshot rules, five roles, seven core flows, ownership guards, and the separate limited live-payment evidence scope. **Pending:** owner architecture ratification of PostgreSQL, supplemental directory proposals, billing backfill/scheduling decisions, AUTH-004 runtime/Swagger parity, OD-09 implementation and release-gate test evidence. Transaction History requirements are approved; implementation/testing is tracked separately.
 
 ### OD-08 — Facility Staff read-only Contract list approved (2026-10-25)
 
@@ -333,11 +335,23 @@ The **initial V11 reconciliation package** was SRS + API + Data Dictionary docum
 - Reuse the existing `CON-001` route, paginated `ContractListResponse` and `ContractSummary` projection; `page` starts at 1, `pageSize` is 1..100 (default 20). Existing `CUSTOMER` owner, `FACILITY_MANAGER` Facility and `BUSINESS_OPERATIONS_MANAGER` system-wide list scopes remain unchanged. No new Contract/Customer/Visit field, SQL table, stored procedure, command permission or status is introduced.
 - Backend implementation only in this scope. Frontend Staff Contract List navigation/presentation will be completed by the FE owner independently. Required acceptance: Staff own-Facility pages and counts; no other-Facility rows; missing Facility 403; Customer/Manager/BOM behavior unchanged; Administrator rejected; GET has no writes; API authorization/OpenAPI parity; build, unit and integration tests recorded separately.
 
+### OD-09 — CCCD before new Reservation and interrupted-operation continuation (2026-10-25)
+
+**Change record:** `REV-2026-10-25-CUSTOMER-CCCD-CONTINUATION`. The project owner confirms team approval of the CCCD-only proposal and the in-flow/return-navigation additions. The owner also approves the existing **HTTP 400 `VALIDATION_ERROR` with `errors.cccd`** for missing CCCD. These requirements are effective for this V11 target; this documentation task does not implement or certify them.
+
+- **Conditional data, not account activation:** retain the existing Customer name field and nullable/unique `Customer.CCCD` (maximum 20 characters). Do not add `LegalName`, a separate real-name field, a verification status, a table or an identity-approval workflow. AUTH-001 CCCD is optional; registration, login and public browsing do not require it. A supplied CCCD is not proof of verified identity; no new digit-only/12-digit/eKYC rule is implied.
+- **New Reservation precondition:** an authenticated ACTIVE Customer must have a saved, nonblank CCCD satisfying the existing profile constraints before RES-001 creates any Reservation, capacity hold or Deposit Invoice (`BR-RES-09`). Resolve the profile from the authenticated account, not client CustomerId or a claimed FE completion flag. Missing CCCD returns the approved validation envelope. Account/role/ownership checks remain mandatory. Apply the new check only to new Reservation creation after implementation deployment; do not cancel/rewrite existing Reservation/Contract/payment history or add this prerequisite to unrelated commands.
+- **In-flow completion:** when the Customer chooses to reserve and CCCD is missing, offer a focused entry step in the current reservation flow, preferably a popup; if reservation review is already a dialog, switch its content rather than stack dialogs. Explain "Bổ sung số CCCD để tiếp tục đặt kho." Save through AUTH-005, refresh own authoritative profile through AUTH-004, then restore the reservation review; do not make the Customer manually find the abandoned page. "Lưu và tiếp tục" saves the profile only; the Customer separately confirms RES-001. "Để sau" closes completion without creating a Reservation. Account Settings remains an ordinary own-profile editor and a valid fallback only with a safe return destination when opened as a prerequisite.
+- **One Customer flow after authentication:** Guest public browsing remains available. On requesting a protected reservation operation, preserve the valid non-sensitive selection, authenticate/register first, then use the same ACTIVE Customer profile check and reservation flow. No duplicate Guest reservation workflow or unconditional post-login identity gate is introduced.
+- **General continuation principle:** system-requested intermediate steps preserve the originating operation, safe internal destination/next valid step and approved non-sensitive context; success returns there rather than defaulting to Overview. This applies to the defined authentication and CCCD-completion steps, not arbitrary navigation or automatic replay of business commands. Ordinary Account Settings/menu visits do not create a forced return. Section 14.15 defines cancellation, revalidation, account-switch and privacy requirements.
+- **Authority and implementation boundary:** reuse AUTH-001/002/004/005 and RES-001; no new route or database field is required. Customer.CCCD remains nullable; do not fabricate/backfill IDs or copy names into identity data. Do not expose CCCD to Staff/Manager/BOM/Admin or public projections by inference. Optional Address and immutable login Email/PhoneNumber remain unchanged. The canonical API error and continuation contract is in API §13.14 RES-001 / §13.12 AUTH-004/005; persistence implications are in Data Dictionary §§4.3/12.4/22.
+- **Evidence boundary:** source at `2945788` includes own-Customer CCCD in `CurrentCustomerProfileResponse` / `AuthenticationMapping` and corresponding test sources. This removes the old static DTO gap, not the need for runtime tests. The new RES-001 precondition, CCCD completion UI and extended continuation are implementation work; they are not certified by this SRS update. Acceptance/traceability is in §14.15.3 and V11-G14.
+
 ## 0.0.10 Three-Document V11 Synchronization — 2026-10-20
 
 Three V11 Markdown specifications are maintained as a single **review candidate**: this SRS for approved business/domain requirements; [`FRMS_API_V11.md`](FRMS_API_V11.md) for the full HTTP contract and observed extensions; [`FRMS_Data_Dictionary_V11.md`](FRMS_Data_Dictionary_V11.md) for the 28-entity target dictionary, PostgreSQL types/routines/migrations and DB test matrix. The historical V2.1 Data Dictionary and V10 API §13 are preserved as source provenance, not independently governing V11 changes that contradict later owner approvals.
 
-Document synchronization alone does not approve PostgreSQL architecture, provisional directory APIs, unrelated feature development, production migrations or live bank operations. Customer Notifications and Transaction History are expressly approved only within OD-06/OD-07; this does not approve other Customer reads by inference. `AUTH-004 profile.cccd` remains a backend implementation gap; optional `Customer.Address` collection **is** approved. No build, NUnit, PostgreSQL E2E, compiled Swagger, Postman or Playwright results are claimed.
+Document synchronization alone does not approve PostgreSQL architecture, provisional directory APIs, unrelated feature development, production migrations or live bank operations. Customer activity reads remain limited to OD-06/07; OD-09 separately approves conditional CCCD and continuation, not wider personal-data reads. AUTH-004 owner-only CCCD is now observed in source at `2945788`; OD-09's new reservation gate/continuation still require implementation and acceptance. Optional Customer.Address remains approved. No build, NUnit, PostgreSQL E2E, compiled Swagger, Postman or Playwright results are claimed by this documentation update.
 
 ## 0.1 Authority Order
 
@@ -760,6 +774,8 @@ Browse/search public active Facility / UnitType (Anonymous or Customer)
 -> choose StartMonth + EndMonth
 -> calculate capacity for every requested month
 -> authenticate as Customer if the user is Anonymous, then resume the selection
+-> read own profile; if CCCD is missing, save it through the in-flow completion step
+-> resume the same Customer reservation review and re-read current data
 -> validate the current selection and required account/Reservation data
 -> Customer explicitly submits the Reservation
 -> create Reservation(PENDING_DEPOSIT)
@@ -773,6 +789,7 @@ Rules:
 
 - Browsing, recommendation and the sign-in gate are read/selection steps only; they do not hold capacity or create Reservation/Invoice/Visit/Payment.
 - Ordinary Customer login enters the authenticated Customer area; only an interrupted protected action carries a pending operation. Required identity/account fields are handled at the relevant business step, never as an unconditional post-login workflow.
+- Under OD-09 / BR-RES-09, new RES-001 requires saved nonblank CCCD on the authenticated Customer's profile. Missing CCCD is HTTP 400 VALIDATION_ERROR with errors.cccd and no Reservation/hold/Invoice writes. Profile completion returns to reservation review, not automatic submission; previously created rentals remain unchanged.
 - `StartMonth > CurrentMonth`.
 - `EndMonth >= StartMonth`.
 - Reservation holds capacity, not a concrete StorageUnit.
@@ -1748,8 +1765,8 @@ FAILED
 ## 9.6 Important Nullability / Conditional Rules
 
 - **V11-OD-01 overrides historical REV-2026-10-20-CUSTOMER-NO-ADDRESS for collection:** `Customer.Address` stays optional/nullable (maximum 1,000 characters in observed API validation); Customer may provide it at AUTH-001 registration and change/clear it via AUTH-005. No required use or public/employee/BOM projection is introduced. Existing values must not be silently destroyed. `Facility.Address` is unchanged.
-- AUTH-004 Customer own-profile `cccd` is private, `string | null`; existing backend is known to need integration alignment. No employee/admin/public projection inherits CCCD by this revision.
-- `Customer.CCCD` nullable; unique when present.
+- AUTH-004 Customer own-profile `cccd` is private, `string | null`; the owner-only projection is observed in source at `2945788`, with running API/Swagger/FE integration still to be verified. No employee/admin/public projection inherits CCCD by this revision.
+- `Customer.CCCD` remains nullable/max 20 and unique when present; null/empty/whitespace is missing for new RES-001 under OD-09 / BR-RES-09. This is a conditional creation rule, not a global NOT NULL column or verification status. Existing FullName and Employee name semantics are unchanged; no LegalName is introduced.
 - `Employee.FacilityId` required for Facility Staff/Manager; not required for global employee roles.
 - `Visit.EmployeeId` nullable before actual Staff handling.
 - `Visit.ActualReturnDate` only meaningful for RETURN.
@@ -1811,7 +1828,7 @@ Minimum design:
 
 | Procedure | Primary responsibility | Atomic |
 |---|---|---:|
-| `usp_CreateReservation` | capacity check + Reservation + Deposit Invoice | Yes |
+| `usp_CreateReservation` | OD-09 saved-Customer CCCD precondition + capacity check + Reservation + Deposit Invoice; reject missing CCCD without writes | Yes |
 | `usp_ConfirmReservation` | validate paid Deposit + create RESERVATION Visit + confirm | Yes |
 | `usp_CancelReservation` | cancel eligible Reservation/Visit and release hold | Yes |
 | `usp_CheckInVisit` | facility/date/role validation + CHECKED_IN | Yes |
@@ -2449,7 +2466,7 @@ The following rule IDs are canonical for FRMS Release 1:
 - `BR-PUB-02` Public discovery exposes ACTIVE Facilities and UnitTypes offered at ACTIVE Facilities, current public prices and aggregate capacity only. Private/operational/history data is excluded.
 - `BR-PUB-03` A Facility matches location and has at least one offered UnitType matching all supplied mode/size/type filters and positive available capacity for every inclusive requested month. The same UnitType must satisfy the full range; capacity from different UnitTypes/months MUST NOT be combined. Filter before pagination/counting.
 - `BR-PUB-04` Public browsing/AI/draft selection/login never holds capacity, assigns a physical unit or creates a Reservation, Invoice, Payment, Contract or Visit. Existing atomic RES-001 remains authoritative.
-- `BR-PUB-05` Authentication continuation preserves only a validated pending operation and non-sensitive selection; authoritative data/role/state are rechecked, and the Customer explicitly performs the next protected action. Ordinary Customer login enters the authenticated Customer area.
+- `BR-PUB-05` Authentication and OD-09 profile-completion continuation preserve only a validated pending operation, safe destination/next valid step and non-sensitive selection; authoritative data/role/state are rechecked, and the Customer explicitly performs the next protected action. No forced return for ordinary menu navigation. Ordinary Customer login without a pending operation enters the authenticated Customer area.
 - `BR-PUB-06` Public policy articles describe the current Policy, not a Customer's captured terms. Existing Reservation/Contract continues using captured PolicyId. Publishing public copy does not change Policy or financial rules.
 - `BR-PUB-07` Anonymous may not access any account-specific/private read or command. Shared public endpoints do not waive protected role/Facility/ownership checks or provider-webhook validation.
 
@@ -2463,6 +2480,7 @@ The following rule IDs are canonical for FRMS Release 1:
 - `BR-RES-06` Reservation confirms only after Deposit payment succeeds.
 - `BR-RES-07` RESERVATION Visit date must satisfy captured Policy.
 - `BR-RES-08` Facility/UnitType/StartMonth/EndMonth are immutable after creation.
+- `BR-RES-09` (**OD-09**) Before new RES-001 writes, the server must verify the authenticated ACTIVE Customer's saved CCCD is nonblank and satisfies existing profile constraints. Missing CCCD -> HTTP 400 VALIDATION_ERROR with errors.cccd; no Reservation, capacity hold or Deposit Invoice. CCCD remains optional at registration/nullable in Customer; this does not retroactively invalidate rentals or add a new prerequisite to their existing commands.
 
 ### Visit / Handover
 
@@ -2830,7 +2848,7 @@ tests and OpenAPI synchronization.
 
 # 14. Frontend Requirements
 
-**V11 Account Settings synchronization note (V11-OD-01):** Customer physical Address remains **optional** and may be entered through supported registration/PATCH interfaces, but the current Account Settings page is **not required** to render an Address editor or profile-read projection. Any future Address UI must follow approved optional input/privacy rules; it is not permission to share the field. Keep Email/PhoneNumber unchanged through AUTH-005; private optional Customer CCCD editing depends on verified AUTH-004/005 backend support. Missing CCCD response support means unavailable, not an empty value. UI mock tests are not live API acceptance.
+**V11 Account Settings synchronization note (OD-01/09):** Customer Address remains optional; Account Settings need not add an Address editor/read projection. Email/PhoneNumber remain unchanged through AUTH-005. CCCD is optional for registration/ordinary profile use, but required for new RES-001 under BR-RES-09. Reuse AUTH-004/005 for own CCCD editing and in-flow completion; AUTH-004 serialization is now present in source, not runtime-certified here. A missing/malformed field is unavailable, not confirmed null; do not enable destructive edits or silently bypass the reservation prerequisite. No separate Identity Verification page, LegalName or verified-identity claim is required. Ordinary Settings save stays on that page; prerequisite completion returns to its safe originating operation. UI mock tests are not live API acceptance.
 
 
 
@@ -3093,7 +3111,7 @@ Any mismatch must be resolved before Release 1 acceptance.
 
 `TEAM-APPROVED — REV-2026-10-13-GUEST`
 
-This section specifies functional behavior and security boundaries shared by the project. Visual design, page layout, component structure, navigation placement and frontend presentation mechanisms are specified separately by the frontend owner.
+This section specifies functional behavior and security boundaries shared by the project. The 2026-10-13 Guest requirements are extended by **TEAM-APPROVED OD-09 — REV-2026-10-25-CUSTOMER-CCCD-CONTINUATION**. The functional in-flow completion/return behavior below is approved; visual styling and component implementation remain frontend-owned.
 
 - Customer retains every public capability available to Anonymous under section 11.9. Public Facility/UnitType/price/capacity/policy output is independent of account identity for the same filters/data snapshot.
 - Search inputs are location/Facility, Private/Public mode, size/UnitType and Check-in/Check-out Month under API Spec §13.13; access mode does not change their meaning or the server's matching rules.
@@ -3117,9 +3135,39 @@ Validate the intended operation and authenticated role
 
 Missing identity/account data is required only when the current business operation requires it. Login does not unconditionally require Identity Verification, Reservation confirmation, Deposit or Visit scheduling, and MUST NOT automatically replay RES-001/RES-004/PAY-001 or another mutation. A stale selection/current-state conflict must be explained and current valid options re-evaluated before submission.
 
+### 14.15.1 CCCD completion within reservation review (OD-09)
+
+Guest starts a protected reservation operation -> preserve valid selection -> AUTH-001/002 as needed -> enter the same authenticated Customer flow -> AUTH-004 own-profile read -> if CCCD is missing, offer in-flow entry -> AUTH-005 profile save -> AUTH-004 read/revalidation -> restore reservation review -> explicit RES-001 confirmation. A Customer already signed in starts at the own-profile check; there is no second Guest-specific booking flow.
+
+The completion step should be a focused popup within the reservation flow, or an internal step when reservation review is already a dialog; avoid stacked dialogs and forced manual navigation to/from Settings. Explain "Bổ sung số CCCD để tiếp tục đặt kho." "Lưu và tiếp tục" saves CCCD and resumes review; it does not submit RES-001. "Để sau" closes the completion step with no booking writes, leaving the current review/selection available until abandoned. Show loading, field validation (including existing duplicate/length handling), API unavailable/error and safe retry states; do not show an unknown/malformed profile read as confirmed missing CCCD or allow reservation creation on that basis. A failed/uncertain save must be re-read safely, not falsely reported as successful.
+
+Account Settings remains available for ordinary editing. If a notification/link opens it specifically to complete a pending operation, preserve a safe return context and return automatically to that operation after success. Saving Settings opened from the normal menu does not force a return to Reservation. After completion, re-read price, full-period availability and account/resource preconditions; explain stale selections and require review before any command. No capacity or price is guaranteed merely by retaining a selection.
+
+### 14.15.2 Interrupted-operation return contract (OD-09)
+
+- Preserve the operation kind, approved non-sensitive selection/resource references and safe internal destination or next valid step across system-requested intermediate steps (currently Customer login/registration and CCCD completion). A URL alone is not sufficient to restore the business context; this does not introduce a server draft/session entity or grant a new protected operation.
+- Successful completion resumes the interrupted operation, not an unrelated Overview/default page. Restoring a page/review is navigation only; never automatically replay a Reservation, confirmation, Payment, Visit or other mutation. Resume only after role, ownership and current state are checked again by their authoritative APIs.
+- Do not treat all navigation as a detour: ordinary menu/Settings visits have no forced return. Cancellation of a required intermediate step creates no business record. Explicit abandonment, logout, account switch, completion, or invalid return context clears/invalidates continuation as appropriate; retain no private context for another account. Closing the CCCD step with "Để sau" does not itself submit or discard the still-open reservation review.
+- Accept only registered, authorized internal destinations and allowlisted non-sensitive parameters; reject external URLs, privileged/unknown routes and client scope overrides. Do not persist authoritative amounts, capacity, Customer profiles or CCCD in continuation. Do not expand external payment-return behavior or define arbitrary nested workflow stacks by inference.
+
 Continuation MUST NOT accept an external/privileged destination, treat a client CustomerId or stored price/capacity as authority, or expose another account's information. Resource-reference paths/IDs already defined by the API and protected route groups remain permitted, but server role/ownership/state checks are mandatory; a reference is not proof of access.
 
 Password/JWT/CCCD/document/payment secrets and raw personal-resource payloads MUST NOT be placed in a continuation URL or selection record. Selection/intent retention must not survive completion, abandonment, logout or account change in a way that causes cross-account reuse. Its storage and presentation mechanism is owned by frontend implementation; no server session/draft table, persisted Booking entity or new auth response field is required.
+
+### 14.15.3 OD-09 acceptance and traceability (required; not test results)
+
+| Test ID | Required result |
+|---|---|
+| `API-CCCD-001` | Registration/login/public browsing without CCCD succeed under existing rules; own AUTH-004 includes cccd null/string; Employee/public responses do not acquire it. |
+| `API-CCCD-002` | Direct authenticated RES-001 with missing/blank saved CCCD -> 400 VALIDATION_ERROR + errors.cccd, traceId, no Reservation/hold/Invoice; valid saved CCCD still requires all other reservation checks. |
+| `API-CCCD-003` | CCCD-only AUTH-005 preserves omitted name/Address fields; existing max-20/unique/clear semantics apply. Save + own read exposes the accepted value; no automatic Reservation. |
+| `SEC-CCCD-001` | Guest/wrong-role/inactive/cross-account calls remain denied; no CCCD in continuation/URL/logs/public/Employee projections; account switching and invalid/external return paths cannot reuse another account's context. |
+| `DBT-CCCD-001` | Rejected creation leaves business tables/capacity unchanged; CCCD remains nullable/unique; no LegalName, fabricated backfill or rewrite/cancellation of old rentals. |
+| `DBT-CCCD-002` | Concurrent profile clear/update and RES-001 cannot bypass the authoritative creation precondition or leave partial Reservation/Invoice state; existing capacity concurrency guarantees remain. |
+| `REG-CONT-001` | Guest login/registration -> same Customer review -> optional CCCD completion -> correct return; signed-in flow also works. Late/failed/unavailable saves, cancel/back/refresh, normal Settings, abandonment/logout/account switch and stale availability preserve safe behavior without auto-submit. |
+| `E2E-F01` | Demonstrate CCCD missing first booking and already-saved subsequent booking, saved non-sensitive selection, explicit confirmation and unchanged Deposit/handover behavior. |
+
+Traceability: CWP-03/GWP-05 + OD-09 -> BR-RES-09 / BR-PUB-05 -> AUTH-001/002/004/005 + RES-001 -> own-profile/authentication and Reservation Business Services -> repositories + existing atomic usp_CreateReservation / Customer.CCCD -> the tests above -> V11-G14. Implementation changes follow Controller -> Service -> Repository -> EF/routine; the FE is not an authority for profile completeness or capacity.
 
 ## 14.16 Public Discovery Acceptance
 
@@ -3128,6 +3176,7 @@ Password/JWT/CCCD/document/payment secrets and raw personal-resource payloads MU
 - A complete search returns only Facilities with a single matching UnitType available in every inclusive requested month; non-matching UnitTypes are excluded from search-result expansions.
 - Size Guide can lead to filtered search. AI failure does not block manual selection; optional AI has no Release 1 completion claim unless implemented/tested.
 - Ordinary Customer login enters the authenticated Customer area; authentication during a pending operation preserves and revalidates the selection before continuation, without exposing another account's data or submitting a command automatically.
+- OD-09 CCCD completion returns to the interrupted review/next valid step, with no forced return for ordinary Settings navigation; missing CCCD on new RES-001 is rejected server-side using 400 VALIDATION_ERROR + errors.cccd. See §14.15.3 for required positive, negative, persistence/concurrency and continuation coverage.
 - Personal lists/detail/payments/support remain server-protected even when their URL or API is called directly by Anonymous.
 
 # 15. External Integration and System Services
@@ -4235,10 +4284,10 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 | `GWP-02` | Storage Sizing Guidance | Delivery owner assigned by project; shares CWP-01/02 platform | CAT-004..005; optional AI-001 | BR-PUB-01/02/04; AI non-authoritative rules | API-PUB; SEC-PUB; ACC-PUB-001; optional INT-AI-PUB-001 | Yes for manual guide; AI optional |
 | `GWP-03` | Public How It Works | Delivery owner assigned by project | Approved static content; no new API | BR-PUB-04; existing seven-flow/financial semantics | ACC-PUB-001; browser content/regression | Yes |
 | `GWP-04` | Public Help / Policy / Contact | Delivery owner assigned by project | PUB-POL-001..002; approved static contact | BR-PUB-06/07; BR-POL-01..02; BR-SUP-01 | API-PUB-006; SEC-PUB-001..002; ACC-PUB-001 | Yes |
-| `GWP-05` | Guest-to-Customer Login Continuation | Delivery owner assigned by project; shares AUTH/CWP-03 | AUTH-001/002; client navigation; existing protected destination | BR-PUB-04/05/07; BR-RES-03 | SEC-PUB-004; REG-PUB-001; E2E-F01 | Yes |
+| `GWP-05` | Guest-to-Customer / prerequisite continuation | Delivery owner assigned by project; shares AUTH/CWP-03 | AUTH-001/002/004/005; safe return to existing protected destination (OD-09) | BR-PUB-04/05/07; BR-RES-03/09 | SEC-PUB-004; REG-PUB-001; REG-CONT-001; SEC-CCCD-001; E2E-F01 | Yes |
 | `CWP-01` | Facility & Unit Type Browsing | Triển / Long | CAT-001..005; common public data contracts | BR-FAC-01; BR-PUB-01..04; CALC-CAP-01 | API-CAT/PUB, SEC-PUB, DAL-PUB, E2E-F01 | Yes |
 | `CWP-02` | Shared Optional AI Size Guide Recommendation | Triển / Giang | AI-001 | Public-only inputs/types; AI non-authoritative rules | INT-AI, API-AI, INT-AI-PUB-001 | No |
-| `CWP-03` | Storage Reservation | Triển / Khoa | RES-001 | BR-RES-01..05 | UT-RES, DBT-01/02, CON-RES, API-RES, E2E-F01 | Yes |
+| `CWP-03` | Storage Reservation | Triển / Khoa | RES-001 + AUTH-004/005 own CCCD completion (OD-09) | BR-RES-01..05/09; BR-PUB-05 | UT-RES, DBT-01/02, CON-RES, API-RES, API-CCCD-001..003, DBT-CCCD-001/002, SEC-CCCD-001, REG-CONT-001, E2E-F01 | Yes |
 | `CWP-04` | Reservation & Deposit Management | Triển / Khoa+Giang | RES-002..005, BIL-001..002, PAY-001, PAY-003 | BR-RES-06..08; BR-PAY-01 | UT/API/DBT/E2E-F01 | Yes |
 | `CWP-05` | Reservation Visit Management | Triển / Khoa | RES-004, VIS-003..006 | BR-RES-07; BR-VIS-01..02 | UT-VIS, API-VIS, E2E-F01/F02 | Yes |
 | `CWP-06` | Rental Management | Triển / Khoa | CON-001..002, CON-004..005 | BR-CON-* | API-CON, SEC, E2E-F03/F06 | Yes |
@@ -5596,7 +5645,7 @@ Five roles and seven core flows; Reservation holds Facility+UnitType+month capac
 | V11-G03 | Approve three read-only SYSTEM_ADMINISTRATOR timeline GETs | **APPROVED — SECURITY TESTS PENDING** | Restrict exception to timeline; confirm own-Facility Manager and cross-Facility Admin/BOM reads; 401/403/404 |
 | V11-G04 | Approve Customer activity and supplemental directory APIs | **PARTIAL: IMPL-CUSACT-01/02 REQUIREMENTS APPROVED (OD-06/07); implementation/test acceptance pending; directories still provisional** | Owner-only SENT/Payment history, pagination/API errors and security/integration/UI tests; no unread/derived notification links or fabricated financial records; separate approval for directory reads |
 | V11-G05 | Acknowledge public CAT-003/004/005 media URL response fields | **CODE VERIFIED / OWNER ACKNOWLEDGED — TESTS PENDING** | Media governance/URL validation and generated Swagger/FE null/shape parity; future upload/CMS not approved |
-| V11-G06 | Retain optional Customer.Address and align private AUTH-004 CCCD | **ADDRESS APPROVED + CODE OBSERVED; CCCD GET GAP PENDING** | Regression for AUTH-001/005 optional Address, no exposure without permission; add `profile.cccd` only to own Customer AUTH-004; Swagger/FE tests |
+| V11-G06 | Retain optional Customer.Address and align private AUTH-004 CCCD | **APPROVED; OWNER-ONLY CCCD SERIALIZATION NOW OBSERVED AT 2945788; RUNTIME TESTS PENDING** | Regression for AUTH-001/005 optional Address; AUTH-004 null/string own-Customer-only projection and no widened disclosure; generated Swagger/FE tests |
 | V11-G07 | Confirm exact endpoint registry vs running OpenAPI and FE | NOT VERIFIED | Diff generated Swagger against companion API spec |
 | V11-G08 | Test full migration chain Pg001..Pg013 and cross-feature regression | NOT RUN HERE | Restore/build/NUnit/PostgreSQL integration/concurrency/Playwright |
 | V11-G09 | Final SRS/API release-document ratification | **PARTIAL OWNER DECISIONS APPROVED; FINAL PENDING** | Complete main-to-V11 full-text diff, other pending decisions, API/FE parity and controlled repository publication |
@@ -5604,6 +5653,7 @@ Five roles and seven core flows; Reservation holds Facility+UnitType+month capac
 | V11-G11 | No-show cleanup (`JOB-GAP-05`) | **CODE REGISTERED; DEFAULT FALSE** | Prove `SCHEDULED`/`CHECKED_IN` Visit effects and no accidental valid handover cancellation, test concurrency, approve activation |
 | V11-G12 | Notification retry (`JOB-GAP-06`) | **CODE REGISTERED; PROVIDER UNCONFIGURED; DEFAULT FALSE** | Real sender, `PENDING→SENT` after delivery, idempotent provider, crash/retry and multi-instance lock tests, queue throughput |
 | V11-G13 | Job deploy/operability (`JOB-GAP-01/02`) | **NOT VERIFIED** | Build/NUnit, current PostgreSQL Pg007 functions, deployed scheduler ownership, logs/alerting, safety flags, multi-replica tests, canary and rollback |
+| V11-G14 | OD-09 CCCD before new Reservation and interrupted-operation continuation | **TEAM APPROVED; NEW GATE/CONTINUATION IMPLEMENTATION AND TESTS PENDING** | §14.15.3 API-CCCD/SEC-CCCD/DBT-CCCD/REG-CONT + E2E-F01; 400 errors.cccd; no writes on rejection, atomic/current-profile guard, safe return and no auto-submit, deployed API/Swagger/FE parity |
 
 **Job-specific DoD:** All six tasks are present in source but only three Billing operations and Deposit expiration are default-active by current source. NoShow and Notifications require separate activation; the notification sender does not exist as an operational adapter. Do not infer successful execution from hosted-service registration. The 24-hour interval is not a fixed local-midnight cron; the current-month SQL generator does not backfill previous missed months.
 
