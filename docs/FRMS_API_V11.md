@@ -446,7 +446,7 @@ The CAT-001..005 public access/filter/view changes, PUB-POL-001/002 and Anonymou
 | `PAY-001` | `POST` | `/api/v1/invoices/{invoiceId}/payments/payos` | Start payOS payment for Deposit/Rental Invoice | CUSTOMER | CWP-04/CWP-08 |
 | `PAY-003` | `GET` | `/api/v1/payments/{paymentId}` | Authorized own / Facility / system Payment status | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-08 / operational verification |
 | `PAY-004` | `POST` | `/api/v1/payments/payos/webhook` | payOS provider webhook | EXTERNAL | EPS-01/SSP-07 |
-| `CON-001` | `GET` | `/api/v1/contracts` | Customer own / Manager Facility / BOM system Contract list | CUSTOMER,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-06 / operational monitoring |
+| `CON-001` | `GET` | `/api/v1/contracts` | Customer own / Staff & Manager assigned-Facility / BOM system Contract list | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-06 / Staff operational read (OD-08) / monitoring |
 | `CON-002` | `GET` | `/api/v1/contracts/{contractId}` | Authorized own / Facility / system Contract detail | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-06 / operational read |
 | `CON-003` | `POST` | `/api/v1/contracts/{contractId}/renew` | Renew active Contract | CUSTOMER | CWP-09 |
 | `CON-004` | `GET` | `/api/v1/contracts/{contractId}/billing` | Authorized Contract billing/overdue summary | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-08/CWP-11 / operational monitoring |
@@ -516,7 +516,7 @@ The CAT-001..005 public access/filter/view changes, PUB-POL-001/002 and Anonymou
 
 ### 13.11.1 Shared Operational Read Authorization
 
-The access/role sets in section 13.11 are authoritative for each endpoint; a broad role in the actor matrix does not grant access to an unlisted endpoint. Public means the identity-independent projection in sections 3.8/10.6.1, not general operational access. In particular, Staff cannot call RES-002, CON-001 or VIS-003; OPS-001 supplies the Staff work list. Manager and BOM can use those lists and their detail endpoints. SYSTEM_ADMINISTRATOR receives only the same public catalog/policy information as any visitor, not new private/operational business-read authority through the Guest revision.
+The access/role sets in section 13.11 are authoritative for each endpoint; a broad role in the actor matrix does not grant access to an unlisted endpoint. Public means the identity-independent projection in sections 3.8/10.6.1, not general operational access. Under owner-approved SRS OD-08, Staff may call CON-001 **only** for its assigned-Facility read-only Contract list, but still cannot call RES-002 or VIS-003; OPS-001 supplies the Staff daily work list. Manager and BOM keep their current list/detail scopes. SYSTEM_ADMINISTRATOR receives only the same public catalog/policy information as any visitor, not new private/operational business-read authority through the Guest revision.
 
 For the revised reads:
 
@@ -1006,6 +1006,18 @@ Only verified results enter the idempotent SQL transaction. No registration call
 
 ## 13.16 Contract / Visit API Contracts
 
+### CON-001 — Authorized Contract List (SRS OD-08)
+
+```text
+GET /api/v1/contracts?page=1&pageSize=20
+Roles: CUSTOMER, FACILITY_STAFF, FACILITY_MANAGER, BUSINESS_OPERATIONS_MANAGER
+Success: 200 ContractListResponse (data + pagination)
+```
+
+- For CUSTOMER, filter by the authenticated CustomerId; for FACILITY_STAFF and FACILITY_MANAGER, resolve the current assigned Facility from the authenticated Employee and filter Contract.FacilityId; for BUSINESS_OPERATIONS_MANAGER, list system-wide. Do not accept client FacilityId/CustomerId as an authorization shortcut.
+- Apply the ownership/Facility predicate to both SQL COUNT and sorted rows before pagination. Use `page >= 1`, `1 <= pageSize <= 100`, defaults 1/20, with the existing deterministic sort (ACTIVE first, EndMonth descending, ContractId tie-break). Existing `ContractSummaryResponse` includes contractId, facilityId, customerId, storageUnitId, unitCode, unitTypeId/name/mode, startMonth, endMonth and status. It does not publish CCCD or full Customer details.
+- No assignment -> 403 FORBIDDEN; unauthenticated -> 401; invalid pagination -> 400; unrelated Staff Facility rows must never be returned. GET is read-only. This changes only CON-001 authorization, not Contract mutation or the restrictions on RES-002 and VIS-003. FE Staff list implementation is owned separately.
+
 ### CON-002 — Customer / Operational Contract Detail
 
 ```text
@@ -1014,7 +1026,7 @@ Roles: CUSTOMER, FACILITY_STAFF, FACILITY_MANAGER, BUSINESS_OPERATIONS_MANAGER
 Success: 200 ApiResponse<ContractDetail>
 ```
 
-Customer reads an owned Contract; Staff/Manager read a Contract in the actor's assigned Facility; BOM may read system-wide. CON-001 is a server-filtered list for Customer/Manager/BOM only, using the canonical ContractDetail schema and standard collection envelope. Apply authoritative ACTIVE-account and resource/Facility checks, not a client-supplied customerId or facilityId. Nonexistent resource -> 404 RESOURCE_NOT_FOUND; wrong Staff/Manager Facility -> 403 FORBIDDEN.
+Customer reads an owned Contract; Staff/Manager read a Contract in the actor's assigned Facility; BOM may read system-wide. CON-001 is a server-filtered, paginated `ContractSummaryResponse` list for Customer/Staff/Manager/BOM as defined above; CON-002 returns the `ContractDetailResponse` projection. Apply authoritative ACTIVE-account and resource/Facility checks, not a client-supplied customerId or facilityId. Nonexistent detail -> 404 RESOURCE_NOT_FOUND; wrong Staff/Manager detail Facility -> 403 FORBIDDEN.
 
 Reuse section 13.10.6 unchanged: ContractDetail already has reservationId. To obtain the immutable first-month amount and associated RESERVATION Visit, follow that ID through RES-003; use VIS-004 for the required Visit detail. No lockedRentalPrice, Visit snapshot, paid flag or additional ReservationId property is added to the persisted Contract. OPS-004 supplies the contractId for reading the Contract after successful handover.
 

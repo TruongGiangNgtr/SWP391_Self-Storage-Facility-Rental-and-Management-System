@@ -19,10 +19,11 @@ public sealed class ContractsController(
     IReturnVisitService returnVisits)
     : ControllerBase
 {
-    /// <summary>CON-001: List own Contracts.</summary>
+    /// <summary>CON-001: List owned or assigned-Facility Contracts (Staff is read-only).</summary>
     [Authorize(
         Roles =
             RoleNames.Customer + "," +
+            RoleNames.FacilityStaff + "," +
             RoleNames.FacilityManager + "," +
             RoleNames.BusinessOperationsManager)]
     [HttpGet]

@@ -15,7 +15,7 @@ public sealed class RbacV2ContractTests
     public void ContractListUsesTheRolesDeclaredByTheCurrentController()
     {
         Assert.That(Roles<ContractsController>(nameof(ContractsController.ListContracts)),
-            Is.EqualTo("CUSTOMER,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER"));
+            Is.EqualTo("CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER"));
     }
 
     [Test]

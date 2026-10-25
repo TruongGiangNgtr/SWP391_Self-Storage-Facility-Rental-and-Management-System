@@ -138,6 +138,8 @@ Earlier provider-specific contracts, test URLs, credentials, callback convention
 
 **Implementation boundary:** This task updates the SRS only. Backend role gates, authoritative Facility/ownership checks, DTOs/Swagger, return stored procedures and frontend types/UI must be aligned and verified by their owners before the affected feature is declared complete. No new entity, persisted attribute, role, state, first-month Invoice/Payment or write-role permission is introduced. The existing offline-first-month revision remains in force. The approved Finalize Return release rule supersedes conflicting Complete Inspection release wording in the lower-level Data Dictionary; its SQL deployment alignment requires the existing migration/redeploy review process, not a new database field.
 
+**Later supersession (2026-10-25, OD-08):** The historical 2026-10-07 restriction on Staff Contract **list** access is superseded for `CON-001` only. Staff still cannot list Reservations (`RES-002`) or Visits (`VIS-003`).
+
 ## 0.0.3 Approved Change Record — REV-2026-10-09-PAYOS
 
 **Approval:** Owner approved payOS as the active gateway and clarified webhook acknowledgement, UTC+7 provider time and description on 2026-10-09.
@@ -322,6 +324,14 @@ The **initial V11 reconciliation package** was SRS + API + Data Dictionary docum
 - **Traceability:** Customer Transaction History tab -> OD-07 -> `IMPL-CUSACT-02` (API §13A.3) -> `CustomerActivityService.PaymentsAsync` -> `CustomerActivityRepository.ListPaymentsAsync` -> existing `Payment`/`Invoice` with `Reservation`/`Contract` ownership -> the contract, authorization and UI checks above. View Invoice reuses `BIL-002`; no new persisted model or payment endpoint is required.
 
 **Unchanged decisions:** payOS only for eligible Deposit and post-first-month Rental Fee invoices, offline first-month acknowledgment, policy/price snapshot rules, five roles, seven core flows, ownership guards, and the separate limited live-payment evidence scope. **Pending:** owner architecture ratification of PostgreSQL, supplemental directory proposals, billing backfill/scheduling decisions, AUTH-004 CCCD backend alignment, and release-gate test evidence. Transaction History requirements are approved; implementation/testing is tracked separately.
+
+### OD-08 — Facility Staff read-only Contract list approved (2026-10-25)
+
+**Change record:** `REV-2026-10-25-STAFF-CONTRACT-LIST`. The owner authorizes authenticated ACTIVE `FACILITY_STAFF` to call the existing `CON-001 GET /api/v1/contracts?page=1&pageSize=20` for a **read-only, server-filtered list of Contracts in that Staff member's assigned Facility**. The current `CON-002` detail access is unchanged. This decision expressly supersedes only the historical Staff/CON-001 denial in §0.0.2; Staff remains excluded from `RES-002` and `VIS-003` lists.
+
+- Resolve the current Employee/Facility assignment from the authenticated account; never accept a caller-supplied FacilityId or CustomerId to widen scope. Apply `Contract.FacilityId == assignedFacilityId` to both count and page query **before** pagination. Staff may view Contracts belonging to different Customers only within that Facility. Unassigned Staff -> 403; missing/inactive authentication -> 401/403 per existing authentication rules. No cross-Facility list data may be returned.
+- Reuse the existing `CON-001` route, paginated `ContractListResponse` and `ContractSummary` projection; `page` starts at 1, `pageSize` is 1..100 (default 20). Existing `CUSTOMER` owner, `FACILITY_MANAGER` Facility and `BUSINESS_OPERATIONS_MANAGER` system-wide list scopes remain unchanged. No new Contract/Customer/Visit field, SQL table, stored procedure, command permission or status is introduced.
+- Backend implementation only in this scope. Frontend Staff Contract List navigation/presentation will be completed by the FE owner independently. Required acceptance: Staff own-Facility pages and counts; no other-Facility rows; missing Facility 403; Customer/Manager/BOM behavior unchanged; Administrator rejected; GET has no writes; API authorization/OpenAPI parity; build, unit and integration tests recorded separately.
 
 ## 0.0.10 Three-Document V11 Synchronization — 2026-10-20
 
@@ -2112,7 +2122,7 @@ The following is the API-level authorization baseline for the five business role
 | Visit check-in/out | No | Same Facility | Monitor | No | No |
 | Complete Handover | No | Same Facility; command acknowledges offline first-month receipt | Preassign/reassign/release StorageUnit after CHECKED_IN; monitor; cannot execute Staff handover | No | No |
 | StorageUnit management | No | Operational handling only | Same Facility | Read/monitor | No mutation; only the three approved read-only status timeline endpoints |
-| Contract read/list | Own | Same Facility detail | Same Facility list/detail | System list/detail | No |
+| Contract read/list | Own | Same Facility list/detail (CON-001/002; read-only) | Same Facility list/detail | System list/detail | No |
 | Contract renewal | Own request | No | Monitor | Monitor | No |
 | Invoice/Payment | Own view/pay | Same Facility read/verify only | Same Facility read/monitor | System read/report | No manual PAID |
 | Policy | Current public articles/projection | Read | Read | Create version | Public projection only; no business mutation |
@@ -2157,7 +2167,7 @@ Facility scope MUST be checked server-side even if FE routes hide other Faciliti
 
 For Reservation detail, the resource Facility is Reservation.FacilityId. For Contract detail, it is Contract.FacilityId. For Visit detail and Visit work items, resolve Visit.EntityId by VisitType: RESERVATION -> Reservation.FacilityId; ACCESS/RETURN -> Contract.FacilityId. Do not treat every EntityId as a ReservationId or trust a client-supplied Facility identifier.
 
-RES-003, CON-002 and VIS-004 require an authenticated ACTIVE actor. Staff access additionally requires a current Employee assignment to the resource Facility. Staff may read different Customers' resources within that Facility; Staff is not evaluated under Customer-own-resource semantics. Cross-Facility access returns 403 FORBIDDEN. A nonexistent detail resource returns 404 RESOURCE_NOT_FOUND. Read permission does not authorize a state transition or bypass command-specific lifecycle checks.
+RES-003, CON-001, CON-002 and VIS-004 require an authenticated ACTIVE actor. Staff access additionally requires a current Employee assignment to the resource Facility. Staff may read Contracts belonging to different Customers within their assigned Facility via CON-001; server-side filtering must constrain both COUNT and page query before pagination, without accepting a client-owned FacilityId. Staff may read different Customers' authorized details within that Facility and is not evaluated under Customer-own-resource semantics. Cross-Facility detail access returns 403 FORBIDDEN; a missing Staff Facility assignment also returns 403. A nonexistent detail resource returns 404 RESOURCE_NOT_FOUND. Read permission does not authorize a state transition or bypass command-specific lifecycle checks.
 
 ## 10.8 Resource Ownership Authorization
 
@@ -3018,7 +3028,7 @@ For the first month, Customer receives offline-payment instructions and Staff ac
 
 Staff sees the server-owned Reservation.LockedRentalPrice and must acknowledge full receipt before submitting OPS-004. The authorized request itself is the acknowledgment; no separately persisted first-month-paid flag is required. UI checks do not replace server authorization and lifecycle validation.
 
-Staff loads Visit/Reservation context through OPS-001 -> VIS-004/RES-003. After OPS-004 succeeds, use its contractId -> CON-002; ContractDetail.reservationId -> RES-003 supplies the immutable first-month amount and handover Visit without adding financial/Visit attributes to Contract. Staff must not call Customer-only list/write endpoints or synthesize missing operational data.
+Staff loads Visit/Reservation context through OPS-001 -> VIS-004/RES-003. Staff may independently browse same-Facility Contracts through CON-001 (read-only). After OPS-004 succeeds, use its contractId -> CON-002; ContractDetail.reservationId -> RES-003 supplies the immutable first-month amount and handover Visit without adding financial/Visit attributes to Contract. Staff must not call Customer-only list/write endpoints or synthesize missing operational data.
 
 ## 14.11 Loading / Empty / Error States
 
@@ -4238,7 +4248,7 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 | `CWP-10` | Storage Return Visit | Triển / Giang | VIS-002..006, CON-005 | BR-RET-01..02 | UT-RET, API-RET, E2E-F06 | Yes |
 | `CWP-11` | Fee & Return Tracking | Triển / Giang | CON-004..005, BIL-* | BR-LATE-*; BR-SET-* | UT/API/E2E-F06 | Yes |
 | `CWP-12` | Customer Support | Triển / Giang | SUP-001..004 | BR-SUP-01 | UT-SUP, API-SUP, E2E-F07 | Yes |
-| `FWP-01` | Daily Work List | Triển / Long | OPS-001; VIS-004/RES-003/CON-002 navigation | Derived Visits/Inspections/Tickets; same-Facility minimal operational read | DAL/API/SEC | Yes |
+| `FWP-01` | Daily Work List | Triển / Long | OPS-001; VIS-004/RES-003/CON-001/CON-002 navigation | Derived Visits/Inspections/Tickets; same-Facility Contract list/detail read only (OD-08) | DAL/API/SEC | Yes |
 | `FWP-02` | Reservation Check-in | Triển / Khoa | OPS-001, RES-003, VIS-004, OPS-002 | BR-VIS-*; same-Facility read | UT/API/SEC/E2E-F02 | Yes |
 | `FWP-03` | Offline-receipt acknowledgment & Handover Processing | Triển / Khoa | RES-003, VIS-004, BOM-010, OPS-004, CON-002 | BR-HO-01..03; BR-BIL-06; CALC-FIRST-01; immutable rental read | DBT-06/24, CON-HO, API-HO, SEC, E2E-F02 | Yes |
 | `FWP-04` | Access Visit Processing | Triển / Khoa | OPS-002..003 | BR-VIS-* | UT/API/E2E-F03 | Yes |
@@ -5154,8 +5164,8 @@ Historical V10 FINAL summary (superseded by the explicit V11 candidate technical
 99. External-provider implementations belong to `Frms.Infrastructure` and implement interfaces owned by Business.
 100. Release 1 has no separate Worker project. Application-scheduled execution runs in `Frms.Api/BackgroundJobs` and calls Business services; approved PostgreSQL job scheduler (if separately deployed) may call authoritative PostgreSQL business routines directly.
 101. `Frms.ArchitectureTests` is required to enforce the locked dependency boundaries.
-102. RES-003, CON-002 and VIS-004 allow Customer own detail, Staff/Manager same-Facility detail and BOM system-wide detail; no corresponding Staff list permission is granted.
-103. RES-002, CON-001 and VIS-003 are Customer-own, Manager-Facility and BOM-system lists; all filtering/counting precedes pagination.
+102. RES-003, CON-002 and VIS-004 allow Customer own detail, Staff/Manager same-Facility detail and BOM system-wide detail. OD-08 additionally grants Staff same-Facility read-only CON-001 list access, not RES-002/VIS-003 list access.
+103. RES-002 and VIS-003 remain Customer-own, Manager-Facility and BOM-system lists; CON-001 additionally allows Staff's assigned-Facility Contract list. All filtering and counting precede pagination; no Staff-controlled FacilityId expands scope.
 104. OPS-001 Visit work items expose authoritative VisitId/EntityId and minimal Customer identification; non-Visit reference IDs are not interpreted as Visit IDs.
 105. ContractDetail already contains ReservationId; operational locked-price/RESERVATION Visit reads follow RES-003/VIS-004 without new Contract attributes or duplicate fields.
 106. BOM-010 supports own Customer and authorized same-Facility operational Discount reads; BOM-013 supports active operational ExtraFeeType reads. Catalogue mutation roles are unchanged.
@@ -5235,7 +5245,7 @@ FRMS Release 1 is accepted only when all applicable conditions below are true.
 [ ] Protected endpoints enforce server-side authorization
 [ ] Retired first-month online-payment route/payment reference are absent from current API/FE contracts
 [ ] OPS-004 follows the approved offline DD-13 model without initial Invoice/Payment
-[ ] Staff detail read RES-003/CON-002/VIS-004 and OPS-001 Visit navigation match the approved operational contract
+[ ] Staff CON-001 same-Facility read-only Contract list (count/page scoped before pagination) and detail read RES-003/CON-002/VIS-004; OPS-001 Visit navigation match the approved operational contract
 [ ] ContractDetail remains unchanged; locked rent and handover Visit are read through its ReservationId
 [ ] Manager/BOM operational reads and BOM-010/BOM-013 catalogue reads match the role/Facility contracts
 [ ] INS-007 has no storageUnitStatus; INS-008 requires AVAILABLE/MAINTENANCE and reports committed Unit state
