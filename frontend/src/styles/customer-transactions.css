@@ -1,0 +1,24 @@
+.customer-transaction-list { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.customer-transaction-list .transaction-heading { display: flex; align-items: center; gap: 12px; }
+.customer-transaction-list .transaction-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex: 0 0 44px; border-radius: 12px; color: var(--flow-brand); background: #eff6ff; }
+.customer-transaction-list .transaction-heading h2 { margin: 0; font-size: 16px; }
+.customer-transaction-list .transaction-result { display: flex; align-items: flex-end; flex-direction: column; gap: 8px; margin-left: auto; text-align: right; }
+.customer-transaction-list .transaction-result > strong { font-size: 18px; font-variant-numeric: tabular-nums; }
+.customer-transaction-list .transaction-details { display: flex; align-items: flex-end; gap: 16px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--flow-border); }
+.customer-transaction-list dl { flex: 1; display: grid; grid-template-columns: .8fr 1fr 1fr; gap: 16px; min-width: 0; margin: 0; }
+.customer-transaction-list dl > div { min-width: 0; }
+.customer-transaction-list dt { margin: 0 0 8px; color: var(--flow-muted); font-size: 12px; }
+.customer-transaction-list dd { margin: 0; font-size: 14px; line-height: 1.6; }
+.customer-transaction-list .transaction-invoice-link { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; gap: 8px; min-height: 44px; color: var(--flow-brand); font-size: 14px; text-decoration: none; }
+.customer-transaction-list .transaction-invoice-link:hover { text-decoration: underline; }
+@container (max-width: 700px) {
+  .customer-transaction-list .transaction-details { flex-wrap: wrap; }
+  .customer-transaction-list dl { flex-basis: 100%; }
+  .customer-transaction-list .transaction-invoice-link { margin-left: auto; }
+}
+@media (max-width: 480px) {
+  .customer-transaction-list .transaction-heading { flex-wrap: wrap; }
+  .customer-transaction-list .transaction-heading h2 { font-size: 14px; }
+  .customer-transaction-list .transaction-result { flex-basis: 100%; flex-direction: row; align-items: center; justify-content: space-between; margin-top: 8px; text-align: left; }
+  .customer-transaction-list dl { grid-template-columns: 1fr; }
+}
