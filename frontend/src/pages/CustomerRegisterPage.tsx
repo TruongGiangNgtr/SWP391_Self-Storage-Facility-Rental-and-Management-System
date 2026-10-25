@@ -2,6 +2,8 @@ import { useRef, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { authApi } from '../api/authApi'
+import { ApiRequestError } from '../api/httpClient'
+import { CCCD_INPUT_PATTERN, cccdValidationMessage } from '../features/customer-profile/customerProfile'
 import { readCustomerContinuation } from '../auth/customerContinuation'
 import { getPasswordValidationMessage } from '../auth/passwordValidation'
 import { isUuid } from '../features/handover/handoverValidation'
@@ -29,6 +31,7 @@ export function CustomerRegisterPage() {
     const fullName = String(form.get('fullName') ?? '').trim()
     const phoneNumber = String(form.get('phoneNumber') ?? '').trim()
     const email = String(form.get('email') ?? '').trim()
+    const cccd = String(form.get('cccd') ?? '').trim()
     const nextErrors: Record<string, string> = {}
     if (!fullName) nextErrors.fullName = 'Enter your full name.'
     if (!phoneNumber) nextErrors.phoneNumber = 'Enter your phone number.'
@@ -38,6 +41,8 @@ export function CustomerRegisterPage() {
     if (passwordError) nextErrors.password = passwordError
     if (!form.get('confirmPassword')) nextErrors.confirmPassword = 'Re-enter your password.'
     else if (password !== form.get('confirmPassword')) nextErrors.confirmPassword = 'The passwords do not match.'
+    const cccdError = cccdValidationMessage(cccd)
+    if (cccdError) nextErrors.cccd = cccdError
     setFieldErrors(nextErrors)
     if (Object.keys(nextErrors).length) {
       setError(null)
@@ -49,13 +54,16 @@ export function CustomerRegisterPage() {
     try {
       const response = await authApi.registerCustomer({
         fullName, phoneNumber, email, password,
-        cccd: String(form.get('cccd') ?? '').trim() || null,
+        cccd: cccd || null,
       })
       if (!isUuid(response?.data?.userAccountId) || !isUuid(response?.data?.customerId)) {
         setError(presentValidationError('We could not confirm that your account was created. Try signing in or contact support before registering again.')); return
       }
       navigate('/auth/customer/login', { replace: true, state: { ...authState, registrationComplete: true } })
-    } catch (caughtError) { setError(presentApiError(caughtError)) }
+    } catch (caughtError) {
+      setError(presentApiError(caughtError))
+      if (caughtError instanceof ApiRequestError && caughtError.errors?.cccd?.length) setFieldErrors(current => ({ ...current, cccd: caughtError.errors!.cccd.join(' ') }))
+    }
     finally { busy.current = false; setIsSubmitting(false) }
   }
   return <CustomerAuthFrame register>
@@ -67,7 +75,7 @@ export function CustomerRegisterPage() {
       <CustomerPasswordField name="password" autoComplete="new-password" describedBy="password-guidance" error={fieldErrors.password} />
       <p id="password-guidance" className="muted customer-auth-small">Use 8–64 characters. Emoji and accented letters may require a shorter password.</p>
       <CustomerPasswordField name="confirmPassword" label="Confirm Password" autoComplete="new-password" error={fieldErrors.confirmPassword} />
-      <details className="customer-auth-optional"><summary>Additional profile information (optional)</summary><div className="form-grid"><div className="form-field"><label htmlFor="registerCccd">National ID / CCCD</label><input id="registerCccd" name="cccd" autoComplete="off" maxLength={20} /></div></div></details>
+      <details className="customer-auth-optional"><summary>Additional profile information (optional)</summary><div className="form-grid"><div className="form-field"><label htmlFor="registerCccd">National ID / CCCD</label><input id="registerCccd" name="cccd" autoComplete="off" inputMode="numeric" pattern={CCCD_INPUT_PATTERN} maxLength={20} aria-invalid={Boolean(fieldErrors.cccd)} aria-describedby={`register-cccd-help${fieldErrors.cccd ? ' register-cccd-error' : ''}`} /><CustomerFieldError id="register-cccd-error" message={fieldErrors.cccd} /><small id="register-cccd-help">Optional. If provided, enter exactly 12 digits, including any leading zeroes.</small></div></div></details>
       <ApiErrorAlert error={error} />
       <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Creating your account…' : 'Create Customer Account'}</button>
       <div className="customer-auth-divider"><span>Already have an account?</span></div>

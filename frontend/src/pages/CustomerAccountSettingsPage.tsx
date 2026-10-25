@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { CheckCircle2, Info, LockKeyhole, ShieldCheck } from 'lucide-react'
 import { authApi } from '../api/authApi'
+import { ApiRequestError } from '../api/httpClient'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { useAuth } from '../auth/auth.context'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { CustomerFieldError } from '../components/CustomerFieldError'
 import { LoadingState } from '../components/PageStates'
-import { buildCustomerProfilePatch, readCustomerProfile, type CustomerProfileSnapshot } from '../features/customer-profile/customerProfile'
+import { buildCustomerProfilePatch, readCustomerProfile, CCCD_INPUT_PATTERN, cccdValidationMessage, isValidCccd, type CustomerProfileSnapshot } from '../features/customer-profile/customerProfile'
 import '../styles/customer-account-settings.css'
 
 export function CustomerAccountSettingsPage() {
@@ -63,7 +64,8 @@ export function CustomerAccountSettingsPage() {
     if (!snapshot || busy.current || !dirty) return
     const errors: Record<string, string> = {}
     if (!fullName.trim() || fullName.trim().length > 150) errors.fullName = 'Enter your full name (1–150 characters).'
-    if (snapshot.cccd !== undefined && cccd.trim().length > 20) errors.cccd = 'Use no more than 20 characters for your National ID.'
+    const cccdError = 'cccd' in patch ? cccdValidationMessage(cccd) : null
+    if (cccdError) errors.cccd = cccdError
     setFieldErrors(errors); setError(null); setSaved(false)
     if (Object.keys(errors).length) {
       event.currentTarget.querySelector<HTMLInputElement>(`[name="${Object.keys(errors)[0]}"]`)?.focus()
@@ -76,7 +78,10 @@ export function CustomerAccountSettingsPage() {
       const updated = { ...snapshot, fullName: response.fullName, cccd: 'cccd' in patch ? patch.cccd : snapshot.cccd }
       setSnapshot(updated); setFullName(updated.fullName); setCccd(updated.cccd ?? ''); setSaved(true)
     } catch (caughtError) {
-      if (alive.current) setError(presentApiError(caughtError))
+      if (alive.current) {
+        setError(presentApiError(caughtError))
+        if (caughtError instanceof ApiRequestError && caughtError.errors?.cccd?.length) setFieldErrors(current => ({ ...current, cccd: caughtError.errors!.cccd.join(' ') }))
+      }
     } finally {
       busy.current = false
       if (alive.current) setSaving(false)
@@ -95,7 +100,7 @@ export function CustomerAccountSettingsPage() {
           <div className="form-field"><label htmlFor="settings-full-name">Full Name</label><input id="settings-full-name" name="fullName" autoComplete="name" value={fullName} required maxLength={150} disabled={saving} aria-invalid={Boolean(fieldErrors.fullName)} aria-describedby={fieldErrors.fullName ? 'settings-name-error' : undefined} onChange={event => { setFullName(event.target.value); setSaved(false); setFieldErrors(current => ({ ...current, fullName: '' })) }} /><CustomerFieldError id="settings-name-error" message={fieldErrors.fullName} /></div>
           <div className="form-field"><label htmlFor="settings-phone">Phone Number <span className="account-readonly-label" aria-hidden="true">Read-only</span></label><div className="account-readonly-input"><input id="settings-phone" type="tel" autoComplete="tel" value={snapshot.phoneNumber} readOnly aria-describedby="settings-phone-help" /><LockKeyhole size={16} aria-hidden="true" /></div><small className="account-field-help" id="settings-phone-help">Used to sign in. Your phone number cannot be changed here.</small></div>
           <div className="form-field account-profile-wide"><label htmlFor="settings-email">Email Address <span className="account-readonly-label" aria-hidden="true">Read-only</span></label><div className="account-readonly-input"><input id="settings-email" type="email" autoComplete="email" value={snapshot.email} readOnly aria-describedby="settings-email-help" /><LockKeyhole size={16} aria-hidden="true" /></div><small className="account-field-help" id="settings-email-help"><Info size={14} aria-hidden="true" />Your account email cannot be changed here. Customer sign-in uses your phone number.</small></div>
-          <div className="form-field account-profile-wide"><label htmlFor="settings-cccd">National ID / CCCD <span className="muted">(optional)</span></label><input id="settings-cccd" name="cccd" autoComplete="off" value={cccd} maxLength={20} disabled={saving || snapshot.cccd === undefined} placeholder={snapshot.cccd === undefined ? 'Not available yet' : 'Enter your National ID'} aria-invalid={Boolean(fieldErrors.cccd)} aria-describedby={`settings-cccd-help${fieldErrors.cccd ? ' settings-cccd-error' : ''}`} onChange={event => { setCccd(event.target.value); setSaved(false); setFieldErrors(current => ({ ...current, cccd: '' })) }} /><CustomerFieldError id="settings-cccd-error" message={fieldErrors.cccd} /><small className="muted" id="settings-cccd-help">{snapshot.cccd === undefined ? 'Your National ID is not available from the profile service yet. It will not be changed when you save your name.' : 'Optional, up to 20 characters. Updating this field does not verify your identity. Clearing it removes the saved National ID.'}</small></div>
+          <div className="form-field account-profile-wide"><label htmlFor="settings-cccd">National ID / CCCD <span className="muted">(optional)</span></label><input id="settings-cccd" name="cccd" autoComplete="off" inputMode="numeric" pattern={CCCD_INPUT_PATTERN} value={cccd} maxLength={20} disabled={saving || snapshot.cccd === undefined} placeholder={snapshot.cccd === undefined ? 'Not available yet' : 'Enter your 12-digit National ID'} aria-invalid={Boolean(fieldErrors.cccd)} aria-describedby={`settings-cccd-help${fieldErrors.cccd ? ' settings-cccd-error' : ''}`} onChange={event => { setCccd(event.target.value); setSaved(false); setFieldErrors(current => ({ ...current, cccd: '' })) }} /><CustomerFieldError id="settings-cccd-error" message={fieldErrors.cccd} /><small className="muted" id="settings-cccd-help">{snapshot.cccd === undefined ? 'Your National ID is not available from the profile service yet. It will not be changed when you save your name.' : snapshot.cccd && !isValidCccd(snapshot.cccd) ? 'Your saved National ID needs correction to exactly 12 digits before a new reservation. Editing other profile fields will not change it.' : 'Optional. If provided, use exactly 12 digits. Updating this field does not verify your identity. Clearing it removes the saved National ID.'}</small></div>
         </div>
         {snapshot.cccd === undefined && <div className="account-information"><Info size={18} aria-hidden="true" /><p>National ID editing will be available when the profile service supports it. You can still update your full name.</p></div>}
         {saved && <p className="account-save-success" role="status"><CheckCircle2 size={18} aria-hidden="true" />Your profile changes have been saved.</p>}
