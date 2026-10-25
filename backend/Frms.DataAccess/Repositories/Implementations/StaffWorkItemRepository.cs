@@ -129,9 +129,36 @@ internal sealed class StaffWorkItemRepository(
             .Take(pageSize)
             .Select(x => new StaffWorkItemRecord(
                 x.WorkType, x.ReferenceId, x.EntityId, x.ScheduledDate, x.Status,
-                x.CustomerId, x.CustomerName, x.CustomerPhone))
+                x.CustomerId, x.CustomerName, x.CustomerPhone, null, null))
             .ToArrayAsync(cancellationToken);
 
+        // Batch-enrich only the physical RETURN visits in the paged result.
+        // No per-row requests and no set-operation DateTime store-type mismatch.
+        var returnVisitIds = items.Where(x => x.WorkType == "RETURN_VISIT")
+            .Select(x => x.ReferenceId).ToArray();
+        if (returnVisitIds.Length > 0)
+        {
+            var confirmations = await dbContext.Visits.AsNoTracking()
+                .Where(visit => returnVisitIds.Contains(visit.VisitId))
+                .Select(visit => new
+                {
+                    visit.VisitId,
+                    visit.ActualReturnDate,
+                    InspectionId = dbContext.Inspections.AsNoTracking()
+                        .Where(i => i.VisitId == visit.VisitId)
+                        .Select(i => (Guid?)i.InspectionId).FirstOrDefault()
+                })
+                .ToArrayAsync(cancellationToken);
+            var byVisit = confirmations.ToDictionary(x => x.VisitId);
+            items = items.Select(item =>
+                byVisit.TryGetValue(item.ReferenceId, out var confirmation)
+                    ? item with
+                    {
+                        ActualReturnDate = confirmation.ActualReturnDate,
+                        InspectionId = confirmation.InspectionId
+                    }
+                    : item).ToArray();
+        }
         return (items, totalItems);
     }
 }

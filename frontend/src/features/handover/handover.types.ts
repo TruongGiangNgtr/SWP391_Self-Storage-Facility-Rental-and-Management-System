@@ -3,6 +3,8 @@ export interface StaffWorkItem {
   referenceId: string
   scheduledDate: string
   status: string
+  actualReturnDate?: string | null
+  inspectionId?: string | null
   entityId?: string
   customer?: StaffWorkItemCustomer
 }

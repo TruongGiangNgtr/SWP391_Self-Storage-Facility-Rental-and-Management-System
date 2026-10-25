@@ -8,4 +8,6 @@ public sealed record StaffWorkItemRecord(
     string Status,
     Guid? CustomerId,
     string? CustomerName,
-    string? CustomerPhone);
+    string? CustomerPhone,
+    DateTime? ActualReturnDate,
+    Guid? InspectionId);

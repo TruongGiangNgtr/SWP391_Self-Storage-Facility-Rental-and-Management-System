@@ -29,7 +29,16 @@ public sealed record StaffWorkItemResponse(
 
     [property: JsonIgnore(
         Condition = JsonIgnoreCondition.WhenWritingNull)]
-    StaffWorkItemCustomerResponse? Customer);
+    StaffWorkItemCustomerResponse? Customer,
+
+    // Non-null only for RETURN visits already physically confirmed.
+    [property: JsonIgnore(
+        Condition = JsonIgnoreCondition.WhenWritingNull)]
+    DateOnly? ActualReturnDate,
+
+    [property: JsonIgnore(
+        Condition = JsonIgnoreCondition.WhenWritingNull)]
+    Guid? InspectionId);
 
 /// <summary>Represents the Contract portion returned after Complete Handover.</summary>
 public sealed record HandoverContractResponse(

@@ -1172,6 +1172,7 @@ Visit work-item semantics:
 - For non-Visit work items, preserve their existing workType/referenceId meanings; Visit-specific entityId/customer properties are omitted. A generic referenceId is not always a VisitId.
 - A RESERVATION_VISIT opens VIS-004 by referenceId and RES-003 by entityId. ACCESS/RETURN items open VIS-004 and CON-002. No task/assignment entity or physical-unit reservation is created.
 - After successful Check-in or Handover, and after a state-conflict response, FE refreshes authoritative work-item/detail state. It must not fabricate CHECKED_IN/COMPLETED state from a click.
+- For a RETURN_VISIT already physically confirmed, the work item may include `actualReturnDate` (`YYYY-MM-DD`) and `inspectionId` (UUID). Both properties are omitted when null and for unrelated work types. A confirmed Visit can remain `CHECKED_IN`; clients must not offer Confirm Return again when `actualReturnDate` exists. The `inspectionId` allows navigation to the precise existing Inspection without extra per-row requests. These read-only properties do not alter Visit state, authorization, or return processing.
 
 ### OPS-002 — Check In Visit
 

@@ -41,7 +41,9 @@ public sealed class StaffOperationsController(IHandoverService handoverService,I
                         x.CustomerId.Value,
                         x.CustomerName!,
                         x.CustomerPhone!)
-                    : null
+                    : null,
+                x.ActualReturnDate,
+                x.InspectionId
             )).ToArray();
 
         var totalPages = result.TotalItems == 0

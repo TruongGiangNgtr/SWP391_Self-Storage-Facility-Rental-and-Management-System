@@ -59,18 +59,19 @@ function ReturnConfirmationPanel() {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [returnDates, setReturnDates] = useState<Record<string, string>>({})
   const [error, setError] = useState<ApiErrorPresentation | null>(null)
+  const [loadError, setLoadError] = useState<ApiErrorPresentation | null>(null)
   const [result, setResult] = useState<ConfirmActualReturnResult | null>(null)
   const [response, setResponse] = useState<ApiCollectionResponse<StaffWorkItem> | null>(null)
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
-    setError(null)
+    setLoadError(null)
     try {
       const next = await visitApi.listStaffWorkItems({ date, page })
       setResponse(next)
     } catch (caughtError) {
-      setError(presentApiError(caughtError))
+      setLoadError(presentApiError(caughtError))
     } finally {
       setLoading(false)
     }
@@ -128,7 +129,7 @@ function ReturnConfirmationPanel() {
         <p className="fwp-toolbar-note">Showing return visits on this page. Use Previous and Next to review more visits.</p>
       </section>
 
-      <ApiErrorAlert error={error} />
+      <ApiErrorAlert error={error ?? loadError} />
 
       {result && (
         <div className="fwp-banner fwp-banner-success">
@@ -158,7 +159,7 @@ function ReturnConfirmationPanel() {
                     <td><EmployeeEntityLabel kind="contract" id={item.entityId} /></td>
                     <td><StatusBadge status={item.status} /></td>
                     <td>
-                      {item.status === 'CHECKED_IN' ? (
+                      {item.actualReturnDate ? <span>{item.actualReturnDate}</span> : item.status === 'CHECKED_IN' ? (
                         <input
                           className="fwp-inline-date"
                           type="date"
@@ -169,9 +170,13 @@ function ReturnConfirmationPanel() {
                       ) : <span className="fwp-muted">Confirm after check-in</span>}
                     </td>
                     <td>
-                      {item.status === 'SCHEDULED' && <button className="fwp-button fwp-button-primary" type="button" disabled={busyId !== null} onClick={() => void checkIn(item)}>{busyId === item.referenceId ? 'Checking in…' : 'Check In'}</button>}
-                      {item.status === 'CHECKED_IN' && <button className="fwp-button fwp-button-primary" type="button" disabled={busyId !== null} onClick={() => void confirm(item)}>{busyId === item.referenceId ? 'Confirming…' : 'Confirm Return'}</button>}
-                      {item.status !== 'SCHEDULED' && item.status !== 'CHECKED_IN' && <span className="fwp-muted">No action</span>}
+                      {item.actualReturnDate ? (
+                        <button className="fwp-button fwp-button-secondary" type="button" onClick={() => setSearchParams(item.inspectionId ? { tab: 'inspection', inspectionId: item.inspectionId } : { tab: 'inspection' })}>Confirmed — {item.inspectionId ? 'Open Inspection' : 'Review Inspections'}</button>
+                      ) : item.status === 'SCHEDULED' ? (
+                        <button className="fwp-button fwp-button-primary" type="button" disabled={busyId !== null} onClick={() => void checkIn(item)}>{busyId === item.referenceId ? 'Checking in…' : 'Check In'}</button>
+                      ) : item.status === 'CHECKED_IN' ? (
+                        <button className="fwp-button fwp-button-primary" type="button" disabled={busyId !== null} onClick={() => void confirm(item)}>{busyId === item.referenceId ? 'Confirming…' : 'Confirm Return'}</button>
+                      ) : <span className="fwp-muted">No action</span>}
                     </td>
                   </tr>
                 ))}
@@ -210,6 +215,7 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<ApiErrorPresentation | null>(null)
+  const [loadError, setLoadError] = useState<ApiErrorPresentation | null>(null)
   const [conditionNote, setConditionNote] = useState('')
   const [evidenceType, setEvidenceType] = useState<EvidenceType>('IMAGE')
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null)
@@ -226,13 +232,13 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
 
   const loadList = useCallback(async () => {
     setLoadingList(true)
-    setError(null)
+    setLoadError(null)
     try {
       const next = await inspectionApi.list(page)
       setList(next)
       if (!selectedId && next.data.length > 0) setSelectedId(next.data[0].inspectionId)
     } catch (caughtError) {
-      setError(presentApiError(caughtError))
+      setLoadError(presentApiError(caughtError))
     } finally {
       setLoadingList(false)
     }
@@ -240,14 +246,14 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
 
   const loadDetail = useCallback(async (inspectionId: string) => {
     setLoadingDetail(true)
-    setError(null)
+    setLoadError(null)
     try {
       const next = await inspectionApi.get(inspectionId)
       setDetail(next.data)
       setConditionNote(next.data.conditionNote ?? '')
     } catch (caughtError) {
       setDetail(null)
-      setError(presentApiError(caughtError))
+      setLoadError(presentApiError(caughtError))
     } finally {
       setLoadingDetail(false)
     }
@@ -265,29 +271,33 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
         setDamageTypes(damageResponse.data.filter((item) => item.status === 'ACTIVE'))
         setExtraFeeTypes(feeResponse.data.filter((item) => item.status === 'ACTIVE'))
       })
-      .catch((caughtError) => { if (active) setError(presentApiError(caughtError)) })
+      .catch((caughtError) => { if (active) setLoadError(presentApiError(caughtError)) })
     return () => { active = false }
   }, [mode, retry])
 
   function chooseInspection(inspectionId: string) {
     setSelectedId(inspectionId)
+    setError(null)
     setFinalResult(null)
     setSearchParams({ tab: mode, inspectionId })
   }
 
-  async function runAction(name: string, action: () => Promise<unknown>, refresh = true) {
+  async function runAction(name: string, action: () => Promise<unknown>, refresh = true): Promise<boolean> {
     setBusy(name)
     setError(null)
+    let succeeded = false
     try {
       await action()
-      if (refresh && selectedId) await loadDetail(selectedId)
-      await loadList()
+      succeeded = true
     } catch (caughtError) {
       setError(presentApiError(caughtError))
-      if (selectedId) await loadDetail(selectedId)
     } finally {
+      // Refresh errors must never replace or hide the mutation error.
+      if (refresh && selectedId) await loadDetail(selectedId)
+      await loadList()
       setBusy(null)
     }
+    return succeeded
   }
 
   async function uploadEvidence(event: FormEvent<HTMLFormElement>) {
@@ -296,8 +306,8 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
       setError(presentValidationError('Choose an evidence file before uploading.'))
       return
     }
-    await runAction('evidence', () => inspectionApi.uploadEvidence(selectedId, evidenceFile, evidenceType))
-    setEvidenceFile(null)
+    if (await runAction('evidence', () => inspectionApi.uploadEvidence(selectedId, evidenceFile, evidenceType)))
+      setEvidenceFile(null)
   }
 
   async function completeInspection(event: FormEvent<HTMLFormElement>) {
@@ -320,14 +330,15 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
       setError(presentValidationError('Damage amount must be a non-negative number.'))
       return
     }
-    await runAction('damage', () => inspectionApi.recordDamage(selectedId, {
+    if (await runAction('damage', () => inspectionApi.recordDamage(selectedId, {
       damageTypeId,
       damageAmount: amount,
       note: damageNote.trim() || null,
-    }))
-    setDamageTypeId('')
-    setDamageAmount('')
-    setDamageNote('')
+    }))) {
+      setDamageTypeId('')
+      setDamageAmount('')
+      setDamageNote('')
+    }
   }
 
   async function recordExtraFee(event: FormEvent<HTMLFormElement>) {
@@ -341,14 +352,15 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
       setError(presentValidationError('Extra fee amount must be a non-negative number.'))
       return
     }
-    await runAction('extra-fee', () => inspectionApi.recordExtraFee(selectedId, {
+    if (await runAction('extra-fee', () => inspectionApi.recordExtraFee(selectedId, {
       extraFeeTypeId,
       amount,
       reason: extraFeeReason.trim(),
-    }))
-    setExtraFeeTypeId('')
-    setExtraFeeAmount('')
-    setExtraFeeReason('')
+    }))) {
+      setExtraFeeTypeId('')
+      setExtraFeeAmount('')
+      setExtraFeeReason('')
+    }
   }
 
   async function finalizeReturn() {
@@ -359,12 +371,12 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
     try {
       const response = await inspectionApi.finalizeReturn(detail.contractId, { storageUnitStatus: finalStatus })
       setFinalResult(response.data)
-      await loadDetail(detail.inspectionId)
-      await loadList()
     } catch (caughtError) {
       setError(presentApiError(caughtError))
-      await loadDetail(detail.inspectionId)
     } finally {
+      // Keep the authoritative operation error and settlement result through refresh.
+      await loadDetail(detail.inspectionId)
+      await loadList()
       setBusy(null)
     }
   }
@@ -395,7 +407,7 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
       </section>
 
       <section className="fwp-inspection-detail-card">
-        <ApiErrorAlert error={error} />
+        <ApiErrorAlert error={error ?? loadError} />
         {loadingDetail ? <div className="fwp-state-card">Loading Inspection detail…</div> : !detail ? (
           <div className="fwp-state-card"><strong>Select an Inspection</strong><p>Choose a Facility-scoped Inspection from the list.</p></div>
         ) : (
@@ -427,6 +439,11 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
 
                 {canEditInspection && (
                   <>
+                    <div className="fwp-banner fwp-banner-warning">
+                      <ShieldAlert size={18} />
+                      <div><strong>Record charges before completing inspection.</strong><span>If there is damage or an extra fee, record it now while the inspection is IN_PROGRESS. Once completed, charges can no longer be added.</span></div>
+                      <button className="fwp-link-button" type="button" onClick={() => setSearchParams({ tab: 'fees', inspectionId: detail.inspectionId })}>Record Damage / Extra Fee</button>
+                    </div>
                     <section className="fwp-action-card">
                       <h3><Camera size={17} /> Evidence</h3>
                       <p>Upload IMAGE, VIDEO or DOCUMENT evidence. Binary content is sent as multipart/form-data.</p>
@@ -440,7 +457,7 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
                     </section>
                     <section className="fwp-action-card">
                       <h3>Complete Inspection</h3>
-                      <p>INS-007 records completion only. The StorageUnit remains INSPECTION until Finalize Return.</p>
+                      <p>Before completing, record all evidence, damage and extra fees. Completion locks those entries; the StorageUnit remains INSPECTION until Finalize Return.</p>
                       <form className="fwp-stack-form" onSubmit={completeInspection}>
                         <label><span>Condition note</span><textarea rows={4} value={conditionNote} onChange={(event) => setConditionNote(event.target.value)} disabled={busy !== null} /></label>
                         <button className="fwp-button fwp-button-primary" type="submit" disabled={busy !== null}>{busy === 'complete' ? 'Completing…' : 'Complete Inspection'}</button>
@@ -449,10 +466,11 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
                   </>
                 )}
 
-                {detail.status === 'COMPLETED' && <div className="fwp-banner fwp-banner-success"><CheckCircle2 size={18} /><div><strong>Inspection completed.</strong><span>The unit remains under inspection. Continue to Fees & Finalize to review charges and release it.</span></div><button className="fwp-link-button" type="button" onClick={() => setSearchParams({ tab: 'fees', inspectionId: detail.inspectionId })}>Open Fees & Finalize</button></div>}
+                {detail.status === 'COMPLETED' && <div className="fwp-banner fwp-banner-success"><CheckCircle2 size={18} /><div><strong>Inspection completed.</strong><span>The unit remains under inspection. Review existing charges and Manager decisions before finalizing; no new fees can be recorded.</span></div><button className="fwp-link-button" type="button" onClick={() => setSearchParams({ tab: 'fees', inspectionId: detail.inspectionId })}>Open Fees & Finalize</button></div>}
               </div>
             ) : (
               <div className="fwp-workspace-stack">
+                {canEditInspection && <div className="fwp-banner fwp-banner-warning"><ShieldAlert size={18} /><div><strong>Inspection is still IN_PROGRESS.</strong><span>Record damage and extra fees on this tab, then return to Inspection to complete it before finalizing.</span></div><button type="button" className="fwp-link-button" onClick={() => setSearchParams({ tab: 'inspection', inspectionId: detail.inspectionId })}>Return to Inspection</button></div>}
                 <section className="fwp-record-summary">
                   <div><span>Damage records</span><strong>{detail.damages.length}</strong></div>
                   <div><span>Pending decisions</span><strong>{pendingDamageCount}</strong></div>
@@ -543,7 +561,13 @@ export function StaffReturnsPage() {
   const meta = TAB_META[tab]
 
   function changeTab(next: ReturnTab) {
-    setSearchParams({ tab: next })
+    // Preserve the selected Inspection when toggling FWP-06/FWP-07.
+    setSearchParams(current => {
+      const nextParams = new URLSearchParams(current)
+      nextParams.set('tab', next)
+      if (next === 'confirmation') nextParams.delete('inspectionId')
+      return nextParams
+    })
   }
 
   return (
