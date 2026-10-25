@@ -4,6 +4,7 @@
 **Document:** Entity Dictionary, Lifecycle, PostgreSQL Physical Schema, Stored Routines, Constraints, Audit, Migration and DB Tests  
 **Version:** V11.0 REVIEW CANDIDATE  
 **Date:** 2026-10-21 — recurring BackgroundJobs/current `main` reconciliation  
+**Approved Customer revision:** 2026-10-25 — `REV-2026-10-25-CUSTOMER-CCCD-CONTINUATION` (SRS OD-09); conditional CCCD for new RES-001 and safe in-flow continuation. Scoped source check at `2945788`; no schema deployment or test pass claimed.
 **SRS:** [`FRMS_SRS_V11.md`](FRMS_SRS_V11.md) — business rules and owner approvals  
 **API:** [`FRMS_API_V11.md`](FRMS_API_V11.md) — HTTP routes, DTO schemas, RBAC and error responses  
 **GitHub baseline:** current read-only `main` `0219f30734b00b3e5527e3453b19840f08f63639` (includes registered BackgroundJobs); earlier V11 audit provenance `90a6c5982d4237a61eab9299f2ca434efd624fcc`  
@@ -163,9 +164,11 @@ Rules: an inactive account cannot log in or initiate new actions. Historical bus
 | `UserAccountId` | uuid | No | FK, UNIQUE -> UserAccount | One profile per account. |
 | `FullName` | varchar(150) | No |  | Customer name. |
 | `Address` | varchar(1000) | Yes | Nullable, optional | Customer-supplied optional physical address; allowed at AUTH-001 and AUTH-005 only, not automatically included in public/other-role read projections. No current core business flow depends on it. |
-| `CCCD` | varchar(20) | Yes | UNIQUE when non-null | Optional citizen ID. Own Customer `AUTH-004` response target includes `profile.cccd: string \| null`; current backend lacks it; do not expose to public/directories. |
+| `CCCD` | varchar(20) | Yes | UNIQUE when non-null | Optional at registration/profile storage, but saved nonblank CCCD is required for new RES-001 (SRS OD-09 / BR-RES-09). Own AUTH-004 includes nullable profile.cccd; observed in source at 2945788, not runtime-certified. No public/Employee/directory disclosure. |
 
 Rule: Customer has no `DiscountId`; relation is `Customer 1:N Discount`.
+
+**OD-09 conditional requirement:** Keep the physical CCCD column nullable, maximum 20 characters and unique when present. Null/empty/whitespace is missing for the new-Reservation precondition; do not infer a 12-digit/eKYC/verified-identity rule. Keep the existing FullName field; add no LegalName, real-name column, verification state, identity table or continuation/draft table. Existing profile clear/update semantics are unchanged; a later new RES-001 must re-read current profile data. Do not retroactively invalidate old rentals or invent/backfill citizen IDs. See §12.4 and SRS §14.15 for save/return behavior and privacy.
 
 ### 4.4 `Employee`
 
@@ -714,7 +717,7 @@ Physical backend: PostgreSQL with quoted `public."usp_*"` routines (functions/pr
 
 | Stored Procedure | Main responsibility | Main entities | Policy fields / notes | Atomic transaction |
 |---|---|---|---|---:|
-| `usp_CreateReservation` | Validate active Facility, month range, capacity; snapshot price, Deposit and active Policy; create Reservation + Deposit Invoice. | Facility, UnitType, Reservation, Policy, Invoice | `DepositTimeoutHours` used for Deposit deadline. | Yes |
+| `usp_CreateReservation` | Validate authenticated Customer saved CCCD (OD-09), active Facility, month range, capacity; snapshot price, Deposit and active Policy; create Reservation + Deposit Invoice. | Customer, Facility, UnitType, Reservation, Policy, Invoice | Missing CCCD: reject without Reservation/hold/Invoice; existing DepositTimeoutHours still defines deadline. | Yes |
 | `usp_ConfirmReservation` | Validate Deposit Invoice/Payment paid; validate chosen handover date; create RESERVATION Visit; set Reservation CONFIRMED. | Reservation, Invoice, Payment, Visit, Policy | `ReservationVisitStartDay`, `ReservationVisitEndDay`. | Yes |
 | `usp_CancelReservation` | Validate cancellation eligibility; cancel Reservation and SCHEDULED reservation Visit; release hold. | Reservation, Visit | Uses captured Reservation Policy if cancellation rules become configurable. | Yes |
 | `usp_CheckInVisit` | Validate Visit SCHEDULED, Staff role/facility and date; set actual actor and CHECKED_IN. | Visit, Employee, Facility | No hard-coded business dates. | Yes |
@@ -887,7 +890,13 @@ Verified payOS webhook and unique reference govern financial state. `Invoice.Pai
 
 ### 12.4 Identity / optional address
 
-Customer PhoneNumber and account Email remain login identifiers, not editable through AUTH-005. `Customer.Address` is nullable and may be collected/updated voluntarily; do not require it or expose it to any role by default. CCCD is optional unique when present; owner-only AUTH-004 private projection requires `profile.cccd: string | null`, which current backend still omits. Administrator-created employee credential email workflow continues unchanged.
+Customer PhoneNumber and account Email remain login identifiers, not editable through AUTH-005. Customer.Address remains nullable/optional with no new disclosure or required use. CCCD stays nullable/max 20/unique when present and optional in AUTH-001; under SRS OD-09 / BR-RES-09 it must be saved and nonblank before a new RES-001 creates a Reservation/hold/Deposit Invoice. This is a conditional operation precondition, not a global NOT NULL schema change. Missing CCCD maps to the existing API HTTP 400 VALIDATION_ERROR with errors.cccd and traceId; allocate no new API error code or guessed PostgreSQL SQLSTATE.
+
+AUTH-004 privately returns profile.cccd as string or explicit null to its owning Customer. Source at 2945788 contains CurrentCustomerProfileResponse and AuthenticationMapping with that projection; running Swagger/serialization/integration acceptance remains unverified here. A missing/malformed response property is unavailable, not null or a verified identity. No Employee/public/directory role inherits CCCD access. AUTH-005 may save CCCD alone, preserving omitted fields; explicit null clearing retains existing semantics, so a subsequent new RES-001 fails its precondition until CCCD is supplied again. A completed profile save is not a reservation command.
+
+The in-flow completion/return contract is SRS §14.15 and API AUTH-004/005 + RES-001. Retain only allowlisted non-sensitive operation context through authentication/CCCD completion; never persist CCCD, raw profile, trusted price/capacity or credentials in a continuation record/URL. No server-side draft/session entity or new endpoint is approved. Ordinary menu/Settings navigation does not acquire forced return behavior. Administrator-created employee credential email workflow and optional Address decisions remain unchanged.
+
+**Deployment/evidence boundary:** This revision changes the approved routine/service precondition, not the physical entity schema. Implementers must align the existing authoritative creation transaction and error mapping, with clean deploy/redeploy/rollback reasoning and real PostgreSQL/concurrency tests if a routine migration is needed; this document does not authorize executing a migration. Preserve old Reservations/Contracts/Invoice/Payment history; no synthetic CCCD backfill. Authentication/PATCH/RES-001, Swagger and FE owners must coordinate rollout before declaring OD-09 working.
 
 ### 12.5 Manager unit assignment
 
@@ -1005,7 +1014,7 @@ Defaults are applied only where the initial state is deterministic. Business res
 
 | Column | Nullable because | Validation rule |
 |---|---|---|
-| `Customer.CCCD` | Customer may not have provided/verified CCCD yet. | If present, unique. |
+| `Customer.CCCD` | Customer may not have supplied CCCD at registration or during ordinary profile use; no verification state is inferred. | Nullable/max 20; unique when present; saved nonblank value required for new RES-001 by BR-RES-09. |
 | `Employee.FacilityId` | Global roles have no Facility. | Required for Facility Staff/Manager; null for Business Operations Manager/System Administrator. |
 | `Visit.EmployeeId` | Visit may be scheduled before a Staff actor handles it. | Set when Staff starts handling/checks in. |
 | `Visit.ActualReturnDate` | Only meaningful for confirmed physical RETURN. | Must be null for RESERVATION/ACCESS; set for confirmed RETURN. |
@@ -1045,6 +1054,7 @@ The following rules are the minimum business rules that DB procedures/triggers m
 | `BR-RES-02` | Reservation holds capacity by Facility + UnitType + month range, never a concrete StorageUnit. | Reservation, StorageUnit | `usp_CreateReservation` |
 | `BR-RES-03` | Capacity check + Reservation creation must be atomic and prevent overbooking. | Reservation, Contract, StorageUnit | `usp_CreateReservation` + transaction locking |
 | `BR-RES-04` | Deposit amount is snapshot of UnitType price at Reservation creation. | Reservation, UnitType | `usp_CreateReservation` |
+| `BR-RES-09` | New RES-001 requires the authenticated Customer's saved nonblank CCCD; missing -> 400 VALIDATION_ERROR + errors.cccd, no Reservation/hold/Invoice. Registration remains optional; old rentals unchanged. | Customer, Reservation, Invoice | Business Service + authoritative atomic usp_CreateReservation boundary; API §13.14 error envelope |
 | `BR-RES-05` | Deposit cannot use Discount. | Invoice, Discount | CHK/TRG |
 | `BR-RES-06` | Reservation confirms only after Deposit payment succeeds. | Reservation, Invoice, Payment | `usp_ConfirmReservation` |
 | `BR-RES-07` | RESERVATION Visit date must be inside captured Policy visit-day window. | Reservation, Visit, Policy | `usp_ConfirmReservation` |
@@ -1279,7 +1289,7 @@ V1 should use **no cascading hard deletes** for core business data. Historical i
 
 | Operation | Main race condition | Required protection |
 |---|---|---|
-| Create Reservation | Two customers reserve last capacity simultaneously. | Single transaction; lock/read capacity source under `SERIALIZABLE` or equivalent key-range locking strategy; re-check before insert. |
+| Create Reservation | Two customers reserve last capacity; concurrent profile clear/update can stale the CCCD check. | Existing atomic capacity/create transaction also enforces BR-RES-09 on authoritative Customer data before writes; use consistent transaction/locking semantics so a separate stale FE/login check cannot bypass it. Missing CCCD leaves no Reservation/hold/Invoice. Preserve existing capacity isolation. |
 | Complete Handover | Two handovers select same AVAILABLE StorageUnit. | Transaction + update lock on selected StorageUnit; validate `Status=AVAILABLE` at update time. |
 | Renew Contract | Renewal and new Reservation consume same future capacity. | Same capacity locking strategy as Reservation across every extension month. |
 | Claim Inspection | Two Staff claim one PENDING Inspection. | Single conditional UPDATE `WHERE Status='PENDING'`; require exactly 1 affected row. |
@@ -1335,6 +1345,7 @@ Stored procedures should raise stable business error codes/messages that API cod
 | Error code | Meaning |
 |---|---|
 | `ACCOUNT_INACTIVE` | Account cannot perform action. |
+| `VALIDATION_ERROR` | OD-09 missing saved CCCD is mapped to API HTTP 400 with errors.cccd and traceId; no raw CCCD, conflicting owner or SQL/provider detail. Existing routine error mapping is aligned by the implementation task, not a new guessed SQLSTATE here. |
 | `FACILITY_INACTIVE` | New Reservation not allowed at Facility. |
 | `INVALID_MONTH_RANGE` | Start/End month invalid. |
 | `CAPACITY_NOT_AVAILABLE` | Required month range has insufficient capacity. |
@@ -1377,7 +1388,7 @@ The following indexes are recommended in addition to PK/unique constraints. Fina
 |---|---|---|
 | UserAccount | UNIQUE `(Email)` | Login/account lookup. |
 | UserAccount | `(RoleId, Status)` | Admin/RBAC filtering. |
-| Customer | UNIQUE filtered `(CCCD) WHERE CCCD IS NOT NULL` | Optional citizen-ID uniqueness. |
+| Customer | UNIQUE filtered `(CCCD) WHERE CCCD IS NOT NULL` | Nullable citizen-ID uniqueness; OD-09's new-Reservation precondition does not change this index or make the column NOT NULL. |
 | Employee | `(FacilityId)` | Facility staff lookup. |
 | Facility | `(Status)` | Browse active Facilities. |
 | StorageUnit | UNIQUE `(FacilityId, UnitCode)` | Operational code uniqueness. |
@@ -1716,10 +1727,14 @@ These tests are required to validate the physical database behavior, not only ap
 | `DBT-V11-06` | StorageUnit timeline for Manager/BOM/Admin | Manager own Facility; BOM/Admin system read-only; no Customer/private financial leak; unknown pre-Pg010 history not fabricated. |
 | `DBT-V11-07` | Catalog UnitType media URL nullable fields | public `imageUrl`/`videoUrl` exact JSON type and null serialization; no unapproved media mutation. |
 | `DBT-V11-08` | Customer optional Address | AUTH-001 optional; AUTH-005 update/clear/omit semantics; no address in unrelated directory/Guest projection. |
-| `DBT-V11-09` | Own Customer CCCD profile read | AUTH-004 private `profile.cccd: string|null`, not employee/public/cross-account; backend alignment currently pending. |
+| `DBT-V11-09` | Own Customer CCCD profile read | AUTH-004 private profile.cccd string/null, not Employee/public/cross-account; serialization source exists at 2945788, runtime/DB verification remains pending. |
 | `DBT-V11-10` | Admin deactivation eligibility scaffold | Route returns HTTP 501 `ENDPOINT_NOT_IMPLEMENTED`; ADM-004 remains independently guarded. |
 | `DBT-V11-11` | PostgreSQL Pg001..Pg013 chain | Empty install/redeploy/duplicate update/model parity and protected history; no guessed backfill. |
 | `DBT-V11-12` | Offline first-month and payOS later-month | No first-month Invoice/Payment, payOS Deposit/later RENTAL_FEE only, key uniqueness and immutable PaidAt. |
+| `DBT-CCCD-001` | OD-09 rejected new Reservation and legacy-data preservation | Missing/blank CCCD -> 400 errors.cccd, no Reservation/hold/Invoice writes; nullable/unique/max-20 profile remains; no LegalName/backfill/history changes. |
+| `DBT-CCCD-002` | Concurrent profile clear/update and new RES-001 | The authoritative creation boundary cannot be bypassed by stale profile checks; either accepted creation with the precondition satisfied or controlled rejection, no partial creation; capacity concurrency remains protected. |
+
+These OD-09 cases are required future test evidence, not executed results. API-CCCD-001..003, SEC-CCCD-001, REG-CONT-001 and E2E-F01 are defined in SRS §14.15.3; no test source was added or changed by this documentation task.
 
 ---
 
@@ -1762,7 +1777,8 @@ These tests are required to validate the physical database behavior, not only ap
 | Concern | SRS | API Specification | Data/DB source | Status |
 |---|---|---|---|---|
 | Customer optional Address | OD-01, §9.6 | AUTH-001/005 | Customer.Address nullable; length <=1000 | APPROVED; API/PII tests PENDING |
-| Own Customer CCCD | §0.0.9, §10 | AUTH-004 | Customer.CCCD nullable UNIQUE | APPROVED target; backend response GAP |
+| Own Customer CCCD | OD-09, §9.6 / §10 | AUTH-004 | Customer.CCCD nullable/max 20/UNIQUE | APPROVED; owner-only serialization source at 2945788; runtime/Swagger acceptance PENDING |
+| CCCD before new Reservation / safe continuation | OD-09, BR-RES-09 / BR-PUB-05 / §14.15 | AUTH-001/002/004/005 + RES-001 | Existing Customer.CCCD + authoritative creation routine; no new field/table | TEAM APPROVED; new guard/continuation implementation + API/SEC/DBT/REG/E2E evidence PENDING (V11-G14) |
 | Manager handover assignment | OD-02, §9.2A | §13A.1 IMPL-HOA-01..03 | §4.28, Pg013, SQL routines/trigger | APPROVED; DB/E2E NOT VERIFIED |
 | Administrator timeline | OD-03 | §13A.2 IMPL-UNT-01..03 | Pg010 AuditLog; no backfill | APPROVED read-only; SEC tests PENDING |
 | Admin deactivation eligibility | OD-04 | §13A.4 | No new schema | NOT IMPLEMENTED HTTP 501 |
@@ -1774,6 +1790,8 @@ These tests are required to validate the physical database behavior, not only ap
 | Recurring BackgroundJobs (6 tasks / 4 services) | §9.11 / V11-G10..G13 | §13A.10 (no new HTTP endpoints) | §§9/27; Pg007 PostgreSQL routines | REGISTERED IN CODE `0219f307`; Billing default ON, NoShow/Notifications OFF; runtime tests NOT VERIFIED |
 
 **Review gates:** `V11-G01..G09` in SRS. Need full main SRS diff, generated Swagger parity, FE contract, PostgreSQL migration/catalogue verification, authorization/PII negative tests, NUnit/Postman/Playwright, owner full-document approval. No release acceptance is claimed here.
+
+**2026-10-25 OD-09 synchronization:** REV-2026-10-25-CUSTOMER-CCCD-CONTINUATION is team-approved (owner confirmed). Update Customer.CCCD semantics, creation precondition/routine responsibility, race/error mappings and acceptance traceability without changing the 28-entity/202-field schema. Reuse existing 400 VALIDATION_ERROR + errors.cccd. Replace the earlier static AUTH-004 gap with source-observed serialization at 2945788, not a deployment/test claim. SRS V11-G14 separately gates the new reservation/continuation behavior. This task edits only the three specifications, not application code, migrations, database data or test files.
 
 ## 38. V11 Change Log — 2026-10-20
 
