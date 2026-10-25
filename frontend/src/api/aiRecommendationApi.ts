@@ -1,4 +1,5 @@
 import { httpClient } from './httpClient'
+import type { ApiResponse } from './api.types'
 import { publicCatalogApi } from './publicCatalogApi'
 import {
   AiRecommendationContractError,
@@ -7,7 +8,25 @@ import {
   type ResolvedAiRecommendation,
 } from '../features/catalog/aiRecommendation'
 
+export interface AiStoragePolicyItem { id: string; title: string; examples: string[] }
+export interface AiStoragePolicyReference { documentNumber: string; title: string; officialUrl: string }
+export interface AiStoragePolicyView {
+  policyKey: string
+  approvalStatus: string
+  version: string
+  title: string
+  summary: string
+  prohibitedWarning: string
+  needsReviewWarning: string
+  prohibited: AiStoragePolicyItem[]
+  allowed: AiStoragePolicyItem[]
+  legalReferences: AiStoragePolicyReference[]
+}
+
 export const aiRecommendationApi = {
+  storagePolicy(signal?: AbortSignal): Promise<ApiResponse<AiStoragePolicyView>> {
+    return httpClient.getPublic('/ai/storage-policy', signal)
+  },
   async recommend(input: AiRecommendationRequest, signal: AbortSignal): Promise<ResolvedAiRecommendation> {
     const raw = await httpClient.postPublic<unknown>('/ai/unit-type-recommendations', input, signal)
     const answer = readAiRecommendation(raw)

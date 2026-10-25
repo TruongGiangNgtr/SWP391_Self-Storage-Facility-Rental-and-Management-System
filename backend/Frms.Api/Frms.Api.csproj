@@ -29,6 +29,7 @@
     <None Remove=".env" />
     <None Update=".env.example" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
     <Content Update="Content/PublicPolicies/published.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Update="Content/AiStorageRules/storage-items.vi-VN.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

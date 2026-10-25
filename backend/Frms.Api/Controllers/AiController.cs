@@ -1,5 +1,6 @@
 using Frms.Api.DTOs.Requests;
 using Frms.Api.DTOs.Responses;
+using Frms.Business.Services.Implementations;
 using Frms.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,8 +13,14 @@ namespace Frms.Api.Controllers;
 [AllowAnonymous]
 [EnableRateLimiting("public-ai")]
 [Route("api/v1/ai")]
-public sealed class AiController(IAiRecommendationService service) : ControllerBase
+public sealed class AiController(IAiRecommendationService service, AiStorageItemsCatalog rules) : ControllerBase
 {
+    /// <summary>Preview current proposed item acceptance rules; not an approved legal policy.</summary>
+    [HttpGet("storage-policy")]
+    [ProducesResponseType(typeof(ApiResponse<AiStoragePolicyView>), StatusCodes.Status200OK)]
+    public ActionResult<ApiResponse<AiStoragePolicyView>> GetStoragePolicy() =>
+        Ok(new ApiResponse<AiStoragePolicyView>(rules.PublicView));
+
     /// <summary>AI-001: Optional, non-authoritative public UnitType recommendation. </summary>
     // For using this function, it is require to apply API key to .env
     // Ai__Provider= OpenAICompatible

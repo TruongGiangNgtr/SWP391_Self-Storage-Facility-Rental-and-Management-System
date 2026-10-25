@@ -3,6 +3,7 @@ import { Bot, MessageSquare } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { aiRecommendationApi } from '../api/aiRecommendationApi'
 import { ApiErrorAlert } from './ApiErrorAlert'
+import { AiStoragePolicyPanel } from './AiStoragePolicyPanel'
 import { CustomerFieldError } from './CustomerFieldError'
 import {
   AI_DESCRIPTION_MAX_LENGTH,
@@ -80,6 +81,7 @@ export function SizeGuideAssistant({ mode, enabled = true }: { mode: UnitMode; e
   return <section className="size-guide-assistant" id="size-assistant" aria-labelledby={`${id}-heading`}>
     <div className="size-guide-assistant-heading"><span className="size-guide-icon"><Bot size={24} aria-hidden="true" /></span><p className="eyebrow">Optional AI Sizing Assistant</p><h2 id={`${id}-heading`}>Tell us what you need to store</h2><p className="muted">Describe your belongings for a storage type suggestion. Manual selection is always available.</p></div>
     <div className="size-guide-assistant-message"><strong>{mode === 'PRIVATE' ? 'Private Storage' : 'Public Storage'} suggestions</strong><p>Suggestions use the storage type selected above. AI does not reserve a unit or confirm availability, fit or a final rental price.</p></div>
+    <AiStoragePolicyPanel />
     <form onSubmit={submit} noValidate>
       <div className="size-guide-assistant-controls"><div className="form-field"><label htmlFor={`${id}-description`}>Items you want to store</label><div className="size-guide-assistant-input"><MessageSquare size={18} aria-hidden="true" /><textarea ref={input} id={`${id}-description`} value={description} rows={3} maxLength={AI_DESCRIPTION_MAX_LENGTH} readOnly={loading} disabled={!enabled} required aria-invalid={Boolean(validation)} aria-describedby={`${id}-help ${id}-count${validation ? ` ${id}-error` : ''}`} placeholder="For example: moving boxes, books and two small shelves." onChange={event => { setDescription(event.target.value); setValidation(null); setCanceled(false); setState({ status: 'idle' }) }} /></div><div className="size-guide-ai-input-help"><small id={`${id}-help`}>Only this description and your storage preference are submitted. Do not include personal or sensitive information.</small><small id={`${id}-count`}>{description.length.toLocaleString('en-US')} / 1,000 characters</small></div><CustomerFieldError id={`${id}-error`} message={validation} /></div><button className="button" type="submit" disabled={!enabled || loading}>{loading ? 'Finding a Storage Type…' : 'Get AI Recommendation'}</button></div>
       {loading && <div className="size-guide-ai-progress"><p role="status">Getting your suggestion and checking the current catalog… You can keep browsing while you wait.</p><button className="button button-secondary" type="button" onClick={cancel}>Cancel Request</button></div>}

@@ -1,0 +1,332 @@
+{
+  "schemaVersion": 1,
+  "policyKey": "facility-rules-prohibited-items",
+  "language": "vi-VN",
+  "jurisdiction": "VN",
+  "version": "0.1.0-draft",
+  "lastReviewedDate": "2026-10-25",
+  "approvalStatus": "DRAFT_REQUIRES_LEGAL_AND_BUSINESS_APPROVAL",
+  "effectiveDate": null,
+  "classificationPolicy": {
+    "priority": [
+      "PROHIBITED",
+      "ALLOWED"
+    ],
+    "unlistedResult": "NEEDS_REVIEW",
+    "conflictingMatchesResult": "PROHIBITED_WHEN_UNAMBIGUOUS",
+    "negatedOrQuotedItemResult": "NEEDS_REVIEW",
+    "notice": "Không tự động xem một vật phẩm là hợp lệ chỉ vì mô tả có từ khóa ALLOWED. Danh mục là chính sách tiếp nhận của FRMS cần phê duyệt, không đại diện một kết luận pháp lý về quyền sở hữu vật phẩm.",
+    "automaticDetection": "REQUIRE_CONTEXT_AWARE_CHECK_NO_NAIVE_SUBSTRING_MATCH"
+  },
+  "publicNotice": {
+    "title": "Quy định vật phẩm lưu trữ",
+    "summary": "FRMS không tiếp nhận vật phẩm thuộc danh mục cấm tiếp nhận; vật phẩm thông thường chỉ được tiếp nhận khi sạch, khô và không kèm vật phẩm nguy hiểm. Mô tả không rõ cần được kiểm tra thêm.",
+    "prohibitedWarning": "Vật phẩm bạn mô tả thuộc hoặc có thể thuộc nhóm FRMS không tiếp nhận. Vui lòng kiểm tra chính sách và liên hệ nhân viên. AI không đề xuất kho cho yêu cầu này.",
+    "needsReviewWarning": "Chưa thể xác định chính xác vật phẩm từ mô tả. Vui lòng nêu rõ chủng loại, tình trạng và thành phần trước khi được tư vấn.",
+    "policyLink": "/help/policies/facility-rules-prohibited-items"
+  },
+  "legalReferences": [
+    {
+      "id": "VN-WEAPONS-2024",
+      "documentNumber": "42/2024/QH15",
+      "title": "Luật Quản lý, sử dụng vũ khí, vật liệu nổ và công cụ hỗ trợ",
+      "effectiveDate": "2025-01-01",
+      "officialUrl": "https://vanban.chinhphu.vn/?classid=1&docid=211200&orggroupid=1&pageid=27160"
+    },
+    {
+      "id": "VN-WEAPONS-149-2024",
+      "documentNumber": "149/2024/NĐ-CP",
+      "title": "Quy định chi tiết thi hành Luật Quản lý, sử dụng vũ khí, vật liệu nổ và công cụ hỗ trợ",
+      "effectiveDate": "2025-01-01",
+      "officialUrl": "https://vanban.chinhphu.vn/?docid=211748&pageid=27160"
+    },
+    {
+      "id": "VN-DRUGS-2025",
+      "documentNumber": "120/2025/QH15",
+      "title": "Luật Phòng, chống ma túy",
+      "effectiveDate": "2026-07-01",
+      "officialUrl": "https://vanban.chinhphu.vn/?classid=1&docid=216502&pageid=27160&typegroupid=3"
+    },
+    {
+      "id": "VN-DRUGS-LIST-2026",
+      "documentNumber": "28/2026/NĐ-CP",
+      "title": "Danh mục chất ma túy và tiền chất",
+      "effectiveDate": "2026-01-19",
+      "officialUrl": "https://vanban.chinhphu.vn/?docid=216717&pageid=27160"
+    },
+    {
+      "id": "VN-CHEMICALS-2025",
+      "documentNumber": "69/2025/QH15",
+      "title": "Luật Hóa chất",
+      "effectiveDate": "2026-01-01",
+      "officialUrl": "https://vanban.chinhphu.vn/?classid=1&docid=214610&pageid=27160"
+    },
+    {
+      "id": "VN-FIRE-SAFETY-2024",
+      "documentNumber": "55/2024/QH15",
+      "title": "Luật Phòng cháy, chữa cháy và cứu nạn, cứu hộ",
+      "effectiveDate": "2025-07-01",
+      "officialUrl": "https://vanban.chinhphu.vn/?classid=1&docid=212483&orggroupid=1&pageid=27160"
+    },
+    {
+      "id": "VN-FIRE-SAFETY-2025",
+      "documentNumber": "105/2025/NĐ-CP",
+      "title": "Quy định chi tiết về phòng cháy, chữa cháy và cứu nạn, cứu hộ",
+      "effectiveDate": "2025-07-01",
+      "officialUrl": "https://vanban.chinhphu.vn/?classid=0&docid=213702&pageid=27160"
+    },
+    {
+      "id": "VN-NUCLEAR-2025",
+      "documentNumber": "94/2025/QH15",
+      "title": "Luật Năng lượng nguyên tử",
+      "effectiveDate": "2026-01-01",
+      "officialUrl": "https://vanban.chinhphu.vn/?docid=214602&pageid=27160"
+    },
+    {
+      "id": "VN-ENVIRONMENT-2020",
+      "documentNumber": "72/2020/QH14",
+      "title": "Luật Bảo vệ môi trường",
+      "effectiveDate": "2022-01-01",
+      "officialUrl": "https://vanban.chinhphu.vn/?docid=202613&pageid=27160"
+    }
+  ],
+  "PROHIBITED": [
+    {
+      "id": "P001_WEAPONS",
+      "title": "Vũ khí, đạn dược và công cụ hỗ trợ thuộc diện quản lý",
+      "examples": [
+        "súng quân dụng",
+        "súng tự chế có khả năng sát thương",
+        "đạn súng",
+        "công cụ hỗ trợ thuộc diện quản lý",
+        "súng",
+        "vũ khí",
+        "gun",
+        "ammunition"
+      ],
+      "basisType": "LEGALLY_REGULATED_NOT_ACCEPTED_BY_FRMS",
+      "legalReferenceIds": [
+        "VN-WEAPONS-2024",
+        "VN-WEAPONS-149-2024"
+      ],
+      "reason": "FRMS không tiếp nhận vũ khí, đạn dược hoặc công cụ hỗ trợ thuộc diện quản lý trong kho dân dụng; một số đối tượng có thể được quản lý/cấp phép theo pháp luật."
+    },
+    {
+      "id": "P002_EXPLOSIVES",
+      "title": "Vật liệu nổ và thiết bị nổ",
+      "examples": [
+        "thuốc nổ",
+        "kíp nổ",
+        "bom",
+        "mìn",
+        "lựu đạn",
+        "pháo nổ",
+        "explosives",
+        "bomb"
+      ],
+      "basisType": "LEGALLY_REGULATED_NOT_ACCEPTED_BY_FRMS",
+      "legalReferenceIds": [
+        "VN-WEAPONS-2024",
+        "VN-FIRE-SAFETY-2024"
+      ],
+      "reason": "Không tiếp nhận thiết bị hoặc vật liệu nổ; thuộc nhóm rủi ro an toàn và quản lý chuyên ngành."
+    },
+    {
+      "id": "P003_CONTROLLED_DRUGS",
+      "title": "Chất ma túy thuộc danh mục kiểm soát và hoạt động lưu giữ không được phép",
+      "examples": [
+        "heroin",
+        "ma túy đá",
+        "chất ma túy thuộc danh mục Chính phủ",
+        "ma túy",
+        "illegal drugs"
+      ],
+      "basisType": "LEGALLY_REGULATED_NOT_ACCEPTED_BY_FRMS",
+      "legalReferenceIds": [
+        "VN-DRUGS-2025",
+        "VN-DRUGS-LIST-2026"
+      ],
+      "reason": "Không tiếp nhận chất ma túy trong kho tự lưu trữ dân dụng. Tiền chất và việc sử dụng hợp pháp có điều kiện phải được xác minh, không kết luận chỉ theo tên gọi."
+    },
+    {
+      "id": "P004_DANGEROUS_FLAMMABLES",
+      "title": "Khí dễ cháy, nhiên liệu và chất có nguy cơ cháy nổ cao",
+      "examples": [
+        "bình gas có khí",
+        "xăng",
+        "dầu hỏa",
+        "dung môi rất dễ cháy",
+        "gasoline"
+      ],
+      "basisType": "FRMS_OPERATIONAL_FIRE_SAFETY_EXCLUSION",
+      "legalReferenceIds": [
+        "VN-FIRE-SAFETY-2024",
+        "VN-FIRE-SAFETY-2025"
+      ],
+      "reason": "Đây là nhóm FRMS không tiếp nhận vì nguy cơ cháy nổ và điều kiện phòng cháy chữa cháy; không có nghĩa mọi hoạt động sở hữu các sản phẩm này đều trái luật."
+    },
+    {
+      "id": "P005_HAZARDOUS_CHEMICALS",
+      "title": "Hóa chất bị cấm hoặc hóa chất nguy hiểm cần điều kiện bảo quản chuyên biệt",
+      "examples": [
+        "hóa chất thuộc danh mục cấm",
+        "hóa chất độc cấp tính",
+        "chất ăn mòn nguy hiểm không được đóng gói phù hợp",
+        "hazardous chemicals"
+      ],
+      "basisType": "LEGALLY_REGULATED_NOT_ACCEPTED_BY_FRMS",
+      "legalReferenceIds": [
+        "VN-CHEMICALS-2025"
+      ],
+      "reason": "Phân loại và điều kiện lưu giữ phụ thuộc chất, nồng độ và danh mục pháp luật. FRMS không tiếp nhận hóa chất nguy hiểm khi không có cơ sở lưu giữ chuyên biệt."
+    },
+    {
+      "id": "P006_RADIOACTIVE",
+      "title": "Nguồn phóng xạ, vật liệu phóng xạ hoặc vật liệu hạt nhân",
+      "examples": [
+        "nguồn phóng xạ",
+        "chất phóng xạ",
+        "vật liệu hạt nhân",
+        "radioactive material"
+      ],
+      "basisType": "LEGALLY_REGULATED_NOT_ACCEPTED_BY_FRMS",
+      "legalReferenceIds": [
+        "VN-NUCLEAR-2025"
+      ],
+      "reason": "Đối tượng quản lý an toàn bức xạ chuyên ngành; FRMS không tiếp nhận trong kho dân dụng."
+    },
+    {
+      "id": "P007_HAZARDOUS_WASTE",
+      "title": "Chất thải nguy hại cần thu gom, vận chuyển, xử lý theo quy định",
+      "examples": [
+        "chất thải hóa chất nguy hại",
+        "bùn thải chứa chất nguy hại",
+        "chất thải y tế nguy hại",
+        "hazardous waste"
+      ],
+      "basisType": "LEGALLY_REGULATED_NOT_ACCEPTED_BY_FRMS",
+      "legalReferenceIds": [
+        "VN-ENVIRONMENT-2020"
+      ],
+      "reason": "Không dùng kho dân dụng thay cho cơ sở lưu giữ/xử lý chất thải nguy hại được phép."
+    }
+  ],
+  "ALLOWED": [
+    {
+      "id": "A001_BOOKS",
+      "title": "Sách và tài liệu giấy",
+      "examples": [
+        "sách",
+        "vở",
+        "tài liệu giấy",
+        "hồ sơ giấy",
+        "books",
+        "documents"
+      ],
+      "conditions": [
+        "Khô ráo, đóng gói phù hợp; không chứa vật phẩm thuộc PROHIBITED."
+      ],
+      "basisType": "FRMS_PROPOSED_STANDARD_ACCEPTANCE_NOT_GOVERNMENT_APPROVAL"
+    },
+    {
+      "id": "A002_CLOTHING",
+      "title": "Quần áo và vải vóc sạch",
+      "examples": [
+        "quần áo",
+        "chăn",
+        "rèm cửa",
+        "ga trải giường"
+      ],
+      "conditions": [
+        "Đã làm khô, sạch, không chứa hóa chất nguy hiểm hoặc chất gây cháy."
+      ],
+      "basisType": "FRMS_PROPOSED_STANDARD_ACCEPTANCE_NOT_GOVERNMENT_APPROVAL"
+    },
+    {
+      "id": "A003_FURNITURE",
+      "title": "Bàn ghế và nội thất gia đình thông thường",
+      "examples": [
+        "bàn gỗ",
+        "ghế",
+        "tủ quần áo",
+        "kệ sách",
+        "small shelves",
+        "wooden desk"
+      ],
+      "conditions": [
+        "Sạch, khô, không đi kèm nhiên liệu, bình khí hoặc vật phẩm bị cấm."
+      ],
+      "basisType": "FRMS_PROPOSED_STANDARD_ACCEPTANCE_NOT_GOVERNMENT_APPROVAL"
+    },
+    {
+      "id": "A004_EMPTY_PACKAGING",
+      "title": "Thùng và vật liệu đóng gói sạch",
+      "examples": [
+        "thùng carton rỗng",
+        "hộp nhựa sạch",
+        "túi vải",
+        "moving boxes",
+        "empty cardboard boxes"
+      ],
+      "conditions": [
+        "Không có hóa chất tồn dư hoặc vật liệu nguy hiểm bên trong."
+      ],
+      "basisType": "FRMS_PROPOSED_STANDARD_ACCEPTANCE_NOT_GOVERNMENT_APPROVAL"
+    },
+    {
+      "id": "A005_DRY_HOUSEHOLD_ITEMS",
+      "title": "Đồ gia dụng không chứa nhiên liệu hoặc khí nén",
+      "examples": [
+        "chén đĩa",
+        "xoong nồi",
+        "đồ dùng nhà bếp đã vệ sinh"
+      ],
+      "conditions": [
+        "Không kèm thực phẩm hỏng, nhiên liệu, hóa chất hoặc bình áp suất."
+      ],
+      "basisType": "FRMS_PROPOSED_STANDARD_ACCEPTANCE_NOT_GOVERNMENT_APPROVAL"
+    },
+    {
+      "id": "A006_APPLIANCES",
+      "title": "Thiết bị điện gia dụng đã được chuẩn bị an toàn",
+      "examples": [
+        "màn hình máy tính",
+        "bàn phím",
+        "máy in văn phòng",
+        "computer monitor",
+        "keyboard"
+      ],
+      "conditions": [
+        "Tắt nguồn, đóng gói chống ẩm, loại bỏ pin hư hỏng hoặc nguồn nguy hiểm; thiết bị có môi chất/ắc quy cần kiểm tra riêng."
+      ],
+      "basisType": "FRMS_PROPOSED_STANDARD_ACCEPTANCE_NOT_GOVERNMENT_APPROVAL"
+    },
+    {
+      "id": "A007_TOYS",
+      "title": "Đồ chơi thông thường không nguy hiểm",
+      "examples": [
+        "đồ chơi",
+        "thú bông",
+        "đồ chơi xếp hình",
+        "sách tô màu"
+      ],
+      "conditions": [
+        "Không phải vũ khí thật, pháo, vật liệu nổ; đồ chơi mô phỏng vũ khí hoặc có pin đặc biệt cần xem xét."
+      ],
+      "basisType": "FRMS_PROPOSED_STANDARD_ACCEPTANCE_NOT_GOVERNMENT_APPROVAL"
+    },
+    {
+      "id": "A008_SPORTS",
+      "title": "Dụng cụ thể thao thông thường",
+      "examples": [
+        "thảm yoga",
+        "bóng đá",
+        "vợt cầu lông"
+      ],
+      "conditions": [
+        "Không bao gồm vũ khí thể thao, bình khí áp suất hoặc vật phẩm thuộc PROHIBITED."
+      ],
+      "basisType": "FRMS_PROPOSED_STANDARD_ACCEPTANCE_NOT_GOVERNMENT_APPROVAL"
+    }
+  ]
+}

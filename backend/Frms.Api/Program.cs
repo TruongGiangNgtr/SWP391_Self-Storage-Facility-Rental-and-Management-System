@@ -94,6 +94,8 @@ builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddBusiness(builder.Configuration["Time:BusinessTimeZone"]);
 builder.Services.AddSingleton<IPublicPolicyContentProvider>(_ => JsonPublicPolicyContentProvider.Load(
     Path.Combine(AppContext.BaseDirectory, "Content", "PublicPolicies", "published.json")));
+builder.Services.AddSingleton(_ => AiStorageItemsCatalog.Load(
+    Path.Combine(AppContext.BaseDirectory, "Content", "AiStorageRules", "storage-items.vi-VN.json")));
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddFrmsBackgroundJobs();
 

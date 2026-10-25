@@ -9,6 +9,7 @@ namespace Frms.Business.Services.Implementations;
 internal sealed class AiRecommendationService(
     IOperationalCatalogService catalogue,
     IAiRecommendationProvider provider,
+    AiStorageItemsCatalog storageRules,
     ILogger<AiRecommendationService> logger) : IAiRecommendationService
 {
     private const int PageSize = 100;
@@ -21,6 +22,16 @@ internal sealed class AiRecommendationService(
         if (description.Length is < 1 or > 1000 ||
             (preferredMode != "PUBLIC" && preferredMode != "PRIVATE"))
             throw new BusinessException("VALIDATION_ERROR", "Invalid AI recommendation input.", 400);
+
+        // Server-side rule screen precedes catalogue and external AI calls.
+        // The JSON remains a draft; errors are FRMS intake warnings, not legal judgments.
+        var screening = storageRules.Assess(description);
+        if (screening == AiStorageDecision.Prohibited)
+            throw new BusinessException("PROHIBITED_STORAGE_ITEM",
+                storageRules.PublicView.ProhibitedWarning, 422);
+        if (screening == AiStorageDecision.NeedsReview)
+            throw new BusinessException("STORAGE_ITEM_REVIEW_REQUIRED",
+                storageRules.PublicView.NeedsReviewWarning, 422);
 
         try
         {
