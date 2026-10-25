@@ -10,16 +10,39 @@ namespace Frms.DataAccess.Repositories.Implementations;
 // Narrow SQL adapter; all business transactions remain in authoritative SPs.
 internal sealed class ReturnSqlExecutor(FrmsDbContext db)
 {
-    private static readonly string[] KnownCodes =
-    [
-        "RETURN_ALREADY_FINALIZED", "DAMAGE_DECISION_PENDING",
-        "INSPECTION_ALREADY_CLAIMED", "INSPECTION_INVALID_STATUS",
-        "VISIT_INVALID_STATUS", "VISIT_ENTITY_MISMATCH",
-        "CONTRACT_NOT_ACTIVE", "RETURN_ALREADY_CONFIRMED",
-        "DAMAGE_TYPE_INACTIVE", "EXTRA_FEE_TYPE_INACTIVE",
-        "UNIT_INVALID_STATUS", "UNIT_NOT_AVAILABLE", "FORBIDDEN",
-        "RESOURCE_NOT_FOUND", "VALIDATION_ERROR"
-    ];
+    // Match both SQLSTATE and MESSAGE emitted by the deployed PostgreSQL
+    // Inspections.sql / Returns.sql routines. Do not classify an unrelated
+    // database error as a business conflict based on MessageText alone.
+    private static readonly IReadOnlyDictionary<string, string> BusinessCodesBySqlState =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["P1112"] = "VISIT_INVALID_STATUS",
+            ["P1114"] = "STAFF_FACILITY_OR_ROLE_INVALID",
+            ["P1120"] = "CONTRACT_NOT_ACTIVE",
+            ["P1124"] = "STORAGE_UNIT_NOT_IN_USE",
+            ["P1125"] = "INSPECTION_ALREADY_CLAIMED",
+            ["P1126"] = "INSPECTION_INVALID_STATUS",
+            ["P1127"] = "DAMAGE_AMOUNT_REQUIRED",
+            ["P1128"] = "EXTRA_FEE_TYPE_NOT_ACTIVE",
+            ["P1129"] = "EXTRA_FEE_AMOUNT_INVALID",
+            ["P1130"] = "EVIDENCE_FILE_REQUIRED",
+            ["P1212"] = "DAMAGE_TYPE_NOT_ACTIVE",
+            ["P1280"] = "VALIDATION_ERROR",
+            ["P1281"] = "RESOURCE_NOT_FOUND",
+            ["P1282"] = "RETURN_ALREADY_FINALIZED",
+            ["P1283"] = "FORBIDDEN",
+            ["P1284"] = "UNIT_INVALID_STATUS",
+            ["P1285"] = "INSPECTION_INVALID_STATUS",
+            ["P1286"] = "VISIT_ENTITY_MISMATCH",
+            ["P1287"] = "DAMAGE_DECISION_PENDING",
+            ["P1288"] = "VALIDATION_ERROR"
+        };
+
+    internal static string? ResolveBusinessCode(string sqlState, string messageText) =>
+        BusinessCodesBySqlState.TryGetValue(sqlState, out var expectedCode) &&
+        string.Equals(messageText, expectedCode, StringComparison.Ordinal)
+            ? expectedCode
+            : null;
 
     public Task ExecuteAsync(string procedure, CancellationToken ct,
         params (string Name, DbType Type, object? Value)[] arguments)
@@ -61,8 +84,7 @@ internal sealed class ReturnSqlExecutor(FrmsDbContext db)
         }
         catch (PostgresException ex)
         {
-            var code = KnownCodes.FirstOrDefault(c =>
-                string.Equals(ex.MessageText, c, StringComparison.Ordinal));
+            var code = ResolveBusinessCode(ex.SqlState, ex.MessageText);
             if (code is not null) throw new StoredProcedureBusinessException(code, code);
             throw;
         }
