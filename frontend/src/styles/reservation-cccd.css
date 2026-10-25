@@ -1,0 +1,13 @@
+.frms-customer .reservation-cccd-step { display: grid; gap: 24px; }
+.reservation-cccd-intro { display: flex; align-items: flex-start; gap: 16px; }
+.reservation-cccd-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 44px; width: 44px; height: 44px; border-radius: 12px; color: var(--flow-brand); background: #eff6ff; }
+.reservation-cccd-intro h2 { margin: 0 0 8px; font-size: 18px; line-height: 1.5; }
+.reservation-cccd-intro p, .reservation-cccd-note { margin: 0; color: var(--flow-muted); font-size: 13px; line-height: 1.7; }
+.reservation-cccd-step .form-field small { color: var(--flow-muted); line-height: 1.6; }
+.reservation-cccd-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; padding-top: 20px; border-top: 1px solid var(--flow-border); }
+.reservation-cccd-actions .button { gap: 8px; }
+.reservation-cccd-dialog .dialog-subtitle { line-height: 1.7; }
+@media (max-width: 600px) {
+  .reservation-cccd-actions .button { flex: 1 1 auto; }
+  .reservation-cccd-intro { flex-direction: column; }
+}

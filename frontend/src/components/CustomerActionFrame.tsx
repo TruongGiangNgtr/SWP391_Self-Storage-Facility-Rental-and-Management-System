@@ -2,8 +2,8 @@ import type { ReactNode } from 'react'
 import { Link, useLocation, useNavigate, type Location } from 'react-router-dom'
 import { FlowDialog } from './FlowDialog'
 
-export function CustomerActionFrame({ contractId, returnTo, backLabel = 'View Contract', title, category, subtitle, className = '', headingIcon, busy = false, children }: {
-  contractId?: string; returnTo?: string; backLabel?: string; title: string; category: string; subtitle: string; className?: string; headingIcon?: ReactNode; busy?: boolean; children: ReactNode | ((close: () => void) => ReactNode)
+export function CustomerActionFrame({ contractId, returnTo, backLabel = 'View Contract', title, category, subtitle, className = '', headingIcon, busy = false, onClose, children }: {
+  contractId?: string; returnTo?: string; backLabel?: string; title: string; category: string; subtitle: string; className?: string; headingIcon?: ReactNode; busy?: boolean; onClose?: () => void; children: ReactNode | ((close: () => void) => ReactNode)
 }) {
   const location = useLocation()
   const navigate = useNavigate()
@@ -12,6 +12,7 @@ export function CustomerActionFrame({ contractId, returnTo, backLabel = 'View Co
   const hasBackground = background && (background.pathname === '/customer' || background.pathname.startsWith('/customer/'))
   const close = () => {
     if (busy) return
+    if (onClose) { onClose(); return }
     if (hasBackground) navigate(`${background.pathname}${background.search}${background.hash}`, { replace: true, state: background.state })
     else navigate(backUrl)
   }

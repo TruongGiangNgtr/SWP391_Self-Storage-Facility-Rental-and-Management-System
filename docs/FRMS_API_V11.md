@@ -1,6 +1,7 @@
 # FRMS — API Contract & Authorization Specification
 
 **Version:** V11.0 REVIEW CANDIDATE  
+**Approved CCCD format revision:** 2026-10-26 — `REV-2026-10-26-CCCD-12-DIGITS` (SRS OD-10); exact 12 ASCII digits, existing error envelope; backend/runtime OpenAPI alignment pending.
 **Approved Customer revision:** 2026-10-25 — `REV-2026-10-25-CUSTOMER-CCCD-CONTINUATION` (SRS OD-09), team approval confirmed by owner; existing 400 VALIDATION_ERROR + errors.cccd approved; requirement synchronization only, not runtime acceptance.
 **Date:** 2026-10-22 (Customer Transaction History requirements approval; recurring BackgroundJobs reconciliation dated 2026-10-21)\
 **Source:** `FRMS_SRS_V11.md` **§0.0.9 approved owner decisions**, including Customer activity OD-06/07 dated 2026-10-22; locally supplied V10.2 API §13; historical V10 main profile revision (partially superseded); read-only GitHub `main` source at `0219f30734b0` (BackgroundJobs now registered; initial V11 audit at `90a6c5982d42`); Transaction History controller/DTO/service/repository rechecked at `1ec61d6` for OD-07\
@@ -574,7 +575,7 @@ Field rules:
 | `email` | Yes | UNIQUE account email |
 | `password` | Yes | hashed with BCrypt before persistence |
 | `address` | No | nullable Customer physical address, max 1,000 characters; not validated/used as a Facility address; omit or set `null` when unknown |
-| `cccd` | No | unique when present |
+| `cccd` | No | null/omitted/blank allowed at registration; otherwise exactly 12 ASCII digits after trim, unique when present (OD-10) |
 
 **OD-09:** CCCD remains optional for account creation, login and public browsing. Keep the existing name field; no LegalName/real-name property or identity-verification status is added. The new condition belongs to RES-001, not registration/activation. Guest requesting a protected reservation operation authenticates first; after login/registration, use the same Customer profile/read/completion flow, preserving only the safe non-sensitive selection under SRS §14.15. Authentication must not create a Reservation or automatically replay a command.
 
@@ -700,11 +701,11 @@ Request:
 {
   "fullName": "Updated Name",
   "address": null,
-  "cccd": "optional"
+  "cccd": "012345678901"
 }
 ```
 
-**V11-OD-01:** `address` is an optional string of max 1,000 characters or explicit `null` (clear saved address); omit to leave unchanged. The example shows clearing it; supplying a nonempty string persists it. The implementation's parser only accepts `fullName`, `address`, `cccd`; `fullName` when supplied must be nonblank (max 150); `cccd` is nullable/max 20/unique when present. This API must not expose Address in public or other-role directory DTOs without separate approval. This endpoint still **MUST NOT** change login `PhoneNumber` or account `Email` (DD-07).
+**V11-OD-01:** `address` is an optional string of max 1,000 characters or explicit `null` (clear saved address); omit to leave unchanged. The example shows clearing it; supplying a nonempty string persists it. The implementation's parser only accepts `fullName`, `address`, `cccd`; `fullName` when supplied must be nonblank (max 150); `cccd` stays nullable/unique with varchar(20) physical storage; OD-10 requires any supplied nonblank value to contain exactly 12 ASCII digits after trim. This API must not expose Address in public or other-role directory DTOs without separate approval. This endpoint still **MUST NOT** change login `PhoneNumber` or account `Email` (DD-07).
 
 **OD-09 in-flow CCCD save:** reuse this existing PATCH; the completion step may send only:
 
@@ -714,9 +715,17 @@ Request:
 }
 ```
 
-The example is synthetic and does not prescribe a new 12-digit format. Preserve omitted fullName/address/cccd fields; explicit null retains existing clear semantics. An accepted profile update does not create a Reservation/Invoice or hold capacity. Do not add returnTo/continuation/customerId/verified flags to the PATCH allowlist. The current UpdatedCustomerProfile response remains unchanged (identifiers, role/status, fullName); do not invent a CCCD field in that response. Re-read AUTH-004 after save to obtain the authoritative accepted CCCD, then resume the originating review under SRS §14.15. An uncertain save must not be reported as completed; show a safe retry/read path. Existing validation/max-20/uniqueness and privacy rules apply, without disclosing another account's identity or CCCD. A later new RES-001 rechecks current profile data even after a successful save.
+The example is synthetic; OD-10 now expressly requires the whole-string 12-ASCII-digit format. Preserve omitted fullName/address/cccd fields; explicit null retains existing clear semantics. An accepted profile update does not create a Reservation/Invoice or hold capacity. Do not add returnTo/continuation/customerId/verified flags to the PATCH allowlist. The current UpdatedCustomerProfile response remains unchanged (identifiers, role/status, fullName); do not invent a CCCD field in that response. Re-read AUTH-004 after save to obtain the authoritative accepted CCCD, then resume the originating review under SRS §14.15. An uncertain save must not be reported as completed; show a safe retry/read path. OD-10 format, existing uniqueness and privacy rules apply, without disclosing another account's identity or CCCD. A later new RES-001 rechecks current profile data even after a successful save.
 
 The preferred FE is focused in-flow entry (popup or internal step if review is already a dialog), not a forced manual trip to Account Settings. A Settings fallback opened as a prerequisite must return to the originating operation after success; ordinary menu-opened Settings stays there. Return targets are validated client navigation context, not API authorization or an automatic mutation. Guest login -> Customer profile check -> completion if needed -> revalidated reservation review is a single protected flow; no new endpoint is required.
+
+### OD-10 — CCCD format and backend handoff (2026-10-26)
+
+**Wire contract:** Apply SRS BR-ACC-04 to AUTH-001 and supplied AUTH-005 CCCD values: trim boundary whitespace, preserve leading zeroes as a string, accept only exactly 12 ASCII digits; do not strip internal characters or coerce numbers. Registration omission/null/blank remains optional. PATCH omission preserves the stored value; null/blank clears it; unrelated PATCH fields may be edited without changing an omitted legacy CCCD. AUTH-004 keeps its current nullable string projection, including unchanged legacy stored strings; do not treat such a string as valid for new Reservation until corrected.
+
+AUTH-001/005 invalid-format or duplicate CCCD and RES-001 missing/invalid saved CCCD use HTTP 400 `VALIDATION_ERROR`, `errors.cccd: string[]` and `traceId`. Keep the existing envelopes, routes, nullable schema and four-field RES-001 request. No OTP/eKYC, new status, field, endpoint or identity authenticity claim. Update request DTO/OpenAPI validation descriptions, Business validators, repository error mapping and the authoritative PostgreSQL create boundary in a separate BE task; this document does not claim those changes are deployed.
+
+**OD-10 acceptance:** API-CCCD-004/DBT-CCCD-003/REG-CONT-002 cover optional/clear/omit cases, 11/13 digits, letters/internal whitespace/punctuation/non-ASCII digits, valid leading-zero strings, unique conflicts, legacy correction, no booking writes on rejection and profile-update races. Backend/Swagger/PostgreSQL evidence is pending; FE mock checks alone do not certify it.
 
 ## 13.13 Public Catalog / Policy / AI API Contracts
 
@@ -861,7 +870,7 @@ Anonymous/Customer can continue manual selection. AI-001 remains a stateless rec
 
 ### RES-001 — Create Reservation
 
-**TEAM-APPROVED — OD-09 / BR-RES-09:** Before creation, the authenticated ACTIVE Customer must have a saved, nonblank CCCD satisfying the existing profile constraints. Resolve it server-side from the authenticated account, never a claimed FE profile-complete flag or a caller CustomerId. Null/empty/whitespace means missing. Apply account/role/ownership checks normally; anonymous callers authenticate first and do not supply CCCD in a public reservation command.
+**TEAM-APPROVED — OD-09 / BR-RES-09:** Before creation, the authenticated ACTIVE Customer must have a saved CCCD matching OD-10 (exactly 12 ASCII digits) and existing uniqueness constraints. Resolve it server-side from the authenticated account, never a claimed FE profile-complete flag or a caller CustomerId. Null/empty/whitespace means missing; a nonblank legacy string not matching OD-10 is invalid for new RES-001. Apply account/role/ownership checks normally; anonymous callers authenticate first and do not supply CCCD in a public reservation command.
 
 Request:
 
@@ -895,10 +904,10 @@ Errors:
 FACILITY_INACTIVE       -> 409
 INVALID_MONTH_RANGE     -> 400
 CAPACITY_NOT_AVAILABLE  -> 409
-VALIDATION_ERROR        -> 400 (OD-09 missing saved CCCD; errors.cccd)
+VALIDATION_ERROR        -> 400 (OD-09/10 missing or invalid saved CCCD; errors.cccd)
 ```
 
-Missing saved CCCD uses the existing validation envelope; the field key is always camelCase cccd:
+Missing or invalid saved CCCD uses the existing validation envelope; the field key is always camelCase cccd:
 
 ```json
 {
@@ -911,7 +920,7 @@ Missing saved CCCD uses the existing validation envelope; the field key is alway
 }
 ```
 
-FE selects guidance from the stable code and errors.cccd key, never by parsing the message. This key identifies the missing saved profile field, not an additional RES-001 request property. No new error code is introduced. Rejection must leave zero new Reservation/hold/Deposit Invoice; authoritative CCCD evaluation belongs to the existing atomic creation boundary together with capacity checks so concurrent profile changes cannot bypass it. No trusted amount/capacity snapshot may be restored from continuation.
+FE selects guidance from the stable code and errors.cccd key, never by parsing the message. This key identifies a missing or invalid saved profile field, not an additional RES-001 request property. No new error code is introduced. Rejection must leave zero new Reservation/hold/Deposit Invoice; authoritative CCCD evaluation belongs to the existing atomic creation boundary together with capacity checks so concurrent profile changes cannot bypass it. No trusted amount/capacity snapshot may be restored from continuation.
 
 After AUTH-005 save + AUTH-004 read, return to the same review/next valid step with the safe FacilityId/UnitTypeId/month selection, re-read price/availability and require explicit confirmation. Neither login nor profile save automatically retries RES-001. A stale selection must be explained and corrected; saving CCCD does not reserve stock or lock price. SRS §14.15 defines cancel/back/ordinary Settings behavior, safe internal destinations and clearing on completion/abandonment/logout/account switch. No raw CCCD/profile/credentials go into URLs or a continuation record.
 
