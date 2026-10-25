@@ -36,7 +36,9 @@ internal sealed class AuthenticationService(
     {
         var account = await repository.FindByIdAsync(userAccountId, cancellationToken) ?? throw Unauthorized();
         if (account.Status != "ACTIVE") throw new BusinessException("ACCOUNT_INACTIVE", "The account is inactive.", 403);
-        return new CurrentAccountResult(account.UserAccountId, account.Role, account.Status, account.Email, account.PhoneNumber, account.CustomerId, account.EmployeeId, account.FacilityId, account.FullName);
+        return new CurrentAccountResult(account.UserAccountId, account.Role, account.Status,
+            account.Email, account.PhoneNumber, account.CustomerId, account.EmployeeId,
+            account.FacilityId, account.FullName, account.Role == "CUSTOMER" ? account.Cccd : null);
     }
 
     public async Task<bool> IsActiveAsync(Guid userAccountId, string role, CancellationToken cancellationToken)

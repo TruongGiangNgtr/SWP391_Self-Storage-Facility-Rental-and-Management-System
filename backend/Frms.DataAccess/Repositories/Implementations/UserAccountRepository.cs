@@ -48,7 +48,8 @@ internal sealed class UserAccountRepository(FrmsDbContext dbContext) : IUserAcco
             customer == null ? null : customer.CustomerId,
             employee == null ? null : employee.EmployeeId,
             employee == null ? null : employee.FacilityId,
-            customer != null ? customer.FullName : employee != null ? employee.FullName : null);
+            customer != null ? customer.FullName : employee != null ? employee.FullName : null,
+            role.RoleName == "CUSTOMER" && customer != null ? customer.Cccd : null);
 
     private static string? Truncate(string? value, int maxLength) => string.IsNullOrWhiteSpace(value) ? null : value[..Math.Min(value.Length, maxLength)];
 }

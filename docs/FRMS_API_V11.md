@@ -649,6 +649,35 @@ Response example:
 }
 ```
 
+Customer own-profile response (example with a saved CCCD):
+
+```json
+{
+  "data": {
+    "userAccountId": "uuid",
+    "role": "CUSTOMER",
+    "status": "ACTIVE",
+    "email": "customer@example.com",
+    "phoneNumber": "0900000000",
+    "profile": {
+      "customerId": "uuid",
+      "employeeId": null,
+      "fullName": "Customer A",
+      "facilityId": null,
+      "cccd": "012345678901"
+    }
+  }
+}
+```
+
+`profile.cccd` MUST be present with JSON `null` for a Customer who has not
+provided a citizen ID. The field MUST NOT be present in Employee `profile`,
+login-token payloads or public/operational Customer directory responses.
+Read only the Customer row joined by the authenticated account ID; never
+accept a Customer ID from the request. No address/ID-verification/status
+changes are implied. The running Swagger/OpenAPI output and FE-API contract
+require verification before the release gate is marked PASS.
+
 **V11 Customer own-profile rule (CCCD retained; Address collection superseded by V11-OD-01):**
 The existing employee response example above is unchanged. For a `CUSTOMER`,
 `data.profile` additionally exposes `customerId`, `fullName`, and optional

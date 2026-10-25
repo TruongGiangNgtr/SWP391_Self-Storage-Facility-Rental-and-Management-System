@@ -10,4 +10,5 @@ public sealed record AuthenticationAccount(
     Guid? CustomerId,
     Guid? EmployeeId,
     Guid? FacilityId,
-    string? FullName);
+    string? FullName,
+    string? Cccd = null);

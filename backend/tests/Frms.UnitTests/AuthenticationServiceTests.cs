@@ -180,6 +180,22 @@ public sealed class AuthenticationServiceTests
     }
 
     [Test]
+    public async Task GetCurrentAccountAsync_CustomerReturnsSavedCccd()
+    {
+        var account = Account("CUSTOMER", "ACTIVE") with { Cccd = "012345678901" };
+        var result = await CreateService(new FakeRepository(account)).GetCurrentAccountAsync(AccountId, default);
+        Assert.That(result.Cccd, Is.EqualTo("012345678901"));
+    }
+
+    [Test]
+    public async Task GetCurrentAccountAsync_EmployeeCannotInheritCccd()
+    {
+        var account = Account("FACILITY_STAFF", "ACTIVE") with { Cccd = "should-not-leak" };
+        var result = await CreateService(new FakeRepository(account)).GetCurrentAccountAsync(AccountId, default);
+        Assert.That(result.Cccd, Is.Null);
+    }
+
+    [Test]
     public void GetCurrentAccountAsync_InactiveAccount_ThrowsAccountInactive()
     {
         var exception = Assert.ThrowsAsync<BusinessException>(() => CreateService(new FakeRepository(Account("CUSTOMER", "INACTIVE")))
