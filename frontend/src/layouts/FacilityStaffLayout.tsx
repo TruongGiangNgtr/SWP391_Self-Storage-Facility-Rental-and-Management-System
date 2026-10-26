@@ -3,6 +3,7 @@ import {
   ClipboardCheck,
   ClipboardList,
   DoorOpen,
+  FileText,
   Handshake,
   LifeBuoy,
   LogOut,
@@ -26,6 +27,7 @@ function getInitials(fullName?: string | null) {
 
 const navItems = [
   { to: '/staff/work-list', label: 'Daily Work List', icon: ClipboardList },
+  { to: '/staff/contracts', label: 'View Contracts', icon: FileText },
   { to: '/staff/reservation-check-in', label: 'Reservation Check-in', icon: ClipboardCheck },
   { to: '/staff/handover-processing', label: 'Handover Processing', icon: Handshake },
   { to: '/staff/access-visits', label: 'Access Visit Processing', icon: DoorOpen },
@@ -105,6 +107,7 @@ export function FacilityStaffLayout() {
             title: 'OPERATIONS',
             links: [
               { to: '/staff/work-list', label: 'Daily Work List' },
+              { to: '/staff/contracts', label: 'View Contracts' },
               { to: '/staff/reservation-check-in', label: 'Reservation Check-in' },
               { to: '/staff/handover-processing', label: 'Handover Processing' },
             ],

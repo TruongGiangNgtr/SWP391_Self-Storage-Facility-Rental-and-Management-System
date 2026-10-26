@@ -65,6 +65,7 @@ import { StaffWorkItemsPage } from '../pages/StaffWorkItemsPage'
 import { StaffHandoverPage } from '../pages/StaffHandoverPage'
 import { StaffAccessVisitPage } from '../pages/StaffAccessVisitPage'
 import { StaffContractPage } from '../pages/StaffContractPage'
+import { StaffContractListPage } from '../pages/StaffContractListPage'
 import { StaffReturnsPage } from '../pages/StaffReturnsPage'
 import { StaffSupportPage } from '../pages/StaffSupportPage'
 import { CustomerErrorAudience } from '../components/ErrorAudienceContext'
@@ -223,6 +224,7 @@ export function AppRouter() {
       <Route path="staff" element={<FacilityStaffLayout />}>
         <Route index element={<Navigate to="work-list" replace />} />
         <Route path="work-list" element={<StaffWorkItemsPage mode="daily" />} />
+        <Route path="contracts" element={<StaffContractListPage />} />
         <Route path="reservation-check-in" element={<StaffWorkItemsPage mode="reservation-check-in" />} />
         <Route path="handover-processing" element={<StaffWorkItemsPage mode="handover" />} />
         <Route path="access-visits" element={<StaffWorkItemsPage mode="access" />} />
