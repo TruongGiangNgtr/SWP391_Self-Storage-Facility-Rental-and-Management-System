@@ -103,7 +103,7 @@ function ListRow({ tab, item, onSelect, unitTypeNames }: { tab: Tab; item: Recor
     }
   }
   return <button type="button" className="mop-table-row" onClick={onSelect}>
-    <span className="mop-record"><strong>{titleOf(tab, item)}</strong><small>{sub}</small></span>
+    <span className="mop-record"><strong>{tab === 'units' ? `${unitTypeNames[(item as StorageUnit).unitTypeId] || 'Type name unavailable'} · ${(item as StorageUnit).unitCode}` : titleOf(tab, item)}</strong><small>{sub}</small></span>
     <span className="mop-secondary">{secondary}</span>
     {status(state)}
     <ArrowUpRight size={17} aria-hidden="true" />
