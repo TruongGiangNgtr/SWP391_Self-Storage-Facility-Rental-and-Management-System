@@ -1,7 +1,7 @@
 import { employeeContractLabel, employeeMonthRange, employeeText, employeeUnitLabel } from '../utils/employeePresentation'
 import { EmployeeEntityLabel, EmployeeReservationLabel } from '../components/EmployeeEntityLabel'
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { contractApi } from '../api/contractApi'
 import { reservationApi } from '../api/reservationApi'
@@ -17,8 +17,12 @@ import '../styles/staff.css'
 
 interface ContractContext { contract: HandoverContractDetail; reservation: ReservationDetail | null; visit: VisitDetail | null }
 
-export function StaffContractPage() {
-  const { contractId = '' } = useParams()
+export function StaffContractPage({ selectedContractId }: { selectedContractId?: string } = {}) {
+  const { contractId: routeContractId = '' } = useParams()
+  const contractId = selectedContractId ?? routeContractId
+  const [params] = useSearchParams()
+  const listPage = Number(params.get('page'))
+  const contractsPath = Number.isSafeInteger(listPage) && listPage > 1 ? `/staff/contracts?page=${listPage}` : '/staff/contracts'
   const [snapshot, setSnapshot] = useState<{ key: string; context: ContractContext | null; error: ApiErrorPresentation | null } | null>(null)
   const [retry, setRetry] = useState(0)
   const key = `${contractId}:${retry}`
@@ -62,9 +66,10 @@ export function StaffContractPage() {
   return (
     <main className="page-container flow-page narrow-page staff-flow">
       <section className="page-heading page-heading-actions">
-        <div><p className="eyebrow">Facility Staff</p><h1>Handover Contract</h1></div>
+        <div><p className="eyebrow">Facility Staff</p><h1>Contract Details</h1></div>
         <div className="employee-page-actions">
-          <Link className="button button-secondary" to="/staff">Work List</Link>
+          {!selectedContractId && <Link className="button button-secondary" to={contractsPath}>View Contracts</Link>}
+          {!selectedContractId && <Link className="button button-secondary" to="/staff">Work List</Link>}
           <button className="button button-secondary" type="button" disabled={loading} onClick={() => setRetry((value) => value + 1)}>Refresh Contract</button>
         </div>
       </section>
@@ -76,7 +81,7 @@ export function StaffContractPage() {
             <dl className="detail-list">
               <div><dt>Contract</dt><dd>{employeeContractLabel(context.contract)}</dd></div>
               <div><dt>Reservation</dt><dd><EmployeeReservationLabel customerId={context.reservation?.customerId} startMonth={context.reservation?.startMonth} endMonth={context.reservation?.endMonth} visitDate={context.reservation?.reservationVisit?.visitDate} /></dd></div>
-              <div><dt>Storage Unit</dt><dd>{employeeUnitLabel(context.contract)}</dd></div>
+              <div><dt>Storage Unit</dt><dd>{employeeText(context.contract.unitTypeName ?? context.contract.storageUnit?.unitTypeName)} · {employeeUnitLabel(context.contract)}</dd></div>
               <div><dt>Facility</dt><dd><EmployeeEntityLabel kind="facility" id={context.contract.facilityId} /></dd></div>
               <div><dt>Rental Period</dt><dd>{employeeMonthRange(context.contract.startMonth, context.contract.endMonth)}</dd></div>
               <div><dt>Captured Contract Discount</dt><dd><EmployeeEntityLabel kind="discount" id={context.contract.discountId} scope={context.contract.customerId} empty="No discount" /></dd></div>
