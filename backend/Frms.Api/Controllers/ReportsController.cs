@@ -15,6 +15,7 @@ public sealed class ReportsController(
     IFacilityOperationsReportService facilityOperationsReportService,
     IReportRevenueService revenueService,
     IBusinessOverviewService overviewService,
+    IReportReadService reportReadService,
     IClock clock) : ControllerBase
 {
     /// <summary>REP-001: Facility Operations, unchanged.</summary>
@@ -64,18 +65,33 @@ public sealed class ReportsController(
             result.UsageRate, result.RentalRevenue)));
     }
 
-    /// <summary>REP-004: CSV monthly revenue with optional Facility, UnitType, year and quarter.</summary>
+    /// <summary>
+    /// REP-004: UTF-8 CSV export. Default revenue is backward-compatible;
+    /// facility/unitType/status export the same grouped rows as business/analysis.
+    /// </summary>
     [Authorize(Roles = RoleNames.BusinessOperationsManager)]
     [HttpGet("business/export")]
     [Produces("text/csv")]
-    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> ExportBusinessReport(
         [FromQuery] Guid? facilityId = null,
         [FromQuery] Guid? unitTypeId = null,
         [FromQuery] int? year = null,
         [FromQuery] int? quarter = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        [FromQuery] string view = "revenue")
     {
+        if (view is not ("revenue" or "facility" or "unitType" or "status"))
+            throw new BusinessException("VALIDATION_ERROR", "view must be revenue, facility, unitType or status.", 400);
+
+        Response.Headers["Cache-Control"] = "no-store";
+        Response.Headers["X-Content-Type-Options"] = "nosniff";
+
+        if (view != "revenue")
+            return await ExportGroupedCsvAsync(view, facilityId, unitTypeId, year, quarter, cancellationToken);
+
         var businessDate = clock.ToBusinessTime(clock.UtcNow);
         var selectedYear = year ?? businessDate.Year;
         if (selectedYear is < 1 or > 9998 || (quarter.HasValue && quarter.Value is < 1 or > 4))
@@ -97,6 +113,63 @@ public sealed class ReportsController(
         }
         var fileName = $"frms-revenue-{selectedYear}-{(quarter.HasValue ? "Q" + quarter.Value : "full-year")}.csv";
         return File(new UTF8Encoding(false).GetBytes(csv.ToString()), "text/csv; charset=utf-8", fileName);
+    }
+
+    private async Task<IActionResult> ExportGroupedCsvAsync(
+        string view, Guid? facilityId, Guid? unitTypeId, int? year, int? quarter,
+        CancellationToken ct)
+    {
+        const int pageSize = 100;
+        // Authorize and validate ALL inputs before response headers/body are committed.
+        var first = await reportReadService.BusinessBreakdownAsync(
+            view, facilityId, unitTypeId, year, quarter, 1, pageSize, ct);
+        var suffix = first.Quarter.HasValue ? $"Q{first.Quarter.Value}" : "full-year";
+        Response.ContentType = "text/csv; charset=utf-8";
+        Response.Headers["Content-Disposition"] =
+            $"attachment; filename=\"frms-{view}-{first.Year}-{suffix}.csv\"";
+        Response.Headers["Cache-Control"] = "no-store";
+        Response.Headers["X-Content-Type-Options"] = "nosniff";
+        await Response.WriteAsync(
+            "facilityId,facilityName,unitTypeId,unitTypeName,unitTypeSize,totalUnits,availableUnits,inUseUnits,inspectionUnits,maintenanceUnits,usageRate,firstMonthRecognizedRevenue,subsequentPaidRentalRevenue,rentalRevenue\r\n", ct);
+
+        // The export covers ALL filtered rows, not just the first screen page.
+        // Only one bounded report page is buffered as a CSV payload at a time.
+        for (var page = 1; page <= first.Pagination.TotalPages; page++)
+        {
+            var batch = page == 1 ? first : await reportReadService.BusinessBreakdownAsync(
+                view, facilityId, unitTypeId, year, quarter, page, pageSize, ct);
+            foreach (var item in batch.Rows)
+            {
+                var cols = new[]
+                {
+                    item.FacilityId?.ToString("D") ?? "", CsvText(item.FacilityName),
+                    item.UnitTypeId?.ToString("D") ?? "", CsvText(item.UnitTypeName),
+                    CsvText(item.UnitTypeSize),
+                    item.TotalUnits.ToString(CultureInfo.InvariantCulture),
+                    item.AvailableUnits.ToString(CultureInfo.InvariantCulture),
+                    item.InUseUnits.ToString(CultureInfo.InvariantCulture),
+                    item.InspectionUnits.ToString(CultureInfo.InvariantCulture),
+                    item.MaintenanceUnits.ToString(CultureInfo.InvariantCulture),
+                    item.UsageRate.ToString(CultureInfo.InvariantCulture),
+                    item.FirstMonthRecognizedRevenue.ToString(CultureInfo.InvariantCulture),
+                    item.SubsequentPaidRentalRevenue.ToString(CultureInfo.InvariantCulture),
+                    item.RentalRevenue.ToString(CultureInfo.InvariantCulture)
+                };
+                await Response.WriteAsync(string.Join(',', cols) + "\r\n", ct);
+            }
+        }
+        return new EmptyResult();
+    }
+
+    private static string CsvText(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return "";
+        // Neutralize formula injection in spreadsheet applications, including
+        // cells with leading whitespace before a formula sigil.
+        var leading = value.TrimStart();
+        if (leading.Length > 0 && leading[0] is '=' or '+' or '-' or '@')
+            value = "'" + value;
+        return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 
     private static DateOnly ParseMonth(string? value, DateOnly fallback)

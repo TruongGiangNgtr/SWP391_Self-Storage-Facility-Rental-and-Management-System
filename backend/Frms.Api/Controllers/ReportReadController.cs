@@ -20,6 +20,9 @@ public sealed class ReportReadController(IReportReadService service) : Controlle
     /// </summary>
     [Authorize(Roles = RoleNames.FacilityManager)]
     [HttpGet("facilities/{facilityId:guid}/units")]
+    [ProducesResponseType(typeof(ApiResponse<FacilityUnitReadReport>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<FacilityUnitReadReport>>> FacilityUnits(
         Guid facilityId, [FromQuery] string? month = null,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
@@ -33,6 +36,9 @@ public sealed class ReportReadController(IReportReadService service) : Controlle
     /// </summary>
     [Authorize(Roles = RoleNames.BusinessOperationsManager)]
     [HttpGet("business/analysis")]
+    [ProducesResponseType(typeof(ApiResponse<BusinessReportBreakdown>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<BusinessReportBreakdown>>> BusinessAnalysis(
         [FromQuery] string view = "facility", [FromQuery] Guid? facilityId = null,
         [FromQuery] Guid? unitTypeId = null, [FromQuery] int? year = null,
@@ -45,6 +51,9 @@ public sealed class ReportReadController(IReportReadService service) : Controlle
     /// <summary>One year/quarter of monthly revenue rows for BOM chart and table.</summary>
     [Authorize(Roles = RoleNames.BusinessOperationsManager)]
     [HttpGet("business/monthly")]
+    [ProducesResponseType(typeof(ApiResponse<BusinessReportMonthly>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<BusinessReportMonthly>>> BusinessMonthly(
         [FromQuery] Guid? facilityId = null, [FromQuery] Guid? unitTypeId = null,
         [FromQuery] int? year = null, [FromQuery] int? quarter = null,
