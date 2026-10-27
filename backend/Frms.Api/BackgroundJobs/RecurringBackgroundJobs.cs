@@ -86,6 +86,7 @@ internal sealed class ProcessReservationNoShowJob(
     : RecurringBackgroundJob(scopes, config, logger)
 {
     protected override string EnabledSetting => "BackgroundJobs:NoShow:Enabled";
+    protected override bool EnabledByDefault => true;
     protected override TimeSpan Interval => TimeSpan.FromDays(1);
     protected override Task RunAsync(IRecurringJobsService jobs, CancellationToken token) =>
         jobs.ProcessReservationNoShowAsync(token);
@@ -96,6 +97,7 @@ internal sealed class RetryNotificationsJob(
     : RecurringBackgroundJob(scopes, config, logger)
 {
     protected override string EnabledSetting => "BackgroundJobs:Notifications:Enabled";
+    protected override bool EnabledByDefault => true;
     protected override TimeSpan Interval => TimeSpan.FromMinutes(5);
     protected override Task RunAsync(IRecurringJobsService jobs, CancellationToken token) =>
         jobs.RetryPendingNotificationsAsync(
