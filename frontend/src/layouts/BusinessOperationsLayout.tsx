@@ -28,6 +28,7 @@ export function BusinessOperationsLayout({
 
   return (
   <div className="bo-shell">
+      <a className="portal-skip-link" href="#business-main">Skip to content</a>
     <header className="bo-header">
       <div className="bo-brand">
         <BrandLogo size="small" />
@@ -38,12 +39,12 @@ export function BusinessOperationsLayout({
       </div>
 
       <div className="bo-header-user">
-        <div className="bo-user-avatar">BO</div>
+        <div className="bo-user-avatar">{initials}</div>
 
         <div className="bo-user-text">
-          <strong>Business Operations Manager</strong>
+          <strong>{displayName}</strong>
           <span>
-            {user?.role ?? 'Preview mode'}
+            Business Operations Manager
           </span>
         </div>
 
@@ -150,7 +151,7 @@ export function BusinessOperationsLayout({
         </div>
       </aside>
 
-      <main className="bo-main">
+      <main className="bo-main" id="business-main" tabIndex={-1}>
         <EmployeeLabelsProvider><Outlet /></EmployeeLabelsProvider>
       </main>
     </div>

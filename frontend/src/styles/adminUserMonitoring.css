@@ -7,7 +7,7 @@
   --awp01-border: #e2e8f0;
   --awp01-text: #0f172a;
   --awp01-muted: #64748b;
-  --awp01-primary: #356df3;
+  --awp01-primary: var(--frms-primary);
   --awp01-danger: #b91c1c;
 
   min-width: 0;

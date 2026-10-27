@@ -73,6 +73,7 @@ export function SystemAdministratorLayout() {
 
   return (
     <div className="admin-shell">
+      <a className="portal-skip-link" href="#admin-main">Skip to content</a>
       <header className="admin-header">
         <div className="admin-brand">
           <BrandLogo size="small" />
@@ -139,7 +140,7 @@ export function SystemAdministratorLayout() {
           </div>
         </aside>
 
-        <main className="admin-main">
+        <main className="admin-main" id="admin-main" tabIndex={-1}>
           <EmployeeLabelsProvider><Outlet /></EmployeeLabelsProvider>
         </main>
       </div>

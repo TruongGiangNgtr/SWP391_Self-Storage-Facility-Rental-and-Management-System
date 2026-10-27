@@ -73,6 +73,7 @@ export function FacilityManagerLayout() {
 
   return (
     <div className="manager-shell">
+      <a className="portal-skip-link" href="#manager-main">Skip to content</a>
       <header className="manager-header">
         <div className="manager-brand">
           <BrandLogo size="small" />
@@ -147,7 +148,7 @@ export function FacilityManagerLayout() {
           </div>
         </aside>
 
-        <main className="manager-main">
+        <main className="manager-main" id="manager-main" tabIndex={-1}>
           <EmployeeLabelsProvider><Outlet /></EmployeeLabelsProvider>
         </main>
       </div>

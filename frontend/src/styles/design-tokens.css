@@ -1,0 +1,115 @@
+/* Shared visual primitives. Domain status and chart palettes stay feature-owned. */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/PlusJakartaSans.ttf') format('truetype');
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+:root {
+  --frms-primary: #2563eb;
+  --frms-primary-hover: #1d4ed8;
+  --frms-primary-soft: #eff6ff;
+  --frms-primary-border: #dbeafe;
+  --frms-canvas: #f8fafc;
+  --frms-surface: #fff;
+  --frms-text: #0f172a;
+  --frms-secondary: #475569;
+  --frms-muted: #64748b;
+  --frms-border: #e2e8f0;
+  --frms-control-border: #94a3b8;
+  --frms-radius-control: 12px;
+  --frms-radius-panel: 16px;
+  --frms-font-body: Inter, sans-serif;
+  --frms-font-heading: 'Plus Jakarta Sans', Inter, sans-serif;
+}
+
+::selection { color: #fff; background: var(--frms-primary-hover); }
+:where(input, textarea) { caret-color: var(--frms-primary); }
+:where(input, textarea)::placeholder { color: var(--frms-muted); opacity: 1; }
+:where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--frms-primary);
+  outline-offset: 3px;
+}
+:where(button, input, select, textarea):disabled { cursor: not-allowed; }
+:where(td, dd, time) { font-variant-numeric: tabular-nums; }
+:where(.page-state, .form-error, .notice) { overflow-wrap: anywhere; }
+:where(.pagination) { flex-wrap: wrap; gap: 12px; }
+
+/* Low-specificity defaults allow each portal's task layout to stay in control. */
+:where(.staff-shell, .manager-shell, .admin-shell, .bo-shell) {
+  font-family: var(--frms-font-body);
+  color: var(--frms-text);
+  background: var(--frms-canvas);
+  line-height: 1.5;
+}
+:where(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :where(h1, h2, h3) {
+  font-family: var(--frms-font-heading);
+  letter-spacing: -.025em;
+  overflow-wrap: anywhere;
+}
+:where(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :where(button, .button) {
+  min-height: 44px;
+}
+:where(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :where(input:not([type='checkbox']):not([type='radio']), select) {
+  min-height: 44px;
+}
+:where(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :where(main, section, form, .panel) { min-width: 0; }
+
+:is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(button, .button) { min-height: 44px; font-size: 14px; }
+:is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
+  min-height: 44px;
+  font-size: 14px;
+  border-radius: var(--frms-radius-control);
+  border-color: var(--frms-control-border);
+}
+:is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(label, td, p) { font-size: 14px; line-height: 1.5; }
+:is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(th, dt, .muted) { font-size: 13px; }
+:is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(h1, h2, h3) { letter-spacing: -.025em; }
+:is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(button, a, input, select, textarea):focus-visible { outline: 3px solid var(--frms-primary); outline-offset: 3px; }
+:is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(.admin-portal-badge, .bo-portal-badge) { font-size: 10px; white-space: normal; }
+:is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(.admin-main, .bo-main) { min-width: 0; }
+
+@media (max-width: 900px) {
+  .admin-shell .admin-profile, .bo-shell .manager-profile { display: none; }
+  .admin-shell .admin-nav, .bo-shell .manager-nav {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 8px;
+    scrollbar-color: var(--frms-muted) var(--frms-canvas);
+  }
+  .admin-shell .admin-nav-link, .bo-shell .manager-nav-link { flex: 0 0 auto; white-space: nowrap; min-height: 44px; }
+  .bo-shell .bo-body.bo-body--employee-sidebar { display: block; padding: 0; }
+  .bo-shell .bo-body--employee-sidebar > .bo-main { padding: 24px 16px 36px; }
+}
+
+.portal-skip-link {
+  position: fixed;
+  top: 8px;
+  left: 16px;
+  z-index: 200;
+  padding: 12px 20px;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--frms-primary-hover);
+  transform: translateY(-160%);
+}
+.portal-skip-link:focus { transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

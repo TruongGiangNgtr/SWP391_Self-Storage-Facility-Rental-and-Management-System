@@ -42,6 +42,7 @@ export function FacilityStaffLayout() {
 
   return (
     <div className="staff-shell">
+      <a className="portal-skip-link" href="#staff-main">Skip to content</a>
       <header className="staff-header">
         <div className="staff-brand">
           <BrandLogo size="small" />
@@ -90,7 +91,7 @@ export function FacilityStaffLayout() {
           </div>
         </aside>
 
-        <main className="staff-main">
+        <main className="staff-main" id="staff-main" tabIndex={-1}>
           <EmployeeLabelsProvider><Outlet /></EmployeeLabelsProvider>
         </main>
       </div>
