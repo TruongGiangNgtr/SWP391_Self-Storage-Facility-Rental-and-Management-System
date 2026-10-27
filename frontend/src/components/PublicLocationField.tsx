@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { ChevronDown, MapPin } from 'lucide-react'
 import type { FacilitySummary } from '../features/catalog/catalog.types'
 import { usePublicFacilities } from '../features/catalog/usePublicCatalog'
 import { ApiErrorAlert } from './ApiErrorAlert'
@@ -79,6 +80,7 @@ export function PublicLocationField({ id, value, pinnedFacility, onChange }: Pub
     onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) close() }}>
     <label id={`${id}-label`} htmlFor={id}>Location / Facility</label>
     <div className="public-location">
+      <MapPin className="public-input-icon" size={18} aria-hidden="true" />
       <input ref={input} id={id} type="text" autoComplete="off"
         role={pinnedFacility ? undefined : 'combobox'}
         aria-autocomplete={pinnedFacility ? undefined : 'list'}
@@ -96,7 +98,7 @@ export function PublicLocationField({ id, value, pinnedFacility, onChange }: Pub
           if (open) close()
           else { setOpen(true); input.current?.focus() }
         }}>
-        <img src="/figma/gwp-01/imgImage.svg" alt="" aria-hidden="true" />
+        <ChevronDown size={16} aria-hidden="true" />
       </button>}
       {open && !pinnedFacility && <div className="public-location-suggestions">
         <div id={listId} role="listbox" aria-labelledby={`${id}-label`} aria-busy={loading}>

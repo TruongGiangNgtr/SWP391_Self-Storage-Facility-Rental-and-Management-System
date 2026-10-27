@@ -1,0 +1,11 @@
+.frms-customer .facility-illustration { position: relative; min-width: 0; margin: 0; overflow: hidden; background: #f1f5f9; }
+.frms-customer .facility-illustration > img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.frms-customer .facility-image-fallback { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; width: 100%; height: 100%; padding: 24px; color: #64748b; text-align: center; font-size: 12px; }
+.frms-customer .facility-illustration.public-featured-media { height: auto; aspect-ratio: 3 / 2; }
+.frms-customer .facility-illustration.facility-thumbnail { width: 240px; height: 160px; }
+.frms-customer .facility-illustration.public-facility-cover { height: auto; aspect-ratio: 2 / 1; max-height: 560px; border: 1px solid var(--flow-border); border-radius: 16px; }
+@media (max-width: 767px) {
+  .frms-customer .public-result-facility .flow-facility-heading { flex-direction: column; }
+  .frms-customer .facility-illustration.facility-thumbnail { width: 100%; height: auto; aspect-ratio: 3 / 2; }
+  .frms-customer .facility-illustration.public-facility-cover { aspect-ratio: 3 / 2; }
+}
