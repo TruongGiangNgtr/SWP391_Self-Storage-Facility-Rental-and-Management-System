@@ -15,7 +15,8 @@ internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log
         if (business is null) logger.LogError(exception, "Unhandled exception for trace {TraceId}.", context.TraceIdentifier);
         else logger.LogWarning("Request failed with code {Code} for trace {TraceId}.", code, context.TraceIdentifier);
         context.Response.StatusCode = status;
-        await context.Response.WriteAsJsonAsync(new ApiErrorResponse(code, message, context.TraceIdentifier), cancellationToken);
+        await context.Response.WriteAsJsonAsync(
+            new ApiErrorResponse(code, message, context.TraceIdentifier, business?.Errors), cancellationToken);
         return true;
     }
 }

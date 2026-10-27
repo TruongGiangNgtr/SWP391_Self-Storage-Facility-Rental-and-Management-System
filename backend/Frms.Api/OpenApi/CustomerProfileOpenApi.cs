@@ -18,7 +18,9 @@ public sealed class CustomerProfilePatchRequestSchema
     [JsonPropertyName("address"), MaxLength(1000)]
     public string? Address { get; init; }
 
-    [JsonPropertyName("cccd"), MaxLength(20)]
+    [JsonPropertyName("cccd")]
+    [RegularExpression(@"^\s*(?:[0-9]{12})?\s*$",
+        ErrorMessage = "CCCD must be exactly 12 ASCII digits when supplied.")]
     public string? Cccd { get; init; }
 }
 
@@ -29,6 +31,7 @@ internal sealed class CustomerProfileOpenApi : IOperationFilter
         "fullName, when supplied, must be nonblank (max 150 characters). " +
         "address and cccd accept null to clear; cccd must be unique when present (max 20 characters). " +
         "Omitted properties remain unchanged. Email and phoneNumber cannot be updated here. " +
+        "A supplied nonblank cccd must be exactly 12 ASCII digits after trimming. " +
         "Updating cccd is not identity verification.";
 
     public void Apply(OpenApiOperation operation, OperationFilterContext context)

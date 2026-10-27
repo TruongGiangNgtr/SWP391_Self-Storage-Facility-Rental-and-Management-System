@@ -44,7 +44,7 @@ const FIELD_MESSAGES: Record<string, string> = {
   email: 'Enter a valid email address.',
   password: 'Check your password. Use 8–64 characters; if it contains many symbols or accented characters, try a shorter password.',
   confirmPassword: 'Re-enter the same password in both password fields.',
-  cccd: 'Check your National ID / CCCD. Use no more than 20 characters.',
+  cccd: 'Enter a valid, unused 12-digit National ID / CCCD (0–9).',
   startMonth: 'Choose a check-in month after the current month.',
   endMonth: 'Choose a check-out month that is the same as or later than your check-in month.',
   newEndMonth: 'Choose an end month after your current contract ends.',

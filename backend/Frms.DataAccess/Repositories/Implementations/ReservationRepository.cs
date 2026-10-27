@@ -200,6 +200,9 @@ internal sealed class ReservationRepository(
                     reader.GetOrdinal(
                         "DepositInvoiceId"));
         }
+        catch (PostgresException ex) when (ex.SqlState == "P1111") {
+            throw new StoredProcedureBusinessException("CUSTOMER_CCCD_INVALID", "CUSTOMER_CCCD_INVALID");
+        }
         catch (PostgresException ex)
             when (PostgreSqlErrors.Number(ex) is
                 51101 or

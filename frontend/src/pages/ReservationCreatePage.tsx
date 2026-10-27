@@ -101,7 +101,8 @@ function ReservationReview() {
     } catch (error) {
       if (!active.current || authToken.get() !== token) return
       if (error instanceof ApiRequestError && error.status === 400 && error.code === 'VALIDATION_ERROR' && error.errors && Object.hasOwn(error.errors, 'cccd')) {
-        profile.requireCompletion(error.errors.cccd.join(' ') || 'Add your National ID to continue reserving storage.')
+        // Stable code + field key determine UX; never render provider/server prose as form guidance.
+        profile.requireCompletion('Add a valid 12-digit National ID / CCCD to continue your reservation.')
         setCompletionRequested(true); setDeferred(false)
         return
       }

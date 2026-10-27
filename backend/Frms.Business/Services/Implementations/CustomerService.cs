@@ -19,6 +19,11 @@ internal sealed class CustomerService(
         UpdateCustomerProfileCommand command, CancellationToken ct)
     {
         var account = await EnsureRoleAsync("CUSTOMER", ct);
+        // OD-10: validate supplied CCCD before the legacy generic max-length guard.
+        // Omitted/blank values retain AUTH-005 preserve/clear semantics.
+        if (command.UpdateCccd && !string.IsNullOrWhiteSpace(command.Cccd) &&
+            !CustomerCccdRules.IsValid(command.Cccd.Trim()))
+            throw CustomerCccdRules.InvalidField();
         var update = CustomerProfileValidator.ValidateAndNormalize(command);
         CustomerProfileRecord? profile;
         try
@@ -29,7 +34,7 @@ internal sealed class CustomerService(
         }
         catch (CustomerCccdConflictException)
         {
-            throw new BusinessException("VALIDATION_ERROR", "The CCCD is already registered.", 400);
+            throw CustomerCccdRules.DuplicateField();
         }
 
         if (profile is null) throw NotFound();

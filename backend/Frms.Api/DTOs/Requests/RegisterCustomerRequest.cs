@@ -21,6 +21,8 @@ public sealed record RegisterCustomerRequest
     [MaxLength(1000)]
     public string? Address { get; init; }
 
-    [MaxLength(20)]
+    // Optional or blank at registration; nonblank values must be 12 ASCII digits after trim.
+    [RegularExpression(@"^\s*(?:[0-9]{12})?\s*$",
+        ErrorMessage = "CCCD must be exactly 12 ASCII digits when supplied.")]
     public string? Cccd { get; init; }
 }

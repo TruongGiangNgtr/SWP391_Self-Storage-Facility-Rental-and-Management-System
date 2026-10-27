@@ -13,7 +13,11 @@ export class ApiRequestError extends Error {
     this.status = status
     this.code = payload.code
     this.traceId = payload.traceId
-    this.errors = payload.errors
+    // OD-09/10: customer copy is driven by stable code+field, not raw server messages.
+    this.errors = status === 400 && payload.code === 'VALIDATION_ERROR' &&
+      payload.errors && Object.hasOwn(payload.errors, 'cccd')
+      ? { ...payload.errors, cccd: ['Enter a valid 12-digit National ID / CCCD (0–9) that is not already in use.'] }
+      : payload.errors
   }
 }
 

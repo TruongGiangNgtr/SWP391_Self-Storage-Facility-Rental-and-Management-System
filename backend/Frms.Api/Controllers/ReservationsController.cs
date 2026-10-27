@@ -16,9 +16,10 @@ namespace Frms.Api.Controllers;
 [Route("api/v1/reservations")]
 public sealed class ReservationsController(IReservationService reservationService) : ScaffoldControllerBase
 {
-    /// <summary>RES-001: Create Reservation and Deposit Invoice.</summary>
+    /// <summary>RES-001: Create Reservation and Deposit Invoice; saved Customer CCCD must be 12 ASCII digits.</summary>
     [HttpPost]
     [Authorize(Roles = "CUSTOMER")]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(
         typeof(ApiResponse<ReservationDetailResponse>),
         StatusCodes.Status201Created)]

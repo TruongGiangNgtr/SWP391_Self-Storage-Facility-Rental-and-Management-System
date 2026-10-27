@@ -3,6 +3,7 @@ using Frms.Business.Exceptions;
 using Frms.Business.Models.Commands;
 using Frms.Business.Models.Results;
 using Frms.Business.Services.Interfaces;
+using Frms.Business.Validators;
 using Frms.DataAccess.Repositories.Interfaces;
 using Frms.DataAccess.Repositories.Models;
 using Frms.DataAccess.StoredProcedures;
@@ -49,6 +50,15 @@ internal sealed class ReservationService(
                 404);
         }
 
+        // Early UX guard; the PostgreSQL creation routine rechecks under row locks.
+        var account = await authentication.GetCurrentAccountAsync(currentUser.UserAccountId, cancellationToken);
+        if (account.Role != CustomerRole)
+            throw new BusinessException("FORBIDDEN", "Customer access is required.", 403);
+        if (account.Status != "ACTIVE")
+            throw new BusinessException("ACCOUNT_INACTIVE", "The account is inactive.", 403);
+        if (!CustomerCccdRules.IsValid(account.Cccd))
+            throw CustomerCccdRules.ReservationError();
+
         try {
             return await repository.CreateAsync(
                 customerId.Value,
@@ -60,6 +70,8 @@ internal sealed class ReservationService(
         }
         catch (StoredProcedureBusinessException ex) {
             switch (ex.Code) {
+                case "CUSTOMER_CCCD_INVALID":
+                    throw CustomerCccdRules.ReservationError();
                 case "INVALID_MONTH_RANGE":
                     throw new BusinessException(
                         ex.Code,
