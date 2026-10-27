@@ -868,7 +868,7 @@ The following must execute inside transactions with suitable locking/isolation:
 | `DamageFee` | `DamageRecord.DamageAmount`. |
 | `Maintenance` | `StorageUnit.Status = MAINTENANCE`; no maintenance workflow entity in core. |
 | `DailyTask` | Derived query from Visits + Inspections + SupportTickets. |
-| `Report` | Derived/query/export capability, not persisted domain entity; Release 1 export format is UTF-8 CSV. |
+| `Report` | Derived/query/export capability, not persisted domain entity; Release 1 export format is UTF-8 CSV. Manager/BOM report read projections add **no** Report, daily-snapshot or financial-ledger table. |
 | `PriceHistory` | Reservation and ContractExtension/Invoice snapshots preserve transaction pricing. |
 | `Appointment` | Visit already models scheduled facility visits. |
 | `RenewalFee` | Renewed months continue using Rental Fee invoices. |
@@ -1228,12 +1228,27 @@ A retry may create another Payment attempt rather than mutating a FAILED attempt
 | `CALC-SET-02` RefundAmount | Normal return: `MAX(DepositPaidAmount - TotalDeduction, 0)` | Early return forces 0. |
 | `CALC-SET-03` AdditionalAmountDue | `MAX(TotalDeduction - DepositPaidAmount, 0)` | Recorded obligation only. |
 | `CALC-CAP-01` Available capacity | `eligible physical-unit capacity - Reservation holds - Contract occupancy` for each month | Must evaluate every month in requested period. |
-| `CALC-REP-01` Usage Rate | `IN_USE rentable StorageUnits / total rentable StorageUnits` | Derived reporting value; not persisted. |
-| `CALC-REP-02` Revenue | Sum of successfully paid Rental Fee amounts in reporting period | Deposit/late/extra/damage excluded from core revenue. |
+| `CALC-REP-01` Usage Rate | `COUNT(StorageUnit.Status = IN_USE) / COUNT(all scoped StorageUnit)` | Include AVAILABLE, IN_USE, INSPECTION and MAINTENANCE in denominator, including inactive Facilities when in requested scope; zero denominator => 0; never mean of Facility percentages. Fraction rounded to four decimals, not capacity availability. |
+| `CALC-REP-02` Revenue | `FirstMonthRecognizedRevenue + SubsequentPaidRentalRevenue` | First component: SUM once per Contract of `Reservation.LockedRentalPrice`, period keyed by `Contract.StartMonth`, any Contract status. Later component: SUM once per PAID `RENTAL_FEE` Invoice where `BillingMonth > Contract.StartMonth` and authoritative UTC `Invoice.PaidAt` falls in GMT+7 reporting period. Exclude Deposit/Late/Extra/Damage and legacy first-month Invoice double count; use decimals. |
 
 ### 19.1 Monetary rounding
 
 V1 recommendation: calculate intermediate money values in `DECIMAL(18,4)` inside stored procedures when division is involved, then round final persisted amount to `DECIMAL(18,2)` using one consistent rule. Do not mix application-side binary floating-point calculations with DB-side decimal calculations.
+
+### 19.2 Manager/BOM report read model — reviewed implementation alignment
+
+These are **derived, read-only projections** from existing StorageUnit, UnitType, Facility, Contract, Reservation, Invoice and StorageUnit-status AuditLog rows. No schema addition or `Report` entity is authorized by this note. API V11 §13.22 describes the routes (REP-001..004 and provisional REP-RD-01..03).
+
+| Projection | Persisted sources / bounds | Accuracy and availability boundary |
+|---|---|---|
+| Manager facility operations | Facility-scoped StorageUnit status counts and distinct ACTIVE overdue Contracts with persisted OVERDUE later-month `RENTAL_FEE` Invoice | Current state only; Manager's assigned Facility; usageRate per CALC-REP-01. |
+| Manager monthly revenue | Contract + original Reservation snapshot; paid subsequent RENTAL_FEE Invoice with UTC PaidAt | GMT+7 business-month boundaries; first-month recognition not a Payment; never reprice existing Contract from UnitType. |
+| Manager unit-type utilization and inventory | Current StorageUnit joined UnitType; paginated by UnitCode then StorageUnitId; optional ACTIVE Contract/customer fields | `inventoryScope=CURRENT`, `historicalInventorySupported=false`; historical UnitType, location and customer/Contract associations cannot be inferred. |
+| Manager daily status trend | Pg010 `AuditLog` CREATE_STORAGE_UNIT / CHANGE_STORAGE_UNIT_STATUS evidence inside selected GMT+7 month plus last verified baseline before month | No historical backfill. `knownUnits`/`unknownUnits` distinguish evidence coverage; when incomplete `usageRate=null`; never backfill with today's Status or substitute zero. Average and peak use known daily values only. |
+| BOM grouped report | Current StorageUnit groups by Facility/UnitType; server-derived period revenue using Contract/Reservation and paid later-month Invoice | `view=facility|unitType|status`; `year`/`quarter` affect **revenue only**; include zero-unit catalogue entries for facility/unitType views; status rows represent Facility × UnitType groups. |
+| BOM monthly revenue and CSV | CALC-REP-02 by requested business month; grouped export corresponds to full filtered analysis rows | `month`/`year`/`quarter` are business-calendar selectors, not historical physical snapshots. CSV has no stored output table. |
+
+**Implementation caveat:** The reviewed grouped-CSV patch streams HTTP rows in batches of 100, but `BusinessBreakdownAsync` materializes *all* grouping keys/rows before page slicing. This does not yet demonstrate bounded server memory at scale as required by SRS §18.6. Use database-side bounded pagination/streaming and measure it before sign-off; cross-page consistency under concurrent source changes also requires tests. AuditLog-based history, monetary parity, scope authorization and CSV formula-injection defenses remain test gates, not verified guarantees.
 
 ---
 
@@ -1250,6 +1265,7 @@ This matrix is primarily an authorization contract for API/stored-procedure exec
 | Contract view own | Yes | Facility R | Facility R/operational handover | System R | No business mutation |
 | Contract renewal request | Yes | No | Monitor | Monitor | No |
 | Invoice/Payment own view/pay | Yes | Verify state only | Monitor | Report/monitor | No manual PAID mutation |
+| Manager/BOM reporting & CSV | No | No | R: assigned Facility reports only; no business CSV export | R/CSV export: system-wide with optional Facility/UnitType filters | No |
 | Policy | R if exposed | R | R | Create new version | No |
 | UnitType price/master | R | R | R | Manage | No |
 | Discount | Own eligible list/use | R as needed | R | Manage business data | No |

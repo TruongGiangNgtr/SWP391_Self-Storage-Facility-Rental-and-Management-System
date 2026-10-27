@@ -503,7 +503,10 @@ The CAT-001..005 public access/filter/view changes, PUB-POL-001/002 and Anonymou
 | `REP-001` | `GET` | `/api/v1/reports/facilities/{facilityId}/operations` | Facility operations report | FACILITY_MANAGER | MWP-06 |
 | `REP-002` | `GET` | `/api/v1/reports/facilities/{facilityId}/revenue` | Facility revenue report | FACILITY_MANAGER | MWP-06 |
 | `REP-003` | `GET` | `/api/v1/reports/business/overview` | System-wide business overview | BUSINESS_OPERATIONS_MANAGER | BWP-06/BWP-07 |
-| `REP-004` | `GET` | `/api/v1/reports/business/export` | Export system-wide report | BUSINESS_OPERATIONS_MANAGER | BWP-07 |
+| `REP-004` | `GET` | `/api/v1/reports/business/export` | UTF-8 CSV; `view=revenue` default, proposed grouped Facility/UnitType/Status export | BUSINESS_OPERATIONS_MANAGER | BWP-07 |
+| `REP-RD-01` (implementation candidate) | `GET` | `/api/v1/reports/facilities/{facilityId}/units` | Manager unit-type/current inventory + evidence-based daily history | FACILITY_MANAGER | MWP-06 |
+| `REP-RD-02` (implementation candidate) | `GET` | `/api/v1/reports/business/analysis` | BOM grouped facility/unitType/status read | BUSINESS_OPERATIONS_MANAGER | BWP-07 |
+| `REP-RD-03` (implementation candidate) | `GET` | `/api/v1/reports/business/monthly` | BOM monthly recognized revenue | BUSINESS_OPERATIONS_MANAGER | BWP-07 |
 | `ADM-001` | `GET` | `/api/v1/admin/users` | List user accounts | SYSTEM_ADMINISTRATOR | AWP-01 |
 | `ADM-002` | `GET` | `/api/v1/admin/users/{userAccountId}` | User/account profile detail | SYSTEM_ADMINISTRATOR | AWP-01 |
 | `ADM-003` | `POST` | `/api/v1/admin/customers/{customerId}/activate` | Activate Customer account | SYSTEM_ADMINISTRATOR | AWP-02 |
@@ -1802,6 +1805,10 @@ Example response:
 
 For REP-001, usageRate is CALC-REP-01: 30 / (20 + 30 + 2 + 1) = 0.5660 rounded to four decimal places in this example. Include INSPECTION and MAINTENANCE in the physical-unit denominator; if the scoped Facility has no Unit, usageRate is 0. This does not change capacity eligibility.
 
+### REP-002 — Facility Revenue
+
+`GET /api/v1/reports/facilities/{facilityId}/revenue?month=yyyy-MM` (Manager, same assigned Facility). Missing `month` selects the current GMT+7 business month; an invalid month is HTTP 400 `VALIDATION_ERROR`. The `{data}` object contains `facilityId` (UUID), `month` (`yyyy-MM`), `firstMonthRecognizedRevenue`, `subsequentPaidRentalRevenue` and `rentalRevenue` (JSON decimal numbers). The first component recognizes `Reservation.LockedRentalPrice` once when its Contract begins; the later component sums eligible paid RENTAL_FEE Invoices based on `PaidAt`. No first-month online Payment and no Deposit/Late/Extra/Damage charge enters this value.
+
 ### REP-003 — Business Overview
 
 Response may include:
@@ -1821,9 +1828,61 @@ Revenue follows revised CALC-REP-02 (section 12.4.1): Contract-derived first-mon
 
 ### REP-004 — Export
 
-This endpoint is a file response, not JSON.
+`GET /api/v1/reports/business/export` requires BUSINESS_OPERATIONS_MANAGER. Successful response is a downloadable **UTF-8 CSV**, not JSON; use `Content-Type: text/csv; charset=utf-8` and `Content-Disposition: attachment`. Error responses still use the standard JSON API error envelope.
 
-Required query filters are the same business-report filters exposed by the corresponding report view. Release 1 export format is CSV (`text/csv`, UTF-8) according to DD-03.
+| Query | Behavior (implementation review candidate) |
+|---|---|
+| `view` | `revenue` (default/backward-compatible), `facility`, `unitType`, `status`; invalid value => HTTP 400 `VALIDATION_ERROR`. |
+| `facilityId`, `unitTypeId` | Optional UUID catalogue filters; absent means all; non-existent filters => 404 `RESOURCE_NOT_FOUND`. |
+| `year`, `quarter` | Optional business year (default GMT+7 current year, valid 1..9998) and quarter (1..4); omitted quarter means 12 months. Year/quarter constrain recognized revenue only. |
+
+With `view=revenue` or omitted `view`, preserve the legacy header exactly:
+
+```csv
+month,firstMonthRecognizedRevenue,subsequentPaidRentalRevenue,rentalRevenue
+```
+
+Its 12/3 data rows are ordered chronologically. For `view=facility|unitType|status`, output **all filtered grouping rows**, not merely the current paginated UI page, using the same grouping, CALC-REP-01/02 and filters as REP-RD-02. The reviewed implementation patch uses this exact header in all three grouped modes:
+
+```csv
+facilityId,facilityName,unitTypeId,unitTypeName,unitTypeSize,totalUnits,availableUnits,inUseUnits,inspectionUnits,maintenanceUnits,usageRate,firstMonthRecognizedRevenue,subsequentPaidRentalRevenue,rentalRevenue
+```
+
+A grouped `status` row means **Facility × UnitType**, not one row per individual status. IDs/names inapplicable to a grouping are blank; usageRate is the raw 0..1 fraction. Text is CSV-quoted, double quotes are doubled, and spreadsheet formula-like text is neutralized. File data must not leak private Customer fields, CCCD or credentials. The server sets `Cache-Control: no-store`; FE must download the CSV as a file with authenticated credentials rather than attempting JSON envelope decoding.
+
+**Open performance defect in reviewed source:** The current grouped export pages HTTP output but obtains each page from `BusinessBreakdownAsync`, which builds all grouped rows before `Skip/Take`. SRS §18.6 prohibits unbounded report/export materialization. This is **not accepted as fixed** by documentation; implement bounded database-side pagination/streaming and verify correctness under concurrent updates before release. No XLSX format or new database entity is approved.
+
+### REP-RD-01 — Facility Unit Report (implementation route, provisional ID)
+
+`GET /api/v1/reports/facilities/{facilityId}/units?month=yyyy-MM&page=1&pageSize=20` requires FACILITY_MANAGER authorized for that Facility. Defaults: current GMT+7 month, `page=1`, `pageSize=20` (maximum 100). Reject future/invalid month with HTTP 400 `VALIDATION_ERROR`; invalid page/pageSize with HTTP 400 `INVALID_PAGINATION`. The `{data}` object has:
+
+| Field | Type / meaning |
+|---|---|
+| `facilityId`, `month`, `asOf` | UUID, `yyyy-MM`, UTC timestamp. |
+| `inventoryScope`, `historicalInventorySupported` | **`CURRENT`**, **`false`** in reviewed backend; month does not make present-day inventory historical. |
+| `unitTypes[]` | `unitTypeId`, `name`, `size`, `totalUnits`, `availableUnits`, `inUseUnits`, `inspectionUnits`, `maintenanceUnits`, `usageRate`. |
+| `inventory[]` | `storageUnitId`, `unitCode`, `unitTypeId`, `unitTypeName`, `unitTypeSize`, nullable `locationInfo`, `status`, nullable `contractId`, `customerId`, `customerName`, `endMonth`; **CURRENT** contract/customer join only. |
+| `pagination` | `{page, pageSize, totalItems, totalPages}` for current inventory, ordered by UnitCode then StorageUnitId. |
+| `dailyTrend[]` | `date`, four status counts, `knownUnits`, `unknownUnits`, nullable `usageRate`; source is Pg010 AuditLog evidence, no pre-trigger backfill. |
+| `averageOccupancy`, `peakDay` | Nullable average fraction and date computed only from daily rows whose `usageRate` is known. |
+
+Where history is incomplete, return `unknownUnits > 0` and `usageRate: null`; NEVER substitute current Unit Status or `0` for unobserved history. A zero-unit Facility has zero current usage, but a historical day with incomplete coverage is **unknown**, not zero. UI must show that distinction.
+
+### REP-RD-02 — BOM Grouped Analysis (implementation route, provisional ID)
+
+`GET /api/v1/reports/business/analysis?view=facility&year=2026&page=1&pageSize=20` requires BUSINESS_OPERATIONS_MANAGER. Accepted `view`: `facility` (default), `unitType`, `status`. Optional `facilityId`/`unitTypeId` UUIDs and `year`/`quarter` are validated server-side. Year defaults to current GMT+7 business year (1..9998), quarter 1..4 or omitted. Pagination defaults 1/20; maximum pageSize 100. The `{data}` object contains `view`, `year`, nullable `quarter`, `asOf`, `summary`, `rows[]` and `pagination`.
+
+`summary` contains `facilityCount`, `unitTypeCount`, `totalUnits`, `availableUnits`, `inUseUnits`, `inspectionUnits`, `maintenanceUnits`, `usageRate`, `firstMonthRecognizedRevenue`, `subsequentPaidRentalRevenue`, `rentalRevenue`. Each `rows[]` item contains nullable `facilityId`/`facilityName`, nullable `unitTypeId`/`unitTypeName`/`unitTypeSize`, all four status counts, `totalUnits`, `usageRate`, and the three revenue fields. `view=facility` groups by Facility (including zero-unit catalogue Facilities); `view=unitType` groups by UnitType (including zero-unit catalogue types); `view=status` groups by **Facility × UnitType**. `year`/`quarter` filter revenue; physical counts remain the **CURRENT** state. `pagination` has `{page,pageSize,totalItems,totalPages}`. Use server totals; FE does not recompute global rates from paged rows.
+
+### REP-RD-03 — BOM Monthly Revenue (implementation route, provisional ID)
+
+`GET /api/v1/reports/business/monthly?year=2026&quarter=4&facilityId={uuid}&unitTypeId={uuid}` requires BUSINESS_OPERATIONS_MANAGER. Filters and year/quarter defaults match REP-RD-02. The `{data}` object contains `year`, nullable `quarter`, nullable `facilityId`/`unitTypeId`, aggregate `firstMonthRecognizedRevenue`, `subsequentPaidRentalRevenue`, `rentalRevenue`, and `months[]` of `{month: "yyyy-MM", firstMonthRecognizedRevenue, subsequentPaidRentalRevenue, rentalRevenue}`. Exactly 12 month rows for a full year or three for a selected quarter; revenue is calculated from the authoritative server source per CALC-REP-02 and GMT+7 month windows, not FE invoice summation.
+
+### Reporting security, errors and acceptance status
+
+All report routes are **read-only** and require authentication. Manager reads MUST be limited to the authenticated Manager's assigned Facility; BOM reads/CSV are system-wide but restricted to BUSINESS_OPERATIONS_MANAGER. Anonymous => 401; wrong role/out-of-Facility => 403; unknown Facility/UnitType => 404; invalid `month`, `view`, `year`, `quarter` => 400 `VALIDATION_ERROR`; invalid pagination => 400 `INVALID_PAGINATION`. Standard JSON errors carry `code`, `message` and `traceId`. CSV exports must not disclose Customer PII.
+
+**Status:** REP-RD-01..03 are labels for backend routes already present on `main`, not newly owner-approved/ratified endpoints. FE Report tabs still contain placeholders. The grouped REP-004 extension is a separate backend patch, not proven deployed; its bounded-memory defect is open. Build, Swagger generation, real DB/data accuracy, RBAC/invalid filters, historical-evidence nullability, CSV injection, file size/pagination and E2E acceptance remain **PENDING**. Do not mark full DoD PASS.
 
 ## 13.23 Administrator API Contracts
 

@@ -23,6 +23,7 @@
 **V11 API Specification:** [`FRMS_API_V11.md`](FRMS_API_V11.md) (HTTP contract companion)  
 **V11 Data Dictionary:** [`FRMS_Data_Dictionary_V11.md`](FRMS_Data_Dictionary_V11.md) (entity, PostgreSQL schema, routines and tests companion)
 **Status:** V11 REVIEW CANDIDATE — owner-approved decisions in §0.0.9 effective for V11 target; full document ratification, technical-architecture sign-off, API-code parity and release tests pending
+**Manager/BOM reporting alignment (2026-10-27):** Source-reviewed implementation-documentation proposal for MWP-06/BWP-07 and REP-RD-01..03; does not assert new owner approval, deployed-code parity or release acceptance.
 **Architecture:** 3 Logical Layers + Repository Pattern + Infrastructure Adapters
 **Backend:** ASP.NET Core Web API / C#
 **Frontend:** React + TypeScript
@@ -2371,6 +2372,16 @@ Acceptance Criteria:
 | `BWP-06` | Multi-Facility Monitoring | Flow 4 / 5 |
 | `BWP-07` | Business Reporting & Export | Flow 4 |
 
+### 11.5.1 Manager/BOM report read-model alignment — implementation review, not new approval
+
+The existing FE layouts are the integration target for MWP-06 (Manager Unit/Revenue tabs) and BWP-07 (BOM Facility/UnitType/Revenue/Rental Status tabs and CSV export). The following **REP-RD-01..03 identifiers are provisional names for already-present backend routes**, not a renumbering of the approved REP-001..004 catalogue. See API V11 §13.22 for response fields and query options.
+
+- **Manager, assigned Facility only:** REP-001 supplies the *current* four-state physical inventory/usage/overdue summary; REP-002 supplies recognized rental revenue for a selected business month (`yyyy-MM`); REP-RD-01 supplies current unit-type utilization, paginated current inventory and **evidence-based** daily status series for a selected month. The selected month MUST NOT cause current UnitType/location/Contract/customer fields to be represented as a historical snapshot. If AuditLog coverage is incomplete, `dailyTrend[].usageRate` is nullable and `unknownUnits` MUST remain visible; historical inventory support remains false.
+- **BOM, system-wide read:** REP-RD-02 groups current physical state and selected-period recognized revenue by `facility`, `unitType` or Facility × UnitType (`status` view), with optional Facility/UnitType filters and paginated rows. REP-RD-03 supplies 12 monthly revenue rows for a selected business year, or three for a selected quarter. Year/quarter affect revenue, **not** the physical snapshot.
+- **BOM export:** REP-004 remains UTF-8 CSV; omitted `view` preserves the existing monthly `revenue` file, while proposed `view=facility|unitType|status` exports the complete filtered grouped report, not just the current UI page. For every view, exported figures and filters MUST agree with the corresponding on-screen report; any text cells MUST be protected from spreadsheet formula injection. No persisted Report table or new financial state is introduced.
+
+**Implementation/release gates (still open):** The FE pages on `main` do not yet consume these additional report routes; the Manager historical inventory cannot be truthfully reconstructed from the current schema. Grouped export in the reviewed backend patch pages its HTTP output but `BusinessBreakdownAsync` computes/materializes all groups before `Skip/Take`, so SRS §18.6 bounded-memory/DB-side-pagination performance acceptance is **NOT MET/NOT DEMONSTRATED** for large reports. Resolve and test that implementation before sign-off; Swagger, RBAC, CSV parity/security, daily AuditLog completeness and real PostgreSQL/API/E2E acceptance are pending.
+
 ## 11.6 System Administrator Features
 
 | ID | Feature |
@@ -2703,6 +2714,8 @@ For public requested-period display/search, `availableCapacity` is the minimum o
 Money calculations use decimal arithmetic; final persisted monetary values use consistent rounding.
 
 CALC-REP-01 is a physical-unit usage metric, not CALC-CAP-01 available rental capacity. Count all persisted StorageUnits in the authorized reporting Facility scope regardless of Unit status; only IN_USE enters the numerator. For a system-wide report, divide total IN_USE across the scoped Facilities by total Units across those Facilities rather than averaging Facility percentages. Do not exclude INSPECTION/MAINTENANCE from this denominator or infer a Facility ACTIVE filter that the report query does not specify.
+
+**Reporting time/snapshot distinction:** `month=yyyy-MM` selects the Manager revenue month and the interval for AuditLog-based daily status evidence; it does not convert current inventory into historical inventory. On BOM grouped views, `year`/`quarter` select recognized revenue only, while all four physical statuses and usageRate remain current. Null/unknown historical readings must never be replaced with zero or current readings. These are read-model clarifications, not new persisted data requirements.
 
 ### 12.4.1 First-month settlement, billing and revenue boundaries
 
@@ -3096,7 +3109,7 @@ For a `409`, FE MUST surface the business conflict and MUST refresh authoritativ
 | SUP-* | `supportTicketApi.ts` |
 | UNIT-* | `storageUnitApi.ts` |
 | BOM-* | `businessApi.ts` |
-| REP-* | `reportApi.ts` |
+| REP-* | Existing `facilityReportApi.ts` (Manager REP-001), `businessMonitoringApi.ts` (BOM REP-003) and `businessApi.ts` (report filter catalogues); dedicated typed report reads/CSV download remain FE integration tasks; `reportApi.ts` is the earlier intended generic module, not evidence the live Report tabs are wired. |
 | ADM-* | `adminApi.ts` |
 
 ## 14.13 Mock-First FE Development
@@ -4331,14 +4344,14 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 | `MWP-03` | Facility Operations Monitoring | Mẫn / Long | UNIT-001, REP-001..002; RES-002..003, CON-001..002/004..005, VIS-003..004, BIL-001..002, PAY-003 | CALC-REP-*; same-Facility reads | DAL/API/SEC | Yes |
 | `MWP-04` | Return, Inspection & Damage Decision | Mẫn / Giang | INS-001..002, INS-009..010, REP-001 | BR-RET-*; BR-DMG-02..03 | API/SEC/CON-DMG/E2E-F06 | Yes |
 | `MWP-05` | Support Staff Assignment | Mẫn / Giang | SUP-002..005 | BR-SUP-01 | UT/API/SEC/E2E-F07 | Yes |
-| `MWP-06` | Facility Reporting | Mẫn / Giang | REP-001..002 | CALC-REP-* | DAL/API/ACC | Yes |
+| `MWP-06` | Facility Reporting | Mẫn / Giang | REP-001..002; REP-RD-01 (provisional implementation route) | CALC-REP-01/02; same-Facility read and honest current-vs-history scope | DAL/API/SEC/ACC; daily AuditLog evidence (pending) | Yes |
 | `BWP-01` | Facility Management | Mẫn / Long | BOM-001..005 | BR-FAC-01 | UT/API/SEC | Yes |
 | `BWP-02` | Unit Type Pricing | Mẫn / Long | BOM-006..007 | snapshot rules | UT/API/REG | Yes |
 | `BWP-03` | Policy Version Management | Mẫn / Long | BOM-008..009 | BR-POL-01..02 | DBT-12, CON-POL, API | Yes |
 | `BWP-04` | Discount Management | Mẫn / Long | BOM-010..012 | BR-DIS-01..04 | DBT-07, API | Yes |
 | `BWP-05` | Extra Fee Management | Mẫn / Giang | BOM-013..014 | BR-EXT-01 | API/REG | Yes |
 | `BWP-06` | Multi-Facility Monitoring | Mẫn / Giang | BOM-001, REP-003; RES-002..003, CON-001..002/004..005, VIS-003..004, BIL-001..002, PAY-003 | CALC-REP-*; authorized system-wide reads | DAL/API/SEC | Yes |
-| `BWP-07` | Business Reporting & Export | Mẫn / Giang | REP-003..004 | CALC-REP-* | DAL/API/ACC | Yes |
+| `BWP-07` | Business Reporting & Export | Mẫn / Giang | REP-003..004; REP-RD-02..03 (provisional implementation routes) | CALC-REP-01/02; all tabs and filtered UTF-8 CSV parity | DAL/API/SEC/ACC; large-export bounded-memory verification (pending) | Yes |
 | `AWP-01` | User Account Monitoring | Mẫn / Long | ADM-001..002 | BR-ACC-* | API/SEC | Yes |
 | `AWP-02` | Customer Account Status Management | Mẫn / Long | ADM-003..004 | BR-ACC-02 | UT/API/DBT | Yes |
 | `AWP-03` | Employee Account Management | Mẫn / Long | ADM-005..008, ADM-012 | BR-EMP-01; credential provisioning | UT/API/SEC/INT-EMAIL | Yes |
@@ -4671,7 +4684,7 @@ Rationale:
 - It can be opened by Excel/Google Sheets and imported by reporting tools.
 - It does not change business calculations or persisted data.
 
-The export MUST use the same filters/calculations as the corresponding on-screen report.
+The export MUST use the same filters/calculations as the corresponding on-screen report. The reviewed implementation-alignment proposal keeps legacy `view=revenue` CSV header/row contract and adds `view=facility|unitType|status` grouped CSV using the matching BOM analysis filters. This documents the existing backend patch target **without certifying** that large exports already satisfy §18.6 (bounded-memory), concurrent-data consistency, or acceptance testing. Formula-like text cells require CSV injection defenses.
 
 Changing Release 1 export to XLSX or another format requires only an API/UI contract revision and does not change domain semantics.
 
