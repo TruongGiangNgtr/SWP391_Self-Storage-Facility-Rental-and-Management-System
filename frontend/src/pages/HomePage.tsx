@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { ImageOff } from 'lucide-react'
 import { PublicStorageSearchForm } from '../components/PublicStorageSearchForm'
+import { FacilityImage } from '../components/FacilityImage'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState } from '../components/PageStates'
 import { usePublicFacilities } from '../features/catalog/usePublicCatalog'
@@ -68,7 +69,7 @@ export function HomePage() {
     <section className="public-home-section"><div className="gwp-container">
       <div className="public-section-heading"><h2>Find FStoRent near you</h2><p className="muted">Explore facilities from the current public catalog. Choose rental months to check availability.</p></div>
       <ApiErrorAlert error={facilities.error} />
-      {facilities.loading ? <LoadingState label="Loading facilities…" /> : facilities.data && (facilities.data.data.length === 0 ? <EmptyState message="No active facilities have been returned. Please check again later." /> : <div className="public-featured-grid">{facilities.data.data.map(facility => <article className="public-featured-card" key={facility.facilityId}><div className="public-featured-media" aria-hidden="true" /><div className="public-featured-copy"><h3>{facility.name}</h3><p className="flow-facility-address"><DesignIcon name="imgIcon12" />{facility.address}</p><Link className="button button-secondary" to={`/facilities/${encodeURIComponent(facility.facilityId)}`}>View Facility</Link></div></article>)}</div>)}
+      {facilities.loading ? <LoadingState label="Loading facilities…" /> : facilities.data && (facilities.data.data.length === 0 ? <EmptyState message="No active facilities have been returned. Please check again later." /> : <div className="public-featured-grid">{facilities.data.data.map(facility => <article className="public-featured-card" key={facility.facilityId}><FacilityImage facility={facility} className="public-featured-media" /><div className="public-featured-copy"><h3>{facility.name}</h3><p className="flow-facility-address"><DesignIcon name="imgIcon12" />{facility.address}</p><Link className="button button-secondary" to={`/facilities/${encodeURIComponent(facility.facilityId)}`}>View Facility</Link></div></article>)}</div>)}
       {facilities.error && <div className="public-section-action"><button className="button button-secondary" type="button" onClick={facilities.refresh}>Retry Facilities</button></div>}
     </div></section>
     <section className="public-ready-section"><div className="gwp-container"><h2>Ready to find your storage?</h2><p>Compare locations and storage types for your rental period.</p><div className="public-ready-actions"><Link className="button button-secondary" to="/facilities">Find Your Storage<DesignIcon name="imgIcon13" /></Link><Link to="/how-it-works">Learn How It Works →</Link></div></div></section>
