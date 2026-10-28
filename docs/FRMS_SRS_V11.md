@@ -1,5 +1,7 @@
 # FRMS — Software Requirements Specification (SRS)
 
+> **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](FRMS_InApp_Notifications_Review.md). OD-06 proposes in-app notifications independent of SMTP/SENT/SentAt. No FE/BE/DB/SQL/configuration or test-code edits are authorized before documentation and routing/contracts are approved. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
+
 **Project:** Self-Storage Facility Rental and Management System (FRMS)
 **Document:** Software Requirements Specification + Architecture + Testing Baseline (API contracts maintained separately)
 **Version:** V11.0 REVIEW CANDIDATE
@@ -303,17 +305,19 @@ The **initial V11 reconciliation package** was SRS + API + Data Dictionary docum
 - Public `CAT-003`, `CAT-004` and `CAT-005` response mappings/controllers already contain nullable `imageUrl` and `videoUrl` fields corresponding to Pg012 `UnitType.ImageUrl` / `UnitType.VideoUrl` (`varchar(2048)` nullable). **Record this as implementation fact**, not a speculative future DTO.
 - This acknowledgement does not authorize uploading media, external fetch of untrusted URLs, new media CMS, private asset access or unreviewed link content. URL validation, null serialization, cache/public disclosure and generated Swagger/FE parity remain verification gates.
 
-### OD-06 — Customer sent-notification history approved
+### OD-06 — Customer in-app notifications — replacement REVIEW DRAFT
 
-**Change record:** `REV-2026-10-22-CUSTOMER-NOTIFICATIONS-READ`. The project owner approved the read-only Notifications page and shared Overview preview in the Notifications implementation task. This adds no entity, persisted state, business flow or write permission. It is a scoped approved requirement, not full V11 ratification or proof of runtime readiness.
+**Review record:** REV-2026-10-29-INAPP-NOTIFICATIONS, documentation only. The owner narrowed this task to Notifications; authentication/account onboarding and OD-07 Transaction History are unchanged. The old approved revision REV-2026-10-22-CUSTOMER-NOTIFICATIONS-READ described SENT-only email history; source still implements it. The replacement below needs approval before any code or DB change.
 
-- Approve `IMPL-CUSACT-01`: `GET /api/v1/customers/me/notifications` for an authenticated **ACTIVE CUSTOMER**, restricted server-side to the actor's `UserAccountId`. No caller-supplied Customer/account scope. Only existing `NotificationLog` rows with `Status=SENT` and non-null `SentAt` are visible; pending/unsent content and initial credentials MUST NOT be exposed.
-- Response and errors follow companion API §13A.3. Pagination defaults to `page=1&pageSize=20`, maximum `pageSize=100`; order is `createdAt DESC`, then `notificationId DESC`. Each item contains `notificationId`, `notificationType`, `content`, `createdAt`, `sentAt`; UTC times are displayed in GMT+7.
-- Customer Notifications displays paginated sent delivery history. Overview reads the **first three records from the same endpoint** (`page=1&pageSize=3`) and links View All to `/customer/notifications`. Overview refresh also refreshes its notification preview. Empty/loading/validation/authorization/unexpected-error and safe read retry states are required; API failure must not be shown as an empty successful read.
-- This is **not** a read/unread inbox: no new/unread badges, unread counts, read markers, mark-as-read commands, fake notifications, content-derived resource URLs, or inferred Reservation/Contract/Visit IDs. Content is plain text. Display date grouping does not imply unread state. Opening the page does not write business state or initiate delivery.
-- Transaction History was excluded from the original OD-06 Notifications implementation. Its requirements are now separately approved by OD-07 below; its existing unavailable tab is an implementation gap until that separate frontend task is completed, not a continuing requirement to disable the approved read. Delivery configuration, SMTP/job activation, live data seeding and changes to backend/database remain outside the Notifications task.
-- Required verification: DTO/envelope parity; owner-only reads and Guest/Employee denial; pagination/order; malformed/null timestamps and duplicate IDs; plain-text rendering; loading/empty/API errors, abort/session switching and stale-response protection; same-source Overview preview and GMT+7 display. Mock UI tests do not certify server ownership, sender delivery or real database integration.
-- Traceability: Notifications page + Overview preview -> OD-06 -> `IMPL-CUSACT-01` (API §13A.3) -> `CustomerActivityService.NotificationsAsync` -> `CustomerActivityRepository.ListSentNotificationsAsync` -> existing `NotificationLog` -> the contract, authorization/privacy and UI verification above. No new persisted model is required.
+- `BR-NOT-APP-01`: an eligible business event and its Customer notice commit/rollback together. After commit the notice is readable independently of SMTP/email delivery state. No-op/failed/rolled-back operations produce no successful-event notification; a GET/Refresh never creates one.
+- `BR-NOT-APP-02`: retain IMPL-CUSACT-01 GET /api/v1/customers/me/notifications for ACTIVE CUSTOMER, own UserAccount only, with scope before count/page. Pagination 1/20, max 100; order createdAt DESC, notificationId DESC. Overview reads the first three from the same API. Proposed DTO: notificationId, notificationType, content, createdAt; sentAt is no longer required for display or eligibility.
+- `BR-NOT-APP-03`: retain the existing Reservation/Invoice/Visit/Contract/SupportTicket/finalized-settlement event catalogue in the review record. Actual VisitDate change produces VISIT_RESCHEDULED, same-date save does not. Payment/refund wording must not invent financial outcomes. No near-date reminder or new business transition is added.
+- `BR-NOT-APP-04`: expose approved safe in-app events only, with authoritative recipient/provenance. Do not publish all PENDING/internal data, credentials, verification proof or CCCD; do not fabricate SENT/SentAt. NotificationLog reuse is an option; exact physical routing/schema/constraints and old-row eligibility require NOT-D01/02 approval. No new table/column/status is selected here.
+- `BR-NOT-APP-05`: these business alerts are in-app only. The legacy sender must not email them, while email requirements of other account workflows remain unchanged. Reading Notifications is not SMTP delivery, account verification, state mutation or a payment command.
+
+Preserve plain text, generic rendering for safe unknown types, UTC/GMT+7, loading/empty/error/forbidden/session-switch states and read retry. No unread badge/count, mark-as-read, resource/action URL inferred from content, realtime/polling or historical backfill is added. Migrate FE types/validator/copy and BE/OpenAPI together after approval; current required sentAt/SENT filters are implementation gaps against this proposed replacement, not permission to edit source now.
+
+**Traceability:** IMPL-CUSACT-01 + Overview -> OD-06 / BR-NOT-APP-01..05 -> CustomerActivityService.NotificationsAsync -> CustomerActivityRepository + eligible event recording -> approved NotificationLog reuse/routing -> API-NOTAPP-001, SEC-NOTAPP-001, DBT-NOTAPP-001..002, E2E-NOTAPP-001 -> V11-G16. These are planned acceptance obligations, not implemented/PASS evidence. [Review, decisions and checklist](FRMS_InApp_Notifications_Review.md).
 
 ### OD-07 — Customer Transaction History requirements approved
 
@@ -1897,6 +1901,8 @@ Triggers MUST NOT orchestrate Complete Handover or Return finalization.
 
 ## 9.11 Scheduled Jobs — V11 current-source reconciliation (`REV-2026-10-21-BACKGROUNDJOBS`)
 
+**Notifications-only review boundary (2026-10-29):** the pending OD-06 replacement makes in-app notices visible after commit without waiting for this legacy mail pipeline. Worker routing/old-queue treatment require NOT-D01/02 approval; other jobs and account-email behavior are unchanged. No schedule/configuration/SQL is changed by this draft.
+
 All six **business scheduled tasks** are in the V11 scope. The current `main` implementation hosts them in **four .NET background services**, because the three billing tasks share one ordered pipeline. A DI registration or SQL function is not proof of a successful production run.
 
 | Business task / SRS ID | Current hosted service | PostgreSQL routine | Source-observed cadence | Default state in current code |
@@ -2572,7 +2578,7 @@ The following rule IDs are canonical for FRMS Release 1:
 - `BR-POL-01` Policy change creates a new version; old values are not overwritten.
 - `BR-POL-02` existing Reservation/Contract uses captured PolicyId.
 - `BR-SUP-01` SupportTicket is Contract-related and does not mutate core lifecycle directly.
-- `BR-NOT-01` failed notification remains PENDING and may retry.
+- `BR-NOT-01` historical email-delivery failure remains PENDING for retry; the pending OD-06 replacement separates in-app eligibility from that email state. See BR-NOT-APP-01..05; other account-email flows are unchanged.
 - `BR-AUD-01` ContractExtension, LoginHistory and AuditLog are append-only.
 
 ## 12.2 State Transition Matrix
@@ -2667,9 +2673,11 @@ IN_PROGRESS -> CANCELLED
 
 ### NotificationLog
 
+Legacy email-delivery transitions below do not gate in-app visibility under the pending OD-06 replacement. No new status or read/unread lifecycle is selected.
+
 ```text
 PENDING -> SENT
-PENDING -> PENDING // delivery failure, retry later
+PENDING -> PENDING // legacy email failure, retry later
 ```
 
 ## 12.3 Capacity Rules
@@ -3230,21 +3238,11 @@ Use ProviderOrderCode to resolve the Payment, reference for gateway-result idemp
 Late success on CANCELLED Invoice records Payment SUCCESS with LATE_SUCCESS_ON_CANCELLED_INVOICE audit, leaves Invoice CANCELLED, and never revives Reservation/Contract or executes refund.
 Duplicate delivery, second legitimate success and terminal/reference conflicts preserve existing atomic SQL behavior and Invoice.PaidAt first-transition semantics.
 
-## 15.3 Notification Processing
+## 15.3 Notification Processing — pending OD-06 replacement
 
-`NotificationLog` lifecycle:
+Proposed in-app path: actual successful business event + eligible Customer notice commit together -> own-Customer GET/Overview -> render createdAt. No SMTP call, delivery worker, SENT state or SentAt timestamp gates this path. Read/Refresh never queues, sends, marks read or changes business state.
 
-```text
-PENDING -> SENT
-```
-
-Delivery failure keeps:
-
-```text
-PENDING
-```
-
-for retry.
+Existing PENDING -> SENT and retry-on-failure describe legacy email delivery only. Preserve those historical facts; do not fake send success. NOT-D01/02 must resolve eligible data, legacy visibility and worker exclusion before implementation. Email behavior of registration/Employee provisioning remains unchanged by this Notifications-only revision.
 
 ## 15.4 Scheduled Workers / Jobs
 
@@ -5689,6 +5687,7 @@ Five roles and seven core flows; Reservation holds Facility+UnitType+month capac
 | V11-G13 | Job deploy/operability (`JOB-GAP-01/02`) | **NOT VERIFIED** | Build/NUnit, current PostgreSQL Pg007 functions, deployed scheduler ownership, logs/alerting, safety flags, multi-replica tests, canary and rollback |
 | V11-G14 | OD-09 CCCD before new Reservation and interrupted-operation continuation | **TEAM APPROVED; NEW GATE/CONTINUATION IMPLEMENTATION AND TESTS PENDING** | §14.15.3 API-CCCD/SEC-CCCD/DBT-CCCD/REG-CONT + E2E-F01; 400 errors.cccd; no writes on rejection, atomic/current-profile guard, safe return and no auto-submit, deployed API/Swagger/FE parity |
 | V11-G15 | OD-10 exact 12-digit CCCD | **OWNER APPROVED; FE/DOC UPDATE; BE/DB/OPENAPI ACCEPTANCE PENDING** | API-CCCD-004, DBT-CCCD-003, REG-CONT-002; authenticated atomic format guard, optional/legacy semantics and generated Swagger parity |
+| V11-G16 | OD-06 replacement: SMTP-independent in-app Notifications / Overview | **REVIEW DRAFT; CODE CHANGES NOT AUTHORIZED** | NOT-D01/02 and API/FE DTO approval; API-NOTAPP, SEC-NOTAPP, DBT-NOTAPP, E2E-NOTAPP; SMTP off/failure, correct recipient, atomic events, preserved history and worker exclusion |
 
 **Job-specific DoD:** All six tasks are present in source but only three Billing operations and Deposit expiration are default-active by current source. NoShow and Notifications require separate activation; the notification sender does not exist as an operational adapter. Do not infer successful execution from hosted-service registration. The 24-hour interval is not a fixed local-midnight cron; the current-month SQL generator does not backfill previous missed months.
 

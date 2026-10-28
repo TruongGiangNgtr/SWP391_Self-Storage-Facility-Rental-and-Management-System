@@ -1,5 +1,7 @@
 # FRMS — Self-Storage Facility Rental and Management System
 
+> **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](docs/FRMS_InApp_Notifications_Review.md). The pending OD-06 proposal separates in-app notices from email delivery. See the review record for scope and approval gates; source is unchanged. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
+
 FRMS is a React + TypeScript and ASP.NET Core system for the five approved roles and seven approved rental-management flows. The governing implementation source is the SRS V10 final; no Phase 1 flow behavior is implemented in this foundation.
 
 ## Phase 0 status
