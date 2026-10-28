@@ -16,7 +16,7 @@ function isNotification(value: unknown): value is CustomerNotification {
   if (!value || typeof value !== 'object') return false
   const item = value as CustomerNotification
   return isUuid(item.notificationId) && typeof item.notificationType === 'string' && Boolean(item.notificationType.trim()) &&
-    typeof item.content === 'string' && isUtcTimestamp(item.createdAt) && isUtcTimestamp(item.sentAt)
+    typeof item.content === 'string' && isUtcTimestamp(item.createdAt)
 }
 
 export function readNotificationCollection(value: unknown, page: number, pageSize: number): ApiCollectionResponse<CustomerNotification> {

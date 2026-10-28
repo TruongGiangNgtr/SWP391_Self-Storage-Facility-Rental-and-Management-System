@@ -1,8 +1,7 @@
-// IMPL-CUSACT-01: sent delivery history, not a read/unread inbox.
+// OD-06 / IMPL-CUSACT-01: in-app activity, independent of email delivery.
 export interface CustomerNotification {
   notificationId: string
   notificationType: string
   content: string
   createdAt: string
-  sentAt: string
 }

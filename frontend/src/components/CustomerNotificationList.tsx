@@ -10,7 +10,6 @@ function NotificationCard({ item }: { item: CustomerNotification }) {
     <div className="notification-copy">
       <div className="notification-metadata"><span className="notification-type">{customerLabel(item.notificationType)}</span><span>Created <time dateTime={item.createdAt}>{formatUtcDateTime(item.createdAt)}</time></span></div>
       <p className="notification-message">{item.content}</p>
-      <p className="notification-sent">Sent <time dateTime={item.sentAt}>{formatUtcDateTime(item.sentAt)}</time></p>
     </div>
   </article>
 }
