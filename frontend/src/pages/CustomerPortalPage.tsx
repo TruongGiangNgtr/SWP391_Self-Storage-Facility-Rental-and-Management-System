@@ -94,7 +94,7 @@ export function CustomerPortalPage() {
       </OverviewSection>
       <OverviewSection title="Notifications" className="overview-notifications" aside={<Link className="overview-section-link" to="/customer/notifications">View All <ChevronRight size={14} aria-hidden="true" /></Link>}>
         <div className="panel overview-notification-card"><ApiErrorAlert error={notifications.error} />
-          {notifications.loading ? <LoadingState label="Loading notifications…" /> : notifications.response && (notifications.response.data.length ? <><CustomerNotificationList items={notifications.response.data} compact /><p className="overview-notification-note">Latest {notifications.response.data.length} sent notifications. Open View All for the full history.</p></> : <EmptyState message="No sent notifications yet. Sent notifications will appear here when they are available." />)}
+          {notifications.loading ? <LoadingState label="Loading notifications…" /> : notifications.response && (notifications.response.data.length ? <><CustomerNotificationList items={notifications.response.data} compact /><p className="overview-notification-note">Latest {notifications.response.data.length} {notifications.response.data.length === 1 ? 'notification' : 'notifications'}. Open View All for all updates.</p></> : <EmptyState message="No notifications yet. Updates about your storage activity will appear here once recorded." />)}
           {notifications.error && <button className="button button-secondary overview-notification-retry" type="button" onClick={notifications.refresh}>Retry Notifications</button>}
         </div>
       </OverviewSection>
