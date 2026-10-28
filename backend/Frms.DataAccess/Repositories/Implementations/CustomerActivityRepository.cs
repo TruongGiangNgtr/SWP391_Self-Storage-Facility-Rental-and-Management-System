@@ -14,20 +14,20 @@ internal sealed class CustomerActivityRepository(FrmsDbContext db) : ICustomerAc
          where a.UserAccountId == userAccountId && a.Status == "ACTIVE" && role.RoleName == "CUSTOMER"
          select (Guid?)c.CustomerId).SingleOrDefaultAsync(ct);
 
-    public async Task<CustomerActivityPage<CustomerNotificationRecord>> ListSentNotificationsAsync(
+    public async Task<CustomerActivityPage<CustomerNotificationRecord>> ListInAppNotificationsAsync(
         Guid userAccountId, long skip, int take, CancellationToken ct)
     {
-        // NotificationLog is a delivery queue, not a read/unread inbox.
-        // Never surface PENDING/unsent messages or credentials from unvalidated notification types.
+        // Pg018 marks only new allowlisted business events as in-app eligible.
+        // Legacy rows and generic email queue entries remain private; delivery is unrelated.
         var query = db.NotificationLogs.AsNoTracking()
-            .Where(n => n.UserAccountId == userAccountId && n.Status == "SENT" && n.SentAt != null);
+            .Where(n => n.UserAccountId == userAccountId && n.IsInApp);
         var count = await query.LongCountAsync(ct);
         if (skip > int.MaxValue) return new CustomerActivityPage<CustomerNotificationRecord>([], count);
         var rows = await query.OrderByDescending(n => n.CreatedAt)
             .ThenByDescending(n => n.NotificationLogId)
             .Skip((int)skip).Take(take)
             .Select(n => new CustomerNotificationRecord(
-                n.NotificationLogId, n.NotificationType, n.Content, n.CreatedAt, n.SentAt!.Value))
+                n.NotificationLogId, n.NotificationType, n.Content, n.CreatedAt))
             .ToListAsync(ct);
         return new CustomerActivityPage<CustomerNotificationRecord>(rows, count);
     }

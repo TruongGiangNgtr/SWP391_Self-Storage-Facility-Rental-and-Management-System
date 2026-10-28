@@ -2,7 +2,7 @@ namespace Frms.Api.DTOs.Responses;
 
 public sealed record CustomerNotificationResponse(
     Guid NotificationId, string NotificationType, string Content,
-    DateTimeOffset CreatedAt, DateTimeOffset SentAt);
+    DateTimeOffset CreatedAt);
 
 public sealed record CustomerPaymentHistoryResponse(
     Guid PaymentId, Guid InvoiceId, string InvoiceType, decimal Amount,

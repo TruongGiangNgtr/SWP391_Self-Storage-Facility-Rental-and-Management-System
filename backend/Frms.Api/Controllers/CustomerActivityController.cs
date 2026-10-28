@@ -7,14 +7,19 @@ using Microsoft.AspNetCore.Mvc;
 namespace Frms.Api.Controllers;
 
 /// <summary>
-/// Customer-only proposals pending SRS change approval. No new persisted state.
-/// This is a read-only delivery history, NOT a read/unread notification inbox.
+/// Own Customer business notifications (OD-06) and Payment history (OD-07).
+/// Notifications are visible after commit independently of SMTP; no read/unread state.
 /// </summary>
 [Authorize(Roles = RoleNames.Customer)]
 [Route("api/v1/customers/me")]
 public sealed class CustomerActivityController(ICustomerActivityService service) : ControllerBase
 {
+    /// <summary>OD-06: Read own committed in-app business notices, newest first.</summary>
+    /// <remarks>SMTP, Status and SentAt do not determine visibility. Legacy/email-only rows are excluded.</remarks>
     [HttpGet("notifications")]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(PaginatedResponse<CustomerNotificationResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PaginatedResponse<CustomerNotificationResponse>>> ListNotifications(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
@@ -23,7 +28,7 @@ public sealed class CustomerActivityController(ICustomerActivityService service)
         return Ok(new PaginatedResponse<CustomerNotificationResponse>(
             result.Items.Select(x => new CustomerNotificationResponse(
                 x.NotificationLogId, x.NotificationType, x.Content,
-                Utc(x.CreatedAt), Utc(x.SentAt))).ToArray(),
+                Utc(x.CreatedAt))).ToArray(),
             Page(page, pageSize, result.TotalItems)));
     }
 

@@ -13,7 +13,7 @@ internal sealed class CustomerActivityService(
         int page, int pageSize, CancellationToken ct)
     {
         var (accountId, _) = await AuthorizedCustomerAsync(page, pageSize, ct);
-        return await repository.ListSentNotificationsAsync(accountId, ((long)page - 1) * pageSize, pageSize, ct);
+        return await repository.ListInAppNotificationsAsync(accountId, ((long)page - 1) * pageSize, pageSize, ct);
     }
 
     public async Task<CustomerActivityPage<CustomerPaymentHistoryRecord>> PaymentsAsync(
