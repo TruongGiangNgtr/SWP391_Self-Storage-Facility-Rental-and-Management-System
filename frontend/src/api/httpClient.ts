@@ -53,7 +53,7 @@ async function parseResponse(response: Response): Promise<unknown> {
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}, authenticated = true): Promise<T> {
+async function request<T>(path: string, options: RequestInit = {}, authenticated = true, asFile = false): Promise<T> {
   const headers = new Headers(options.headers)
   const token = authenticated ? authToken.get() : null
 
@@ -69,6 +69,8 @@ async function request<T>(path: string, options: RequestInit = {}, authenticated
     ...options,
     headers,
   })
+  // Failed downloads still use the standard JSON error/401 handling below.
+  if (response.ok && asFile) return await response.blob() as T
   const body = await parseResponse(response)
 
   if (!response.ok) {
@@ -91,6 +93,9 @@ async function request<T>(path: string, options: RequestInit = {}, authenticated
 }
 
 export const httpClient = {
+  getFile(path: string, signal?: AbortSignal): Promise<Blob> {
+    return request<Blob>(path, { signal }, true, true)
+  },
   // Public projections are independent of the session; a public 401 must not
   // clear a Customer's valid private session while BE alignment is pending.
   getPublic<T>(path: string, signal?: AbortSignal): Promise<T> {
