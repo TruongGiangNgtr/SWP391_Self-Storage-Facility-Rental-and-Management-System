@@ -156,3 +156,7 @@ Các controller CAT/RES/BIL/PAY/VIS hiện trên baseline `main` còn trả HTTP
 Vì vậy cần backend hoàn thiện các endpoint trước khi kiểm thử tích hợp với SQL Server
 và MoMo sandbox. Test bằng API giả lập chỉ xác nhận hành vi frontend và payload;
 không thay thế các release gate DBT/CON/INT/E2E trong SRS.
+
+## Notifications-only review — 2026-10-29
+
+[OD-06 replacement proposal](../docs/FRMS_InApp_Notifications_Review.md) changes only the in-app notification feed/Overview: eligible committed events must be visible without SMTP/SENT/SentAt; proposed DTO notificationId, notificationType, content, createdAt. After approval, synchronize FE type/validator/copy with BE/OpenAPI and test reschedule -> reopen/Refresh -> visible with SMTP off. No unread/realtime/reminder or account-registration/verification change is included. Current source is unchanged; documentation approval must precede implementation.

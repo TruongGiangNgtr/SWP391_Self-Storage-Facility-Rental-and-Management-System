@@ -305,7 +305,7 @@ Business calendar rules use GMT+7; month-only values are not timestamp conversio
 | MoMo Sandbox | `IPaymentGateway` | Provider failure never marks an invoice paid; callback application is idempotent |
 | AI Size Guide | `IAiRecommendationProvider` | Optional and non-authoritative; failure does not block manual flow |
 | Initial employee credential email | `IEmailService` | Failure leaves account inactive; plaintext is not stored or logged |
-| Notifications | `INotificationSender` | Failure leaves a pending retryable notification record |
+| Notifications — OD-06 replacement under review | Internal business event -> persistence -> own-Customer read | Proposed in-app visibility follows commit independently of SMTP/SENT/SentAt. Legacy email worker must exclude in-app-only events after NOT-D01/02 approval. Other email flows unchanged. |
 
 Adapter wire DTOs do not leak into domain contracts. Use controlled 502/503 behavior for provider failures where applicable.
 

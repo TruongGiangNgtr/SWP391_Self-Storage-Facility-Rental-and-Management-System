@@ -1,5 +1,7 @@
 # FRMS Email + transactional notification integration (Pg014)
 
+> **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](../../../docs/FRMS_InApp_Notifications_Review.md). The business-event catalogue below is reused as the proposed in-app catalogue. Existing Pg014/SMTP descriptions are pre-revision deployment evidence; in-app eligibility must follow commit, not successful email. Preserve account-email flows, legacy data and SQL until approved NOT-D01/02 implementation. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
+
 Scope: `EMAIL_SERVICE` only. Source: GitHub `main` commit `0219f30734b00b3e5527e3453b19840f08f63639`.
 This combined patch includes the earlier standalone SMTP patch **and** Pg014 notification hooks. Apply only the combined patch to an unmodified baseline. It does not replace the SRS or introduce any API endpoints or persisted entity.
 

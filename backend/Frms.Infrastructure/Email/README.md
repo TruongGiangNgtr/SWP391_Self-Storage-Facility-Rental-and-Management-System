@@ -1,5 +1,7 @@
 # FRMS Email Service — SMTP (ADM-005 / ADM-012 / Notification delivery)
 
+> **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](../../../docs/FRMS_InApp_Notifications_Review.md). The pending OD-06 proposal removes SMTP/SENT as the visibility gate for eligible in-app business alerts. Current mail adapters and account-email flows remain source evidence and are not changed now. Worker routing must exclude in-app-only messages after approval. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
+
 ## Source and security
 
 - Uses the existing `IEmailService` and `INotificationSender` Business abstractions.

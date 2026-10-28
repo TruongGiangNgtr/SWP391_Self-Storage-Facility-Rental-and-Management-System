@@ -1,5 +1,7 @@
 # FRMS — Data Dictionary & PostgreSQL Persistence Specification (V11 REVIEW CANDIDATE)
 
+> **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](FRMS_InApp_Notifications_Review.md). Only the in-app Notifications read/event-routing target is changing. Existing delivery columns/routines are baseline evidence; table reuse, provenance and legacy visibility require approval. No DDL/migration is changed. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
+
 **Project:** Self-Storage Facility Rental and Management System (FRMS)  
 **Document:** Entity Dictionary, Lifecycle, PostgreSQL Physical Schema, Stored Routines, Constraints, Audit, Migration and DB Tests  
 **Version:** V11.0 REVIEW CANDIDATE  
@@ -65,7 +67,7 @@ This document integrates the confirmed ERD baseline with all explicit SRS V9 FIN
 | O10 | `Inspection.NextUnitStatus` is removed. | Return releases contractual occupancy/capacity; StorageUnit operational state is handled directly through its own status lifecycle. |
 | O11 | `InspectionEvidence.FileData` stores binary data (`bytea` in PostgreSQL), not FileUrl. | Evidence is stored in-database in Release 1. |
 | O12 | `LateFee` and `ExtraFee` have no approval Status. | They are recorded/applied at return according to Contract/return state; they do not have an independent approval lifecycle. |
-| O13 | `NotificationLog` has only `PENDING` and `SENT`. | Send failure leaves the record `PENDING` for retry. |
+| O13 | Legacy NotificationLog delivery states remain PENDING/SENT. | Pending OD-06 replacement separates in-app visibility from email delivery; exact routing/legacy rules need NOT-D01/02. |
 | O14 | Policy is expanded into configurable operational parameters. | Stored procedures read Policy values instead of hard-coding business numbers. |
 | O15 | `FacilityAssignment`, `Booking`, `ReturnProcess`, `Renewal`, `Refund`, `DamageFee`, `DailyTask`, `Report`, `DiscountRedemption`, separate `Maintenance`, and separate `MonthlyRentalFee` are not tables. | Their behavior/data is represented by existing entities or derived queries. |
 | O16 | `UserAccount.PhoneNumber` is UNIQUE in addition to UNIQUE Email. | Customer login identifier is PhoneNumber; SRS V9 explicit data override. |
@@ -573,7 +575,7 @@ Append-only.
 
 ### 4.27 `NotificationLog`
 
-**Purpose:** Outbound notification queue/history.
+**Current physical purpose:** outbound email queue/history. **Pending OD-06 target:** eligible persisted in-app notices are readable independently of email delivery; reuse/routing/old-row eligibility require NOT-D01/02 approval. No fields, constraints or statuses are changed by this document.
 
 | Attribute | PostgreSQL type | Null | Key / Constraint | Description |
 |---|---|---:|---|---|
@@ -585,7 +587,7 @@ Append-only.
 | `SentAt` | timestamptz(3) | Yes |  | Set only when successfully sent. |
 | `CreatedAt` | timestamptz(3) | No |  | Creation time. |
 
-Failed delivery remains `PENDING` for retry.
+Legacy email failure remains PENDING for retry; that state does not delay eligible in-app visibility in the proposed OD-06 replacement. Preserve existing SENT/SentAt evidence and never fabricate it. Exclude in-app-only events from email worker selection, without changing other account-email workflows. Do not publish arbitrary PENDING/internal data.
 
 ---
 
@@ -1857,3 +1859,15 @@ These OD-09 cases are required future test evidence, not executed results. API-C
 - Runtime payment adapter remains payOS only. Database CHECK may preserve historical gateway codes for legacy records, without authorizing new non-payOS payment attempts.
 
 **Remaining deployment gates:** compare `__EFMigrationsHistory` and `information_schema`/`pg_catalog` with this mapping; generated Swagger contract parity, ownership/PII authorization tests, live PostgreSQL concurrency/rollback, startup Billing catch-up and delayed execution behavior, real notification delivery integration; approved Release-1 business owner sign-off. Until evidenced, documents are ready for repository review, **not V11 FINAL release certification**.
+
+## 41. OD-06 in-app Notifications persistence review (2026-10-29)
+
+**REVIEW DRAFT / DOCUMENTATION ONLY:** [record and decisions](FRMS_InApp_Notifications_Review.md). Registration, email verification, Employee provisioning, role/facility rules, UserAccount.EmailVerifiedAt and account states remain exactly as before this revision.
+
+- Record a notification with an actual eligible business transition in the same transaction; rollback/no-op must leave no success notice. Persist the authoritative recipient and generic approved plain text; never call SMTP from the transaction/read path.
+- Proposed read projection: notificationId, notificationType, content, createdAt. Filter recipient and approved in-app provenance before count/page; legacy PENDING/SENT and nullable SentAt are not read prerequisites. Do not add unread states or reinterpret SENT as in-app read state.
+- NOT-D01/02 must decide table reuse, explicit routing/provenance, legacy visibility, row defaults/constraints/indexes/routines and rollback. No new table/column/channel/status or blanket publication of old PENDING rows is approved. Existing NotificationLog reuse is an option, not permission to invent a physical design.
+- Current retry SQL selects the oldest PENDING row; future worker selection must exclude in-app-only events so those messages are not emailed. Preserve historical delivery evidence; do not mark SENT falsely, remove historical records or replay/backfill old queues. Email delivery for account workflows outside Notifications remains unchanged.
+- Later physical changes require an approved forward EF migration, not edits to applied Pg014–Pg017/embedded SQL. No database/source/configuration change is authorized until documents/contracts/routing are approved.
+
+Traceability: IMPL-CUSACT-01 + Overview -> OD-06 / BR-NOT-APP-01..05 -> GET notifications -> CustomerActivityService/CustomerActivityRepository + event recorder -> NOT-D01/02 design -> DBT-NOTAPP-001..002, API-NOTAPP-001, SEC-NOTAPP-001, E2E-NOTAPP-001 -> V11-G16. Verify real PostgreSQL atomic/no-op/retry/concurrency, correct recipient, SMTP off/failure, sentAt null, safe legacy scope and worker exclusion. These tests are proposed, not implemented or PASS claims.

@@ -1,5 +1,7 @@
 # FRMS — API Contract & Authorization Specification
 
+> **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](FRMS_InApp_Notifications_Review.md). Only OD-06 / IMPL-CUSACT-01 is being revised. The proposed read DTO and visibility are not implemented; approve contract/routing before coordinated FE/BE changes. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
+
 **Version:** V11.0 REVIEW CANDIDATE  
 **Approved CCCD format revision:** 2026-10-26 — `REV-2026-10-26-CCCD-12-DIGITS` (SRS OD-10); exact 12 ASCII digits, existing error envelope; backend/runtime OpenAPI alignment pending.
 **Approved Customer revision:** 2026-10-25 — `REV-2026-10-25-CUSTOMER-CCCD-CONTINUATION` (SRS OD-09), team approval confirmed by owner; existing 400 VALIDATION_ERROR + errors.cccd approved; requirement synchronization only, not runtime acceptance.
@@ -2149,14 +2151,27 @@ Not every transport is JSON:
 
 | ID / approval | Method / route | Access |
 |---|---|---|
-| `IMPL-CUSACT-01` — **APPROVED SRS OD-06** | `GET /api/v1/customers/me/notifications?page=1&pageSize=20` | Authenticated ACTIVE CUSTOMER, own UserAccount only |
+| `IMPL-CUSACT-01` — **OD-06 replacement REVIEW DRAFT; previous SENT-only baseline remains source evidence** | `GET /api/v1/customers/me/notifications?page=1&pageSize=20` | Authenticated ACTIVE CUSTOMER, own UserAccount only |
 | `IMPL-CUSACT-02` — **REQUIREMENTS APPROVED SRS OD-07** | `GET /api/v1/customers/me/transactions?page=1&pageSize=20` | Authenticated ACTIVE CUSTOMER, own Customer's Payment evidence only |
 
-`notifications`: derived from existing `NotificationLog`. **Actual `CustomerNotificationResponse` property name is `notificationId`** (not `notificationLogId`), followed by `notificationType`, `content`, `createdAt` and `sentAt`. The controller maps the persisted `NotificationLogId` to DTO field `NotificationId`; both time fields are non-null `DateTimeOffset` in the pinned DTO. This is delivery history, **not** a read/unread inbox or additional notification workflow.
+**Notifications replacement contract — REVIEW DRAFT, pending OD-06 approval:** retain GET /api/v1/customers/me/notifications, authenticated ACTIVE CUSTOMER own-account scope, defaults page=1/pageSize=20, maximum 100, data[]/pagination, createdAt DESC then notificationId DESC. Scope/count/page server-side; no caller-supplied recipient. Existing auth/role/inactive/pagination errors and traceId envelopes remain unchanged.
 
-**Approved notification contract — `REV-2026-10-22-CUSTOMER-NOTIFICATIONS-READ`:** SRS §0.0.9 OD-06 authorizes only `IMPL-CUSACT-01`. Server scope derives from the authenticated ACTIVE Customer account, never request IDs. Return only own `SENT` rows with non-null `sentAt`, ordered by `createdAt DESC`, then `notificationId DESC`. Pagination uses the standard `data[]`/`pagination` envelope, defaults 1/20 and max pageSize 100; existing overflow-safe page bounds remain enforced. Zero results return `data: []` with totalItems/totalPages zero. Beyond the last page returns an empty data array with the requested page and actual totals. Invalid pagination -> HTTP 400 `VALIDATION_ERROR`; unauthenticated -> 401 `UNAUTHORIZED`; wrong role/inactive or missing active Customer -> 403 `FORBIDDEN` under the existing controller/service guards. Errors retain the standard code/message/traceId shape. No new error code or mutation endpoint is introduced.
+Proposed item schema:
 
-`notificationType` and `content` are strings, not a newly approved type enum or HTML. The response has **no** unread flag/count, resource IDs, action URL or title field. FE must render plain text, use a generic presentation for unknown types and must not infer links/state from content. Notifications page reads pageSize 20; Overview reads page 1/pageSize 3 from the same endpoint. Neither rendering nor navigating writes read state, retries delivery or triggers financial/business commands. Initial credential content is excluded from ordinary NotificationLog usage under the existing security requirements. Notification IDs are internal keys, not Customer-facing references.
+```json
+{
+  "notificationId": "00000000-0000-0000-0000-000000000001",
+  "notificationType": "VISIT_RESCHEDULED",
+  "content": "A visit date has changed. See your account for the updated schedule.",
+  "createdAt": "2026-10-29T03:00:00Z"
+}
+```
+
+Return eligible committed in-app notices independently of SMTP, email Status and nullable SentAt; sentAt is not a required field in the proposed DTO. Explicit safe-event/provenance and old-row rules must be approved under NOT-D01/02; removing the SENT filter alone must not expose internal/pending credential data or fabricate send timestamps. Current DTO/controller/repository and FE still require non-null sentAt and SENT, so after approval they must change together with OpenAPI. No code is changed now.
+
+Overview reads the first three notices from this same source; Notifications uses pageSize 20. Empty and beyond-last-page responses retain actual totals and requested pagination. Render plain text and createdAt in GMT+7; no unread/status fields, mark-as-read, resource IDs/action URLs, content-inferred links, reminders or realtime transport are added. GET/Refresh cannot send email, create events or change business/account/payment state. Reschedule only produces a notice for a committed actual date change.
+
+Tests after approval: API-NOTAPP-001, SEC-NOTAPP-001, DBT-NOTAPP-001..002 and E2E-NOTAPP-001 cover SMTP off/failure, sentAt null, owner denial, pagination/count/order, atomic/no-op/rollback, safe legacy visibility, worker exclusion and FE/BE parity. Test source and deployment remain unchanged. [Review record](FRMS_InApp_Notifications_Review.md).
 
 **Approved Transaction History contract — `REV-2026-10-22-CUSTOMER-TRANSACTION-HISTORY-READ`:** SRS §0.0.9 OD-07 approves `IMPL-CUSACT-02` as an own-history GET, not a payment command, wallet or settlement ledger. The endpoint takes only standard pagination parameters; derive the ACTIVE Customer from the authenticated account, never from a caller-supplied Customer/account ID. Scope before counting/paging through Payment -> Invoice -> the actor's Reservation (`DEPOSIT`) or Contract (`RENTAL_FEE`, after the offline first month). No Guest/Employee access to this Customer endpoint is introduced.
 

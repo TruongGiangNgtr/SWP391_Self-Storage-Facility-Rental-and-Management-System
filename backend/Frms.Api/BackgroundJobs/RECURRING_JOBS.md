@@ -1,5 +1,7 @@
 # FRMS Release 1 recurring jobs (V11)
 
+> **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](../../../docs/FRMS_InApp_Notifications_Review.md). The old notification email job is not an in-app visibility prerequisite. Pending OD-06 requires routing/legacy handling so the worker does not send in-app-only events; no job schedule/flag or other business job changes in this task. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
+
 Patch baseline: GitHub `main` commit `8ca520300fae904ec86e282aa977a591062b6f6c`.
 
 ## Operations and schedule
