@@ -13,6 +13,7 @@ import type { SupportTicketDetail } from '../features/manager-support/models/sup
 import { formatUtcDateTime } from '../utils/formatters'
 import '../styles/customer-support.css'
 import '../styles/customer-support-pages.css'
+import '../styles/support-flow.css'
 
 export function CustomerSupportDetailPage() {
   const { ticketId = '' } = useParams()
@@ -58,20 +59,20 @@ export function CustomerSupportDetailPage() {
     } finally { busy.current = false; if (mounted.current) setWorking(false) }
   }
 
-  return <main className="page-container flow-page customer-support customer-support-pages support-detail-page">
+  return <main className="page-container flow-page customer-support customer-support-pages support-detail-page support-flow">
     <div className="support-page-navigation">
       <Link className="support-text-link" to="/customer/support-tickets"><ArrowLeft size={16} aria-hidden="true" />My Support Tickets</Link>
       <button className="support-text-button" type="button" disabled={loading || working} onClick={() => { setActionError(null); setRetry(value => value + 1) }}><RefreshCw size={14} aria-hidden="true" />Refresh Ticket</button>
     </div>
-    <header className="support-page-heading"><div><p className="eyebrow">Customer Support</p><h1>Support Ticket Details</h1><p className="muted">Review your request and the recorded Staff result.</p></div></header>
+    <header className="support-page-heading"><div><h1>Support Ticket Details</h1><p className="muted">Review your request and the recorded Staff result.</p></div></header>
     <ApiErrorAlert error={actionError} /><ApiErrorAlert error={readError} />
     {loading ? <LoadingState label="Loading your support ticket..." /> : ticket && <>
       <section className={`panel support-page-card support-detail-${ticket.status.toLowerCase().replaceAll('_', '-')}`} aria-label="Support ticket information">
-        <header className="support-page-card-heading"><span className="support-page-icon"><Ticket size={24} aria-hidden="true" /></span><div><span className="support-detail-label">Contract Support</span><h2>{customerLabel(ticket.category)}</h2></div><StatusBadge status={ticket.status} /></header>
+        <header className="support-page-card-heading"><span className="support-page-icon"><Ticket size={24} aria-hidden="true" /></span><h2>{customerLabel(ticket.category)}</h2><StatusBadge status={ticket.status} /></header>
         <div className="support-detail-columns">
           <dl className="support-detail-messages">
             <div><dt><MessageSquareText size={18} aria-hidden="true" />Description</dt><dd>{ticket.description}</dd></div>
-            <div className="support-detail-result"><dt><ClipboardCheck size={18} aria-hidden="true" />Staff Result</dt><dd>{ticket.resultNote ?? 'No result recorded yet.'}</dd></div>
+            <div className="support-detail-result"><dt><ClipboardCheck size={18} aria-hidden="true" />Staff Result</dt><dd>{ticket.resultNote ?? 'No Staff result is available in this record.'}</dd></div>
           </dl>
           <dl className="support-detail-facts">
             <div><dt>Related Contract</dt><dd><Link className="support-text-link" to={`/customer/contracts/${encodeURIComponent(ticket.contractId)}`}>View Contract<ArrowRight size={14} aria-hidden="true" /></Link></dd></div>
@@ -86,10 +87,10 @@ export function CustomerSupportDetailPage() {
         <div className="support-page-card-heading"><span className="support-page-icon"><XCircle size={24} aria-hidden="true" /></span><h2 id="support-cancel-heading">Cancel Ticket</h2></div>
         <form className="form-grid support-cancel-form" onSubmit={cancel} noValidate>
           <div className="form-field"><label htmlFor="supportCancelReason">Cancellation Reason</label><textarea id="supportCancelReason" rows={4} value={reason} disabled={working} aria-invalid={Boolean(reasonError)} aria-describedby={reasonError ? 'supportCancelReason-error' : undefined} onChange={event => { setReason(event.target.value); setReasonError(null) }} /><CustomerFieldError id="supportCancelReason-error" message={reasonError} /></div>
-          <p className="support-page-note">Only eligible OPEN or IN_PROGRESS tickets can be cancelled. The backend checks the current state and ownership.</p>
+          <p className="support-page-note">Only eligible open or in-progress tickets can be cancelled. Your access and the current status are checked when you submit.</p>
           <div className="support-form-actions"><button className="button button-danger" type="submit" disabled={working}><XCircle size={16} aria-hidden="true" />{working ? 'Cancelling...' : 'Cancel Support Ticket'}</button></div>
         </form>
-      </section> : <p className="support-page-notice"><Info size={17} aria-hidden="true" /><span>This ticket is {ticket.status}. It can no longer be cancelled.</span></p>}
+      </section> : <p className="support-page-notice"><Info size={17} aria-hidden="true" /><span>This ticket is {customerLabel(ticket.status).toLowerCase()}. It can no longer be cancelled.</span></p>}
     </>}
     {actionError && <p className="support-page-notice support-page-warning"><Info size={17} aria-hidden="true" /><span>Review the refreshed ticket before retrying. No cancellation request is automatically replayed.</span></p>}
   </main>

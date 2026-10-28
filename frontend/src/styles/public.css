@@ -44,11 +44,11 @@
 .frms-customer .public-search-form :is(input, select):focus { border-color: var(--flow-brand); box-shadow: 0 0 0 3px #dbeafe; }
 .frms-customer .public-search-bottom { display: flex; align-items: flex-end; gap: 32px; padding: 20px; border: 1px solid var(--flow-border); border-radius: 12px; background: #f8fafc; }
 .frms-customer .public-rental-period { flex: 1; min-width: 0; }
-.frms-customer .public-rental-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; color: #475569; }
+.frms-customer .public-rental-heading { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; margin-bottom: 16px; color: #475569; }
 .frms-customer .public-rental-heading h3 { margin: 0; font: 600 14px/1.5 Inter, sans-serif; }
 .frms-customer .public-check-in-field { position: relative; }
-.frms-customer .public-rental-duration { position: absolute; top: calc(100% + 8px); left: 0; padding: 3px 10px; border-radius: 999px; color: #1d4ed8; background: #eff6ff; font-size: 12px; line-height: 18px; font-weight: 600; white-space: nowrap; }
-.frms-customer .public-search-bottom:has(.public-rental-duration) { padding-bottom: 52px; }
+.frms-customer .public-rental-duration { flex-shrink: 0; margin-left: auto; padding: 3px 10px; border-radius: 999px; color: #1d4ed8; background: #eff6ff; font-size: 12px; line-height: 18px; font-weight: 600; white-space: nowrap; }
+.frms-customer .public-rental-guidance { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .frms-customer .public-rental-help { position: relative; }
 .frms-customer .public-rental-help summary { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; list-style: none; }
 .frms-customer .public-rental-help summary::-webkit-details-marker { display: none; }
@@ -193,8 +193,6 @@
   .frms-customer .public-search-panel { padding: 20px; }
   .frms-customer .public-month-range { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .frms-customer .public-month-arrow { display: none; }
-  .frms-customer .public-check-in-field:has(.public-rental-duration) { margin-bottom: 24px; }
-  .frms-customer .public-search-bottom:has(.public-rental-duration) { padding-bottom: 16px; }
   .frms-customer .public-storage-choices { grid-template-columns: minmax(0, 1fr); }
   .frms-customer .public-rental-help p { left: auto; right: -64px; width: 240px; }
   .frms-customer .public-ready-actions { flex-direction: column; gap: 12px; }

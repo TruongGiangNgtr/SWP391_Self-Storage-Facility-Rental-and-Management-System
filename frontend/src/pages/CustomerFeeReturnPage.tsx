@@ -13,6 +13,7 @@ import { isBillingSummary, isReturnSummary } from '../features/fee-return-tracki
 import { useAccessContract } from '../features/visits/useAccessContract'
 import { formatMoney, formatUtcDateTime } from '../utils/formatters'
 import '../styles/customer-fee-return-tracking.css'
+import '../styles/renewal-return-flow.css'
 
 interface ReadSnapshot<T> { key: string; data: T | null; error: ApiErrorPresentation | null }
 
@@ -48,20 +49,21 @@ export function CustomerFeeReturnPage() {
     return () => { active = false }
   }, [contractId, key])
 
-  return <main className="page-container flow-page customer-tracking-page">
+  return <main className="page-container flow-page customer-tracking-page completion-flow">
     <header className="tracking-page-heading">
-      <div><p className="eyebrow">Fees &amp; Return Management</p><h1>Fees &amp; Return Tracking</h1><p className="muted">Review billing, inspection and recorded settlement amounts for this contract.</p></div>
+      <div><h1>Fees &amp; Return Tracking</h1><p className="muted">Review billing, inspection and recorded settlement amounts for this contract.</p></div>
       <button className="button button-secondary" disabled={busy} type="button" onClick={() => { contractReader.refresh(); setRetry(value => value + 1) }}><RefreshCw size={16} aria-hidden="true" />Refresh Tracking</button>
     </header>
     <div className="tracking-navigation">
       <Link className="tracking-text-link" to={`/customer/contracts/${encodeURIComponent(contractId)}`}><FileText size={16} aria-hidden="true" />View Contract<ArrowRight size={14} aria-hidden="true" /></Link>
       <Link className="tracking-text-link" to="/customer/contracts">Switch Contract<ArrowRight size={14} aria-hidden="true" /></Link>
+      <Link className="tracking-text-link" to="/customer/invoices?tab=invoices"><ReceiptText size={16} aria-hidden="true" />All Invoices<ArrowRight size={14} aria-hidden="true" /></Link>
     </div>
     <ApiErrorAlert error={contractReader.error} />
     {contractReader.loading ? <LoadingState label="Loading your contract..." /> : contract && <>
       <section className="panel tracking-contract">
         <div className="tracking-contract-heading"><span className="tracking-icon"><Warehouse size={22} aria-hidden="true" /></span><div><h2>Selected Contract</h2><p>{contractOption(contract)}</p></div><StatusBadge status={contract.status} /></div>
-        <p className="tracking-notice"><Info size={17} aria-hidden="true" /><span>Your first month was paid offline at handover and has no rental invoice. Later monthly invoices are shown below.</span></p>
+        <p className="tracking-notice"><Info size={17} aria-hidden="true" /><span>First-month rent is handled offline at handover and is not included in this invoice list. Review recorded invoices for later rental months below.</span></p>
       </section>
       <CustomerTabs labels={['Billing & Overdue', 'Return & Settlement']} selected={section} onChange={setSection}>{({ tabId, panelId }) => <>
       <section className="tracking-tab-panel" role="tabpanel" id={panelId(0)} aria-labelledby={tabId(0)} hidden={section !== 0} tabIndex={0}>
@@ -93,7 +95,7 @@ export function CustomerFeeReturnPage() {
         <ApiErrorAlert error={returnLoading ? null : returnSnapshot.error} />
         {returnLoading ? <LoadingState label="Loading return summary..." /> : returnSummary && <>
           <section className="panel tracking-summary-status">
-            <div className="tracking-record-heading"><h3>Contract Status Reported by Return Summary</h3><StatusBadge status={returnSummary.contractStatus} /></div>
+            <div className="tracking-record-heading"><h3>Contract Status</h3><StatusBadge status={returnSummary.contractStatus} /></div>
             {returnSummary.contractStatus !== contract.status && <p className="tracking-notice tracking-warning"><Info size={17} aria-hidden="true" /><span>The separate Contract and return-summary reads differ. Refresh to review the current server state.</span></p>}
           </section>
           <div className="tracking-columns">
@@ -112,7 +114,7 @@ export function CustomerFeeReturnPage() {
                   <p className="tracking-condition-note">{returnSummary.inspection.conditionNote ?? 'No inspection note recorded.'}</p>
                   <p className="tracking-completed">Completed (GMT+7): <strong>{returnSummary.inspection.completedAt ? formatUtcDateTime(returnSummary.inspection.completedAt) : 'Not Completed'}</strong></p>
                 </> : <EmptyState message="No inspection has been reported." />}
-                <p className="tracking-note">After inspection, the facility still needs to finalize your return and settlement before your contract is closed.</p>
+                <p className="tracking-note">Inspection completion alone does not finalize a return. Review the recorded contract and settlement status for the latest outcome.</p>
               </section>
               <section className="panel tracking-card tracking-damages" aria-labelledby="tracking-damages-heading">
                 <div className="tracking-card-heading"><ShieldAlert size={20} aria-hidden="true" /><h3 id="tracking-damages-heading">Damage Records</h3></div>

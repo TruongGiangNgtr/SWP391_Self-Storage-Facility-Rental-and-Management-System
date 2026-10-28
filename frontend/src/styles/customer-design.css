@@ -46,7 +46,7 @@
 .frms-customer .profile-role { font-size: 12px; }
 .frms-customer .customer-sidebar nav { display: grid; gap: 4px; margin: 16px 0 0; }
 .frms-customer .customer-sidebar nav a { min-height: 44px; padding: 10px 12px; border-radius: 12px; font-size: 14px; }
-.frms-customer .customer-sidebar nav a.active { box-shadow: inset 4px 0 var(--flow-brand); }
+.frms-customer :is(.customer-sidebar nav, .customer-drawer-nav) a.active { background: #eff6ff; color: #174bc7; font-weight: 600; box-shadow: none; }
 .frms-customer :is(.customer-sidebar, .customer-drawer-nav) nav a > svg { flex-shrink: 0; color: inherit; }
 .frms-customer .customer-nav-label { display: grid; min-width: 0; gap: 2px; }
 .frms-customer .customer-nav-label small { font-size: 11px; font-weight: 400; color: #64748b; }
@@ -128,7 +128,6 @@
 .frms-customer .customer-drawer-nav nav { display: grid; gap: 8px; }
 .frms-customer .customer-drawer-nav a { color: #334155; }
 .frms-customer .customer-drawer-nav :is(a, [aria-disabled]) { display: flex; gap: 12px; align-items: center; min-height: 44px; padding: 10px 12px; border-radius: 12px; text-decoration: none; }
-.frms-customer .customer-drawer-nav a.active { background: #eff6ff; color: #1d4ed8; }
 .frms-customer .customer-drawer-nav [aria-disabled] { color: #64748b; }
 .frms-customer.flow-dialog { background: #fff; min-height: 0; }
 .frms-customer.flow-dialog .dialog-close { width: 44px; height: 44px; flex-shrink: 0; }

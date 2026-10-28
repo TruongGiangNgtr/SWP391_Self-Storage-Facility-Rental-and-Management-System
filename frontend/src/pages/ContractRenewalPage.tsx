@@ -12,6 +12,7 @@ import { CustomerFieldError } from '../components/CustomerFieldError'
 import { useContractRenewal } from '../features/renewal/useContractRenewal'
 import { formatMoney, formatMonthRange } from '../utils/formatters'
 import '../styles/customer-renewal.css'
+import '../styles/renewal-return-flow.css'
 
 export function ContractRenewalPage() {
   const { contractId = '' } = useParams()
@@ -33,7 +34,7 @@ export function ContractRenewalPage() {
     await renew(newEndMonth)
   }
 
-  return <CustomerActionFrame contractId={contractId} title="Extend Contract Duration" category="Contract Extension" subtitle="Choose a new check-out month. Your extension and monthly price are confirmed when the request succeeds." className="customer-renewal" headingIcon={<CalendarSync size={24} />} busy={working}>
+  return <CustomerActionFrame contractId={contractId} title="Extend Contract Duration" category="" subtitle="Choose a new check-out month. Your extension and monthly price are confirmed when the request succeeds." className="customer-renewal completion-flow" headingIcon={<CalendarSync size={24} />} busy={working}>
     {close => <>
       <ApiErrorAlert error={actionError} />
       <ApiErrorAlert error={readError} />

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, BadgeCheck, CalendarDays, CalendarRange, Clock3, CreditCard, ReceiptText, RefreshCw, Wallet } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, CalendarDays, CalendarRange, Clock3, CreditCard, History, ReceiptText, RefreshCw, Wallet } from 'lucide-react'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { billingApi } from '../api/billingApi'
 import { authToken } from '../api/authToken'
@@ -73,15 +73,15 @@ function InvoiceDetails({ invoiceId }: { invoiceId: string }) {
   return (
     <main className="page-container flow-page customer-invoice-details">
       <div className="invoice-detail-navigation">
-        <Link className="invoice-detail-text-link" to="/customer/invoices">
+        <Link className="invoice-detail-text-link" to="/customer/invoices?tab=invoices">
           <ArrowLeft size={16} aria-hidden="true" />My Invoices
         </Link>
-        <button className="invoice-detail-text-button" type="button" disabled={loading || working} onClick={refresh}>
+        <div className="invoice-detail-tools"><Link className="invoice-detail-text-link" to="/customer/notifications?tab=history"><History size={16} aria-hidden="true" />Transaction History</Link><button className="invoice-detail-text-button" type="button" disabled={loading || working} onClick={refresh}>
           <RefreshCw size={14} aria-hidden="true" />{loading ? 'Refreshing…' : 'Refresh Invoice'}
-        </button>
+        </button></div>
       </div>
       <header className="page-heading invoice-detail-heading">
-        <p className="eyebrow">Deposit &amp; Invoices</p>
+
         <h1>Invoice Details</h1>
         <p className="muted">Review your invoice amounts, billing details and recorded payment status.</p>
       </header>
@@ -127,6 +127,8 @@ function InvoiceDetails({ invoiceId }: { invoiceId: string }) {
                 <CreditCard size={18} aria-hidden="true" />{working ? 'Connecting to payOS…' : 'Pay with payOS'}
               </button>
             </footer>}
+            {invoice.status === 'PAID' && <footer className="invoice-detail-recorded-state"><BadgeCheck size={20} aria-hidden="true" /><p>This invoice is recorded as paid. You can review its payment attempts in Transaction History.</p></footer>}
+            {invoice.status === 'CANCELLED' && <footer className="invoice-detail-recorded-state"><ReceiptText size={20} aria-hidden="true" /><p>This invoice is cancelled. Online payment is unavailable.</p></footer>}
           </section>
         )
       )}

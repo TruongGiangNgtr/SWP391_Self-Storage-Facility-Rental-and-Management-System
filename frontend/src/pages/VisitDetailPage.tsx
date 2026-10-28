@@ -1,3 +1,4 @@
+import { FlowDialog } from '../components/FlowDialog'
 import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, CalendarClock, CalendarDays, CircleX, ClipboardCheck, DoorOpen, Info, PackageCheck, RefreshCw, Undo2, UserRound } from 'lucide-react'
@@ -11,6 +12,7 @@ import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatus
 import { CalendarDateField } from '../components/CalendarDateField'
 import { CustomerFieldError } from '../components/CustomerFieldError'
 import type { VisitDetail } from '../features/visits/visit.types'
+import { VisitJourney } from '../components/AccessVisitJourney'
 import '../styles/customer-visit-details.css'
 
 const VISIT_NAMES: Record<VisitDetail['visitType'], string> = {
@@ -136,9 +138,10 @@ export function VisitDetailPage() {
       <div className="visit-detail-navigation"><Link className="visit-detail-text-link" to="/customer/visits"><ArrowLeft size={16} aria-hidden="true" />Back to My Visits</Link><button className="visit-detail-text-button" type="button" disabled={loading || working} onClick={() => {
         setLoading(true); setError(null); setMode(null); void loadVisit()
       }}><RefreshCw size={14} aria-hidden="true" />{loading ? 'Refreshing…' : 'Refresh Visit'}</button></div>
-      <header className="page-heading visit-detail-heading"><p className="eyebrow">Visit Management</p><h1>Visit Details</h1><p className="muted">Review your facility visit and manage its scheduled date or cancellation.</p></header>
+      <header className="page-heading visit-detail-heading"><h1>Visit Details</h1><p className="muted">Review your facility visit and manage its scheduled date or cancellation.</p></header>
       <ApiErrorAlert error={error} />
       {loading && !visit ? <LoadingState label="Loading visit..." /> : visit && <>
+        {(visit.visitType === 'ACCESS' || visit.visitType === 'RESERVATION') && <VisitJourney status={visit.status} visitType={visit.visitType} />}
         <section className={`panel visit-detail-card visit-detail-${visit.status.toLowerCase().replaceAll('_', '-')}`} aria-label="Visit information">
           <header className="visit-detail-card-heading"><span className="visit-detail-icon"><VisitIcon size={25} aria-hidden="true" /></span><div><h2>{VISIT_NAMES[visit.visitType]}</h2><p>Facility visit</p></div><StatusBadge status={visit.status} /></header>
           <dl className={`visit-detail-facts${visit.visitType === 'RETURN' ? ' visit-detail-return-facts' : ''}`}>
@@ -163,15 +166,15 @@ export function VisitDetailPage() {
             </>
           )}
 
-          {(visit.visitType !== 'RETURN' || (visit.status === 'SCHEDULED' && mode === null)) && <footer className="visit-detail-actions">
+          {(visit.visitType !== 'RETURN' || (visit.status === 'SCHEDULED' && mode !== 'cancel')) && <footer className="visit-detail-actions">
             {visit.visitType === 'ACCESS' && <Link className="visit-detail-text-link" to={`/customer/contracts/${encodeURIComponent(visit.entityId)}`}>View Contract<ArrowRight size={15} aria-hidden="true" /></Link>}
             {visit.visitType === 'RESERVATION' && <Link className="visit-detail-text-link" to={`/customer/reservations/${visit.entityId}`}>View Reservation<ArrowRight size={15} aria-hidden="true" /></Link>}
-            {visit.status === 'SCHEDULED' && mode === null && <div><button className="button" disabled={loading || working} onClick={() => setMode('reschedule')} type="button"><CalendarClock size={16} aria-hidden="true" />Reschedule</button><button className="button button-danger" disabled={loading || working} onClick={() => setMode('cancel')} type="button"><CircleX size={16} aria-hidden="true" />Cancel Visit</button></div>}
+            {visit.status === 'SCHEDULED' && mode !== 'cancel' && <div><button className="button" disabled={loading || working} onClick={() => setMode('reschedule')} type="button"><CalendarClock size={16} aria-hidden="true" />Reschedule</button><button className="button button-danger" disabled={loading || working} onClick={() => setMode('cancel')} type="button"><CircleX size={16} aria-hidden="true" />Cancel Visit</button></div>}
           </footer>}
         </section>
 
           {visit.status === 'SCHEDULED' && mode === 'reschedule' && (
-            <section className="panel visit-detail-edit visit-detail-reschedule" aria-labelledby="visit-reschedule-heading"><div className="visit-detail-edit-heading"><span className="visit-detail-icon"><CalendarClock size={23} aria-hidden="true" /></span><h2 id="visit-reschedule-heading">Reschedule Visit</h2></div><form className="form-grid" onSubmit={handleReschedule}>
+            <FlowDialog className="visit-reschedule-dialog" title="Reschedule Visit" subtitle="Choose a new date for this visit." category="" busy={working} trapFocus onClose={() => setMode(null)}><ApiErrorAlert error={error} /><form className="form-grid" onSubmit={handleReschedule}>
               <CalendarDateField id="newVisitDate" label="New Visit Date" value={newVisitDate} disabled={loading || working} error={fieldErrors.date} onChange={value => { setNewVisitDate(value); setFieldErrors({}) }} />
               <p className="visit-detail-edit-hint"><Info size={16} aria-hidden="true" />The new date must follow the policy for this visit.</p>
               <div className="action-row">
@@ -182,7 +185,7 @@ export function VisitDetailPage() {
                   {working ? 'Updating...' : 'Save New Date'}
                 </button>
               </div>
-            </form></section>
+            </form></FlowDialog>
           )}
 
           {visit.status === 'SCHEDULED' && mode === 'cancel' && (

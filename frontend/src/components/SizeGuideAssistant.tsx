@@ -26,8 +26,8 @@ type AssistantState =
 function RecommendationCard({ candidate, alternative = false }: { candidate: ResolvedAiCandidate; alternative?: boolean }) {
   const { unitType, reason } = candidate
   return <article className="size-guide-ai-card">
-    <p className="eyebrow">{alternative ? 'Alternative' : 'Recommended Storage Type'}</p>
     <div className="size-guide-card-heading"><h4>{unitType.name}</h4><span className="size-guide-size">{unitType.size}</span></div>
+    <p className="size-guide-mode">{alternative ? 'Alternative' : 'Recommended Storage Type'}</p>
     <p className="size-guide-mode">{unitType.mode === 'PRIVATE' ? 'Private Storage' : 'Public Storage'}</p>
     <p className="size-guide-ai-reason">{reason}</p>
     <div className="size-guide-price"><span>Current Monthly Rent</span><strong>{formatMoney(unitType.rentalPrice)}<small>/month</small></strong></div>
@@ -79,7 +79,7 @@ export function SizeGuideAssistant({ mode, enabled = true }: { mode: UnitMode; e
   }
 
   return <section className="size-guide-assistant" id="size-assistant" aria-labelledby={`${id}-heading`}>
-    <div className="size-guide-assistant-heading"><span className="size-guide-icon"><Bot size={24} aria-hidden="true" /></span><p className="eyebrow">Optional AI Sizing Assistant</p><h2 id={`${id}-heading`}>Tell us what you need to store</h2><p className="muted">Describe your belongings for a storage type suggestion. Manual selection is always available.</p></div>
+    <div className="size-guide-assistant-heading"><span className="size-guide-icon"><Bot size={24} aria-hidden="true" /></span><h2 id={`${id}-heading`}>Tell us what you need to store</h2><p className="muted"><strong>Optional AI Sizing Assistant.</strong> Describe your belongings for a storage type suggestion. Manual selection is always available.</p></div>
     <div className="size-guide-assistant-message"><strong>{mode === 'PRIVATE' ? 'Private Storage' : 'Public Storage'} suggestions</strong><p>Suggestions use the storage type selected above. AI does not reserve a unit or confirm availability, fit or a final rental price.</p></div>
     <AiStoragePolicyPanel />
     <form onSubmit={submit} noValidate>

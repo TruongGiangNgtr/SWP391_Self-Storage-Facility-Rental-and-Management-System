@@ -15,6 +15,7 @@ import { isCalendarDate } from '../features/visits/accessValidation'
 import { useAccessContract } from '../features/visits/useAccessContract'
 import { useReservationFacilities } from '../features/reservations/useReservationUnitTypes'
 import '../styles/customer-return-request.css'
+import '../styles/renewal-return-flow.css'
 
 export function ReturnVisitCreatePage() {
   const { contractId = '' } = useParams()
@@ -67,7 +68,7 @@ export function ReturnVisitCreatePage() {
     }
   }
 
-  return <CustomerActionFrame contractId={contractId} title="Request Storage Return" category="Storage Return" subtitle="Choose your requested return date. The facility records the physical return, then completes inspection and settlement." className="customer-return-request" headingIcon={<Undo2 size={24} />} busy={working}>
+  return <CustomerActionFrame contractId={contractId} title="Request Storage Return" category="" subtitle="Choose your requested return date. The facility records the physical return, then completes inspection and settlement." className="customer-return-request completion-flow" headingIcon={<Undo2 size={24} />} busy={working}>
     {close => <>
       <ApiErrorAlert error={actionError ?? error} />
       <div className="return-request-toolbar"><button className="return-request-text-button" type="button" disabled={loading || working} onClick={() => { setActionError(null); facilities.retry(); refresh() }}><RefreshCw size={14} aria-hidden="true" />{loading ? 'Refreshing…' : 'Refresh Contract'}</button></div>

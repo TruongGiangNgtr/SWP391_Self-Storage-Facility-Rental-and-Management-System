@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, ChevronDown, Menu } from 'lucide-react'
+import { Bell, Menu } from 'lucide-react'
 import { useAuth } from '../auth/auth.context'
 import { FlowIcon } from '../components/FlowIcon'
 import { FlowDialog } from '../components/FlowDialog'
@@ -9,9 +9,12 @@ import '../styles/customer.css'
 import '../styles/customer-design.css'
 import '../styles/public.css'
 import '../styles/customer-auth.css'
+import '../styles/support-pages.css'
+import '../styles/rental-flow.css'
+import '../styles/finance-flow.css'
 
-function Brand({ footer = false, signedIn = true, publicPage = false }: { footer?: boolean; signedIn?: boolean; publicPage?: boolean }) {
-  return <Link className={`flow-brand ${footer ? 'flow-brand-footer' : ''}`} to={signedIn && !publicPage ? '/customer' : '/'} aria-label="FStoRent Home">
+function Brand({ footer = false }: { footer?: boolean }) {
+  return <Link className={`flow-brand ${footer ? 'flow-brand-footer' : ''}`} to="/" aria-label="FStoRent Home">
     <span className="flow-brand-mark"><FlowIcon name="logo" /></span>
     <span>FSto<span className="brand-accent">Rent</span></span>
   </Link>
@@ -30,9 +33,11 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
     navigate('/auth/customer/login', { replace: true, state: null })
   }
   const { pathname } = useLocation()
+  const supportSurface = ['/', '/how-it-works', '/size-guide', '/help', '/customer', '/customer/account-settings', '/customer/notifications'].includes(pathname) || pathname.startsWith('/help/') || pathname.startsWith('/auth/customer/')
+  const rentalSurface = pathname === '/customer/contracts' || /^\/customer\/contracts\/[^/]+(?:\/access-visits\/new)?$/.test(pathname) || pathname === '/customer/visits' || /^\/customer\/visits\/[^/]+$/.test(pathname)
+  const financeSurface = pathname === '/customer/invoices' || /^\/customer\/invoices\/[^/]+$/.test(pathname)
   const signedIn = user?.role === 'CUSTOMER'
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const accountMenu = useRef<HTMLDetailsElement>(null)
   const [copyrightYear] = useState(() => new Date().getFullYear())
   const withSidebar = !publicPage && !pathname.startsWith('/customer/storage-search') &&
     pathname !== '/customer/reservations/new' && pathname !== '/customer/payments/result'
@@ -40,21 +45,6 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
   const initials = name.split(/\s+/).filter(Boolean).slice(-2).map((word) => word[0]).join('')
   const currentItem = getCustomerNavigationItem(pathname)
 
-  useEffect(() => {
-    function closeMenu(event: MouseEvent | KeyboardEvent) {
-      if (event instanceof KeyboardEvent) {
-        if (event.key === 'Escape' && accountMenu.current?.open) {
-          accountMenu.current.open = false
-          accountMenu.current.querySelector('summary')?.focus()
-        }
-      } else if (event.target instanceof Node && !accountMenu.current?.contains(event.target) && accountMenu.current) {
-        accountMenu.current.open = false
-      }
-    }
-    document.addEventListener('click', closeMenu)
-    document.addEventListener('keydown', closeMenu)
-    return () => { document.removeEventListener('click', closeMenu); document.removeEventListener('keydown', closeMenu) }
-  }, [])
 
   function portalNavigation(onNavigate?: () => void) {
     return <nav aria-label="Customer Portal">
@@ -65,23 +55,16 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
     </nav>
   }
 
-  return <div className={`frms-customer customer-shell ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
+  return <div className={`frms-customer customer-shell ${supportSurface || rentalSurface || financeSurface ? 'support-surface' : ''} ${rentalSurface ? 'rental-surface' : ''} ${financeSurface ? 'finance-surface' : ''} ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
     <a className="customer-skip-link" href="#customer-main">Skip to content</a>
     <header className="flow-header">
       <div className="flow-header-inner">
-        <Brand signedIn={signedIn} publicPage={publicPage} />
+        <Brand />
         <nav className="flow-top-nav" aria-label="Storage navigation"><StorageNavigation /></nav>
         <div className="customer-header-actions">
           {signedIn ? <>
             <NavLink className="customer-icon-button customer-notifications" to={CUSTOMER_NOTIFICATIONS.to} aria-label="Notifications" title="Notifications & Transaction History"><Bell size={20} aria-hidden="true" /></NavLink>
-            <details className="customer-account-menu" ref={accountMenu}>
-              <summary className="flow-account" aria-label={`Account: ${name}`} title={name}>
-                <span className="flow-avatar">{initials}</span><span className="customer-account-name"><strong>{name}</strong><small>Customer</small></span><ChevronDown size={16} aria-hidden="true" />
-              </summary>
-              <nav aria-label="Account navigation" onClick={() => { if (accountMenu.current) accountMenu.current.open = false }}>
-                <Link to="/customer">Overview</Link><Link to="/customer/contracts">My Contracts</Link><Link to="/customer/support-tickets">Support Tickets</Link><Link to="/customer/account-settings">Account Settings</Link><button type="button" onClick={logout}>Sign Out</button>
-              </nav>
-            </details>
+            <Link className="flow-account" to="/customer" aria-label={`Customer dashboard: ${name}`} title="Customer dashboard"><span className="flow-avatar">{initials}</span><span className="customer-account-name"><strong>{name}</strong><small>Customer</small></span></Link>
           </> : <Link className="button" to="/auth/customer/login">Sign In</Link>}
           <button className="customer-icon-button customer-menu-trigger" type="button" onClick={() => setDrawerOpen(true)} aria-label="Open navigation" aria-haspopup="dialog"><Menu size={22} /></button>
         </div>
@@ -101,9 +84,9 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
       </div>
     </div>
     <footer className="flow-footer"><div className="flow-footer-inner">
-      <div className="flow-footer-about"><Brand footer signedIn={signedIn} publicPage={publicPage} /><p>Find, reserve and manage your self-storage with FStoRent.</p></div>
+      <div className="flow-footer-about"><Brand footer /><p>Find, reserve and manage your self-storage with FStoRent.</p></div>
       <div><h2>Storage</h2><Link to="/facilities">Find Storage</Link><Link to="/size-guide">Size Guide</Link><Link to="/how-it-works">How It Works</Link></div>
-      <div><h2>Support</h2>{signedIn && <Link to="/customer/support-tickets">Support Tickets</Link>}<Link to="/help">Help Center</Link><Link to="/help#contact">Contact Us</Link></div>
+      <div><h2>Support</h2>{signedIn && <Link to="/customer/support-tickets">Support Tickets</Link>}<Link to="/help">Help Center</Link><Link to="/facilities">Facility Contacts</Link></div>
       <div><h2>Account</h2>{signedIn ? <><Link to="/customer/account-settings">My Account</Link><button type="button" onClick={logout}>Sign Out</button></> : <><Link to="/auth/customer/login">Sign In</Link><Link to="/auth/customer/register">Create Account</Link><Link to="/auth/employee/login">Employee Sign In</Link></>}</div>
       <p className="flow-copyright">© {copyrightYear} FStoRent. All rights reserved.</p>
     </div></footer>

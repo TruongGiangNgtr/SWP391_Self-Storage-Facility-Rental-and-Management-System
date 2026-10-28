@@ -89,7 +89,7 @@ export function CustomerAccountSettingsPage() {
   }
 
   return <main className="page-container flow-page customer-account-settings">
-    <header className="account-page-heading"><p className="eyebrow">Customer Portal</p><h1>Account Settings</h1><p className="muted">Manage your personal information and account security.</p></header>
+    <header className="account-page-heading"><h1>Account Settings</h1><p className="muted">Manage your personal information and account security.</p></header>
     <section className="panel account-profile-panel" aria-labelledby="profile-heading" aria-busy={loading || saving}>
       <div className="account-section-heading"><h2 id="profile-heading">Profile Information</h2><p className="muted">Keep your name and optional National ID up to date.</p></div>
       {loading && <LoadingState label="Loading your profile…" />}

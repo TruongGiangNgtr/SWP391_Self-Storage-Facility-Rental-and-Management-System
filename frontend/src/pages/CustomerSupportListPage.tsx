@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { CheckCircle2, CircleHelp, Clock3, Info, MessageSquareText, Plus, RefreshCw, Search, Ticket, XCircle } from 'lucide-react'
+import { CheckCircle2, CircleHelp, Clock3, Info, MessageSquareText, Plus, RefreshCw, Search, XCircle } from 'lucide-react'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { listSupportTickets } from '../api/supportTicketApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState, PaginationControls } from '../components/PageStates'
 import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
+import { RentalListFilters } from '../components/RentalListFilters'
 import { customerLabel } from '../utils/customerPresentation'
 import { isSupportTicketListResponse } from '../features/customer-support/supportValidation'
 import { SUPPORT_TICKET_STATUSES, type CollectionEnvelope, type SupportTicketDetail } from '../features/manager-support/models/supportTicket'
 import { formatUtcDateTime } from '../utils/formatters'
 import '../styles/customer-support.css'
+import '../styles/support-flow.css'
 
 function SupportTicketCard({ ticket }: { ticket: SupportTicketDetail }) {
   const ResultIcon = ticket.resultNote ? MessageSquareText : ticket.status === 'COMPLETED' ? CheckCircle2 : ticket.status === 'CANCELLED' ? XCircle : ticket.status === 'IN_PROGRESS' ? Clock3 : Info
   return <article className={`panel support-ticket-card support-ticket-${ticket.status.toLowerCase().replaceAll('_', '-')}`}>
-    <header className="support-ticket-heading"><div><span className="support-ticket-label"><Ticket size={15} aria-hidden="true" />Contract Support</span><h2>{customerLabel(ticket.category)}</h2></div><StatusBadge status={ticket.status} /></header>
+    <header className="support-ticket-heading"><h2>{customerLabel(ticket.category)}</h2><StatusBadge status={ticket.status} /></header>
     <p className="support-ticket-description">{ticket.description}</p>
     <div className="support-ticket-result"><ResultIcon size={18} aria-hidden="true" /><div><strong>{ticket.resultNote ? 'Staff Result' : 'Recorded Status'}</strong><p>{ticket.resultNote || (ticket.status === 'CANCELLED' ? 'This ticket has been cancelled.' : ticket.status === 'COMPLETED' ? 'This ticket is completed. No Staff result is available in this record.' : ticket.assignedEmployeeId ? 'Staff is assigned. No result has been recorded yet.' : 'No Staff result has been recorded yet.')}</p></div></div>
     <footer className="support-ticket-footer"><div><p>Submitted on: <time dateTime={ticket.createdAt}>{formatUtcDateTime(ticket.createdAt)}</time></p>{ticket.completedAt && <p>Completed on: <time dateTime={ticket.completedAt}>{formatUtcDateTime(ticket.completedAt)}</time></p>}<Link className="support-text-link" to={`/customer/contracts/${encodeURIComponent(ticket.contractId)}`}>View Related Contract</Link></div><Link className="button button-secondary" to={`/customer/support-tickets/${encodeURIComponent(ticket.supportTicketId)}`}>View Ticket</Link></footer>
@@ -57,16 +59,16 @@ export function CustomerSupportListPage() {
     setParams(next)
   }
   function clearFilters() { setQuery(''); change({ status: '' }) }
-  return <main className="page-container flow-page customer-support">
+  return <main className="page-container flow-page customer-support support-flow">
     <header className="support-page-heading">
-      <div><p className="eyebrow">Customer Portal</p><h1>Support Tickets</h1><p className="muted">Track your submitted support requests and recorded Staff responses.</p></div>
+      <div><h1>Support Tickets</h1><p className="muted">Track your submitted support requests and recorded Staff responses.</p></div>
       <div className="support-heading-actions">{response && <span className="support-total">{response.pagination.totalItems} {response.pagination.totalItems === 1 ? 'ticket' : 'tickets'} total</span>}<Link className="button" to="/customer/support-tickets/new"><Plus size={17} aria-hidden="true" />Create Ticket</Link></div>
     </header>
     <section className="support-info-banner" aria-label="About ticket updates"><span className="support-banner-icon"><MessageSquareText size={21} aria-hidden="true" /></span><div><h2>Your ticket updates, in one place</h2><p>Open a ticket to review its status and Staff result. Support requests relate to your contracts and do not automatically change a rental or payment.</p></div></section>
-    <section className="panel support-filter" aria-label="Filter tickets on this page">
+    <RentalListFilters><section className="panel support-filter" aria-label="Filter tickets on this page">
       <div className="form-field"><label htmlFor="support-search">Search tickets on this page</label><div className="support-search"><Search size={17} aria-hidden="true" /><input id="support-search" type="search" placeholder="Search by category or description" value={query} onChange={event => setQuery(event.target.value)} /></div></div>
       <div className="support-status-filters" role="group" aria-label="Filter by ticket status">{['', ...SUPPORT_TICKET_STATUSES].map(value => <button key={value} className="support-status-filter" type="button" aria-pressed={status === value} onClick={() => change({ status: value })}>{value ? customerLabel(value) : 'All'}</button>)}</div>
-    </section>
+    </section></RentalListFilters>
     <div className="support-list-tools"><p className="muted" aria-live="polite">{loading ? 'Loading your support tickets…' : error ? 'Ticket records could not be loaded.' : `${visible.length} matching ${visible.length === 1 ? 'ticket' : 'tickets'} of ${tickets.length} loaded on this page. Filters do not search other pages.`}</p><div>{filtered && <button className="support-text-button" type="button" onClick={clearFilters}>Clear Filters</button>}<button className="support-text-button" disabled={loading} type="button" onClick={() => setRetry(value => value + 1)}><RefreshCw size={14} aria-hidden="true" />{loading ? 'Refreshing…' : 'Refresh Tickets'}</button></div></div>
     <ApiErrorAlert error={error} />
     {loading ? <LoadingState label="Loading your support tickets..." /> : response && <>

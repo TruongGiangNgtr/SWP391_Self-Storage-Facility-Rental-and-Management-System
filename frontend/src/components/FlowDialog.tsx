@@ -72,7 +72,7 @@ export function FlowDialog({ title, subtitle, category, className = '', headingI
     >
       <div className="flow-dialog-heading">
         {headingIcon && <span className="flow-dialog-heading-icon" aria-hidden="true">{headingIcon}</span>}
-        <div><p className="eyebrow">{category}</p><h1 id={titleId}>{title}</h1></div>
+        <div>{category && <p className="eyebrow">{category}</p>}<h1 id={titleId}>{title}</h1></div>
         <button className="dialog-close" type="button" disabled={busy} onClick={onClose} aria-label="Close">
           <FlowIcon name="close" />
         </button>

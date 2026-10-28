@@ -1,3 +1,4 @@
+import { StorageReady } from '../components/StorageReady'
 import { useState } from 'react'
 import { ArrowRight, CalendarDays, Check, ClipboardList, CreditCard, FileText, Handshake, Info, MapPin, Package, RotateCcw } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -51,7 +52,7 @@ export function HowItWorksPage() {
     <section className="how-hero"><div className="gwp-container">
       <nav className="flow-breadcrumb" aria-label="Breadcrumb"><Link to="/">Home</Link><span aria-hidden="true">/</span><span aria-current="page">How It Works</span></nav>
       <div className="how-hero-grid"><div>
-        <p className="eyebrow">How FStoRent Works</p><h1>Storage made simple.</h1>
+        <h1>Storage made simple.</h1>
         <p className="how-intro">Find a space, reserve your storage type and pay the deposit. Arrange handover, pay your first month at the facility and start your contract.</p>
         <Link className="button" to="/facilities">Find Storage<ArrowRight size={16} aria-hidden="true" /></Link>
       </div><div className="how-hero-media">
@@ -61,7 +62,7 @@ export function HowItWorksPage() {
     </div></section>
 
     <section className="how-section how-tint" aria-labelledby="how-journey-heading"><div className="gwp-container">
-      <div className="how-section-heading"><p className="eyebrow">Your Storage Journey</p><h2 id="how-journey-heading">From finding storage to moving in.</h2></div>
+      <div className="how-section-heading"><h2 id="how-journey-heading">From finding storage to moving in.</h2></div>
       <ol className="how-steps">{RENTAL_STEPS.map((step, index) => <li className="how-step" key={step.title}>
         <span className="how-step-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
         <div className="how-step-copy"><h3>{step.title}</h3><p>{step.text}</p><p className="how-step-note">{step.note}</p></div>
@@ -91,11 +92,11 @@ export function HowItWorksPage() {
     </div></section>
 
     <section className="how-section" aria-labelledby="how-rental-heading"><div className="gwp-container">
-      <div className="how-section-heading"><p className="eyebrow">After Handover</p><h2 id="how-rental-heading">Manage your rental, visits and return.</h2></div>
+      <div className="how-section-heading"><h2 id="how-rental-heading">Manage your rental, visits and return.</h2></div>
       <div className="how-rental-grid">{DURING_RENTAL.map(item => <article key={item.title}><span className="how-icon-tile"><item.icon size={20} aria-hidden="true" /></span><h3>{item.title}</h3><p>{item.text}</p></article>)}</div>
       <p className="how-rental-note">Only eligible scheduled visits can be rescheduled or cancelled. Allowed dates and financial terms follow the policy captured for your reservation or contract. Review the terms shown in your account before making changes.</p>
     </div></section>
 
-    <section className="how-ready" aria-labelledby="how-ready-heading"><div className="gwp-container"><h2 id="how-ready-heading">Ready to find storage?</h2><p>Start by choosing a location, storage type, size and rental months.</p><Link className="button" to="/facilities">Find Storage<ArrowRight size={16} aria-hidden="true" /></Link></div></section>
+    <StorageReady guide />
   </main>
 }

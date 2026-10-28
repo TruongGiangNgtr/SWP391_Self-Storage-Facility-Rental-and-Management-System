@@ -10,6 +10,7 @@ import { CustomerActionFrame } from '../components/CustomerActionFrame'
 import { FlowIcon } from '../components/FlowIcon'
 import { CalendarDateField } from '../components/CalendarDateField'
 import { CustomerStatusBadge } from '../components/CustomerStatusBadge'
+import { BookingJourney } from '../components/BookingJourney'
 import type { ReservationDetail } from '../features/reservations/reservation.types'
 import { formatMoney, formatMonthRange } from '../utils/formatters'
 import '../styles/customer-handover-schedule.css'
@@ -75,7 +76,7 @@ export function ReservationConfirmPage() {
 
   return (
     <CustomerActionFrame
-      className="customer-handover-schedule"
+      className="customer-handover-schedule booking-handover"
       headingIcon={<CalendarDays size={24} />}
       category="Handover Visit"
       title="Confirm Reservation and Schedule Handover"
@@ -84,6 +85,7 @@ export function ReservationConfirmPage() {
       returnTo={`/customer/reservations/${reservationId}`}
       backLabel="Back to Reservation"
     >
+      <BookingJourney step={3} />
       {loading ? <LoadingState label="Checking deposit status..." /> :
       <section className="panel stack handover-schedule-content">
         <ApiErrorAlert error={error} />

@@ -66,11 +66,11 @@ export function PublicStorageSearchForm({ initialValues, pinnedFacility, onSearc
       <div className="public-search-bottom">
         <section className="public-rental-period" aria-labelledby={field('period-title')}>
           <div className="public-rental-heading"><CalendarDays size={17} aria-hidden="true" /><h3 id={field('period-title')}>Rental period</h3>
-            <details className="public-rental-help"><summary aria-label="About rental months"><Info size={16} aria-hidden="true" /></summary><p id={field('period-help')}>Choose whole calendar months. Check-in must be next month or later. Check-out can be the same month as check-in or later.</p></details>
+            {validPeriod && <span className="public-rental-duration" role="status">{reservationDuration(form.startMonth, form.endMonth)}</span>}
           </div>
+          <p id={field('period-help')} className="public-rental-guidance">Choose whole calendar months. Check-in must be next month or later. Check-out can be the same month as check-in or later.</p>
           <div className="public-month-range">
             <div className="form-field public-check-in-field"><label htmlFor={field('start')}>Check-in Month</label><MonthPicker id={field('start')} label="Check-in Month" min={getNextBusinessMonth()} value={form.startMonth} describedBy={field('period-help')} onChange={startMonth => change({ startMonth })} />
-              {validPeriod && <span className="public-rental-duration" role="status">{reservationDuration(form.startMonth, form.endMonth)}</span>}
             </div>
             <ArrowRight className="public-month-arrow" size={18} aria-hidden="true" />
             <div className="form-field"><label htmlFor={field('end')}>Check-out Month</label><MonthPicker id={field('end')} label="Check-out Month" min={form.startMonth || getNextBusinessMonth()} value={form.endMonth} describedBy={field('period-help')} onChange={endMonth => change({ endMonth })} /></div>

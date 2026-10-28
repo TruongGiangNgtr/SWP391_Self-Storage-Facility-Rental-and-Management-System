@@ -6,6 +6,7 @@ import { presentApiError, presentValidationError, type ApiErrorPresentation } fr
 import { reservationApi } from '../api/reservationApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { CustomerTabs } from '../components/CustomerTabs'
+import { RentalListFilters } from '../components/RentalListFilters'
 import { EmptyState, LoadingState, PaginationControls } from '../components/PageStates'
 import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
 import { getReservationStatusLabel, RESERVATION_FILTER_LABELS } from '../features/reservations/reservationPresentation'
@@ -110,11 +111,11 @@ export function ReservationListPage() {
   }
 
   return <main className="page-container flow-page customer-reservations">
-    <section className="page-heading reservations-heading"><div><p className="eyebrow reservations-eyebrow"><CalendarDays size={13} aria-hidden="true" />Reservation Management</p><h1>My Reservations</h1><p className="muted">Track your reservations, settle deposit invoices and manage your handover visits.</p></div><div className="reservations-heading-actions"><button className="button button-secondary" type="button" disabled={loading} onClick={refresh} aria-label="Refresh Reservations" title="Refresh Reservations"><RefreshCw size={16} aria-hidden="true" /></button><Link className="button reservations-new-button" to="/customer/storage-search"><Plus size={16} aria-hidden="true" />New Storage Reservation</Link></div></section>
+    <section className="page-heading reservations-heading"><div><h1>My Reservations</h1><p className="muted">Track your reservations, settle deposit invoices and manage your handover visits.</p></div><div className="reservations-heading-actions"><button className="button button-secondary" type="button" disabled={loading} onClick={refresh} aria-label="Refresh Reservations" title="Refresh Reservations"><RefreshCw size={16} aria-hidden="true" /><span>Refresh</span></button><Link className="button reservations-new-button" to="/customer/storage-search"><Plus size={16} aria-hidden="true" />New Storage Reservation</Link></div></section>
     <ApiErrorAlert error={error} />
     {(unitTypes.error || facilities.error) && <div className="panel stack"><p className="muted">Some storage names could not be loaded. Your reservation amounts and statuses still come from the reservation service.</p><ApiErrorAlert error={unitTypes.error} /><ApiErrorAlert error={facilities.error} /><button className="button button-secondary" type="button" onClick={() => { unitTypes.retry(); facilities.retry() }} disabled={unitTypes.loading || facilities.loading}>Retry Storage Details</button></div>}
     <div className="reservations-tabs"><CustomerTabs labels={RESERVATION_LIST_TABS} counts={loading || error || catalogPending ? undefined : counts} ariaLabel="Reservation status" selected={selectedTab} onChange={index => applyFilters({ ...filters, status: RESERVATION_LIST_STATUSES[index] })}>{({ tabId, panelId }) => <>
-      <ReservationFilterForm key={JSON.stringify(filters)} initial={filters} types={types} onApply={applyFilters} />
+      <RentalListFilters><ReservationFilterForm key={JSON.stringify(filters)} initial={filters} types={types} onApply={applyFilters} /></RentalListFilters>
       <div className="reservations-filter-summary"><p className="muted" role="status">{loading ? 'Loading this page…' : error ? 'Reservation list unavailable.' : catalogPending ? 'Loading storage details for your search…' : `${visible.length} matching reservations on this page. Counts and filters cover this page only.`}</p>{(filters.query || filters.status || filters.unitType) && <button className="reservations-text-button" type="button" onClick={() => applyFilters({ query: '', status: '', unitType: '' })}>Clear Filters</button>}</div>
       {RESERVATION_LIST_TABS.map((label, index) => <div key={label} role="tabpanel" id={panelId(index)} aria-labelledby={tabId(index)} hidden={selectedTab !== index} tabIndex={0}>{selectedTab === index && cards()}</div>)}
     </>}</CustomerTabs></div>
