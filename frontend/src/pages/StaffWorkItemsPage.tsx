@@ -1,7 +1,7 @@
 import { EmployeeEntityLabel } from '../components/EmployeeEntityLabel'
 import { CalendarDays, RefreshCw, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import type { ApiCollectionResponse } from '../api/api.types'
 import { presentApiError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { visitApi } from '../api/visitApi'
@@ -12,7 +12,8 @@ import { isAccessWorkItem } from '../features/visits/accessValidation'
 import { getCurrentBusinessDate } from '../utils/formatters'
 import '../styles/staff.css'
 
-export type StaffQueueMode = 'daily' | 'reservation-check-in' | 'handover' | 'access'
+type HandoverStage = 'reservation-check-in' | 'handover'
+export type StaffQueueMode = 'daily' | HandoverStage | 'handle-handover' | 'access'
 
 interface StaffWorkItemsPageProps {
   mode?: StaffQueueMode
@@ -33,6 +34,11 @@ const PAGE_COPY: Record<StaffQueueMode, { feature: string; title: string; descri
     feature: 'FWP-03',
     title: 'Handover Processing',
     description: 'Complete physical handover and acknowledge first-month rent for checked-in customers.',
+  },
+  'handle-handover': {
+    feature: 'FWP-02-03',
+    title: 'Handle Handover',
+    description: 'Check in arriving customers, then complete their first storage handover.',
   },
   access: {
     feature: 'FWP-04',
@@ -90,8 +96,20 @@ function actionLabel(item: StaffWorkItem) {
 
 export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) {
   const copy = PAGE_COPY[mode]
-  const [date, setDate] = useState(getCurrentBusinessDate)
-  const [page, setPage] = useState(1)
+  const [params, setParams] = useSearchParams()
+  const isHandover = mode === 'handle-handover'
+  const stage: HandoverStage = params.get('tab') === 'handover' ? 'handover' : 'reservation-check-in'
+  const queueMode = isHandover ? stage : mode
+  const [localDate, setLocalDate] = useState(getCurrentBusinessDate)
+  const [localPage, setLocalPage] = useState(1)
+  const date = isHandover ? params.get('date') || localDate : localDate
+  const requestedPage = Number(params.get('page') ?? 1)
+  const urlPage = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1
+  const page = isHandover ? urlPage : localPage
+  function setPage(next: number) {
+    if (!isHandover) { setLocalPage(next); return }
+    setParams(current => { const query = new URLSearchParams(current); query.set('page', String(next)); return query })
+  }
   const [search, setSearch] = useState('')
   const [retry, setRetry] = useState(0)
   const [snapshot, setSnapshot] = useState<{
@@ -119,7 +137,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
   const visibleItems = useMemo(() => {
     const needle = search.trim().toLowerCase()
     return (response?.data ?? []).filter((item) => {
-      if (!matchesMode(item, mode)) return false
+      if (!matchesMode(item, queueMode)) return false
       if (!needle) return true
       return [
         item.workType,
@@ -130,7 +148,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
         item.customer?.phoneNumber ?? '',
       ].some((value) => value.toLowerCase().includes(needle))
     })
-  }, [mode, response?.data, search])
+  }, [queueMode, response?.data, search])
 
   return (
     <div className="fwp-page" data-testid={`${copy.feature.toLowerCase()}-page`}>
@@ -144,6 +162,19 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
           Refresh
         </button>
       </header>
+
+      {isHandover && <>
+        <nav className="fwp-tabs fwp-handover-tabs" aria-label="Handle Handover stages">
+          {(['reservation-check-in', 'handover'] as const).map((item, index) => {
+            const query = new URLSearchParams(params)
+            query.set('tab', item === 'handover' ? 'handover' : 'check-in')
+            return <Link key={item} className={`fwp-tab${stage === item ? ' active' : ''}`} aria-current={stage === item ? 'page' : undefined} to={`?${query}`}>
+              <span>Stage {index + 1}</span><strong>{PAGE_COPY[item].title}</strong>
+            </Link>
+          })}
+        </nav>
+        <p className="fwp-toolbar-note">{PAGE_COPY[stage].description} Stages show matching items on the current work-list page.</p>
+      </>}
 
       <section className="fwp-summary" aria-label="Work list summary">
         <div className="fwp-summary-card">
@@ -166,8 +197,12 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
               value={date}
               onChange={(event) => {
                 if (event.target.value) {
-                  setDate(event.target.value)
-                  setPage(1)
+                  if (isHandover) {
+                    setParams(current => { const query = new URLSearchParams(current); query.set('date', event.target.value); query.delete('page'); return query })
+                  } else {
+                    setLocalDate(event.target.value)
+                    setLocalPage(1)
+                  }
                 }
               }}
             />
@@ -214,7 +249,8 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
               </thead>
               <tbody>
                 {visibleItems.map((item) => {
-                  const link = workItemLink(item, response?.pagination.page ?? page)
+                  const target = workItemLink(item, response?.pagination.page ?? page)
+                  const link = target && isHandover ? `${target}&workTab=${stage === 'handover' ? 'handover' : 'check-in'}&workDate=${encodeURIComponent(date)}` : target
                   return (
                     <tr key={`${item.workType}-${item.referenceId}`}>
                       <td><strong>{readableWorkType(item.workType)}</strong></td>
@@ -238,17 +274,16 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
               </tbody>
             </table>
           </div>
-
-          {response && response.pagination.totalPages > 1 && (
-            <footer className="fwp-pagination">
-              <span>Page {response.pagination.page} of {response.pagination.totalPages} · {response.pagination.totalItems} total work items</span>
-              <div>
-                <button className="fwp-button fwp-button-secondary" type="button" disabled={loading || response.pagination.page <= 1} onClick={() => setPage(response.pagination.page - 1)}>Previous</button>
-                <button className="fwp-button fwp-button-secondary" type="button" disabled={loading || response.pagination.page >= response.pagination.totalPages} onClick={() => setPage(response.pagination.page + 1)}>Next</button>
-              </div>
-            </footer>
-          )}
         </section>
+      )}
+      {!loading && !error && response && response.pagination.totalPages > 1 && (
+        <footer className="fwp-pagination">
+          <span>Page {response.pagination.page} of {response.pagination.totalPages} · {response.pagination.totalItems} total work items</span>
+          <div>
+            <button className="fwp-button fwp-button-secondary" type="button" disabled={loading || response.pagination.page <= 1} onClick={() => setPage(response.pagination.page - 1)}>Previous</button>
+            <button className="fwp-button fwp-button-secondary" type="button" disabled={loading || response.pagination.page >= response.pagination.totalPages} onClick={() => setPage(response.pagination.page + 1)}>Next</button>
+          </div>
+        </footer>
       )}
     </div>
   )

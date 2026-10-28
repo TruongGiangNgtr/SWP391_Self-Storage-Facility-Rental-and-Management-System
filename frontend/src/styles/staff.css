@@ -447,6 +447,8 @@
 .fwp-tab strong { font-size: 11px; }
 .fwp-tab:hover { background: #f6f8fd; }
 .fwp-tab.active { color: #355de0; background: #edf2ff; }
+.fwp-handover-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.fwp-handover-tabs a { text-decoration: none; }
 
 .fwp-stage-intro {
   display: flex;

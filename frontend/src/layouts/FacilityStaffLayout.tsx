@@ -1,6 +1,5 @@
 import { EmployeeLabelsProvider } from '../components/EmployeeEntityLabel'
 import {
-  ClipboardCheck,
   ClipboardList,
   DoorOpen,
   FileText,
@@ -28,8 +27,7 @@ function getInitials(fullName?: string | null) {
 const navItems = [
   { to: '/staff/work-list', label: 'Daily Work List', icon: ClipboardList },
   { to: '/staff/contracts', label: 'View Contracts', icon: FileText },
-  { to: '/staff/reservation-check-in', label: 'Reservation Check-in', icon: ClipboardCheck },
-  { to: '/staff/handover-processing', label: 'Handover Processing', icon: Handshake },
+  { to: '/staff/handle-handover', label: 'Handle Handover', icon: Handshake },
   { to: '/staff/access-visits', label: 'Access Visit Processing', icon: DoorOpen },
   { to: '/staff/returns', label: 'Handle Returns', icon: RotateCcw },
   { to: '/staff/support', label: 'Support Processing', icon: LifeBuoy },
@@ -109,8 +107,7 @@ export function FacilityStaffLayout() {
             links: [
               { to: '/staff/work-list', label: 'Daily Work List' },
               { to: '/staff/contracts', label: 'View Contracts' },
-              { to: '/staff/reservation-check-in', label: 'Reservation Check-in' },
-              { to: '/staff/handover-processing', label: 'Handover Processing' },
+              { to: '/staff/handle-handover', label: 'Handle Handover' },
             ],
           },
           {

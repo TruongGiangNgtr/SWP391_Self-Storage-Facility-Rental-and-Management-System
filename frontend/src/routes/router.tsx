@@ -225,8 +225,9 @@ export function AppRouter() {
         <Route index element={<Navigate to="work-list" replace />} />
         <Route path="work-list" element={<StaffWorkItemsPage mode="daily" />} />
         <Route path="contracts" element={<StaffContractListPage />} />
-        <Route path="reservation-check-in" element={<StaffWorkItemsPage mode="reservation-check-in" />} />
-        <Route path="handover-processing" element={<StaffWorkItemsPage mode="handover" />} />
+        <Route path="handle-handover" element={<StaffWorkItemsPage mode="handle-handover" />} />
+        <Route path="reservation-check-in" element={<Navigate to="/staff/handle-handover?tab=check-in" replace />} />
+        <Route path="handover-processing" element={<Navigate to="/staff/handle-handover?tab=handover" replace />} />
         <Route path="access-visits" element={<StaffWorkItemsPage mode="access" />} />
         <Route path="returns" element={<StaffReturnsPage />} />
         <Route path="support" element={<StaffSupportPage />} />
