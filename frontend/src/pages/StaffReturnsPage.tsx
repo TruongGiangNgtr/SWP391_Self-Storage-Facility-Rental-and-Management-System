@@ -26,19 +26,16 @@ import '../styles/staff.css'
 
 type ReturnTab = 'confirmation' | 'inspection' | 'fees'
 
-const TAB_META: Record<ReturnTab, { feature: string; label: string; description: string }> = {
+const TAB_META: Record<ReturnTab, { label: string; description: string }> = {
   confirmation: {
-    feature: 'FWP-05',
     label: 'Return Confirmation',
     description: 'Check in the return visit and confirm the physical return date to begin inspection.',
   },
   inspection: {
-    feature: 'FWP-06',
     label: 'Return Inspection',
     description: 'Claim a PENDING Inspection, attach evidence and complete the inspection. Completing an Inspection keeps the StorageUnit in INSPECTION.',
   },
   fees: {
-    feature: 'FWP-07',
     label: 'Fees & Finalize',
     description: 'Record Damage/Extra Fee data during the claimed inspection, then finalize only after Inspection completion and all Damage decisions are resolved.',
   },
@@ -574,7 +571,6 @@ export function StaffReturnsPage() {
     <div className="fwp-page fwp-returns-page" data-testid="handle-returns-page">
       <header className="fwp-page-header">
         <div>
-          <p className="fwp-eyebrow">Facility Staff · FWP-05 → FWP-07</p>
           <h1>Handle Returns</h1>
           <p>Confirm the physical return, inspect the unit, record fees and finalize the return.</p>
         </div>
@@ -584,14 +580,12 @@ export function StaffReturnsPage() {
       <nav className="fwp-tabs" aria-label="Handle Returns stages">
         {(Object.keys(TAB_META) as ReturnTab[]).map((item) => (
           <button key={item} type="button" className={item === tab ? 'fwp-tab active' : 'fwp-tab'} onClick={() => changeTab(item)}>
-            <span>{TAB_META[item].feature}</span>
             <strong>{TAB_META[item].label}</strong>
           </button>
         ))}
       </nav>
 
       <section className="fwp-stage-intro">
-        <span>{meta.feature}</span>
         <div><strong>{meta.label}</strong><p>{meta.description}</p></div>
       </section>
 

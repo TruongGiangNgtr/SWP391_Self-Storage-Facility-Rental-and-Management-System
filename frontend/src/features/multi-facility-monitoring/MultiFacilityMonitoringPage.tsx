@@ -323,7 +323,6 @@ export function MultiFacilityMonitoringPage() {
     <header className="mfm-page-header">
       <div>
         <p className="mfm-breadcrumb">Business Operations / Multi-Facility Monitoring</p>
-        <p className="mfm-eyebrow">BWP-06 · PORTFOLIO OPERATIONS</p>
         <h1>Multi-Facility Monitoring</h1>
         <p>View system-wide performance and inspect operational records across storage locations.</p>
       </div>
@@ -335,7 +334,7 @@ export function MultiFacilityMonitoringPage() {
     <section className="mfm-section" aria-label="Business portfolio overview">
       <div className="mfm-section-heading">
         <div><h2><TrendingUp size={19} /> Business overview</h2>
-          <p>Authoritative KPIs from REP-003; rental revenue includes offline first-month recognition under SRS V10.</p></div>
+          <p>Business figures are supplied by the server; rental revenue includes offline first-month recognition.</p></div>
         <span className="mfm-chip">SYSTEM-WIDE</span>
       </div>
       {overviewLoading ? <div className="mfm-message" role="status">Loading business overview…</div>
@@ -349,7 +348,7 @@ export function MultiFacilityMonitoringPage() {
             <ShieldCheck size={19} />
             <div><strong>{overviewUnavailable ? 'Business overview is awaiting backend implementation' : 'Business overview could not be loaded'}</strong>
               <p>{overviewUnavailable
-                ? 'REP-003 (/api/v1/reports/business/overview) is still a backend scaffold. Financial and usage KPIs are intentionally not estimated from unrelated frontend records.'
+                ? 'Business overview reporting is not available yet. Financial and usage figures are not estimated from other records.'
                 : overviewError}</p></div>
           </div>}
     </section>
@@ -365,7 +364,7 @@ export function MultiFacilityMonitoringPage() {
           <span><strong>{facilities.length}</strong> total Facilities</span>
           <span><strong>{activeFacilities}</strong> active</span>
           <span><strong>{facilities.length - activeFacilities}</strong> inactive</span>
-          <span className="mfm-portfolio-hint">Counts from BOM-001, not REP-003</span>
+          <span className="mfm-portfolio-hint">Facility directory counts, separate from report totals</span>
         </div>
         <div className="mfm-toolbar">
           <label className="mfm-search"><Search size={16}/><input type="search" value={facilitySearch}
@@ -429,11 +428,11 @@ export function MultiFacilityMonitoringPage() {
       {detailLoading && <div role="status" className="mfm-message">Loading record detail…</div>}
     </section>
 
-    <p className="mfm-footnote">Read-only dashboard. Authoritative permissions, rental status, revenue and usage calculations remain on the server. BWP-07 Report Export is a separate feature.</p>
+    <p className="mfm-footnote">Read-only dashboard. Authoritative permissions, rental status, revenue and usage calculations remain on the server. Use the Reports page to review reporting and export availability.</p>
 
     {detail && <div className="mfm-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setDetail(null) }}>
       <aside className="mfm-drawer" role="dialog" aria-modal="true" aria-label={`${detail.tab} record details`}>
-        <div className="mfm-drawer-heading"><div><span>System-wide read · BWP-06</span>
+        <div className="mfm-drawer-heading"><div><span>System-wide read</span>
           <h2>{detail.tab.slice(0, 1).toUpperCase() + detail.tab.slice(1, -1)} details</h2></div>
           <button type="button" aria-label="Close detail" className="mfm-close" onClick={() => setDetail(null)}><X size={20}/></button></div>
         <dl className="mfm-details">{detailFields(detail).map(field => <div key={field.label}>

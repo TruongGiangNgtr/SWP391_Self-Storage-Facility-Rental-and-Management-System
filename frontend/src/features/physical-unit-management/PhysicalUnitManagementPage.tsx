@@ -52,7 +52,6 @@ interface UnitFormState {
 
 interface ManagerDialogProps {
   title: string
-  eyebrow: string
   description?: string
   busy?: boolean
   onClose(): void
@@ -75,7 +74,6 @@ const STATUS_OPTIONS: Array<{ value: 'ALL' | StorageUnitStatus; label: string }>
 
 function ManagerDialog({
   title,
-  eyebrow,
   description,
   busy = false,
   onClose,
@@ -102,7 +100,6 @@ function ManagerDialog({
     >
       <div className="manager-dialog-heading">
         <div>
-          <span>{eyebrow}</span>
           <h2 id="manager-dialog-title">{title}</h2>
           {description && <p>{description}</p>}
         </div>
@@ -253,7 +250,7 @@ export function PhysicalUnitManagementPage() {
     if (!facilityId) {
       setUnits([])
       setPageError({
-        message: 'Your Facility Manager account has no Facility assignment. MWP-02 requires a Facility-scoped Manager account.',
+        message: 'Your Facility Manager account has no Facility assignment. An assigned Facility is required to manage physical units.',
       })
       setIsLoading(false)
       return
@@ -578,7 +575,7 @@ export function PhysicalUnitManagementPage() {
     const target = managerStatusTarget(selectedUnit.status)
     if (!target) {
       setFormError({
-        message: 'This status is controlled by handover/return lifecycle commands. MWP-02 cannot bypass those workflows.',
+        message: 'This status is controlled by handover and return workflows and cannot be changed here.',
       })
       return
     }
@@ -847,9 +844,8 @@ export function PhysicalUnitManagementPage() {
 
       {dialogMode === 'create' && (
         <ManagerDialog
-          eyebrow="MWP-02 · UNIT-002"
           title="Add StorageUnit"
-          description="New StorageUnits start as AVAILABLE. Choose an existing Unit Type; MWP-02 does not create or modify Unit Type master data."
+          description="New StorageUnits start as AVAILABLE. Choose an existing Unit Type; unit type definitions cannot be created or modified here."
           busy={isSubmitting || isVerifyingUnitType}
           onClose={closeDialog}
         >
@@ -877,7 +873,6 @@ export function PhysicalUnitManagementPage() {
 
       {dialogMode === 'edit' && selectedUnit && (
         <ManagerDialog
-          eyebrow="MWP-02 · UNIT-004"
           title={`Edit ${selectedUnit.unitCode}`}
           description="Location may be maintained operationally. Unit Type reassignment is blocked while the unit is IN_USE or INSPECTION and remains server-authoritative."
           busy={isSubmitting || isLoadingDetail || isVerifyingUnitType}
@@ -921,7 +916,6 @@ export function PhysicalUnitManagementPage() {
 
       {dialogMode === 'detail' && selectedUnit && (
         <ManagerDialog
-          eyebrow="MWP-02 · UNIT-003"
           title={selectedUnit.unitCode}
           description="Latest server-authoritative StorageUnit detail."
           busy={isLoadingDetail}
@@ -956,9 +950,8 @@ export function PhysicalUnitManagementPage() {
 
       {dialogMode === 'status' && selectedUnit && (
         <ManagerDialog
-          eyebrow="MWP-02 · UNIT-005"
           title="Change operational status"
-          description="MWP-02 exposes only preventive-maintenance transitions. Contract handover and return lifecycle transitions cannot be bypassed here."
+          description="Only preventive-maintenance status changes are available here. Handover and return status changes must follow their respective workflows."
           busy={isSubmitting || isLoadingDetail}
           onClose={closeDialog}
         >
@@ -980,7 +973,7 @@ export function PhysicalUnitManagementPage() {
                   ? 'Use this for preventive maintenance only when the unit has no ACTIVE Contract. The backend remains authoritative.'
                   : selectedStatusTarget === 'AVAILABLE'
                     ? 'Return this maintenance unit to AVAILABLE only when the legal StorageUnit transition is allowed.'
-                    : 'This StorageUnit state belongs to a handover/return lifecycle. MWP-02 will not issue a shortcut transition.'}
+                    : 'This StorageUnit state is managed through handover or return processing and cannot be changed here.'}
               </p>
               <FormError error={formError} />
               <div className="physical-dialog-actions">
