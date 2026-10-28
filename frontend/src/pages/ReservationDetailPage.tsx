@@ -9,6 +9,7 @@ import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { LoadingState } from '../components/PageStates'
 import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
 import { FirstMonthHandoverInfo } from '../components/FirstMonthHandoverInfo'
+import { BookingJourney } from '../components/BookingJourney'
 import { paymentReturnState } from '../features/billing/paymentReturnState'
 import type { ReservationDetail } from '../features/reservations/reservation.types'
 import { getReservationStatusLabel } from '../features/reservations/reservationPresentation'
@@ -124,8 +125,14 @@ export function ReservationDetailPage() {
     )
   }
 
+  const bookingStep: 2 | 3 | 4 | null = !reservation || reservation.status === 'CANCELLED' ? null
+    : reservation.status === 'COMPLETED' ? 4
+    : reservation.status === 'CONFIRMED' ? reservation.reservationVisit && reservation.reservationVisit.status !== 'CANCELLED' ? 4 : null
+    : reservation.depositInvoice.status === 'PAID' ? 3
+    : reservation.depositInvoice.status === 'UNPAID' ? 2 : null
+
   return (
-    <main className="page-container flow-page customer-reservation-details">
+    <main className="page-container flow-page customer-reservation-details booking-detail">
       <Link className="reservation-detail-text-link reservation-detail-back" to="/customer/reservations"><ArrowLeft size={16} aria-hidden="true" />My Reservations</Link>
       <header className="page-heading reservation-detail-heading">
         <p className="eyebrow">Reservation Management</p>
@@ -133,6 +140,7 @@ export function ReservationDetailPage() {
         <p className="muted">Review your rental period, deposit invoice and handover visit.</p>
       </header>
 
+      {bookingStep !== null && <BookingJourney step={bookingStep} />}
       <ApiErrorAlert error={error} />
       <ApiErrorAlert error={unitTypes.error} />
       {unitTypes.error && <button className="button button-secondary" type="button" disabled={unitTypes.loading} onClick={unitTypes.retry}>Retry Unit Type Name</button>}

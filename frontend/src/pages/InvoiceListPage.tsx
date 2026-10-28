@@ -1,6 +1,7 @@
+import { RentalListFilters } from '../components/RentalListFilters'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { FileText, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
+import { FileText, History, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
 import { billingApi } from '../api/billingApi'
 import { contractApi } from '../api/contractApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
@@ -27,19 +28,19 @@ function AllInvoices({ page, revision, query, status, type, onChange }: {
   const visible = invoices.filter(invoice => (!status || invoice.status === status) && (!type || invoice.invoiceType === type) &&
     `${customerLabel(invoice.invoiceType)} ${invoice.billingMonth ?? ''} ${customerLabel(invoice.status)}`.toLowerCase().includes(query.trim().toLowerCase()))
   return <div className="billing-stack">
-    <section className="panel billing-filter" aria-label="Filter invoices on this page">
+    <RentalListFilters><section className="panel billing-filter" aria-label="Filter invoices on this page">
       <div className="form-field"><label htmlFor="billing-search">Search this page</label><div className="billing-search"><Search size={16} aria-hidden="true" /><input id="billing-search" type="search" placeholder="Invoice type, rental month or status" value={query} onChange={event => onChange({ q: event.target.value })} /></div></div>
       <div className="form-field"><label htmlFor="billing-type">Invoice Type</label><select id="billing-type" value={type} onChange={event => onChange({ type: event.target.value })}><option value="">All Types</option><option value="DEPOSIT">Deposit</option><option value="RENTAL_FEE">Rental Fee</option></select></div>
       <div className="form-field"><label htmlFor="billing-status">Status</label><select id="billing-status" value={status} onChange={event => onChange({ status: event.target.value })}><option value="">All Statuses</option>{STATUSES.map(value => <option key={value} value={value}>{customerLabel(value)}</option>)}</select></div>
       <button className="button button-secondary" type="button" onClick={() => onChange({ q: '', type: '', status: '' })}><SlidersHorizontal size={16} aria-hidden="true" />Clear Filters</button>
       <p className="muted billing-filter-note" aria-live="polite">{list.loading ? 'Loading invoices…' : `${visible.length} matching records on this page. Filters do not search other pages.`}</p>
-    </section>
+    </section></RentalListFilters>
     <ApiErrorAlert error={list.error} />
     {list.loading ? <LoadingState label="Loading invoices…" /> : list.error ? null : !invoices.length ? <EmptyState message="You do not have any invoices yet. Reservation deposits will appear here even before a contract is created." /> : !visible.length ? <EmptyState message="No invoices on this page match your filters. Clear filters or review another page." /> :
       <section className="panel billing-invoice-list" aria-label="Invoices">
         <div className="billing-section-heading"><div><h2>Your Invoices</h2><p className="muted">Deposit and rental fee records, as reported by the system.</p></div><FileText size={20} aria-hidden="true" /></div>
-        <div className="billing-table-wrap" tabIndex={0} role="region" aria-label="Invoice records"><table className="billing-table"><thead><tr><th scope="col">Invoice</th><th scope="col">Payment Deadline</th><th scope="col">Amount Due</th><th scope="col">Status</th><th scope="col"><span className="billing-sr-only">Actions</span></th></tr></thead><tbody>
-          {visible.map(invoice => <tr key={invoice.invoiceId}><td><strong>{invoice.invoiceType === 'DEPOSIT' ? 'Reservation Deposit' : 'Rental Fee'}</strong><CustomerInvoiceContext invoice={invoice} /></td><td>{formatUtcDateTime(invoice.dueDate)}{invoice.paidAt && <small>Paid: {formatUtcDateTime(invoice.paidAt)}</small>}</td><td><strong>{formatMoney(invoice.amountDue)}</strong></td><td><CustomerStatusBadge status={invoice.status} /></td><td><Link className="button button-secondary" to={`/customer/invoices/${invoice.invoiceId}`}>View Invoice</Link></td></tr>)}
+        <div className="billing-table-wrap" tabIndex={0} role="region" aria-label="Invoice records"><table className="billing-table" role="table"><thead role="rowgroup"><tr><th scope="col">Invoice</th><th scope="col">Payment Deadline</th><th scope="col">Amount Due</th><th scope="col">Status</th><th scope="col"><span className="billing-sr-only">Actions</span></th></tr></thead><tbody role="rowgroup">
+          {visible.map(invoice => <tr key={invoice.invoiceId} role="row"><td role="cell" data-label="Invoice"><strong>{invoice.invoiceType === 'DEPOSIT' ? 'Reservation Deposit' : 'Rental Fee'}</strong><CustomerInvoiceContext invoice={invoice} /></td><td role="cell" data-label="Payment deadline">{formatUtcDateTime(invoice.dueDate)}{invoice.paidAt && <small>Paid: {formatUtcDateTime(invoice.paidAt)}</small>}</td><td role="cell" data-label="Amount due"><strong>{formatMoney(invoice.amountDue)}</strong></td><td role="cell" data-label="Status"><CustomerStatusBadge status={invoice.status} /></td><td role="cell" data-label="Actions"><Link className="button button-secondary" to={`/customer/invoices/${invoice.invoiceId}`}>View Invoice</Link></td></tr>)}
         </tbody></table></div>
       </section>}
     {list.response && <PaginationControls pagination={list.response.pagination} disabled={list.loading} onPageChange={next => onChange({ page: String(next) })} />}
@@ -73,7 +74,7 @@ export function InvoiceListPage() {
     setParams(next, { replace })
   }
   return <main className="page-container flow-page customer-billing">
-    <header className="billing-page-heading"><div><p className="eyebrow">Deposit Management</p><h1>Deposit &amp; Invoices</h1><p className="muted">Review your security deposits, recorded charges and rental invoices.</p></div><button className="button button-secondary" type="button" onClick={() => setRevision(value => value + 1)}><RefreshCw size={16} aria-hidden="true" />Refresh Records</button></header>
+    <header className="billing-page-heading"><div><h1>Deposit &amp; Invoices</h1><p className="muted">Review your security deposits, recorded charges and rental invoices.</p></div><div className="billing-heading-actions"><Link className="billing-text-link" to="/customer/notifications?tab=history"><History size={16} aria-hidden="true" />Transaction History</Link><button className="button button-secondary" type="button" onClick={() => setRevision(value => value + 1)}><RefreshCw size={16} aria-hidden="true" />Refresh Records</button></div></header>
     <CustomerTabs labels={['Deposit & Charges', 'All Invoices']} ariaLabel="Deposit and invoice sections" selected={selected} onChange={index => change({ tab: index ? 'invoices' : '' })}>{({ tabId, panelId }) => <section role="tabpanel" id={panelId(selected)} aria-labelledby={tabId(selected)} tabIndex={0} className="billing-stack">
       {selected === 0 ? <ContractDeposits page={pageNumber(params.get('contractPage'))} revision={revision} selectedId={params.get('contract') ?? ''} onChange={change} /> : <AllInvoices page={pageNumber(params.get('page'))} revision={revision} query={params.get('q') ?? ''} status={STATUSES.find(value => value === params.get('status')) ?? ''} type={['DEPOSIT', 'RENTAL_FEE'].find(value => value === params.get('type')) ?? ''} onChange={values => change(values, !('page' in values))} />}
     </section>}</CustomerTabs>

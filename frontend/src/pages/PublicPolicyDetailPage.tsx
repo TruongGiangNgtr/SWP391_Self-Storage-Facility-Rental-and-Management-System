@@ -30,7 +30,7 @@ export function PublicPolicyDetailPage() {
       <ApiErrorAlert error={policy.error} />
       {policy.error && <div className="action-row"><button className="button button-secondary" type="button" onClick={policy.refresh}>Retry Policy</button><Link className="button button-secondary" to="/help#contact">Contact a Facility</Link></div>}
       {policy.loading ? <LoadingState label="Loading the current public policy…" /> : article && <>
-        <header className="help-article-heading"><p className="eyebrow">Current Public Policy</p><h1 id="policy-article-heading">{article.title}</h1><p className="help-article-summary">{article.summary}</p><PublicPolicyMetadata policy={article} /></header>
+        <header className="help-article-heading"><h1 id="policy-article-heading">{article.title}</h1><p className="help-article-summary">{article.summary}</p><PublicPolicyMetadata policy={article} /></header>
         <div className="help-article-grid"><nav className="help-contents" aria-label="On this page"><h2>On this page</h2><ol>{article.sections.map((section, index) => <li key={index}><Link to={`/help/policies/${policyKey}#policy-section-${index + 1}`}>{section.heading}</Link></li>)}</ol></nav>
           <article className="help-article" aria-labelledby="policy-article-heading">{article.sections.map((section, index) => <section key={index} aria-labelledby={`policy-section-${index + 1}`}><h2 id={`policy-section-${index + 1}`} tabIndex={-1}>{section.heading}</h2><p className="help-plain-text">{section.body}</p></section>)}</article>
         </div>

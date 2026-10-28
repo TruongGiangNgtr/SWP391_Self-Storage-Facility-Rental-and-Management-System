@@ -26,7 +26,7 @@ export function CustomerNotificationsPage() {
   }
 
   return <main className="page-container flow-page customer-notifications-page">
-    <section className="page-heading notification-page-heading"><div><p className="eyebrow">Customer Portal</p><h1>Notifications & History</h1><p className="muted">Review your notifications and payment history in one place.</p></div>
+    <section className="page-heading notification-page-heading"><div><h1>Notifications & History</h1><p className="muted">Review your notifications and payment history in one place.</p></div>
       <button className="customer-icon-button" type="button" aria-label={refreshLabel} title={refreshLabel} disabled={active.loading || !validPage} onClick={active.refresh}><RefreshCw size={18} aria-hidden="true" /></button>
     </section>
     <CustomerTabs labels={labels} ariaLabel="Notifications and transaction history" selected={history ? 1 : 0} onChange={index => { if ((index === 1) === history) return; setParams(current => { const next = new URLSearchParams(current); next.delete('page'); if (index === 1) next.set('tab', 'history'); else next.delete('tab'); return next }) }}>{({ tabId, panelId }) => <>

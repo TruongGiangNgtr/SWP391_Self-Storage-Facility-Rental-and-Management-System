@@ -5,6 +5,7 @@ import { presentApiError, presentValidationError, type ApiErrorPresentation } fr
 import { ApiRequestError } from '../api/httpClient'
 import { visitApi } from '../api/visitApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
+import { AccessVisitJourney } from '../components/AccessVisitJourney'
 import { CalendarDateField } from '../components/CalendarDateField'
 import { LoadingState } from '../components/PageStates'
 import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
@@ -68,10 +69,12 @@ export function AccessVisitCreatePage() {
         <button type="button" disabled={loading || working} onClick={() => { setActionError(null); refresh() }}><RefreshCw size={15} aria-hidden="true" />Refresh Contract</button>
       </nav>
       <section className="page-heading page-heading-actions">
-        <div><p className="eyebrow">Access Visit</p><h1>Schedule Access Visit</h1><p className="muted">Choose a date to visit your rented storage unit.</p></div>
+        <div><h1>Schedule Access Visit</h1><p className="muted">Choose a date to visit your rented storage unit.</p></div>
       </section>
       <ApiErrorAlert error={actionError ?? error} />
       {loading ? <LoadingState label="Loading your contract..." /> : contract && <>
+        <AccessVisitJourney />
+        <div className="access-schedule-layout">
         <section className="panel stack access-context" aria-label="Access contract">
           <div className="remaining-card-heading"><span className="remaining-icon"><DoorOpen size={22} aria-hidden="true" /></span><h2>Selected Contract</h2><StatusBadge status={contract.status} /></div>
           <dl className="remaining-facts access-contract-facts">
@@ -89,6 +92,7 @@ export function AccessVisitCreatePage() {
             <div className="remaining-actions"><Link className="button button-secondary" to="/customer/visits">My Visits</Link><button className="button" type="submit" disabled={working}><CalendarDays size={16} aria-hidden="true" />{working ? 'Scheduling...' : 'Confirm Access Visit'}</button></div>
           </form>
         </section> : <p className="notice">You can only schedule access visits for an active contract. Open My Contracts to check its latest status.</p>}
+        </div>
       </>}
       {actionError && <p className="muted">If the request may already have been processed, check My Visits before retrying to avoid scheduling a duplicate visit.</p>}
       {(!contract || contract.status !== 'ACTIVE') && <Link className="button button-secondary access-back" to="/customer/visits">My Visits</Link>}

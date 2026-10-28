@@ -1,0 +1,199 @@
+/* Local UI experiment: only the storage discovery and reservation journey. */
+.frms-customer:is(.booking-review, .booking-handover),
+.frms-customer :is(.booking-search, .booking-facility, .booking-review, .booking-detail, .booking-handover, .booking-payment) {
+  --booking-ink: #172b4d;
+  --booking-soft: #f1f5fb;
+  --booking-line: #dce4ef;
+  --booking-muted: #53647b;
+  --booking-blue: #1d4ed8;
+  gap: 28px;
+}
+.booking-journey { padding: 0 0 24px; border-bottom: 1px solid #dce4ef; }
+.booking-journey ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.booking-journey li { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; color: #53647b; font-size: 12px; font-weight: 500; line-height: 1.5; }
+.booking-step-number { display: grid; place-items: center; width: 30px; height: 30px; flex: 0 0 30px; border: 1px solid #cbd5e1; border-radius: 50%; background: #fff; color: #53647b; font-variant-numeric: tabular-nums; }
+.booking-journey .is-current { color: #1d4ed8; font-weight: 700; }
+.booking-journey .is-current .booking-step-number { border-color: #1d4ed8; background: #1d4ed8; color: #fff; }
+.booking-journey .is-previous .booking-step-number { border-color: #b9cadf; background: #eaf1fa; color: #24476e; }
+.booking-step-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.frms-customer .booking-search-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; }
+.frms-customer .booking-search-heading h1 { margin: 14px 0 12px; font-size: clamp(30px, 3vw, 42px); line-height: 1.18; letter-spacing: -.03em; color: var(--booking-ink); }
+.frms-customer .booking-search-heading p { max-width: 620px; margin: 0; color: var(--booking-muted); font-size: 15px; line-height: 1.75; }
+.frms-customer .booking-search-heading .flow-breadcrumb { margin: 0; }
+.frms-customer .booking-guide-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; flex-shrink: 0; color: #1d4ed8; font-size: 13px; font-weight: 600; text-decoration: none; }
+.frms-customer .booking-guide-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.booking-search-layout { display: grid; grid-template-columns: 292px minmax(0, 1fr); gap: 28px; align-items: start; }
+.booking-filter-rail { position: sticky; top: 104px; min-width: 0; }
+.booking-search-results { display: grid; align-content: start; gap: 24px; min-width: 0; }
+.frms-customer .booking-filter-rail .public-search-panel { margin: 0; padding: 24px; border: 1px solid var(--booking-line); border-radius: 16px; background: #fff; box-shadow: none; }
+.frms-customer .booking-filter-rail .public-search-header { align-items: flex-start; gap: 10px; margin-bottom: 0; padding: 0 0 20px; border-bottom: 1px solid var(--booking-line); }
+.frms-customer .booking-filter-rail .public-search-mark { display: none; }
+.frms-customer .booking-filter-rail .public-search-intro h2 { font-size: 20px; line-height: 1.4; letter-spacing: -.02em; }
+.frms-customer .booking-filter-rail .public-search-intro p { font-size: 12px; line-height: 1.7; }
+.frms-customer .booking-filter-rail .public-search-body { padding-top: 20px; }
+.frms-customer .booking-filter-rail :is(.public-search-form, .public-storage-choices, .public-month-range) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.frms-customer .booking-filter-rail .public-storage-choices .public-location-field { grid-column: auto; }
+.frms-customer .booking-filter-rail .public-search-panel .public-search-bottom { display: flex; flex-direction: column; align-items: stretch; gap: 20px; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.frms-customer .booking-filter-rail .public-search-panel .public-check-in-field { margin-bottom: 0; }
+.frms-customer .booking-filter-rail .public-rental-duration { position: static; align-self: center; width: fit-content; margin-top: 0; }
+.frms-customer .booking-filter-rail .public-rental-period { width: 100%; padding: 18px 0 0; border: 0; border-top: 1px solid var(--booking-line); border-radius: 0; background: transparent; }
+.frms-customer .booking-filter-rail .public-rental-heading { margin-bottom: 16px; }
+.frms-customer .booking-filter-rail .public-rental-heading h3 { font-size: 13px; }
+.frms-customer .booking-filter-rail .public-month-arrow { display: none; }
+.frms-customer .booking-filter-rail .public-search-action { width: 100%; flex: auto; }
+.frms-customer .booking-filter-rail .public-search-submit { min-height: 48px; border-radius: 10px; box-shadow: none; }
+.frms-customer .booking-filter-rail .form-field label { color: var(--booking-ink); font-size: 12px; font-weight: 600; }
+.frms-customer .booking-filter-rail .form-field :is(input, select) { min-height: 46px; border-color: #cbd5e1; border-radius: 9px; background-color: #fff; font-size: 13px; }
+.frms-customer .booking-filter-rail .public-field-note { font-size: 11px; line-height: 1.75; }
+.booking-filter-help { padding: 20px 8px 0; }
+.booking-filter-help p { margin: 0 0 4px; color: #53647b; font-size: 12px; line-height: 1.7; }
+.frms-customer .booking-search-results .public-results-toolbar { align-items: center; margin: 0; padding: 0 0 16px; border-bottom: 1px solid var(--booking-line); }
+.frms-customer .booking-search-results .public-results-toolbar h2 { margin: 0 0 6px; font-size: 22px; letter-spacing: -.02em; }
+.frms-customer .booking-search-results .result-count { color: var(--booking-muted); font-size: 12px; }
+.frms-customer .booking-search-results .public-results-toolbar select { border-radius: 9px; background: #fff; }
+.frms-customer .booking-search-results .public-search-start { display: grid; align-content: center; min-height: 385px; padding: 40px; border: 1px solid var(--booking-line); border-radius: 16px; background: #f3f7fc; box-shadow: none; }
+.booking-search-start .booking-start-icon { color: #1d4ed8; margin-bottom: 4px; }
+.frms-customer .booking-search-results .public-search-start h2 { max-width: 420px; font-size: 28px; letter-spacing: -.025em; line-height: 1.35; }
+.frms-customer .booking-search-results .public-search-start p { max-width: 460px; color: #53647b; font-size: 14px; line-height: 1.85; }
+.booking-search-start ol { display: grid; gap: 12px; margin: 22px 0 0; padding-left: 20px; color: #314a6a; font-size: 13px; line-height: 1.7; }
+.frms-customer .booking-search-results .public-result-facility { margin: 0; padding: 24px; border: 1px solid var(--booking-line); border-radius: 16px; background: #fff; box-shadow: none; }
+.frms-customer .booking-search-results .flow-facility-heading { display: grid; grid-template-columns: 168px minmax(0, 1fr); align-items: start; gap: 22px; padding: 0 0 22px; }
+.frms-customer .booking-search-results .facility-illustration.facility-thumbnail { width: 168px; height: auto; aspect-ratio: 3 / 2; margin: 0; border-radius: 12px; }
+.frms-customer :is(.booking-search, .booking-facility) .facility-illustration > img { object-fit: contain; }
+.frms-customer .booking-search-results .public-facility-heading-text h2 { margin: 0 0 10px; font-size: 22px; line-height: 1.3; letter-spacing: -.02em; }
+.frms-customer .booking-search-results .flow-facility-address { align-items: flex-start; font-size: 12px; line-height: 1.7; }
+.frms-customer .booking-search-results .public-facility-heading-text > .muted { margin: 10px 0; font-size: 12px; line-height: 1.75; }
+.frms-customer .booking-search-results .public-facility-heading-text .action-row { gap: 12px; margin-top: 14px; }
+.frms-customer .booking-search-results .public-facility-heading-text .button { padding: 8px 12px; min-height: 40px; border-radius: 8px; font-size: 11px; }
+.frms-customer :is(.booking-search, .booking-facility) .public-unit-section { margin-top: 0; padding-top: 20px; border-top: 1px solid var(--booking-line); }
+.frms-customer :is(.booking-search, .booking-facility) .public-unit-section > .section-heading { flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
+.frms-customer :is(.booking-search, .booking-facility) .public-unit-section h3 { margin: 0; font-size: 14px; }
+.frms-customer :is(.booking-search, .booking-facility) .public-unit-section > .section-heading > .button { min-height: 36px; padding: 6px 10px; font-size: 11px; border-radius: 8px; }
+.frms-customer :is(.booking-search, .booking-facility) .flow-unit-list { display: grid; gap: 0; }
+.frms-customer :is(.booking-search, .booking-facility) .public-unit-card { display: grid; grid-template-columns: minmax(0, 1fr) 194px; align-items: start; gap: 20px; padding: 22px 0; border: 0; border-top: 1px solid #e5eaf2; border-radius: 0; background: transparent; box-shadow: none; }
+.frms-customer :is(.booking-search, .booking-facility) .public-unit-card:first-child { border-top: 0; }
+.frms-customer :is(.booking-search, .booking-facility) .unit-card-heading { display: flex; flex-wrap: wrap; gap: 8px; }
+.frms-customer :is(.booking-search, .booking-facility) .unit-icon-tile { display: none; }
+.frms-customer :is(.booking-search, .booking-facility) .unit-card-heading h4 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; line-height: 1.5; }
+.frms-customer :is(.booking-search, .booking-facility) .unit-size { padding: 3px 8px; border: 1px solid #dce4ef; border-radius: 6px; background: #f8fafc; color: #455773; font-size: 11px; }
+.frms-customer :is(.booking-search, .booking-facility) .public-unit-card :is(.muted, .public-description) { margin: 8px 0; color: #53647b; font-size: 12px; line-height: 1.75; }
+.frms-customer :is(.booking-search, .booking-facility) .unit-capacity { display: block; color: #36516f; font-size: 11px; line-height: 1.8; }
+.frms-customer :is(.booking-search, .booking-facility) .unit-capacity strong { color: #16634c; }
+.frms-customer :is(.booking-search, .booking-facility) .unit-price { display: grid; gap: 4px; padding: 0; border: 0; text-align: right; background: transparent; }
+.frms-customer :is(.booking-search, .booking-facility) .unit-price > small { color: #53647b; font-size: 11px; }
+.frms-customer :is(.booking-search, .booking-facility) .unit-price > strong { margin: 0; color: #172b4d; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; letter-spacing: -.025em; }
+.frms-customer :is(.booking-search, .booking-facility) .unit-price > span { color: #53647b; font-size: 11px; }
+.frms-customer :is(.booking-search, .booking-facility) .unit-price .button { width: 100%; margin-top: 10px; padding: 10px 12px; min-height: 44px; border-radius: 9px; font-size: 12px; }
+.frms-customer .booking-search .public-booking-note { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 16px; margin: 0; padding: 20px 0 0; border: 0; border-top: 1px solid var(--booking-line); border-radius: 0; background: transparent; color: #36516f; }
+.frms-customer .booking-search .public-booking-note p { margin: 6px 0 0; font-size: 12px; line-height: 1.8; }
+.frms-customer .booking-search .public-booking-note a { color: #1d4ed8; font-size: 12px; }
+.frms-customer .booking-facility .facility-illustration.public-facility-cover { width: 100%; max-width: 720px; height: auto; max-height: none; aspect-ratio: 3 / 2; margin-inline: auto; border-radius: 16px; }
+.frms-customer .booking-facility .public-facility-summary { border: 0; border-bottom: 1px solid var(--booking-line); border-radius: 0; padding: 0 0 28px; box-shadow: none; }
+.frms-customer .booking-facility .facility-options-heading h2 { font-size: 26px; letter-spacing: -.025em; }
+.booking-facility-options { display: grid; grid-template-columns: 292px minmax(0, 1fr); align-items: start; gap: 28px; }
+.booking-facility-options > .booking-options-list { min-width: 0; }
+.frms-customer .booking-facility .booking-options-list .public-unit-section { padding: 22px; border: 1px solid var(--booking-line); border-radius: 16px; background: #fff; }
+.frms-customer:is(.booking-review, .booking-handover) .eyebrow,
+.frms-customer :is(.booking-facility, .booking-review, .booking-detail, .booking-handover, .booking-payment) .eyebrow { display: none; }
+.frms-customer :is(.booking-review, .booking-handover, .booking-payment).narrow-page { width: 100%; max-width: none; }
+.frms-customer :is(.booking-review, .booking-handover, .booking-payment) .page-heading h1 { color: #172b4d; font-size: 30px; letter-spacing: -.025em; line-height: 1.35; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review).page-container .page-heading > div { display: block; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review).page-container .page-heading .flow-dialog-heading-icon { display: none; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .booking-journey { margin-bottom: 24px; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .reservation-create-content { padding: 0; border: 0; background: transparent; box-shadow: none; }
+.booking-review-layout { display: grid; grid-template-columns: minmax(0, 1fr) 275px; align-items: start; gap: 24px; }
+.booking-review-main { display: grid; gap: 20px; min-width: 0; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .reservation-create-selection { overflow: visible; border: 1px solid #dce4ef; border-radius: 16px; background: #fff; }
+.booking-selection-overview { display: grid; grid-template-columns: 240px minmax(0, 1fr); align-items: center; gap: 22px; padding: 22px; }
+.booking-selection-image.facility-illustration { width: 240px; max-width: 100%; height: auto; aspect-ratio: 3 / 2; margin: 0; border-radius: 10px; }
+.booking-review .booking-selection-overview .facility-illustration > img { object-fit: contain; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .dialog-selection { padding: 22px; border: 0; background: transparent; }
+.booking-review .booking-selection-overview .dialog-selection { min-width: 0; padding: 0; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .dialog-selection .unit-icon-tile { display: none; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .dialog-selection strong { color: #172b4d; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .dialog-selection small { margin-top: 6px; color: #53647b; font-size: 13px; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .reservation-create-selection .detail-list { gap: 22px; padding: 0 22px 24px; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .detail-list dt { color: #53647b; font-size: 11px; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .detail-list dd { color: #172b4d; font-size: 13px; line-height: 1.7; }
+.booking-review-summary { position: sticky; top: 104px; padding: 24px; border: 1px solid #dce4ef; border-radius: 16px; background: #f3f7fc; }
+.booking-review-summary h2 { margin: 0 0 16px; color: #172b4d; font-size: 18px; letter-spacing: -.02em; }
+.booking-summary-price { margin: 0; color: #172b4d; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 25px; font-weight: 700; line-height: 1.4; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.booking-summary-price small { display: block; margin-top: 4px; color: #53647b; font-family: Inter, sans-serif; font-size: 12px; font-weight: 400; }
+.booking-review-summary > p:not(.booking-summary-price) { margin: 16px 0 0; color: #53647b; font-size: 12px; line-height: 1.8; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .reservation-create-actions { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; padding-top: 20px; border-top-color: #dce4ef; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .reservation-create-actions .button { width: 100%; min-height: 46px; padding: 12px; border-radius: 9px; font-size: 12px; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .remaining-info { padding: 0 0 0 2px; border: 0; border-radius: 0; color: #36516f; background: transparent; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review) .remaining-info p { font-size: 12px; line-height: 1.8; }
+.frms-customer .booking-detail .reservation-detail-heading h1 { color: #172b4d; font-size: 30px; letter-spacing: -.025em; }
+.frms-customer .booking-detail .reservation-detail-columns { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: start; gap: 24px; }
+.frms-customer .booking-detail .reservation-detail-card { padding: 24px; border: 1px solid #dce4ef; border-radius: 16px; box-shadow: none; }
+.frms-customer .booking-detail .reservation-detail-card-heading { padding-bottom: 18px; border-bottom: 1px solid #e5eaf2; }
+.frms-customer .booking-detail .reservation-detail-card-heading h2 { font-size: 17px; }
+.frms-customer .booking-detail .reservation-detail-invoice-amount dd { color: #172b4d; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 30px; font-variant-numeric: tabular-nums; letter-spacing: -.025em; }
+.frms-customer .booking-detail .reservation-detail-invoice { background: #f3f7fc; }
+.frms-customer .booking-detail .reservation-detail-invoice-actions { display: grid; grid-template-columns: 1fr; }
+.frms-customer .booking-detail .reservation-detail-invoice-actions .button { width: 100%; min-height: 46px; border-radius: 9px; }
+:is(.frms-customer .booking-handover, .frms-customer.booking-handover) .handover-schedule-content { padding: 28px; border: 1px solid #dce4ef; border-radius: 16px; box-shadow: none; }
+:is(.frms-customer .booking-handover, .frms-customer.booking-handover) .handover-schedule-facts { padding: 0 0 24px; border: 0; border-bottom: 1px solid #dce4ef; border-radius: 0; background: transparent; }
+:is(.frms-customer .booking-handover, .frms-customer.booking-handover) .handover-schedule-form { padding-top: 4px; }
+:is(.frms-customer .booking-handover, .frms-customer.booking-handover) .handover-schedule-actions .button { min-height: 46px; border-radius: 9px; }
+.frms-customer .booking-payment .payment-result-card { padding: 28px; border: 1px solid #dce4ef; border-radius: 16px; box-shadow: none; }
+.frms-customer .booking-payment .payment-result-outcome { padding: 26px 20px; border-radius: 12px; }
+.frms-customer .booking-detail.customer-reservation-details .reservation-detail-card { border: 1px solid #dce4ef; }
+.frms-customer .booking-detail .reservation-detail-facts > div { padding: 0; border-radius: 0; background: transparent; }
+.frms-customer .booking-detail.customer-reservation-details .reservation-detail-invoice-amount { padding: 0; border: 0; border-radius: 0; background: transparent; }
+.frms-customer.booking-handover.flow-dialog .handover-schedule-content { padding: 0; border: 0; border-radius: 0; background: transparent; }
+.frms-customer.booking-handover.flow-dialog .handover-schedule-form { grid-template-columns: minmax(0, 1fr) minmax(230px, .65fr); gap: 20px; align-items: start; }
+.frms-customer.booking-handover.flow-dialog .handover-schedule-type { grid-column: 1 / -1; }
+.frms-customer.booking-handover.flow-dialog .flow-date-card { grid-column: 1; grid-row: 2 / span 2; }
+.frms-customer.booking-handover.flow-dialog .handover-schedule-notice { grid-column: 2; }
+.frms-customer.booking-handover.flow-dialog .handover-schedule-actions { grid-column: 2; display: grid; grid-template-columns: 1fr; margin: 0; padding-top: 0; border: 0; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review, .frms-customer .booking-handover, .frms-customer.booking-handover).flow-dialog { width: min(960px, calc(100vw - 32px)); max-width: 960px; padding: 28px; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review, .frms-customer .booking-handover, .frms-customer.booking-handover).flow-dialog .dialog-subtitle { margin-left: 0; }
+:is(.frms-customer .booking-review, .frms-customer.booking-review).flow-dialog .booking-review-layout { grid-template-columns: minmax(0, 1fr) 250px; }
+.frms-customer :is(.booking-search, .booking-facility, .booking-review, .booking-detail, .booking-handover, .booking-payment) :is(button, a, input, select, summary):focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+.frms-customer :is(.booking-search, .booking-facility, .booking-review, .booking-detail, .booking-handover, .booking-payment) ::selection { color: #172b4d; background: #dbeafe; }
+@container (max-width: 760px) {
+  .booking-review-layout, :is(.frms-customer .booking-review, .frms-customer.booking-review).flow-dialog .booking-review-layout { grid-template-columns: minmax(0, 1fr); }
+  .booking-review-summary { position: static; }
+  .frms-customer .booking-detail .reservation-detail-columns { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 1100px) {
+  .booking-search-layout, .booking-facility-options { grid-template-columns: 260px minmax(0, 1fr); gap: 20px; }
+  .frms-customer .booking-search-results .flow-facility-heading { grid-template-columns: 130px minmax(0, 1fr); gap: 16px; }
+  .frms-customer .booking-search-results .facility-illustration.facility-thumbnail { width: 130px; height: auto; }
+  .frms-customer :is(.booking-search, .booking-facility) .public-unit-card { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .frms-customer :is(.booking-search, .booking-facility) .unit-price { grid-template-columns: minmax(0, 1fr) auto; text-align: left; align-items: center; }
+  .frms-customer :is(.booking-search, .booking-facility) .unit-price > :is(small, strong, span) { grid-column: 1; }
+  .frms-customer :is(.booking-search, .booking-facility) .unit-price > .button { grid-column: 2; grid-row: 1 / span 3; width: auto; margin: 0; }
+}
+@media (max-width: 760px) {
+  .booking-selection-overview { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 20px; }
+  .booking-selection-image.facility-illustration { justify-self: center; }
+  .frms-customer.booking-handover.flow-dialog .handover-schedule-form { grid-template-columns: minmax(0, 1fr); }
+  .frms-customer.booking-handover.flow-dialog :is(.handover-schedule-type, .flow-date-card, .handover-schedule-notice, .handover-schedule-actions) { grid-column: 1; grid-row: auto; }
+  .booking-search-layout, .booking-facility-options { grid-template-columns: minmax(0, 1fr); }
+  .booking-filter-rail, .booking-review-summary { position: static; }
+  .frms-customer .booking-search-heading { display: block; }
+  .frms-customer .booking-search-heading h1 { font-size: 30px; }
+  .frms-customer .booking-search-heading .booking-guide-link { margin-top: 12px; }
+  .frms-customer .booking-filter-rail :is(.public-storage-choices, .public-month-range) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .frms-customer .booking-filter-rail .public-storage-choices .public-location-field { grid-column: 1 / -1; }
+  .frms-customer .booking-search-results .public-search-start { min-height: 0; padding: 28px; }
+  .booking-filter-help { display: none; }
+  .booking-journey ol { gap: 8px; }
+  .booking-journey li { flex-direction: column; align-items: flex-start; gap: 8px; font-size: 10px; }
+  .booking-review-layout, :is(.frms-customer .booking-review, .frms-customer.booking-review).flow-dialog .booking-review-layout { grid-template-columns: minmax(0, 1fr); }
+  .frms-customer .booking-detail .reservation-detail-columns { grid-template-columns: minmax(0, 1fr); }
+  :is(.frms-customer .booking-review, .frms-customer.booking-review) .reservation-create-selection .detail-list { grid-template-columns: minmax(0, 1fr); }
+  .frms-customer :is(.booking-review, .booking-handover, .booking-payment) .page-heading h1 { font-size: 25px; }
+}
+@media (max-width: 480px) {
+  .frms-customer .booking-filter-rail :is(.public-storage-choices, .public-month-range) { grid-template-columns: minmax(0, 1fr); }
+  .frms-customer .booking-search-results .flow-facility-heading { grid-template-columns: minmax(0, 1fr); }
+  .frms-customer .booking-search-results .facility-illustration.facility-thumbnail { width: 100%; height: auto; }
+  .frms-customer .booking-search-results .public-result-facility { padding: 20px; }
+  .frms-customer :is(.booking-search, .booking-facility) .unit-price { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .frms-customer :is(.booking-search, .booking-facility) .unit-price > .button { grid-column: 1; grid-row: auto; width: 100%; margin-top: 8px; }
+  :is(.frms-customer .booking-review, .frms-customer.booking-review, .frms-customer .booking-handover, .frms-customer.booking-handover).flow-dialog { padding: 20px; }
+}

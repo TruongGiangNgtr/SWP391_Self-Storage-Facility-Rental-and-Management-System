@@ -1,10 +1,13 @@
+import { useAuth } from '../auth/auth.context'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { BrandLogo } from '../components/BrandLogo'
 import { CustomerLayout } from './CustomerLayout'
 
 export function RootLayout() {
+  const { user } = useAuth()
   const location = useLocation()
+  const employeeSurface = Boolean(user && user.role !== 'CUSTOMER') || /^\/(?:staff|manager|business|admin|auth\/employee)(?:\/|$)/.test(location.pathname)
   const previousPage = useRef<{ pathname: string; hash: string } | null>(null)
   const publicPath = location.pathname === '/' || location.pathname === '/customer/storage-search' || location.pathname === '/facilities' || location.pathname.startsWith('/facilities/') ||
     ['/how-it-works', '/size-guide', '/help'].includes(location.pathname) || location.pathname.startsWith('/help/')
@@ -51,7 +54,7 @@ export function RootLayout() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${employeeSurface ? '' : 'support-app'}`}>
       <header className="app-header">
         <Link
           className="app-brand-link"

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, CircleCheck, CircleX, Clock3, Info, ReceiptText } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CircleCheck, CircleX, Clock3, History, Info, ReceiptText } from 'lucide-react'
 import { presentApiError, presentValidationError } from '../api/apiErrorPresentation'
 import type { ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { billingApi } from '../api/billingApi'
@@ -17,6 +17,7 @@ import {
 } from '../features/billing/paymentReturnState'
 import { formatMoney, formatUtcDateTime } from '../utils/formatters'
 import '../styles/guest-customer-remaining.css'
+import '../styles/booking-flow.css'
 
 const MAX_AUTOMATIC_CHECKS = 6
 
@@ -99,10 +100,9 @@ function PaymentResult({ userAccountId }: { userAccountId: string }) {
   }, [checkCount, checkPayment, payment?.status, error, loading])
 
   return (
-    <main className="page-container flow-page narrow-page customer-payment-result">
+    <main className={`page-container flow-page narrow-page customer-payment-result ${invoiceReturn || !pendingPayment ? 'invoice-payment-result' : 'booking-payment'}`}>
       <nav className="remaining-page-navigation" aria-label="Payment navigation"><Link to={listPath}><ArrowLeft size={16} aria-hidden="true" />{invoiceReturn ? 'My Invoices' : 'My Reservations'}</Link></nav>
       <section className="page-heading">
-        <p className="eyebrow">{invoiceReturn ? 'Invoice Payment' : 'Pay Deposit'}</p>
         <h1>Payment Result</h1>
         <p className="muted">
           Check the payment status recorded by FRMS after paying with payOS.
@@ -168,6 +168,7 @@ function PaymentResult({ userAccountId }: { userAccountId: string }) {
             )}
 
             <div className="remaining-actions payment-result-actions">
+              {invoiceReturn && <Link className="payment-result-history" to="/customer/notifications?tab=history"><History size={16} aria-hidden="true" />Transaction History</Link>}
               {payment.status === 'PENDING' && (
                 <button
                   className="button"

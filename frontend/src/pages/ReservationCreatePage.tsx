@@ -13,6 +13,8 @@ import { CustomerActionFrame } from '../components/CustomerActionFrame'
 import { FlowDialog } from '../components/FlowDialog'
 import { ReservationCccdForm } from '../components/ReservationCccdForm'
 import { FlowIcon } from '../components/FlowIcon'
+import { BookingJourney } from '../components/BookingJourney'
+import { FacilityImage } from '../components/FacilityImage'
 import { publicSearchQuery, validatePublicFilters } from '../features/catalog/publicSearch'
 import { usePublicFacility, usePublicFacilityTypes } from '../features/catalog/usePublicCatalog'
 import { isUuid } from '../features/handover/handoverValidation'
@@ -112,8 +114,10 @@ function ReservationReview() {
   }
 
   const completionForm = <ReservationCccdForm profile={profile} onSaveStart={() => setCompletionRequested(true)} onContinue={resumeReview} onLater={deferCompletion} />
-  return <><CustomerActionFrame className="reservation-create-design" headingIcon={<PackageCheck size={24} />} title={inDialog && completing ? 'Complete Your Profile' : 'Confirm Your Reservation'} category="Reservation" subtitle={inDialog && completing ? 'Add your National ID, then return to review your reservation.' : 'Review your current selection before creating a reservation and paying the deposit.'} busy={working} returnTo={backUrl} backLabel="Back to Find Storage" onClose={inDialog && completing ? deferCompletion : undefined}>
+  return <><CustomerActionFrame className="reservation-create-design booking-review" headingIcon={<PackageCheck size={24} />} title={inDialog && completing ? 'Complete Your Profile' : 'Confirm Your Reservation'} category="Reservation" subtitle={inDialog && completing ? 'Add your National ID, then return to review your reservation.' : 'A final look at your space, rental months and current availability.'} busy={working} returnTo={backUrl} backLabel="Back to Find Storage" onClose={inDialog && completing ? deferCompletion : undefined}>
+    <BookingJourney step={1} />
     {inDialog && completing ? completionForm : <section ref={reviewRoot} tabIndex={-1} className="panel stack reservation-create-content">
+      <div className="booking-review-layout"><div className="booking-review-main">
       {state && typeof state === 'object' && (state as { authResumed?: unknown }).authResumed === true && <p className="notice">Welcome back. Your selection has been restored; current price and availability are checked below.</p>}
       {profileResumed && <p className="notice" role="status">Your current profile includes a National ID. Review the updated price and availability, then confirm your reservation.</p>}
       <ApiErrorAlert error={validation ? presentValidationError(validation) : readError} />
@@ -124,13 +128,19 @@ function ReservationReview() {
       {profile.phase === 'missing' && deferred && <p className="notice" role="status">Add your National ID when you are ready to continue. Your selection has not created a reservation or held capacity.</p>}
       {loading ? <LoadingState label="Checking current price and availability…" /> : <>
         {!validation && !readError && !unitType && <p className="notice" role="status">Your selected storage is no longer available at this facility for every requested month. Return to Find Storage to choose another option.</p>}
-        {facility && unitType && <div className="reservation-create-selection"><div className="dialog-selection"><span className="unit-icon-tile"><FlowIcon name="unit" /></span><div><strong>{unitType.name}</strong><small>{facility.name}</small></div></div>
+        {facility && unitType && <div className="reservation-create-selection"><div className="booking-selection-overview"><FacilityImage facility={facility} className="booking-selection-image" /><div className="dialog-selection"><span className="unit-icon-tile"><FlowIcon name="unit" /></span><div><strong>{unitType.name}</strong><small>{facility.name}</small></div></div></div>
           <dl className="detail-list"><div><dt>Facility</dt><dd>{facility.name}</dd></div><div><dt>Address</dt><dd>{facility.address}</dd></div><div><dt>Unit Type</dt><dd>{unitType.name}</dd></div><div><dt>Storage Type / Size</dt><dd>{unitType.mode === 'PRIVATE' ? 'Private Storage' : 'Public Storage'} · {unitType.size}</dd></div><div><dt>Rental Period</dt><dd>{formatMonthRange(request.startMonth, request.endMonth)}</dd></div><div><dt>Current Listed Rent</dt><dd>{formatMoney(unitType.rentalPrice)}/month</dd></div></dl>
         </div>}
         {facility && unitType && <div className="remaining-info"><FlowIcon name="info" /><p>Your locked rental price and deposit amount will be shown after the reservation is created. Availability can change until the server accepts your reservation.</p></div>}
       </>}
+      </div><aside className="booking-review-summary" aria-label="Reservation summary">
+      <h2>Your reservation</h2>
+      {unitType && <p className="booking-summary-price">{formatMoney(unitType.rentalPrice)}<small>Current listed rent / month</small></p>}
+      <p>{formatMonthRange(request.startMonth, request.endMonth)}</p>
+      <p>Your reservation is created only when you confirm. The locked rental price and deposit will appear in your reservation details.</p>
       <div className="reservation-create-actions">{available && <button className="button reservation-create-submit" disabled={working || loading || needsRefresh || profile.phase === 'checking' || profile.phase === 'unavailable'} onClick={profile.phase === 'missing' ? () => { setDeferred(false); setCompletionRequested(true) } : () => void handleCreate()} type="button">{submitting ? 'Checking and creating reservation…' : profile.phase === 'missing' ? 'Add National ID to Continue' : 'Confirm Reservation'}</button>}{!validation && <button className="button button-secondary" disabled={working || loading || profile.phase === 'checking'} type="button" onClick={refresh}>Refresh Selection</button>}<Link className="button button-secondary" to={backUrl} aria-disabled={working || undefined} onClick={event => { if (working) event.preventDefault() }}>Back to Find Storage</Link></div>
       {needsRefresh && <p className="muted">Refresh your selection and review the current result before submitting again.</p>}
+      </aside></div>
     </section>}
   </CustomerActionFrame>
   {!inDialog && completing && createPortal(<FlowDialog className="reservation-cccd-dialog" trapFocus title="Complete Your Profile" category="Reservation" subtitle="Add your National ID, then return to review your reservation." busy={profile.saving} onClose={deferCompletion}>{completionForm}</FlowDialog>, document.body)}

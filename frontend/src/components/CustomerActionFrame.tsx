@@ -23,7 +23,7 @@ export function CustomerActionFrame({ contractId, returnTo, backLabel = 'View Co
     </FlowDialog>
   }
   return <main className={`page-container flow-page narrow-page ${className}`}>
-    <section className="page-heading page-heading-actions"><div>{headingIcon && <span className="flow-dialog-heading-icon" aria-hidden="true">{headingIcon}</span>}<p className="eyebrow">{category}</p><h1>{title}</h1><p className="muted">{subtitle}</p></div><Link className="button button-secondary" to={backUrl} aria-disabled={busy || undefined} onClick={event => { if (busy) event.preventDefault() }}>{backLabel}</Link></section>
+    <section className="page-heading page-heading-actions"><div>{headingIcon && <span className="flow-dialog-heading-icon" aria-hidden="true">{headingIcon}</span>}{category && <p className="eyebrow">{category}</p>}<h1>{title}</h1><p className="muted">{subtitle}</p></div><Link className="button button-secondary" to={backUrl} aria-disabled={busy || undefined} onClick={event => { if (busy) event.preventDefault() }}>{backLabel}</Link></section>
     {content}
   </main>
 }
