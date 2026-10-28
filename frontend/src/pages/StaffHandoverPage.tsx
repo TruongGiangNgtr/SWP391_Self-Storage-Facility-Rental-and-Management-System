@@ -30,6 +30,10 @@ export function StaffHandoverPage() {
   const discounts = useCustomerDiscounts(context?.reservation.status === 'CONFIRMED' ? customer?.customerId : undefined, discountPage)
   const navigate = useNavigate()
   const busy = loading || action !== null
+  const returnStage = context?.visit.status === 'CHECKED_IN' ? 'handover' : searchParams.get('workTab') === 'handover' ? 'handover' : 'check-in'
+  const returnDate = context?.visit.visitDate ?? searchParams.get('workDate')
+  const returnQuery = new URLSearchParams({ tab: returnStage, page: String(workPage) })
+  if (returnDate) returnQuery.set('date', returnDate)
 
   function resetAcknowledgment() {
     setAcknowledgedKey('')
@@ -58,7 +62,7 @@ export function StaffHandoverPage() {
       <section className="page-heading page-heading-actions">
         <div><p className="eyebrow">Facility Staff</p><h1>Reservation Check-in &amp; Handover</h1></div>
         <div className="employee-page-actions">
-          <Link className="button button-secondary" to="/staff">Work List</Link>
+          <Link className="button button-secondary" to={`/staff/handle-handover?${returnQuery}`}>Handle Handover</Link>
           <button className="button button-secondary" type="button" disabled={busy} onClick={() => { resetAcknowledgment(); void refresh() }}>Refresh Details</button>
         </div>
       </section>
