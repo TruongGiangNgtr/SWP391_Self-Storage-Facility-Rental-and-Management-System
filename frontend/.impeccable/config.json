@@ -1,3 +1,63 @@
 {
-  "buildPath": "code"
+  "buildPath": "code",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "files": [
+          "src/styles/design-tokens.css"
+        ],
+        "createdAt": "2026-10-27T04:58:57.143Z",
+        "reason": "Agent: preserve the locally hosted typefaces specified in DESIGN.md and the incumbent FStoRent identity during refinement."
+      },
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "files": [
+          "src/styles/design-tokens.css"
+        ],
+        "createdAt": "2026-10-27T04:58:58.071Z",
+        "reason": "Agent: preserve the locally hosted typefaces specified in DESIGN.md and the incumbent FStoRent identity during refinement."
+      },
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "files": [
+          "src/styles/customer.css"
+        ],
+        "createdAt": "2026-10-27T04:58:59.009Z",
+        "reason": "Agent: preserve the locally hosted typefaces specified in DESIGN.md and the incumbent FStoRent identity during refinement."
+      },
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "files": [
+          "src/styles/customer.css"
+        ],
+        "createdAt": "2026-10-27T04:58:59.905Z",
+        "reason": "Agent: preserve the locally hosted typefaces specified in DESIGN.md and the incumbent FStoRent identity during refinement."
+      },
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "files": [
+          "src/styles/public.css"
+        ],
+        "createdAt": "2026-10-27T04:59:00.805Z",
+        "reason": "Agent: preserve the locally hosted typefaces specified in DESIGN.md and the incumbent FStoRent identity during refinement."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/styles/customer.css"
+        ],
+        "createdAt": "2026-10-27T04:59:01.721Z",
+        "reason": "Agent: reservation status stripe is an existing semantic cue, paired with labeled status badges; preserve its status mapping, as triaged in the critique."
+      }
+    ]
+  }
 }

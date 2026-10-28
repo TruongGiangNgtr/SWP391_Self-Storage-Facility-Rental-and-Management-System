@@ -81,7 +81,7 @@ export function BusinessReportsPage() {
   return <div className="br-page">
     <div className="br-breadcrumb">Business operations <ChevronRight size={13} /> Reports</div>
     <header className="br-header">
-      <div><div className="br-title"><h1>Business Reports</h1><span>BWP-07</span></div><p>Explore rental revenue and storage usage across your facilities.</p></div>
+      <div><div className="br-title"><h1>Business Reports</h1></div><p>Explore rental revenue and storage usage across your facilities.</p></div>
       <div className="br-actions"><button type="button" onClick={() => setRevision(value => value + 1)} disabled={loading}><RefreshCw size={16} className={loading ? 'br-spin' : ''} /> {loading ? 'Loading filters…' : 'Refresh filters'}</button><button type="button" className="br-primary" disabled aria-describedby="br-export-note"><Download size={16} /> Export CSV</button></div>
     </header>
 

@@ -1,6 +1,6 @@
 .discount-fee-tabs { display:flex; gap:8px; border-bottom:1px solid #dce3ef; margin-bottom:24px; }
 .discount-fee-tabs a { padding:14px 22px; text-decoration:none; color:#64748b; border-bottom:3px solid transparent; font-weight:600; }
-.discount-fee-tabs a.active { color:#5064f6; border-bottom-color:#5064f6; }
+.discount-fee-tabs a.active { color:var(--frms-primary); border-bottom-color:var(--frms-primary); }
 .customer-picker { display:grid; gap:12px; padding:20px; border:1px solid #e2e8f0; border-radius:14px; background:white; margin-bottom:16px; }
 .customer-picker select { width:100%; min-width:0; padding:12px; border:1px solid #cbd5e1; border-radius:8px; background:white; }
 .fee-success { padding:12px 18px; color:#166534; background:#f0fdf4; border-radius:8px; }

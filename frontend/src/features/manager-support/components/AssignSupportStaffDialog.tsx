@@ -90,7 +90,7 @@ export function AssignSupportStaffDialog({
       >
         <div className="mwp05-modal__header">
           <div>
-            <p className="mwp05-eyebrow">MWP-05 · OPEN support ticket</p>
+            <p className="mwp05-eyebrow">Open support ticket</p>
             <h2 id="mwp05-assign-title">Assign responsible staff</h2>
           </div>
           <button className="mwp05-icon-button" type="button" onClick={onClose} aria-label="Close">

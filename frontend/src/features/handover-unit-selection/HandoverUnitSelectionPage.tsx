@@ -132,7 +132,7 @@ export function HandoverUnitSelectionPage() {
     if (!facilityId) {
       setUnits([])
       setUnitError(
-        'Your account does not have an assigned Facility. MWP-01 requires a Facility-scoped Manager account.',
+        'Your account does not have an assigned Facility. An assigned Facility is required to select handover units.',
       )
       setIsLoadingUnits(false)
       return

@@ -86,13 +86,18 @@
 }
 
 .br-page .br-primary {
-  background: #4b61ed;
-  border-color: #4b61ed;
+  background: var(--frms-primary);
+  border-color: var(--frms-primary);
   color: #fff;
 }
 
+.br-page .br-primary:hover:not(:disabled) {
+  background: var(--frms-primary-hover);
+  border-color: var(--frms-primary-hover);
+}
+
 .br-page :is(button,select,input,summary):focus-visible {
-  outline: 3px solid #91a2ff;
+  outline: 3px solid var(--frms-primary);
   outline-offset: 3px;
 }
 
@@ -233,7 +238,6 @@
 
 .br-metric {
   padding: 21px;
-  border-top: 3px solid #7283f0;
   display: flex;
   flex-direction: column;
   gap: 12px;

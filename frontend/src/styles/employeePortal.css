@@ -1,10 +1,12 @@
+@import './design-tokens.css';
+
 /* Shared presentation tokens; scoped to the two operational employee portals.
    Repeated shell specificity keeps feature styles from overriding these tokens. */
 :is(.staff-shell, .manager-shell) {
-  --employee-text: #172033;
+  --employee-text: var(--frms-text);
   --employee-muted: #475569;
   --employee-border: #dce3ed;
-  --employee-primary: #294fc7;
+  --employee-primary: var(--frms-primary);
   --employee-radius: 12px;
   --employee-padding: 20px;
   --employee-shadow: 0 1px 3px rgb(15 23 42 / 6%);
@@ -50,8 +52,8 @@
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(button, .button, .fwp-link-button) { min-height: 44px; }
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.fwp-icon-button, .mop-icon-button, .manager-dialog-close, .fwp-mini-pagination button) { min-width: 44px; min-height: 44px; }
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(input:not([type="checkbox"]), select) { min-height: 44px; }
-:is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(button, a, input, select, textarea):focus-visible { outline: 3px solid #294fc7; outline-offset: 3px; }
-:is(.staff-shell.staff-shell, .manager-shell.manager-shell) .button-secondary:hover:not(:disabled) { color: #173a63; background: #edf2ff; border-color: #294fc7; }
+:is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(button, a, input, select, textarea):focus-visible { outline: 3px solid var(--frms-primary); outline-offset: 3px; }
+:is(.staff-shell.staff-shell, .manager-shell.manager-shell) .button-secondary:hover:not(:disabled) { color: #173a63; background: #edf2ff; border-color: var(--frms-primary); }
 
 /* All legacy badge renderers consume the same palette and decorative icon. */
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-badge, .mop-status, .physical-status, .handover-ready-badge, .handover-unit-title-row > span, .mwp05-status) {
@@ -94,7 +96,7 @@
 
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-in-use, .mop-status-in-use, .physical-status-in-use, .mwp05-status--in-use) {
   --employee-status-text: #1e40af;
-  --employee-status-bg: #eff6ff;
+  --employee-status-bg: var(--frms-primary-soft);
   --employee-status-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2021V3h13v18M9%2012h1M2%2021h20%22%2F%3E%3C%2Fsvg%3E");
 }
 
@@ -122,13 +124,13 @@
 .manager-shell.manager-shell .physical-table { min-width: 0; table-layout: auto; }
 .manager-shell.manager-shell .physical-row-actions { flex-wrap: wrap; justify-content: flex-start; }
 .manager-shell.manager-shell .physical-row-actions button span { display: inline; }
-.manager-shell.manager-shell .physical-facility-id { color: #294fc7 !important; }
+.manager-shell.manager-shell .physical-facility-id { color: var(--frms-primary) !important; }
 .manager-shell.manager-shell .handover-reservation-card > div:first-child :is(strong, span) { color: var(--employee-text); font-size: 14px; }
 .manager-shell.manager-shell .handover-reservation-card > div:first-child > span { color: var(--employee-muted); font-size: 13px; }
-.manager-shell.manager-shell .handover-selection-summary > div:first-child > span { color: #294fc7; font-size: 13px; }
+.manager-shell.manager-shell .handover-selection-summary > div:first-child > span { color: var(--frms-primary); font-size: 13px; }
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.handover-empty, .mop-empty, .physical-dialog-loading, .fwp-pagination, .fwp-toolbar-note) { color: var(--employee-muted); }
 .manager-shell.manager-shell :is(.mop-tab, .mop-pagination) { color: var(--employee-muted); }
-.manager-shell.manager-shell .mop-tab.active { color: #294fc7; }
+.manager-shell.manager-shell .mop-tab.active { color: var(--frms-primary); }
 .manager-shell.manager-shell .mop-page-header p:not(.mop-eyebrow) { color: var(--employee-muted); }
 .staff-shell.staff-shell .fwp-inspection-item :is(strong, span) { max-width: none; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
 .staff-shell.staff-shell .fwp-inspection-item > .status-badge { flex-shrink: 0; }
@@ -140,7 +142,7 @@
 .staff-flow .handover-operation .receipt-confirmation { padding: 16px; border: 1px solid #b8c8f3; border-radius: 10px; background: #f3f6ff; }
 .staff-flow .handover-operation .receipt-confirmation input { width: 24px; height: 24px; flex-basis: 24px; }
 .staff-flow .employee-discount { border-top: 1px solid var(--employee-border); padding-top: 16px; }
-.staff-flow .employee-discount summary { cursor: pointer; color: #294fc7; font-weight: 650; padding-block: 10px; }
+.staff-flow .employee-discount summary { cursor: pointer; color: var(--frms-primary); font-weight: 650; padding-block: 10px; }
 .staff-flow .employee-discount footer { margin-top: 12px; }
 .staff-shell.staff-shell .fwp-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 

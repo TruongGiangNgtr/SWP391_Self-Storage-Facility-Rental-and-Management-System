@@ -3,15 +3,15 @@
 .mop-page *{box-sizing:border-box}
 .mop-page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:22px;margin-bottom:24px}
 .mop-eyebrow{font-size:11px;letter-spacing:.09em;font-weight:750;color:#4263eb;margin:0 0 8px}
-.mop-page-header h1{font-size:clamp(23px,2.2vw,31px);letter-spacing:-.045em;line-height:1.2;margin:0 0 8px;color:#162d4c}
+.mop-page-header h1{font-size:clamp(23px,2.2vw,31px);letter-spacing:-.025em;line-height:1.2;margin:0 0 8px;color:#162d4c}
 .mop-page-header p:not(.mop-eyebrow){color:#667791;margin:0 0 12px;line-height:1.55}
 .mop-facility-id{display:inline-flex;padding:6px 10px;background:#eaf0ff;color:#355bd2;border-radius:7px;font-size:11px;font-weight:650}
 .mop-btn{min-height:37px;border-radius:9px;border:1px solid transparent;font:inherit;font-size:12px;font-weight:700;padding:8px 13px;display:inline-flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:background-color .15s,border-color .15s,transform .15s}
 .mop-btn:disabled{opacity:.5;cursor:not-allowed}
 .mop-btn-secondary{background:#fff;border-color:#dbe4ef;color:#344966}
 .mop-btn-secondary:hover:not(:disabled){background:#f1f5ff;border-color:#b7c7e8}
-.mop-btn-primary{color:#fff;background:#355deb}
-.mop-btn-primary:hover:not(:disabled){background:#274ac3}
+.mop-btn-primary{color:#fff;background:var(--frms-primary)}
+.mop-btn-primary:hover:not(:disabled){background:var(--frms-primary-hover)}
 .mop-btn-danger{color:#b91c1c;background:#fff1f2;border-color:#fecdd3}
 .mop-btn-danger:hover:not(:disabled){background:#ffe4e6}
 .mop-section{margin-bottom:21px;border:1px solid #e0e7f1;background:#fff;border-radius:15px;padding:22px;box-shadow:0 8px 24px rgb(20 44 76 / 3%)}

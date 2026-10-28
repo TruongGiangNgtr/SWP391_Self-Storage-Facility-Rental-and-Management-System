@@ -1,3 +1,5 @@
+@import './design-tokens.css';
+
 /* System Administrator portal shell follows the established Facility Manager
    portal composition while keeping role-specific navigation isolated. */
 
@@ -5,8 +7,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  color: #172033;
-  background: #f5f7fb;
+  color: var(--frms-text);
+  background: var(--frms-canvas);
 }
 
 .admin-header {
@@ -33,8 +35,8 @@
 .admin-portal-badge {
   padding: 3px 7px;
   border-radius: 4px;
-  color: #356df3;
-  background: #edf3ff;
+  color: var(--frms-primary);
+  background: var(--frms-primary-soft);
   font-size: 8px;
   font-weight: 700;
   letter-spacing: .02em;
@@ -52,7 +54,7 @@
   place-items: center;
   border-radius: 50%;
   color: #ffffff;
-  background: #356df3;
+  background: var(--frms-primary);
   font-size: 11px;
   font-weight: 700;
 }
@@ -72,7 +74,7 @@
 }
 
 .admin-header-user-text strong {
-  color: #172033;
+  color: var(--frms-text);
   font-size: 12px;
 }
 
@@ -91,6 +93,7 @@
 }
 
 .admin-sidebar {
+  min-width: 0;
   align-self: start;
   display: flex;
   flex-direction: column;
@@ -118,7 +121,7 @@
   margin-bottom: 10px;
   border-radius: 12px;
   color: #ffffff;
-  background: #4368eb;
+  background: var(--frms-primary);
   box-shadow: 0 6px 12px rgb(67 104 235 / 20%);
   font-size: 18px;
   font-weight: 800;
@@ -147,7 +150,7 @@
   margin-top: 9px;
   padding: 4px 10px;
   border-radius: 999px;
-  color: #3f60df;
+  color: var(--frms-primary);
   background: #edf2ff;
   font-size: 10px;
   font-weight: 700;
@@ -180,18 +183,18 @@
 }
 
 .admin-nav-link:hover {
-  color: #365ee8;
+  color: var(--frms-primary);
   background: #f4f7ff;
 }
 
 .admin-nav-link-active {
-  color: #365ee8;
+  color: var(--frms-primary);
   background: #edf2ff;
   font-weight: 650;
 }
 
 .admin-nav-link-active svg {
-  color: #365ee8;
+  color: var(--frms-primary);
 }
 
 .admin-sidebar-actions {
@@ -336,7 +339,7 @@
 
 @media (max-width: 900px) {
   .admin-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .admin-sidebar {

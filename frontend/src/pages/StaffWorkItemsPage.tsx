@@ -136,7 +136,6 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
     <div className="fwp-page" data-testid={`${copy.feature.toLowerCase()}-page`}>
       <header className="fwp-page-header">
         <div>
-          <p className="fwp-eyebrow">Facility Staff · {copy.feature}</p>
           <h1>{copy.title}</h1>
           <p>{copy.description}</p>
         </div>

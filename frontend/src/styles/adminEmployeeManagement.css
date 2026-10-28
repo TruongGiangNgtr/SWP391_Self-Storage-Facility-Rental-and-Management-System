@@ -16,12 +16,12 @@
 
 .awp03-button--primary {
   color: #fff;
-  border-color: #356df3;
-  background: #356df3;
+  border-color: var(--frms-primary);
+  background: var(--frms-primary);
 }
 
 .awp03-button--primary:hover:not(:disabled) {
-  background: #2858d8;
+  background: var(--frms-primary-hover);
 }
 
 .awp03-button--danger {

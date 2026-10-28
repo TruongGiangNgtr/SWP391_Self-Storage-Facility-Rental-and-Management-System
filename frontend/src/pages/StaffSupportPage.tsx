@@ -135,7 +135,6 @@ export function StaffSupportPage() {
     <div className="fwp-page fwp-support-page" data-testid="fwp-08-page">
       <header className="fwp-page-header">
         <div>
-          <p className="fwp-eyebrow">Facility Staff · FWP-08</p>
           <h1>Support Processing</h1>
           <p>Review accessible Contract-related Support Tickets and complete only tickets assigned to this Staff account. Issue handling remains outside FRMS; this screen records the result.</p>
         </div>
