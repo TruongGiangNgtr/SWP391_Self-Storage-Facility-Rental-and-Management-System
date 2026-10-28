@@ -1,19 +1,5 @@
-/* Shared visual primitives. Domain status and chart palettes stay feature-owned. */
-@font-face {
-  font-family: 'Inter';
-  src: url('/fonts/Inter.ttf') format('truetype');
-  font-weight: 100 900;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Plus Jakarta Sans';
-  src: url('/fonts/PlusJakartaSans.ttf') format('truetype');
-  font-weight: 200 800;
-  font-display: swap;
-}
-
-:root {
+/* Employee-only presentation. No global/customer overrides. */
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) {
   --frms-primary: #2563eb;
   --frms-primary-hover: #1d4ed8;
   --frms-primary-soft: #eff6ff;
@@ -24,24 +10,30 @@
   --frms-secondary: #475569;
   --frms-muted: #64748b;
   --frms-border: #e2e8f0;
-  --frms-control-border: #94a3b8;
+  --frms-control-border: #64748b;
   --frms-radius-control: 12px;
   --frms-radius-panel: 16px;
   --frms-font-body: Inter, sans-serif;
   --frms-font-heading: 'Plus Jakarta Sans', Inter, sans-serif;
 }
 
-::selection { color: #fff; background: var(--frms-primary-hover); }
-:where(input, textarea) { caret-color: var(--frms-primary); }
-:where(input, textarea)::placeholder { color: var(--frms-muted); opacity: 1; }
-:where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
-  outline: 3px solid var(--frms-primary);
-  outline-offset: 3px;
-}
-:where(button, input, select, textarea):disabled { cursor: not-allowed; }
-:where(td, dd, time) { font-variant-numeric: tabular-nums; }
-:where(.page-state, .form-error, .notice) { overflow-wrap: anywhere; }
-:where(.pagination) { flex-wrap: wrap; gap: 12px; }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) ::selection { color: #fff; background: var(--frms-primary-hover); }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :where(input, textarea) { caret-color: var(--frms-primary); }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :where(input, textarea)::placeholder { color: var(--frms-muted); opacity: 1; }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :where(button, a, input, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid var(--frms-primary); outline-offset: 3px; }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :where(button, input, select, textarea):disabled { cursor: not-allowed; }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :where(td, dd, time) { font-variant-numeric: tabular-nums; }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :where(.page-state, .form-error, .notice) { overflow-wrap: anywhere; }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :where(.pagination) { flex-wrap: wrap; gap: 12px; }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .button { border-color: var(--frms-primary); background: var(--frms-primary); color: #fff; }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .button:hover:not(:disabled) { background: var(--frms-primary-hover); }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .button-secondary { color: var(--frms-primary); background: #fff; }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .button-secondary:hover:not(:disabled) { color: var(--frms-primary-hover); border-color: var(--frms-primary); background: var(--frms-primary-soft); }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .button-danger { border-color: #b42318; background: #b42318; color: #fff; }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .button-danger:hover:not(:disabled) { background: #8f1c13; }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .brand-logo__mark { background: var(--frms-primary); }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .brand-logo__suffix { color: var(--frms-primary); }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .form-field :is(input, select, textarea):not([aria-invalid='true']) { border-color: var(--frms-control-border); }
 
 /* Low-specificity defaults allow each portal's task layout to stay in control. */
 :where(.staff-shell, .manager-shell, .admin-shell, .bo-shell) {
@@ -104,12 +96,3 @@
   transform: translateY(-160%);
 }
 .portal-skip-link:focus { transform: translateY(0); }
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-    scroll-behavior: auto !important;
-  }
-}

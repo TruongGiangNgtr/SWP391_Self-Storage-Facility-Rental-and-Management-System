@@ -1,3 +1,5 @@
+@import './design-tokens.css';
+
 /* System Administrator portal shell follows the established Facility Manager
    portal composition while keeping role-specific navigation isolated. */
 

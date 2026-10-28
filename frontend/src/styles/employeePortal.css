@@ -1,3 +1,5 @@
+@import './design-tokens.css';
+
 /* Shared presentation tokens; scoped to the two operational employee portals.
    Repeated shell specificity keeps feature styles from overriding these tokens. */
 :is(.staff-shell, .manager-shell) {

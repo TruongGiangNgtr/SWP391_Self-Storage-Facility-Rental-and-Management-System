@@ -1,5 +1,5 @@
 import { useId, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ApiErrorAlert } from './ApiErrorAlert'
 import { initialPublicFilters, publicSearchQuery, validatePublicFilters } from '../features/catalog/publicSearch'
 import { usePublicSizes } from '../features/catalog/usePublicCatalog'
@@ -41,17 +41,13 @@ export function PublicStorageSearchForm({ initialValues, pinnedFacility, onSearc
     <form className="form-grid public-search-form" onSubmit={submit} noValidate>
       <PublicLocationField id={field('location')} value={form.location} pinnedFacility={pinnedFacility}
         onChange={location => change({ location, facilityId: '' })} />
-      <div className="form-field"><label htmlFor={field('mode')}>Storage Type</label><div className="public-select"><select id={field('mode')} value={form.mode} onChange={event => { setSizePage(1); change({ mode: event.target.value as PublicCatalogFilters['mode'], size: '', unitTypeId: '' }) }}><option value="">All types</option><option value="PRIVATE">Private Storage</option><option value="PUBLIC">Public Storage</option></select><img src="/figma/gwp-01/imgImage.svg" alt="" aria-hidden="true" /></div></div>
-      <div className="form-field"><label htmlFor={field('size')}>Storage Size</label><div className="public-select"><select id={field('size')} value={form.size} aria-describedby={field('size-help')} onChange={event => change({ size: event.target.value, unitTypeId: '' })}><option value="">All sizes</option>{sizeOptions.map(size => <option key={size} value={size}>{size}</option>)}</select><img src="/figma/gwp-01/imgImage.svg" alt="" aria-hidden="true" /></div></div>
-      <div className="form-field public-rental-month"><label htmlFor={field('start')}>First Rental Month</label><div className="public-month"><input id={field('start')} type="month" aria-describedby={field('period-help')} min={getNextBusinessMonth()} value={form.startMonth} onChange={event => change({ startMonth: event.target.value })} /></div></div>
-      <div className="form-field public-rental-month"><label htmlFor={field('end')}>Last Rental Month</label><div className="public-month"><input id={field('end')} type="month" aria-describedby={field('period-help')} min={form.startMonth || getNextBusinessMonth()} value={form.endMonth} onChange={event => change({ endMonth: event.target.value })} /></div></div>
+      <div className="form-field"><label htmlFor={field('mode')}>Storage Type</label><div className="public-select"><select id={field('mode')} value={form.mode} onChange={event => { setSizePage(1); change({ mode: event.target.value as PublicCatalogFilters['mode'], size: '', unitTypeId: '' }) }}><option value="">All storage types</option><option value="PRIVATE">Private Storage</option><option value="PUBLIC">Public Storage</option></select><img src="/figma/gwp-01/imgImage.svg" alt="" aria-hidden="true" /></div></div>
+      <div className="form-field"><label htmlFor={field('size')}>Storage Size</label><div className="public-select"><select id={field('size')} value={form.size} onChange={event => change({ size: event.target.value, unitTypeId: '' })}><option value="">All sizes</option>{sizeOptions.map(size => <option key={size} value={size}>{size}</option>)}</select><img src="/figma/gwp-01/imgImage.svg" alt="" aria-hidden="true" /></div></div>
+      <div className="form-field"><label htmlFor={field('start')}>Check-in Month</label><div className="public-month"><input id={field('start')} type="month" min={getNextBusinessMonth()} value={form.startMonth} onChange={event => change({ startMonth: event.target.value })} /><img src="/figma/gwp-01/imgContainer.svg" alt="" aria-hidden="true" /></div></div>
+      <div className="form-field"><label htmlFor={field('end')}>Check-out Month</label><div className="public-month"><input id={field('end')} type="month" min={form.startMonth || getNextBusinessMonth()} value={form.endMonth} onChange={event => change({ endMonth: event.target.value })} /><img src="/figma/gwp-01/imgContainer1.svg" alt="" aria-hidden="true" /></div></div>
       <button className="button public-search-submit" type="submit"><img src="/figma/gwp-01/imgImage1.svg" alt="" aria-hidden="true" />Find Storage</button>
       <ApiErrorAlert error={error} />
     </form>
-    <div className="public-search-help">
-      <p id={field('period-help')}>Your rental period includes both selected months. For a one-month rental, choose the same first and last month.</p>
-      <p id={field('size-help')}>Sizes are shown as listed in the catalog. <Link to="/size-guide">Compare sizes in the Size Guide</Link>.</p>
-    </div>
     {sizes.loading && <p className="public-field-note" role="status">Loading size options… You can still search all sizes.</p>}
     {sizes.error && <div className="public-options-notice"><p className="muted">Size options could not be loaded. You can search all sizes or retry.</p><ApiErrorAlert error={sizes.error} /><button className="button button-secondary" type="button" onClick={sizes.refresh}>Retry Size Options</button></div>}
     {sizes.data && sizes.data.pagination.totalPages > 1 && <div className="action-row public-size-pages"><small className="muted">Size options page {sizePage}/{sizes.data.pagination.totalPages}</small><button className="button button-secondary" type="button" disabled={sizes.loading || sizePage <= 1} onClick={() => setSizePage(page => page - 1)}>Previous Sizes</button><button className="button button-secondary" type="button" disabled={sizes.loading || sizePage >= sizes.data.pagination.totalPages} onClick={() => setSizePage(page => page + 1)}>More Sizes</button></div>}

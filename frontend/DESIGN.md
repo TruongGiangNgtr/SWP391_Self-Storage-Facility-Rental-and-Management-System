@@ -1,6 +1,6 @@
 ---
-name: FStoRent / FRMS
-description: A clear, calm storage rental interface anchored in confident blue.
+name: FStoRent / FRMS Employee Portals
+description: Clear employee workspaces anchored in confident blue.
 colors:
   primary: "#2563EB"
   primary-hover: "#1D4ED8"
@@ -12,7 +12,7 @@ colors:
   text-secondary: "#475569"
   text-muted: "#64748B"
   border: "#E2E8F0"
-  control-border: "#CBD5E1"
+  control-border: "#64748B"
   success: "#166534"
   success-soft: "#F0FDF4"
   warning: "#92400E"
@@ -84,6 +84,8 @@ components:
 
 ## Overview
 
+**Scope: employee portals only.** Apply this baseline to Facility Staff, Facility Manager, Business Operations Manager and System Administrator workspaces. The public homepage and Customer portal keep their incumbent interface and are excluded from this refinement. Shared styles must be scoped to employee shells and must not restyle public or Customer surfaces.
+
 **Creative North Star: "A clear place for every task."**
 
 FStoRent should feel dependable, organized and approachable. Blue identifies the next useful action; quiet surfaces let storage details, dates, amounts and operational work lead. The visual signature is confident blue, dark slate headings, softly bordered white panels and generous, deliberate spacing.
@@ -95,8 +97,8 @@ Preserve the FStoRent wordmark and FRMS product identity. PRODUCT.md and approve
 **Key Characteristics:**
 
 - Clear hierarchy before decoration.
-- One coherent blue identity across public and authenticated surfaces.
-- Comfortable customer journeys and efficient employee workspaces.
+- One coherent blue identity across employee workspaces.
+- Efficient, readable operational tasks.
 - Visible labels, readable numbers and explicit feedback.
 
 ## Colors
