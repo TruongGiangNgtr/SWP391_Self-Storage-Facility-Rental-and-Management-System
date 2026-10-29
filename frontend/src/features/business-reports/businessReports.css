@@ -56,10 +56,18 @@
 .br-legend i { display: inline-block; width: 8px; height: 8px; }
 .br-first { background: #2563eb; }
 .br-later { background: #166534; }
-.br-columns-scroll { overflow-x: auto; margin-top: 12px; scrollbar-color: #94a3b8 #f1f5f9; }
-.br-columns { display: flex; gap: 12px; align-items: end; min-width: 100%; }
-.br-columns figure { flex: 1 0 72px; min-width: 0; max-width: 180px; margin: 0; }
-.br-column-track { height: 116px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; border-bottom: 1px solid #cbd5e1; }
+.br-column-chart { --br-plot-height: 160px; margin-top: 12px; }
+.br-axis-unit { margin-bottom: 10px; color: #475569; font-size: 12px; }
+.br-chart-body { display: grid; grid-template-columns: max-content minmax(0,1fr); gap: 10px; }
+.br-y-axis { position: relative; height: var(--br-plot-height); min-width: 44px; color: #475569; font-size: 12px; font-variant-numeric: tabular-nums; }
+.br-y-axis span { position: absolute; right: 0; transform: translateY(-50%); white-space: nowrap; }
+.br-columns-scroll { overflow-x: auto; scrollbar-color: #94a3b8 #f1f5f9; }
+.br-columns { position: relative; display: flex; gap: 12px; align-items: end; width: max-content; min-width: 100%; }
+.br-chart-grid { position: absolute; inset: 0 0 auto; height: var(--br-plot-height); border-left: 1px solid #cbd5e1; pointer-events: none; }
+.br-chart-grid span { position: absolute; width: 100%; border-top: 1px solid #e2e8f0; }
+.br-chart-grid span:last-child { border-color: #cbd5e1; }
+.br-columns figure { position: relative; flex: 1 0 72px; min-width: 0; max-width: 180px; margin: 0; }
+.br-column-track { height: var(--br-plot-height); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
 .br-column-track i { display: block; width: min(70%,40px); flex-shrink: 0; }
 .br-columns figcaption { height: 36px; line-height: 18px; font-size: 12px; margin-top: 6px; overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-align: center; }
 .br-chart-help { font-size: 12px !important; margin-top: 6px !important; }

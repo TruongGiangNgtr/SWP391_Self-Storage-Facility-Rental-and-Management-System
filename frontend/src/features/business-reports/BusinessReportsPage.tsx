@@ -236,15 +236,34 @@ function RevenueChart({ report }: { report: BusinessReportMonthly }) {
 
 function ColumnChart({ items }: { items: { id: string; label: string; first: number; later: number; value: string }[] }) {
   const max = Math.max(1, ...items.map(item => item.first + item.later))
+  const magnitude = 10 ** Math.floor(Math.log10(max / 4))
+  const step = Math.max(1, ([1, 2, 5, 10].find(value => value * magnitude >= max / 4) ?? 10) * magnitude)
+  const intervals = Math.ceil(max / step)
+  const ceiling = intervals * step
+  const ticks = Array.from({ length: intervals + 1 }, (_, index) => ceiling - index * step)
+  const axisNumber = new Intl.NumberFormat('en-GB', { notation: 'compact', maximumFractionDigits: 2 })
   return <>
-    <div className="br-columns-scroll" tabIndex={0} role="region" aria-label="Comparison chart; scroll horizontally to see all groups">
-      <div className="br-columns">{items.map(item => <figure key={item.id} title={`${item.label}: ${item.value}`}>
-        <div className="br-column-track" role="img" aria-label={`${item.label}: ${item.value}`}>
-          <i className="br-later" style={{ height: `${item.later / max * 100}%` }} />
-          <i className="br-first" style={{ height: `${item.first / max * 100}%` }} />
+    <div className="br-column-chart">
+      <div className="br-axis-unit">VND</div>
+      <div className="br-chart-body">
+        <div className="br-y-axis" aria-label="Revenue scale in VND">{ticks.map((tick, index) =>
+          <span key={tick} style={{ top: `${index / intervals * 100}%` }} title={formatMoney(tick)}>{axisNumber.format(tick)}</span>
+        )}</div>
+        <div className="br-columns-scroll" tabIndex={0} role="region" aria-label="Revenue comparison chart in VND; scroll horizontally to see all groups">
+          <div className="br-columns">
+            <div className="br-chart-grid" aria-hidden="true">{ticks.map((tick, index) =>
+              <span key={tick} style={{ top: `${index / intervals * 100}%` }} />
+            )}</div>
+            {items.map(item => <figure key={item.id} title={`${item.label}: ${item.value}`}>
+              <div className="br-column-track" role="img" aria-label={`${item.label}: ${item.value}`}>
+                <i className="br-later" style={{ height: `${item.later / ceiling * 100}%` }} />
+                <i className="br-first" style={{ height: `${item.first / ceiling * 100}%` }} />
+              </div>
+              <figcaption>{item.label}</figcaption>
+            </figure>)}
+          </div>
         </div>
-        <figcaption>{item.label}</figcaption>
-      </figure>)}</div>
+      </div>
     </div>
     <p className="br-chart-help">Exact values are in the table below. Scroll the chart horizontally for more groups.</p>
   </>
