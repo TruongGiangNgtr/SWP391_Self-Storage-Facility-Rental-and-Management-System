@@ -1,7 +1,7 @@
 import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
 import { RefreshCw, Search, ShieldCheck } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { listAdminLoginHistory, normalizeAdminApiError } from '../../api/adminApi'
 import type { Pagination } from '../../api/api.types'
 import type { AdminApiErrorShape } from '../../models/adminUser'
@@ -27,7 +27,6 @@ function hcmLocalToUtcIso(value: string) {
   const date = new Date(`${value}:00+07:00`)
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }
-
 
 const EMPTY_FILTERS: AdminLoginHistoryFilters = { userAccountId: '', status: 'ALL', fromLocal: '', toLocal: '' }
 
@@ -73,7 +72,7 @@ export default function LoginHistoryPage() {
     event.preventDefault()
     const userAccountId = filters.userAccountId.trim()
     if (userAccountId && !UUID_PATTERN.test(userAccountId)) {
-      setClientError('User Account ID must be a valid UUID.')
+      setClientError('Enter the complete account ID from the account details or clear this filter.')
       return
     }
     const fromUtc = hcmLocalToUtcIso(filters.fromLocal)
@@ -101,7 +100,6 @@ export default function LoginHistoryPage() {
     <div className="awp01-page awp06-page" data-testid="awp06-page">
       <header className="awp01-page__header">
         <div>
-          <p className="awp01-eyebrow">System Administrator</p>
           <h1>Login history</h1>
           <p>Review sign-in attempts associated with user accounts.</p>
         </div>
@@ -109,13 +107,15 @@ export default function LoginHistoryPage() {
       </header>
 
       <section className="awp01-summary" aria-label="Login history summary">
-        <div className="awp01-summary-card"><span>Total matching attempts</span><strong>{pagination.totalItems}</strong></div>
-        <div className="awp01-summary-card"><span>Success on page</span><strong>{successCount}</strong></div>
-        <div className="awp01-summary-card"><span>Failed on page</span><strong>{failedCount}</strong></div>
+        <div className="awp01-summary-card"><span>Total matching attempts</span><strong>{loading ? '—' : pagination.totalItems}</strong></div>
+        <div className="awp01-summary-card"><span>Success on page</span><strong>{loading ? '—' : successCount}</strong></div>
+        <div className="awp01-summary-card"><span>Failed on page</span><strong>{loading ? '—' : failedCount}</strong></div>
       </section>
 
+      <p className="admin-history-help">To filter by a person, <Link to="/admin/users">find their account</Link> and choose a history link in its details. Or paste an account ID below.</p>
+
       <form className="awp06-filters" onSubmit={applyFilters} noValidate>
-        <label className="awp06-user-filter"><span>User Account ID</span><div className="awp01-search-input"><Search size={16} /><input value={filters.userAccountId} onChange={(event) => setFilters((current) => ({ ...current, userAccountId: event.target.value }))} placeholder="UUID or leave blank" /></div></label>
+        <label className="awp06-user-filter"><span>Account ID (optional)</span><div className="awp01-search-input"><Search size={16} /><input value={filters.userAccountId} onChange={(event) => setFilters((current) => ({ ...current, userAccountId: event.target.value }))} placeholder="Paste account ID, or leave blank" /></div></label>
         <label><span>Status</span><select value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as AdminLoginHistoryFilters['status'] }))}><option value="ALL">All statuses</option><option value="SUCCESS">SUCCESS</option><option value="FAILED">FAILED</option></select></label>
         <label><span>From (GMT+7)</span><input type="datetime-local" value={filters.fromLocal} onChange={(event) => setFilters((current) => ({ ...current, fromLocal: event.target.value }))} /></label>
         <label><span>To (GMT+7)</span><input type="datetime-local" value={filters.toLocal} onChange={(event) => setFilters((current) => ({ ...current, toLocal: event.target.value }))} /></label>
@@ -126,12 +126,12 @@ export default function LoginHistoryPage() {
       <div className="awp06-integrity-note"><ShieldCheck size={18} /><span>Sign-in history is preserved and cannot be edited or deleted.</span></div>
 
       {loading && <div className="awp01-state-grid">{Array.from({ length: 6 }).map((_, index) => <div className="awp01-skeleton" key={index} />)}</div>}
-      {!loading && error && <div className="awp01-state-card awp01-state-card--error" role="alert"><strong>{error.code}</strong><p>{error.message}</p>{error.traceId ? <small>Trace: {error.traceId}</small> : null}</div>}
-      {!loading && !error && items.length === 0 && <div className="awp01-state-card"><strong>No login attempts found</strong><p>No sign-in attempts match these filters.</p></div>}
+      {!loading && error && <div className="awp01-state-card awp01-state-card--error" role="alert"><strong>Unable to load login history</strong><small>Code: {error.code}</small><p>{error.message}</p>{error.traceId ? <small>Trace: {error.traceId}</small> : null}<button type="button" className="awp01-button awp01-button--secondary" onClick={() => void load(pagination.page || 1, appliedFilters)}>Try again</button></div>}
+      {!loading && !error && items.length === 0 && <div className="awp01-state-card"><strong>No login attempts found</strong><p>No sign-in attempts match these filters.</p><button type="button" className="awp01-button awp01-button--secondary" onClick={clearFilters}>Clear filters</button></div>}
 
       {!loading && !error && items.length > 0 && (
         <section className="awp01-table-card">
-          <div className="awp01-table-wrap"><table className="awp01-table awp06-table"><thead><tr><th>Attempt (GMT+7)</th><th>Status</th><th>User Account</th><th>IP address</th><th>Device</th></tr></thead><tbody>{items.map((item) => (
+          <div className="awp01-table-wrap" role="region" aria-label="Login history results (scroll horizontally for more columns)" tabIndex={0}><table className="awp01-table awp06-table"><thead><tr><th>Attempt (GMT+7)</th><th>Status</th><th>User Account</th><th>IP address</th><th>Device</th></tr></thead><tbody>{items.map((item) => (
             <tr key={item.loginHistoryId}><td>{formatDateTime(item.loginAt)}</td><td><span className={`awp06-status awp06-status--${item.status.toLowerCase()}`}>{item.status}</span></td><td><EmployeeEntityLabel kind="account" id={item.userAccountId} /></td><td>{item.ipAddress ?? '—'}</td><td><span className="awp06-device" title={item.deviceInfo ?? ''}>{item.deviceInfo ?? '—'}</span></td></tr>
           ))}</tbody></table></div>
           <footer className="awp01-pagination"><span>Page {pagination.page} of {Math.max(pagination.totalPages, 1)} · {pagination.totalItems} attempts</span><div><button className="awp01-button awp01-button--secondary" disabled={pagination.page <= 1} onClick={() => void load(pagination.page - 1, appliedFilters)}>Previous</button><button className="awp01-button awp01-button--secondary" disabled={pagination.page >= pagination.totalPages} onClick={() => void load(pagination.page + 1, appliedFilters)}>Next</button></div></footer>

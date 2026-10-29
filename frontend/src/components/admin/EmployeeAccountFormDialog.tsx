@@ -1,7 +1,7 @@
+import { AdminModal } from './AdminModal'
 import { X } from 'lucide-react'
 import { useAdminFacilities } from '../../hooks/useAdminFacilities'
 import {
-  useEffect,
   useMemo,
   useState,
   type FormEvent,
@@ -67,17 +67,6 @@ export function EmployeeAccountFormDialog(props: Props) {
   })
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({})
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !props.busy) {
-        props.onClose()
-      }
-    }
-
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [props])
-
   const facilityRequired = useMemo(
     () => !editing && isFacilityScopedEmployeeRole(createFields.role),
     [createFields.role, editing],
@@ -137,11 +126,9 @@ export function EmployeeAccountFormDialog(props: Props) {
   const fieldError = (field: string) => clientErrors[field] ?? getServerFieldError(props.error, field)
 
   return (
-    <div className="awp03-modal-layer" role="presentation">
+    <AdminModal className="awp03-modal-layer" label={editing ? 'Edit employee profile' : 'Create employee account'} busy={props.busy} onClose={props.onClose}>
       <div
         className="awp03-modal"
-        role="dialog"
-        aria-modal="true"
         aria-labelledby="awp03-form-title"
       >
         <header className="awp03-modal__header">
@@ -173,7 +160,7 @@ export function EmployeeAccountFormDialog(props: Props) {
 
         {props.error && (
           <div className="awp03-inline-error" role="alert">
-            <strong>{props.error.code}</strong>
+            <strong>Unable to save employee details</strong><small>Code: {props.error.code}</small>
             <span>{props.error.message}</span>
             {props.error.traceId ? <small>Trace: {props.error.traceId}</small> : null}
           </div>
@@ -183,7 +170,6 @@ export function EmployeeAccountFormDialog(props: Props) {
           <label>
             <span>Full name</span>
             <input
-              autoFocus
               value={editing ? fullName : createFields.fullName}
               onChange={(event) => {
                 if (editing) {
@@ -290,6 +276,6 @@ export function EmployeeAccountFormDialog(props: Props) {
           </footer>
         </form>
       </div>
-    </div>
+    </AdminModal>
   )
 }

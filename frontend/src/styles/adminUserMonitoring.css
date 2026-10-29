@@ -166,7 +166,7 @@
 
 .awp01-table {
   width: 100%;
-  min-width: 1080px;
+  min-width: 860px;
   border-collapse: collapse;
 }
 
@@ -497,4 +497,196 @@
 
 .awp01-row-actions a.awp01-link-button:hover {
   text-decoration: underline;
+}
+
+/* Compact summaries support the task instead of competing with the results. */
+.admin-shell .awp01-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding-block: 4px;
+}
+
+.admin-shell .awp01-summary-card {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.admin-shell .awp01-summary-card span {
+  color: var(--frms-secondary);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.admin-shell .awp01-summary-card strong {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-filter-scope {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.admin-filter-scope strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-filter-scope p {
+  margin: 4px 0 0;
+  color: var(--frms-secondary);
+}
+
+.admin-shell nav.awp01-pagination {
+  flex-wrap: wrap;
+  gap: 12px;
+  border: 1px solid var(--frms-border);
+  border-radius: var(--frms-radius-control);
+  background: var(--frms-surface);
+}
+
+.admin-shell .awp01-pagination > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-shell .awp01-table-card {
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.admin-shell .awp01-table th {
+  letter-spacing: normal;
+  text-transform: none;
+  font-weight: 600;
+}
+
+.admin-shell .awp01-table-wrap {
+  max-width: 100%;
+}
+
+.admin-shell .awp01-table td {
+  overflow-wrap: anywhere;
+}
+
+.admin-account-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-block: 16px;
+}
+
+.admin-account-links a, .admin-history-help a {
+  color: var(--frms-primary-hover);
+  text-underline-offset: 3px;
+}
+
+.admin-account-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.admin-history-help {
+  margin: 0;
+  max-width: 75ch;
+  color: var(--frms-secondary);
+}
+
+.admin-advanced-filters {
+  min-width: 0;
+  grid-column: 1 / -1;
+}
+
+.admin-advanced-filters summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--frms-primary-hover);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-advanced-filters summary::before {
+  content: '+';
+  margin-right: 8px;
+}
+
+.admin-advanced-filters[open] summary::before {
+  content: '−';
+}
+
+.admin-advanced-filters > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-block: 8px;
+}
+
+@media (max-width: 620px) {
+  .admin-advanced-filters > div {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-filter-scope {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-shell .awp01-table th, .admin-shell .awp01-table td {
+    padding: 12px;
+  }
+
+}
+
+.admin-shell .awp01-icon-button {
+  min-width: 44px;
+}
+
+.admin-shell .awp02-modal {
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+}
+
+.admin-shell .awp02-modal footer {
+  flex-wrap: wrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell .awp01-skeleton {
+    animation: none;
+  }
+
+}
+
+.admin-shell .awp01-table:has(th[aria-label='Actions']) :is(th, td):last-child {
+  position: sticky;
+  right: 0;
+  background: var(--frms-surface);
+  border-left: 1px solid var(--frms-border);
+}
+
+.admin-shell .awp01-table:has(th[aria-label='Actions']) th:last-child {
+  background: var(--frms-canvas);
+}
+
+.admin-shell .awp01-state-card > small {
+  display: block;
+  margin-top: 8px;
 }

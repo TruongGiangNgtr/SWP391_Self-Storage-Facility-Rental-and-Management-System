@@ -54,7 +54,6 @@ export function RolePermissionsPanel() {
     <section className="awp45-panel-body" id="awp45-permissions-panel" role="tabpanel" aria-labelledby="awp45-permissions-tab" data-testid="awp05-panel">
       <div className="awp45-panel-header">
         <div>
-          <p className="awp01-eyebrow">Access policies</p>
           <h2>RBAC capability matrix</h2>
           <p>Review the access available to each role.</p>
         </div>

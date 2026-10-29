@@ -1,12 +1,12 @@
+import { AdminFilterScope, AdminListNavigation } from '../../components/admin/AdminListNavigation'
+import { AdminModal } from '../../components/admin/AdminModal'
 import {
   RefreshCw,
   Search,
 } from 'lucide-react'
 import {
-  useEffect,
   useState,
   type ChangeEvent,
-  type MouseEvent,
 } from 'react'
 import { AccountStatusBadge } from '../../components/admin/AccountStatusBadge'
 import { UserAccountDetailDrawer } from '../../components/admin/UserAccountDetailDrawer'
@@ -17,7 +17,6 @@ import {
 import {
   ADMIN_USER_ROLES,
   ADMIN_USER_STATUSES,
-  getAccountType,
   USER_ROLE_LABELS,
   type AdminUserAccount,
 } from '../../models/adminUser'
@@ -41,10 +40,10 @@ function formatDateTime(value: string) {
   }).format(date)
 }
 
-
 export default function UserAccountMonitoringPage() {
   const {
     accounts,
+    rawAccounts,
     pagination,
     loading,
     error,
@@ -57,21 +56,6 @@ export default function UserAccountMonitoringPage() {
   const [selectedUserAccountId, setSelectedUserAccountId] = useState<string | null>(null)
   const detail = useAdminUserDetail(selectedUserAccountId)
 
-  useEffect(() => {
-    if (!selectedUserAccountId) {
-      return undefined
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setSelectedUserAccountId(null)
-      }
-    }
-
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [selectedUserAccountId])
-
   function openAccount(account: AdminUserAccount) {
     setSelectedUserAccountId(account.userAccountId)
   }
@@ -80,7 +64,6 @@ export default function UserAccountMonitoringPage() {
     <div className="awp01-page" data-testid="awp01-page">
       <header className="awp01-page__header">
         <div>
-          <p className="awp01-eyebrow">System Administrator</p>
           <h1>User account monitoring</h1>
           <p>
             View all Customer and Employee accounts with basic profile information. This feature is read-only and does not modify Customer business data.
@@ -101,15 +84,7 @@ export default function UserAccountMonitoringPage() {
       <section className="awp01-summary" aria-label="Account list summary">
         <div className="awp01-summary-card">
           <span>Total accounts</span>
-          <strong>{pagination.totalItems}</strong>
-        </div>
-        <div className="awp01-summary-card">
-          <span>Current page</span>
-          <strong>{pagination.page}</strong>
-        </div>
-        <div className="awp01-summary-card">
-          <span>Rows loaded</span>
-          <strong>{pagination.pageSize > 0 ? Math.min(pagination.pageSize, Math.max(pagination.totalItems - (pagination.page - 1) * pagination.pageSize, 0)) : 0}</strong>
+          <strong>{loading ? '—' : pagination.totalItems}</strong>
         </div>
       </section>
 
@@ -161,10 +136,9 @@ export default function UserAccountMonitoringPage() {
           </div>
         </label>
 
-        <p className="awp01-toolbar__note">
-          Filters apply to accounts on this page. Use Previous and Next to browse more accounts.
-        </p>
       </section>
+
+      <AdminFilterScope loading={loading} page={pagination.page} loaded={rawAccounts.length} matching={accounts.length} onClear={() => { setFilters({ status: 'ALL', role: 'ALL', search: '' }) }} />
 
       {loading && (
         <div className="awp01-state-grid" aria-label="Loading user accounts">
@@ -176,7 +150,7 @@ export default function UserAccountMonitoringPage() {
 
       {!loading && error && (
         <div className="awp01-state-card awp01-state-card--error" role="alert">
-          <strong>{error.code}</strong>
+          <strong>Unable to load this information</strong><small>Code: {error.code}</small>
           <p>{error.message}</p>
           {error.traceId ? <small>Trace: {error.traceId}</small> : null}
           <button
@@ -195,19 +169,18 @@ export default function UserAccountMonitoringPage() {
           <p>
             {pagination.totalItems === 0
               ? 'No user accounts found.'
-              : 'No row on this page matches the current-page filters.'}
+              : 'No accounts on this page match. Clear the filters or browse another directory page.'}
           </p>
         </div>
       )}
 
       {!loading && !error && accounts.length > 0 && (
         <section className="awp01-table-card">
-          <div className="awp01-table-wrap">
+          <div className="awp01-table-wrap" role="region" aria-label="Account results (scroll horizontally for more columns)" tabIndex={0}>
             <table className="awp01-table">
               <thead>
                 <tr>
                   <th>User</th>
-                  <th>Account type</th>
                   <th>Role</th>
                   <th>Contact</th>
                   <th>Status</th>
@@ -227,7 +200,6 @@ export default function UserAccountMonitoringPage() {
                         <strong>{account.profile?.fullName || 'Profile unavailable'}</strong>
                       </div>
                     </td>
-                    <td>{getAccountType(account)}</td>
                     <td><span className="awp01-role-chip">{USER_ROLE_LABELS[account.role]}</span></td>
                     <td>
                       <div className="awp01-contact-cell">
@@ -252,39 +224,14 @@ export default function UserAccountMonitoringPage() {
             </table>
           </div>
 
-          <footer className="awp01-pagination">
-            <span>
-              Page {pagination.page} of {Math.max(pagination.totalPages, 1)} · {pagination.totalItems} accounts
-            </span>
-            <div>
-              <button
-                type="button"
-                className="awp01-button awp01-button--secondary"
-                disabled={pagination.page <= 1}
-                onClick={() => void loadPage(pagination.page - 1)}
-              >
-                Previous
-              </button>
-              <button
-                type="button"
-                className="awp01-button awp01-button--secondary"
-                disabled={pagination.page >= pagination.totalPages}
-                onClick={() => void loadPage(pagination.page + 1)}
-              >
-                Next
-              </button>
-            </div>
-          </footer>
         </section>
       )}
 
+      {!error && <AdminListNavigation pagination={pagination} loading={loading} onPage={page => void loadPage(page)} />}
+
       {selectedUserAccountId && (
-        <div
-          className="awp01-drawer-layer"
-          role="presentation"
-          onMouseDown={() => setSelectedUserAccountId(null)}
-        >
-          <div onMouseDown={(event: MouseEvent<HTMLDivElement>) => event.stopPropagation()}>
+        <AdminModal className="awp01-drawer-layer" label="User account detail" onClose={() => setSelectedUserAccountId(null)}>
+          <div data-admin-backdrop>
             <UserAccountDetailDrawer
               account={detail.account}
               loading={detail.loading}
@@ -292,7 +239,7 @@ export default function UserAccountMonitoringPage() {
               onClose={() => setSelectedUserAccountId(null)}
             />
           </div>
-        </div>
+        </AdminModal>
       )}
     </div>
   )

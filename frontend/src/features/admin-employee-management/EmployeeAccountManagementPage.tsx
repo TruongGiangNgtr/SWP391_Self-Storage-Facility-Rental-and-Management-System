@@ -1,3 +1,5 @@
+import { AdminFilterScope, AdminListNavigation } from '../../components/admin/AdminListNavigation'
+import { AdminModal } from '../../components/admin/AdminModal'
 import { useAdminFacilities } from '../../hooks/useAdminFacilities'
 import {
   KeyRound,
@@ -10,7 +12,6 @@ import {
   X,
 } from 'lucide-react'
 import {
-  useEffect,
   useMemo,
   useState,
   type ChangeEvent,
@@ -61,7 +62,6 @@ function formatDateTime(value: string) {
     hour12: false,
   }).format(date)
 }
-
 
 type ConfirmAction = 'ACTIVATE' | 'DEACTIVATE' | 'RESEND_CREDENTIAL'
 
@@ -125,37 +125,6 @@ export default function EmployeeAccountManagementPage() {
     [rawAccounts],
   )
   const inactiveOnPage = rawAccounts.length - activeOnPage
-
-  useEffect(() => {
-    if (!selectedUserAccountId && !pendingConfirmation && !formMode) {
-      return undefined
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') {
-        return
-      }
-
-      if (formMode && !formBusy) {
-        setFormMode(null)
-        setFormAccount(null)
-        setFormError(null)
-        return
-      }
-
-      if (pendingConfirmation && !actionBusy) {
-        setPendingConfirmation(null)
-        return
-      }
-
-      if (selectedUserAccountId && !actionBusy) {
-        setSelectedUserAccountId(null)
-      }
-    }
-
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [actionBusy, formBusy, formMode, pendingConfirmation, selectedUserAccountId])
 
   function openAccount(account: AdminUserAccount) {
     setSelectedUserAccountId(account.userAccountId)
@@ -298,7 +267,6 @@ export default function EmployeeAccountManagementPage() {
     <div className="awp01-page awp03-page" data-testid="awp03-page">
       <header className="awp01-page__header">
         <div>
-          <p className="awp01-eyebrow">System Administrator</p>
           <h1>Employee account management</h1>
           <p>
             Create employee accounts, update profiles, manage access, and resend sign-in credentials.
@@ -330,15 +298,15 @@ export default function EmployeeAccountManagementPage() {
       <section className="awp01-summary" aria-label="Employee list summary">
         <div className="awp01-summary-card">
           <span>Employee rows loaded</span>
-          <strong>{rawAccounts.length}</strong>
+          <strong>{loading ? '—' : rawAccounts.length}</strong>
         </div>
         <div className="awp01-summary-card">
           <span>Active on page</span>
-          <strong>{activeOnPage}</strong>
+          <strong>{loading ? '—' : activeOnPage}</strong>
         </div>
         <div className="awp01-summary-card">
           <span>Inactive on page</span>
-          <strong>{inactiveOnPage}</strong>
+          <strong>{loading ? '—' : inactiveOnPage}</strong>
         </div>
       </section>
 
@@ -394,7 +362,7 @@ export default function EmployeeAccountManagementPage() {
         </label>
 
         <label className="awp01-toolbar__search">
-          <span>Search loaded employee rows</span>
+          <span>Search current page</span>
           <div className="awp01-search-input">
             <Search size={16} aria-hidden="true" />
             <input
@@ -408,10 +376,9 @@ export default function EmployeeAccountManagementPage() {
           </div>
         </label>
 
-        <p className="awp01-toolbar__note">
-          Filters apply to employees on this page. Use Previous and Next to browse more accounts.
-        </p>
       </section>
+
+      <AdminFilterScope loading={loading} page={pagination.page} loaded={rawAccounts.length} matching={accounts.length} onClear={() => { setFilters({ status: 'ALL', role: 'ALL', search: '' }) }} />
 
       {loading && (
         <div className="awp01-state-grid" aria-label="Loading employee accounts">
@@ -423,7 +390,7 @@ export default function EmployeeAccountManagementPage() {
 
       {!loading && error && (
         <div className="awp01-state-card awp01-state-card--error" role="alert">
-          <strong>{error.code}</strong>
+          <strong>Unable to load this information</strong><small>Code: {error.code}</small>
           <p>{error.message}</p>
           {error.traceId ? <small>Trace: {error.traceId}</small> : null}
           <button
@@ -442,14 +409,14 @@ export default function EmployeeAccountManagementPage() {
           <p>
             {rawAccounts.length === 0
               ? 'No employees on this page. Browse another page or create an employee.'
-              : 'No loaded Employee row matches the current filters.'}
+              : 'No employees on this page match. Clear the filters or browse another directory page.'}
           </p>
         </div>
       )}
 
       {!loading && !error && accounts.length > 0 && (
         <section className="awp01-table-card">
-          <div className="awp01-table-wrap">
+          <div className="awp01-table-wrap" role="region" aria-label="Account results (scroll horizontally for more columns)" tabIndex={0}>
             <table className="awp01-table awp03-table">
               <thead>
                 <tr>
@@ -504,44 +471,14 @@ export default function EmployeeAccountManagementPage() {
               </tbody>
             </table>
           </div>
-
-          <div className="awp01-pagination">
-            <span>
-              Page {pagination.page}{pagination.totalPages > 0 ? ` of ${pagination.totalPages}` : ''} · {pagination.totalItems} total user accounts
-            </span>
-            <div>
-              <button
-                className="awp01-button awp01-button--secondary"
-                type="button"
-                disabled={pagination.page <= 1 || loading}
-                onClick={() => void loadPage(pagination.page - 1)}
-              >
-                Previous
-              </button>
-              <button
-                className="awp01-button awp01-button--secondary"
-                type="button"
-                disabled={pagination.totalPages === 0 || pagination.page >= pagination.totalPages || loading}
-                onClick={() => void loadPage(pagination.page + 1)}
-              >
-                Next
-              </button>
-            </div>
-          </div>
         </section>
       )}
 
+      {!error && <AdminListNavigation pagination={pagination} loading={loading} onPage={page => void loadPage(page)} />}
+
       {selectedUserAccountId && (
-        <div
-          className="awp01-drawer-layer"
-          role="presentation"
-          onMouseDown={() => {
-            if (!actionBusy) {
-              setSelectedUserAccountId(null)
-            }
-          }}
-        >
-          <div onMouseDown={(event: MouseEvent<HTMLDivElement>) => event.stopPropagation()}>
+        <AdminModal className="awp01-drawer-layer" label="Employee account detail" busy={actionBusy} onClose={() => setSelectedUserAccountId(null)}>
+          <div data-admin-backdrop>
             <EmployeeAccountDrawer
               account={detail.account}
               loading={detail.loading}
@@ -554,7 +491,7 @@ export default function EmployeeAccountManagementPage() {
               onResendCredential={(account) => setPendingConfirmation({ action: 'RESEND_CREDENTIAL', account })}
             />
           </div>
-        </div>
+        </AdminModal>
       )}
 
       {formMode === 'create' && (
@@ -590,11 +527,9 @@ export default function EmployeeAccountManagementPage() {
       )}
 
       {pendingConfirmation && (
-        <div className="awp03-modal-layer" role="presentation">
+        <AdminModal className="awp03-modal-layer" label={actionTitle(pendingConfirmation.action)} busy={actionBusy} onClose={() => setPendingConfirmation(null)}>
           <div
             className="awp03-confirm"
-            role="dialog"
-            aria-modal="true"
             aria-labelledby="awp03-confirm-title"
           >
             <header className="awp03-confirm__icon">
@@ -629,7 +564,7 @@ export default function EmployeeAccountManagementPage() {
               </button>
             </footer>
           </div>
-        </div>
+        </AdminModal>
       )}
     </div>
   )

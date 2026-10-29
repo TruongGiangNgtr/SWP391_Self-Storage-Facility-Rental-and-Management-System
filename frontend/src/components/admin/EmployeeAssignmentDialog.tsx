@@ -1,3 +1,4 @@
+import { AdminModal } from './AdminModal'
 import { ShieldCheck, X } from 'lucide-react'
 import { listAllAdminFacilities, type AdminFacilityLookup } from '../../api/adminApi'
 import { ApiRequestError } from '../../api/httpClient'
@@ -93,17 +94,6 @@ export function EmployeeAssignmentDialog({
     [role],
   )
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !busy) {
-        onClose()
-      }
-    }
-
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [busy, onClose])
-
   const fieldError = (field: string) =>
     clientErrors[field] ?? getServerFieldError(error, field)
 
@@ -134,17 +124,14 @@ export function EmployeeAssignmentDialog({
   }
 
   return (
-    <div className="awp03-modal-layer" role="presentation">
+    <AdminModal className="awp03-modal-layer" label="Assign role and facility" busy={busy} onClose={onClose}>
       <div
         className="awp03-modal awp04-assignment-modal"
-        role="dialog"
-        aria-modal="true"
         aria-labelledby="awp04-assignment-title"
         data-testid="awp04-assignment-dialog"
       >
         <header className="awp03-modal__header">
           <div>
-            <p className="awp01-eyebrow">Employee assignment</p>
             <h2 id="awp04-assignment-title">Assign role &amp; facility</h2>
           </div>
           <button
@@ -174,7 +161,7 @@ export function EmployeeAssignmentDialog({
 
         {error && (
           <div className="awp03-inline-error" role="alert">
-            <strong>{error.code}</strong>
+            <strong>Unable to save this assignment</strong><small>Code: {error.code}</small>
             <span>{error.message}</span>
             {error.traceId ? <small>Trace: {error.traceId}</small> : null}
           </div>
@@ -184,7 +171,6 @@ export function EmployeeAssignmentDialog({
           <label>
             <span>Employee role</span>
             <select
-              autoFocus
               value={role}
               onChange={(event: ChangeEvent<HTMLSelectElement>) => {
                 const nextRole = event.target.value as EmployeeRole
@@ -291,6 +277,6 @@ export function EmployeeAssignmentDialog({
           </footer>
         </form>
       </div>
-    </div>
+    </AdminModal>
   )
 }

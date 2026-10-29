@@ -1,7 +1,6 @@
 import { EmployeeLabelsProvider } from '../components/EmployeeEntityLabel'
 import {
   ClipboardList,
-  FileText,
   History,
   LogOut,
   ShieldCheck,
@@ -9,12 +8,12 @@ import {
   Users,
 } from 'lucide-react'
 import {
-  Link,
   NavLink,
   Outlet,
 } from 'react-router-dom'
 import { useAuth } from '../auth/auth.context'
 import { BrandLogo } from '../components/BrandLogo'
+import '../styles/manager.css'
 import '../styles/admin.css'
 
 function getInitials(fullName?: string | null) {
@@ -36,22 +35,22 @@ function getInitials(fullName?: string | null) {
 const navItems = [
   {
     to: '/admin/users',
-    label: 'User Account Monitoring',
+    label: 'User accounts',
     icon: Users,
   },
   {
     to: '/admin/customer-status',
-    label: 'Customer Account Status',
+    label: 'Customer access',
     icon: UserCheck,
   },
   {
     to: '/admin/employees',
-    label: 'Employee Account Management',
+    label: 'Employee accounts',
     icon: Users,
   },
   {
     to: '/admin/assignment',
-    label: 'Role & Access Management',
+    label: 'Roles & access',
     icon: ShieldCheck,
   },
   {
@@ -78,7 +77,7 @@ export function SystemAdministratorLayout() {
         <div className="admin-brand">
           <BrandLogo size="small" />
           <span className="admin-portal-badge">
-            SYSTEM ADMINISTRATOR PORTAL
+            System Administrator
           </span>
         </div>
 
@@ -92,34 +91,26 @@ export function SystemAdministratorLayout() {
       </header>
 
       <div className="admin-body">
-        <aside className="admin-sidebar">
-          <div className="admin-profile">
-            <div className="admin-profile-avatar">{initials}</div>
-            <strong>{displayName}</strong>
-            <span className="admin-profile-email">
+        <aside className="manager-sidebar">
+          <div className="manager-profile">
+            <div className="manager-profile-avatar">{initials}</div>
+            <strong title={displayName}>{displayName}</strong>
+            <span className="manager-profile-email" title={user?.email ?? undefined}>
               {user?.email ?? 'Employee account'}
             </span>
-            <span className="admin-role-badge">
-              System Administrator
-            </span>
+            <span className="manager-role-badge">System Administrator</span>
           </div>
 
-          <nav
-            className="admin-nav"
-            aria-label="System Administrator navigation"
-          >
+          <nav className="manager-nav" aria-label="System Administrator navigation">
             {navItems.map((item) => {
               const Icon = item.icon
-
               return (
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  className={({ isActive }) =>
-                    isActive
-                      ? 'admin-nav-link admin-nav-link-active'
-                      : 'admin-nav-link'
-                  }
+                  className={({ isActive }) => isActive
+                    ? 'manager-nav-link manager-nav-link-active'
+                    : 'manager-nav-link'}
                 >
                   <Icon size={18} />
                   <span>{item.label}</span>
@@ -128,12 +119,8 @@ export function SystemAdministratorLayout() {
             })}
           </nav>
 
-          <div className="admin-sidebar-actions">
-            <button
-              type="button"
-              className="admin-signout"
-              onClick={logout}
-            >
+          <div className="manager-sidebar-actions">
+            <button type="button" className="manager-signout" onClick={logout}>
               <LogOut size={18} />
               <span>Sign Out</span>
             </button>
@@ -146,66 +133,8 @@ export function SystemAdministratorLayout() {
       </div>
 
       <footer className="admin-footer">
-        <div className="admin-footer-main">
-          <div className="admin-footer-brand">
-            <BrandLogo inverse />
-            <p>
-              Access and account administration for FStoRent. Administration is separated from Customer business-data mutation.
-            </p>
-            <span className="admin-footer-trust">
-              Secure · Role-based · Auditable
-            </span>
-          </div>
-
-          <div className="admin-footer-column">
-            <strong>ACCOUNTS</strong>
-            <Link className="admin-footer-link" to="/admin/users">
-              User Account Monitoring
-            </Link>
-            <Link className="admin-footer-link" to="/admin/customer-status">
-              Customer Account Status
-            </Link>
-            <Link className="admin-footer-link" to="/admin/employees">
-              Employee Management
-            </Link>
-          </div>
-
-          <div className="admin-footer-column">
-            <strong>SECURITY</strong>
-            <Link className="admin-footer-link" to="/admin/assignment">
-              Role &amp; Access Management
-            </Link>
-            <Link className="admin-footer-link" to="/admin/login-history">
-              Login History
-            </Link>
-            <Link className="admin-footer-link" to="/admin/activity-logs">
-              Activity Logs
-            </Link>
-          </div>
-
-          <div className="admin-footer-column">
-            <strong>ACCOUNT</strong>
-            <span>{displayName}</span>
-            <span>System Administrator</span>
-            <button
-              type="button"
-              className="admin-footer-logout"
-              onClick={logout}
-            >
-              Sign Out
-            </button>
-          </div>
-        </div>
-
-        <div className="admin-footer-bottom">
-          <span>© 2026 FStoRent. All rights reserved.</span>
-          <div>
-            <FileText size={12} aria-hidden="true" />
-            <Link className="admin-footer-bottom-link" to="/admin/users">
-              System Administrator Portal
-            </Link>
-          </div>
-        </div>
+        <span>© 2026 FStoRent</span>
+        <span>System Administrator workspace</span>
       </footer>
     </div>
   )

@@ -1,3 +1,4 @@
+import { AdminFilterScope, AdminListNavigation } from '../../components/admin/AdminListNavigation'
 import {
   RefreshCw,
   Search,
@@ -151,15 +152,15 @@ function EmployeeAssignmentsPanel() {
       <section className="awp01-summary" aria-label="Assignment summary">
         <div className="awp01-summary-card">
           <span>Employees on page</span>
-          <strong>{rawAccounts.length}</strong>
+          <strong>{loading ? '—' : rawAccounts.length}</strong>
         </div>
         <div className="awp01-summary-card">
           <span>Facility-scoped on page</span>
-          <strong>{facilityScopedCount}</strong>
+          <strong>{loading ? '—' : facilityScopedCount}</strong>
         </div>
         <div className="awp01-summary-card">
           <span>Global roles on page</span>
-          <strong>{globalCount}</strong>
+          <strong>{loading ? '—' : globalCount}</strong>
         </div>
       </section>
 
@@ -223,7 +224,7 @@ function EmployeeAssignmentsPanel() {
         </label>
 
         <label className="awp01-toolbar__search">
-          <span>Search loaded employee rows</span>
+          <span>Search current page</span>
           <div className="awp01-search-input">
             <Search size={16} aria-hidden="true" />
             <input
@@ -237,11 +238,10 @@ function EmployeeAssignmentsPanel() {
           </div>
         </label>
 
-        <p className="awp01-toolbar__note">
-          Filters apply to employees on this page. Use Previous and Next to browse more accounts.
-          {facilityDirectoryError ? ' Facility names are temporarily unavailable.' : ''}
-        </p>
       </section>
+
+      <AdminFilterScope loading={loading} page={pagination.page} loaded={rawAccounts.length} matching={accounts.length} onClear={() => { setFilters({ status: 'ALL', role: 'ALL', search: '' }) }} />
+      {facilityDirectoryError && <p role="status">Facility names are temporarily unavailable.</p>}
 
       {loading && (
         <div className="awp01-state-grid" aria-label="Loading employee assignments">
@@ -253,7 +253,7 @@ function EmployeeAssignmentsPanel() {
 
       {!loading && error && (
         <div className="awp01-state-card awp01-state-card--error" role="alert">
-          <strong>{error.code}</strong>
+          <strong>Unable to load this information</strong><small>Code: {error.code}</small>
           <p>{error.message}</p>
           {error.traceId ? <small>Trace: {error.traceId}</small> : null}
           <button
@@ -272,14 +272,14 @@ function EmployeeAssignmentsPanel() {
           <p>
             {rawAccounts.length === 0
               ? 'No employees on this page. Use Previous and Next to browse more accounts.'
-              : 'No loaded Employee row matches the current filters.'}
+              : 'No employees on this page match. Clear the filters or browse another directory page.'}
           </p>
         </div>
       )}
 
       {!loading && !error && accounts.length > 0 && (
         <section className="awp01-table-card">
-          <div className="awp01-table-wrap">
+          <div className="awp01-table-wrap" role="region" aria-label="Account results (scroll horizontally for more columns)" tabIndex={0}>
             <table className="awp01-table awp03-table awp04-table">
               <thead>
                 <tr>
@@ -334,32 +334,10 @@ function EmployeeAssignmentsPanel() {
               </tbody>
             </table>
           </div>
-
-          <div className="awp01-pagination">
-            <span>
-              Page {pagination.page}{pagination.totalPages > 0 ? ` of ${pagination.totalPages}` : ''} · {pagination.totalItems} total user accounts
-            </span>
-            <div>
-              <button
-                className="awp01-button awp01-button--secondary"
-                type="button"
-                disabled={pagination.page <= 1 || loading}
-                onClick={() => void loadPage(pagination.page - 1)}
-              >
-                Previous
-              </button>
-              <button
-                className="awp01-button awp01-button--secondary"
-                type="button"
-                disabled={pagination.totalPages === 0 || pagination.page >= pagination.totalPages || loading}
-                onClick={() => void loadPage(pagination.page + 1)}
-              >
-                Next
-              </button>
-            </div>
-          </div>
         </section>
       )}
+
+      {!error && <AdminListNavigation pagination={pagination} loading={loading} onPage={page => void loadPage(page)} />}
 
       {assignmentAccount && (
         <EmployeeAssignmentDialog
@@ -395,7 +373,6 @@ export default function RoleFacilityAssignmentPage() {
       <header className="awp45-page-heading">
         <div className="awp45-page-heading__icon"><ShieldCheck size={23} aria-hidden="true" /></div>
         <div className="awp45-page-heading__content">
-          <p className="awp01-eyebrow">System Administrator</p>
           <h1>Role &amp; access management</h1>
           <p>Manage employee roles, facility assignments, and access policies.</p>
         </div>

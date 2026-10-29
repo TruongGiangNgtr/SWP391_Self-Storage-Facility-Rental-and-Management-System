@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useAdminFacilities } from '../../hooks/useAdminFacilities'
 import {
   KeyRound,
@@ -38,7 +39,7 @@ function formatDateTime(value: string) {
   return new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Asia/Ho_Chi_Minh',
     year: 'numeric',
-    month: '2-digit',
+    month: 'short',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
@@ -66,7 +67,6 @@ export function EmployeeAccountDrawer({
     >
       <div className="awp01-drawer__header">
         <div>
-          <p className="awp01-eyebrow">Employee account</p>
           <h2>{account?.profile?.fullName || 'Employee'}</h2>
         </div>
         <button
@@ -84,7 +84,7 @@ export function EmployeeAccountDrawer({
 
       {error && !loading && (
         <div className="awp01-state-card awp01-state-card--error" role="alert">
-          <strong>{error.code}</strong>
+          <strong>Unable to load this information</strong><small>Code: {error.code}</small>
           <p>{error.message}</p>
           {error.traceId ? <small>Trace: {error.traceId}</small> : null}
         </div>
@@ -145,6 +145,11 @@ export function EmployeeAccountDrawer({
           <div className="awp03-info-note">
             Change roles and facilities in Role & Access Management. Activating an account does not send a credential email.
           </div>
+
+          <nav className="admin-account-links" aria-label="Account history">
+            <Link to={`/admin/login-history?userAccountId=${encodeURIComponent(account.userAccountId)}`}>Login history</Link>
+            <Link to={`/admin/activity-logs?userAccountId=${encodeURIComponent(account.userAccountId)}`}>Activity logs</Link>
+          </nav>
 
           <dl className="awp01-detail-grid">
             <div>

@@ -1,3 +1,4 @@
+import { AdminModal } from '../../components/admin/AdminModal'
 import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
 import type { ReactNode } from 'react'
 import {
@@ -14,9 +15,8 @@ import {
   useMemo,
   useState,
   type FormEvent,
-  type MouseEvent,
 } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   listAdminAuditLogs,
   normalizeAdminApiError,
@@ -123,7 +123,6 @@ function hcmLocalToUtcIso(value: string) {
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }
 
-
 function formatCode(value: string) {
   return value
     .toLowerCase()
@@ -197,10 +196,9 @@ function AuditLogDetailDrawer({
   const newValue = prettySnapshot(entry.newValue)
 
   return (
-    <aside className="awp07-drawer" role="dialog" aria-modal="true" aria-labelledby="awp07-drawer-title">
+    <aside className="awp07-drawer" aria-labelledby="awp07-drawer-title">
       <header className="awp07-drawer__header">
         <div>
-          <p className="awp01-eyebrow">Activity detail</p>
           <h2 id="awp07-drawer-title">{formatCode(entry.action)}</h2>
           <span>{formatDateTime(entry.createdAt)}</span>
         </div>
@@ -214,7 +212,7 @@ function AuditLogDetailDrawer({
           <div><span>Recorded (GMT+7)</span><strong>{formatDateTime(entry.createdAt)}</strong></div>
           <div><span>Actor</span><strong>{entry.userAccountId ? <EmployeeEntityLabel kind="account" id={entry.userAccountId} /> : 'SYSTEM / BACKGROUND'}</strong></div>
           <div><span>Action</span><strong>{entry.action}</strong></div>
-          <div><span>Entity type</span><strong>{entry.entityType}</strong></div>
+          <div><span>Resource type</span><strong>{entry.entityType}</strong></div>
           <div><span>Business resource</span><strong><AuditResource entry={entry} /></strong></div>
           <div><span>Result history</span><strong>{resultSummary(entry)}</strong></div>
         </section>
@@ -294,17 +292,6 @@ export default function ActivityLogManagementPage() {
     void load(1, appliedFilters)
   }, [appliedFilters, load])
 
-  useEffect(() => {
-    if (!selected) return undefined
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setSelected(null)
-    }
-
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [selected])
-
   const userEventsOnPage = useMemo(
     () => items.filter((item) => item.userAccountId).length,
     [items],
@@ -320,12 +307,12 @@ export default function ActivityLogManagementPage() {
     const action = filters.action.trim()
 
     if (userAccountId && !UUID_PATTERN.test(userAccountId)) {
-      setClientError('Actor User Account ID must be a valid UUID.')
+      setClientError('Enter the complete actor account ID or clear this filter.')
       return
     }
 
     if (entityId && !UUID_PATTERN.test(entityId)) {
-      setClientError('Entity ID must be a valid UUID.')
+      setClientError('Enter the complete resource ID or clear this filter.')
       return
     }
 
@@ -370,7 +357,6 @@ export default function ActivityLogManagementPage() {
     <div className="awp01-page awp06-page awp07-page" data-testid="awp07-page">
       <header className="awp01-page__header">
         <div>
-          <p className="awp01-eyebrow">System Administrator</p>
           <h1>Activity log management</h1>
           <p>
             Review account activity, affected resources, and changes over time.
@@ -388,20 +374,22 @@ export default function ActivityLogManagementPage() {
       </header>
 
       <section className="awp01-summary" aria-label="Activity log summary">
-        <div className="awp01-summary-card"><span>Total matching events</span><strong>{pagination.totalItems}</strong></div>
-        <div className="awp01-summary-card"><span>User-attributed on page</span><strong>{userEventsOnPage}</strong></div>
-        <div className="awp01-summary-card"><span>System/background on page</span><strong>{systemEventsOnPage}</strong></div>
+        <div className="awp01-summary-card"><span>Total matching events</span><strong>{loading ? '—' : pagination.totalItems}</strong></div>
+        <div className="awp01-summary-card"><span>User-attributed on page</span><strong>{loading ? '—' : userEventsOnPage}</strong></div>
+        <div className="awp01-summary-card"><span>System/background on page</span><strong>{loading ? '—' : systemEventsOnPage}</strong></div>
       </section>
+
+      <p className="admin-history-help">To filter by a person, <Link to="/admin/users">find their account</Link> and choose a history link in its details. Or paste an account ID below.</p>
 
       <form className="awp06-filters awp07-filters" onSubmit={applyFilters} noValidate>
         <label className="awp07-actor-filter">
-          <span>Actor User Account ID</span>
+          <span>Actor account ID (optional)</span>
           <div className="awp01-search-input">
             <Search size={16} aria-hidden="true" />
             <input
               value={filters.userAccountId}
               onChange={(event) => setFilters((current) => ({ ...current, userAccountId: event.target.value }))}
-              placeholder="UUID or leave blank"
+              placeholder="Paste account ID, or leave blank"
             />
           </div>
         </label>
@@ -415,34 +403,40 @@ export default function ActivityLogManagementPage() {
             placeholder="Exact action"
           />
           <datalist id="awp07-actions">
-            {KNOWN_ACTIONS.map((action) => <option key={action} value={action} />)}
+            {KNOWN_ACTIONS.map((action) => <option key={action} value={action} label={formatCode(action)} />)}
           </datalist>
-        </label>
-
-        <label>
-          <span>Entity type</span>
-          <input
-            list="awp07-entity-types"
-            value={filters.entityType}
-            onChange={(event) => setFilters((current) => ({ ...current, entityType: event.target.value }))}
-            placeholder="Exact entity type"
-          />
-          <datalist id="awp07-entity-types">
-            {KNOWN_ENTITY_TYPES.map((entityType) => <option key={entityType} value={entityType} />)}
-          </datalist>
-        </label>
-
-        <label>
-          <span>Entity ID</span>
-          <input
-            value={filters.entityId}
-            onChange={(event) => setFilters((current) => ({ ...current, entityId: event.target.value }))}
-            placeholder="UUID or leave blank"
-          />
         </label>
 
         <label><span>From (GMT+7)</span><input type="datetime-local" value={filters.fromLocal} onChange={(event) => setFilters((current) => ({ ...current, fromLocal: event.target.value }))} /></label>
         <label><span>To (GMT+7)</span><input type="datetime-local" value={filters.toLocal} onChange={(event) => setFilters((current) => ({ ...current, toLocal: event.target.value }))} /></label>
+
+        <details className="admin-advanced-filters" open={Boolean(filters.entityId || filters.entityType)}>
+          <summary>Resource filters</summary>
+          <div>
+            <label>
+              <span>Resource type</span>
+              <input
+                list="awp07-entity-types"
+                value={filters.entityType}
+                onChange={(event) => setFilters((current) => ({ ...current, entityType: event.target.value }))}
+                placeholder="Exact entity type"
+              />
+              <datalist id="awp07-entity-types">
+                {KNOWN_ENTITY_TYPES.map((entityType) => <option key={entityType} value={entityType} label={formatCode(entityType)} />)}
+              </datalist>
+            </label>
+
+            <label>
+              <span>Resource ID (optional)</span>
+              <input
+                value={filters.entityId}
+                onChange={(event) => setFilters((current) => ({ ...current, entityId: event.target.value }))}
+                placeholder="Paste resource ID, or leave blank"
+              />
+            </label>
+
+          </div>
+        </details>
 
         <div className="awp06-filter-actions">
           <button className="awp01-button awp01-button--secondary" type="button" onClick={clearFilters}>Clear</button>
@@ -453,7 +447,7 @@ export default function ActivityLogManagementPage() {
 
       <div className="awp06-integrity-note awp07-integrity-note">
         <ShieldCheck size={18} aria-hidden="true" />
-        <span>AuditLog is append-only. System/background events may have no actor, but still identify the action, resource, and recorded UTC event time.</span>
+        <span>Activity history cannot be edited or deleted. Automated events may have no user account. Times are shown in GMT+7.</span>
       </div>
 
       {loading && (
@@ -464,7 +458,7 @@ export default function ActivityLogManagementPage() {
 
       {!loading && error && (
         <div className="awp01-state-card awp01-state-card--error" role="alert">
-          <strong>{error.code}</strong>
+          <strong>Unable to load this information</strong><small>Code: {error.code}</small>
           <p>{error.message}</p>
           {error.traceId ? <small>Trace: {error.traceId}</small> : null}
           <button className="awp01-button awp01-button--secondary" type="button" onClick={() => void load(pagination.page || 1, appliedFilters)}>Try again</button>
@@ -474,13 +468,13 @@ export default function ActivityLogManagementPage() {
       {!loading && !error && items.length === 0 && (
         <div className="awp01-state-card">
           <strong>No activity events found</strong>
-          <p>No AuditLog row matches the applied server-side filters.</p>
+          <p>No activity matches these filters. Clear them to see all activity.</p><button type="button" className="awp01-button awp01-button--secondary" onClick={clearFilters}>Clear filters</button>
         </div>
       )}
 
       {!loading && !error && items.length > 0 && (
         <section className="awp01-table-card">
-          <div className="awp01-table-wrap">
+          <div className="awp01-table-wrap" role="region" aria-label="Activity log results (scroll horizontally for more columns)" tabIndex={0}>
             <table className="awp01-table awp07-table">
               <thead>
                 <tr>
@@ -538,11 +532,11 @@ export default function ActivityLogManagementPage() {
       )}
 
       {selected ? (
-        <div className="awp07-drawer-layer" role="presentation" onMouseDown={() => setSelected(null)}>
-          <div onMouseDown={(event: MouseEvent<HTMLDivElement>) => event.stopPropagation()}>
+        <AdminModal className="awp07-drawer-layer" label="Activity detail" onClose={() => setSelected(null)}>
+          <div data-admin-backdrop>
             <AuditLogDetailDrawer entry={selected} onClose={() => setSelected(null)} />
           </div>
-        </div>
+        </AdminModal>
       ) : null}
     </div>
   )

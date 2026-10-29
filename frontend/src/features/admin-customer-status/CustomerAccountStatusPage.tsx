@@ -1,3 +1,5 @@
+import { AdminFilterScope, AdminListNavigation } from '../../components/admin/AdminListNavigation'
+import { AdminModal } from '../../components/admin/AdminModal'
 import { RefreshCw, Search, ShieldAlert, X } from 'lucide-react'
 import { useState, type ChangeEvent } from 'react'
 import { activateAdminCustomer, deactivateAdminCustomer, normalizeAdminApiError } from '../../api/adminApi'
@@ -13,7 +15,6 @@ interface Notice {
   message: string
   traceId?: string
 }
-
 
 export default function CustomerAccountStatusPage() {
   const {
@@ -68,7 +69,6 @@ export default function CustomerAccountStatusPage() {
     <div className="awp01-page awp02-page" data-testid="awp02-page">
       <header className="awp01-page__header">
         <div>
-          <p className="awp01-eyebrow">System Administrator</p>
           <h1>Customer account status</h1>
           <p>Manage customer access. Deactivating an account preserves its history.</p>
         </div>
@@ -85,9 +85,9 @@ export default function CustomerAccountStatusPage() {
       )}
 
       <section className="awp01-summary" aria-label="Customer account summary">
-        <div className="awp01-summary-card"><span>Customers on page</span><strong>{rawAccounts.length}</strong></div>
-        <div className="awp01-summary-card"><span>Active on page</span><strong>{activeCount}</strong></div>
-        <div className="awp01-summary-card"><span>Inactive on page</span><strong>{inactiveCount}</strong></div>
+        <div className="awp01-summary-card"><span>Customers on page</span><strong>{loading ? '—' : rawAccounts.length}</strong></div>
+        <div className="awp01-summary-card"><span>Active on page</span><strong>{loading ? '—' : activeCount}</strong></div>
+        <div className="awp01-summary-card"><span>Inactive on page</span><strong>{loading ? '—' : inactiveCount}</strong></div>
       </section>
 
       <section className="awp01-toolbar">
@@ -101,16 +101,17 @@ export default function CustomerAccountStatusPage() {
           <span>Search current page</span>
           <div className="awp01-search-input"><Search size={16} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Name, email or phone…" /></div>
         </label>
-        <p className="awp01-toolbar__note">Filters apply to customers on this page. Use Previous and Next to browse more accounts.</p>
       </section>
 
+      <AdminFilterScope loading={loading} page={pagination.page} loaded={rawAccounts.length} matching={accounts.length} onClear={() => { setStatus('ALL'); setSearch('') }} />
+
       {loading && <div className="awp01-state-grid">{Array.from({ length: 5 }).map((_, index) => <div className="awp01-skeleton" key={index} />)}</div>}
-      {!loading && error && <div className="awp01-state-card awp01-state-card--error" role="alert"><strong>{error.code}</strong><p>{error.message}</p><button className="awp01-button awp01-button--secondary" onClick={() => void refresh()}>Try again</button></div>}
-      {!loading && !error && accounts.length === 0 && <div className="awp01-state-card"><strong>No Customer accounts to show</strong><p>No Customer on this server page matches the current filters.</p></div>}
+      {!loading && error && <div className="awp01-state-card awp01-state-card--error" role="alert"><strong>Unable to load this information</strong><small>Code: {error.code}</small><p>{error.message}</p><button className="awp01-button awp01-button--secondary" onClick={() => void refresh()}>Try again</button></div>}
+      {!loading && !error && accounts.length === 0 && <div className="awp01-state-card"><strong>No Customer accounts to show</strong><p>No customers on this page match. Clear the filters or browse another directory page.</p></div>}
 
       {!loading && !error && accounts.length > 0 && (
         <section className="awp01-table-card">
-          <div className="awp01-table-wrap">
+          <div className="awp01-table-wrap" role="region" aria-label="Account results (scroll horizontally for more columns)" tabIndex={0}>
             <table className="awp01-table awp02-table">
               <thead><tr><th>Customer</th><th>Contact</th><th>Status</th><th>Action</th></tr></thead>
               <tbody>{accounts.map((account) => (
@@ -123,20 +124,21 @@ export default function CustomerAccountStatusPage() {
               ))}</tbody>
             </table>
           </div>
-          <footer className="awp01-pagination"><span>page {pagination.page} of {Math.max(pagination.totalPages, 1)} · {pagination.totalItems} total accounts</span><div><button className="awp01-button awp01-button--secondary" disabled={pagination.page <= 1} onClick={() => void loadPage(pagination.page - 1)}>Previous</button><button className="awp01-button awp01-button--secondary" disabled={pagination.page >= pagination.totalPages} onClick={() => void loadPage(pagination.page + 1)}>Next</button></div></footer>
         </section>
       )}
 
+      {!error && <AdminListNavigation pagination={pagination} loading={loading} onPage={page => void loadPage(page)} />}
+
       {target && (
-        <div className="awp02-modal-layer" role="presentation">
-          <div className="awp02-modal" role="dialog" aria-modal="true" aria-labelledby="awp02-dialog-title">
-            <header><div><h2 id="awp02-dialog-title">{target.status === 'ACTIVE' ? 'Deactivate Customer?' : 'Activate Customer?'}</h2></div><button className="awp01-icon-button" type="button" disabled={busy} onClick={() => setTarget(null)}><X size={18} /></button></header>
+        <AdminModal className="awp02-modal-layer" label={target.status === 'ACTIVE' ? 'Deactivate customer' : 'Activate customer'} busy={busy} onClose={() => setTarget(null)}>
+          <div className="awp02-modal" aria-labelledby="awp02-dialog-title">
+            <header><div><h2 id="awp02-dialog-title">{target.status === 'ACTIVE' ? 'Deactivate Customer?' : 'Activate Customer?'}</h2></div><button className="awp01-icon-button" type="button" disabled={busy} aria-label="Close status confirmation" onClick={() => setTarget(null)}><X size={18} /></button></header>
             <div className="awp02-person"><strong>{target.profile?.fullName}</strong><span>{target.email}</span></div>
-            {target.status === 'ACTIVE' ? <div className="awp02-guard"><ShieldAlert size={18} /><span>The server will reject this action if a CONFIRMED Reservation or ACTIVE Contract exists. Existing historical data remains intact.</span></div> : <p className="awp02-copy">Activation restores login/action eligibility subject to the account's role and normal authorization rules.</p>}
-            {actionError && <div className="awp02-inline-error" role="alert"><strong>{actionError.code}</strong><span>{actionError.message}</span>{actionError.traceId ? <small>Trace: {actionError.traceId}</small> : null}</div>}
+            {target.status === 'ACTIVE' ? <div className="awp02-guard"><ShieldAlert size={18} /><span>This customer cannot be deactivated while they have a confirmed reservation or an active contract. Their account history will be preserved.</span></div> : <p className="awp02-copy">The customer will be able to sign in again and use the features available to their account.</p>}
+            {actionError && <div className="awp02-inline-error" role="alert"><strong>Unable to change account status</strong><small>Code: {actionError.code}</small><span>{actionError.message}</span>{actionError.traceId ? <small>Trace: {actionError.traceId}</small> : null}</div>}
             <footer><button className="awp01-button awp01-button--secondary" type="button" disabled={busy} onClick={() => setTarget(null)}>Cancel</button><button className={target.status === 'ACTIVE' ? 'awp02-confirm awp02-confirm--danger' : 'awp02-confirm'} type="button" disabled={busy} onClick={() => void confirmStatusChange()}>{busy ? 'Saving…' : target.status === 'ACTIVE' ? 'Deactivate Customer' : 'Activate Customer'}</button></footer>
           </div>
-        </div>
+        </AdminModal>
       )}
     </div>
   )
