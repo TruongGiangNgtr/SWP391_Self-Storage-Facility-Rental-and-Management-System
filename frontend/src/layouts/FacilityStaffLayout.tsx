@@ -1,4 +1,4 @@
-import { EmployeeLabelsProvider } from '../components/EmployeeEntityLabel'
+import { EmployeePageTransition } from '../components/EmployeePageTransition'
 import {
   ClipboardList,
   DoorOpen,
@@ -8,7 +8,7 @@ import {
   LogOut,
   RotateCcw,
 } from 'lucide-react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { useAuth } from '../auth/auth.context'
 import { BrandLogo } from '../components/BrandLogo'
 import { EmployeePortalFooter } from '../components/EmployeePortalFooter'
@@ -40,7 +40,7 @@ export function FacilityStaffLayout() {
   const initials = getInitials(user?.fullName)
 
   return (
-    <div className="staff-shell employee-identity">
+    <div className="staff-shell employee-identity employee-workspace">
       <a className="portal-skip-link" href="#staff-main">Skip to content</a>
       <header className="staff-header">
         <div className="staff-brand">
@@ -91,7 +91,7 @@ export function FacilityStaffLayout() {
         </aside>
 
         <main className="staff-main" id="staff-main" tabIndex={-1}>
-          <EmployeeLabelsProvider><Outlet /></EmployeeLabelsProvider>
+          <EmployeePageTransition />
         </main>
       </div>
 

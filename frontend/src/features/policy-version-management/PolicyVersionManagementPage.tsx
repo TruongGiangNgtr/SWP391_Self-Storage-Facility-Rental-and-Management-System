@@ -441,6 +441,7 @@ export function PolicyVersionManagementPage() {
           <span className="facility-search-icon">⌕</span>
           <input
             type="search"
+            aria-label="Search policy versions"
             value={searchTerm}
             onChange={(event) => {
               setSearchTerm(event.target.value)

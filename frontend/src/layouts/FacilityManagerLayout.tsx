@@ -1,4 +1,4 @@
-import { EmployeeLabelsProvider } from '../components/EmployeeEntityLabel'
+import { EmployeePageTransition } from '../components/EmployeePageTransition'
 import {
   ChartNoAxesCombined,
   ClipboardCheck,
@@ -10,7 +10,6 @@ import {
 } from 'lucide-react'
 import {
   NavLink,
-  Outlet,
 } from 'react-router-dom'
 import { useAuth } from '../auth/auth.context'
 import { BrandLogo } from '../components/BrandLogo'
@@ -73,7 +72,7 @@ export function FacilityManagerLayout() {
   const initials = getInitials(user?.fullName)
 
   return (
-    <div className="manager-shell employee-identity">
+    <div className="manager-shell employee-identity employee-workspace">
       <a className="portal-skip-link" href="#manager-main">Skip to content</a>
       <header className="manager-header">
         <div className="manager-brand">
@@ -150,7 +149,7 @@ export function FacilityManagerLayout() {
         </aside>
 
         <main className="manager-main" id="manager-main" tabIndex={-1}>
-          <EmployeeLabelsProvider><Outlet /></EmployeeLabelsProvider>
+          <EmployeePageTransition />
         </main>
       </div>
 

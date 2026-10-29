@@ -1,4 +1,4 @@
-import { EmployeeLabelsProvider } from '../components/EmployeeEntityLabel'
+import { EmployeePageTransition } from '../components/EmployeePageTransition'
 import {
   ClipboardList,
   History,
@@ -9,7 +9,6 @@ import {
 } from 'lucide-react'
 import {
   NavLink,
-  Outlet,
 } from 'react-router-dom'
 import { useAuth } from '../auth/auth.context'
 import { BrandLogo } from '../components/BrandLogo'
@@ -72,7 +71,7 @@ export function SystemAdministratorLayout() {
   const initials = getInitials(user?.fullName)
 
   return (
-    <div className="admin-shell employee-identity">
+    <div className="admin-shell employee-identity employee-workspace">
       <a className="portal-skip-link" href="#admin-main">Skip to content</a>
       <header className="admin-header">
         <div className="admin-brand">
@@ -129,7 +128,7 @@ export function SystemAdministratorLayout() {
         </aside>
 
         <main className="admin-main" id="admin-main" tabIndex={-1}>
-          <EmployeeLabelsProvider><Outlet /></EmployeeLabelsProvider>
+          <EmployeePageTransition />
         </main>
       </div>
 

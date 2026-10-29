@@ -330,6 +330,7 @@ export function UnitTypePricingPage() {
 
           <input
             type="search"
+            aria-label="Search unit types by name, size or description"
             value={searchTerm}
             onChange={(event) => {
               setSearchTerm(event.target.value)

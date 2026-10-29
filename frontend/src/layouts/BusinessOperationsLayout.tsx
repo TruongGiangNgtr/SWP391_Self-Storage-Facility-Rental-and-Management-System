@@ -1,5 +1,5 @@
-import { EmployeeLabelsProvider } from '../components/EmployeeEntityLabel'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { EmployeePageTransition } from '../components/EmployeePageTransition'
+import { NavLink, useLocation } from 'react-router-dom'
 import {
   AtSign,
   Building2,
@@ -27,7 +27,7 @@ export function BusinessOperationsLayout({
     .map(part => part[0]?.toUpperCase() ?? '').join('') || 'BO'
 
   return (
-  <div className="bo-shell">
+  <div className="bo-shell employee-identity employee-workspace">
       <a className="portal-skip-link" href="#business-main">Skip to content</a>
     <header className="bo-header">
       <div className="bo-brand">
@@ -152,7 +152,7 @@ export function BusinessOperationsLayout({
       </aside>
 
       <main className="bo-main" id="business-main" tabIndex={-1}>
-        <EmployeeLabelsProvider><Outlet /></EmployeeLabelsProvider>
+        <EmployeePageTransition />
       </main>
     </div>
 

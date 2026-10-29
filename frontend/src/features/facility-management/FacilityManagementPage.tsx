@@ -548,6 +548,7 @@ async function handleEditFacility(
 
           <input
             type="search"
+            aria-label="Search facilities by name, address or contact"
             value={searchTerm}
             onChange={(event) => {
               setSearchTerm(event.target.value)
