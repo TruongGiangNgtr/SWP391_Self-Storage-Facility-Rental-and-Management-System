@@ -12,8 +12,8 @@ public sealed class JsonPublicPolicyContentProvider : IPublicPolicyContentProvid
 {
     private static readonly string[] AllowedKeys =
     [
-        "reservation-cancellation", "identity-verification", "deposit-payment-refund",
-        "storage-access-handover-contract", "facility-rules-prohibited-items", "account-privacy"
+        "reservation-cancellation", "deposit-payment-refund",
+        "storage-access-handover-contract", "facility-rules-prohibited-items"
     ];
 
     public IReadOnlyList<PublishedPolicyArticle> PublishedArticles { get; }

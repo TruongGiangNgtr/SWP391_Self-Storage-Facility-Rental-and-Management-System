@@ -10,7 +10,7 @@
 .frms-customer .help-section-heading h2 { margin: 8px 0 12px; }
 .frms-customer .help-section-heading p { margin: 0; color: #64748b; }
 .frms-customer .help-section-heading .eyebrow { color: var(--flow-brand); }
-.frms-customer .help-policy-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.frms-customer .help-policy-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
 .frms-customer .help-policy-card { display: flex; flex-direction: column; min-width: 0; padding: 24px; border: 1px solid var(--flow-border); border-radius: 16px; background: #fff; box-shadow: var(--customer-shadow); }
 .frms-customer .help-card-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
 .frms-customer .help-icon-tile { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; color: var(--flow-brand); background: #eff6ff; }

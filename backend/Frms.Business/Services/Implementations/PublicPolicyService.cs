@@ -12,8 +12,8 @@ internal sealed class PublicPolicyService(
 {
     private static readonly string[] Order =
     [
-        "reservation-cancellation", "identity-verification", "deposit-payment-refund",
-        "storage-access-handover-contract", "facility-rules-prohibited-items", "account-privacy"
+        "reservation-cancellation", "deposit-payment-refund",
+        "storage-access-handover-contract", "facility-rules-prohibited-items"
     ];
 
     public async Task<(IReadOnlyList<PublicPolicyDetailResult> Items, int TotalItems)> ListAsync(

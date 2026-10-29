@@ -55,7 +55,7 @@ export function AiStoragePolicyPanel() {
       {copyStatus && <p role="status">{copyStatus}</p>}
     </>}
     {policy?.approvalStatus === 'APPROVED'
-      ? <p><Link to="/help/policies/facility-rules-prohibited-items">View published Facility Rules &amp; Prohibited Items Policy</Link></p>
+      ? <p><Link to="/help/policies/facility-rules-prohibited-items">View Facility Rules &amp; Prohibited Items</Link></p>
       : <p>Official policy publication is pending legal and business approval.</p>}
   </aside>
 }

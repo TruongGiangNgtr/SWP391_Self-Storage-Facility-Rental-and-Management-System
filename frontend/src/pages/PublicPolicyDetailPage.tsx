@@ -34,8 +34,8 @@ export function PublicPolicyDetailPage() {
         <div className="help-article-grid"><nav className="help-contents" aria-label="On this page"><h2>On this page</h2><ol>{article.sections.map((section, index) => <li key={index}><Link to={`/help/policies/${policyKey}#policy-section-${index + 1}`}>{section.heading}</Link></li>)}</ol></nav>
           <article className="help-article" aria-labelledby="policy-article-heading">{article.sections.map((section, index) => <section key={index} aria-labelledby={`policy-section-${index + 1}`}><h2 id={`policy-section-${index + 1}`} tabIndex={-1}>{section.heading}</h2><p className="help-plain-text">{section.body}</p></section>)}</article>
         </div>
-        <aside className="help-existing-terms"><h2>Already renting with FStoRent?</h2><p>This article describes the current public policy for new rentals. Existing reservations and contracts continue using their captured policy. Sign in and check your rental details for the terms that apply to you.</p><Link className="help-read-link" to="/customer/contracts">View My Contracts</Link></aside>
-        <div className="help-article-actions"><Link className="button button-secondary" to="/help">All Public Policies</Link><Link className="button button-secondary" to="/help#contact">Contact a Facility</Link></div>
+        <aside className="help-existing-terms"><h2>Already renting with FStoRent?</h2><p>This guide describes current rules for new rentals. Existing reservations and contracts keep their captured Policy terms. Sign in and check your rental details for the terms that apply to you.</p><Link className="help-read-link" to="/customer/contracts">View My Contracts</Link></aside>
+        <div className="help-article-actions"><Link className="button button-secondary" to="/help">All Policy Guides</Link><Link className="button button-secondary" to="/help#contact">Contact a Facility</Link></div>
       </>}
     </>}
   </main>
