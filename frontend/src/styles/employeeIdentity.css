@@ -1,0 +1,127 @@
+/* Match the incumbent BOM identity blocks. Repeated scope specificity keeps
+   employeePortal's broad text defaults out of the header and profile card. */
+.employee-identity.employee-identity.employee-identity :is(.manager-header, .staff-header, .admin-header) {
+  min-height: 64px;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 20px;
+  padding: 0 24px;
+  border-bottom: 1px solid #e3e8f0;
+}
+
+.employee-identity.employee-identity.employee-identity :is(.manager-brand, .staff-brand, .admin-brand) {
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.employee-identity.employee-identity.employee-identity .brand-logo--small .brand-logo__wordmark {
+  font-size: 16px;
+}
+
+.employee-identity.employee-identity.employee-identity .brand-logo__wordmark > span {
+  font-size: inherit;
+}
+
+.employee-identity.employee-identity.employee-identity header .brand-logo__suffix {
+  color: var(--frms-primary);
+}
+
+.employee-identity.employee-identity.employee-identity :is(.manager-portal-badge, .staff-portal-badge, .admin-portal-badge) {
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  line-height: 1.5;
+  color: var(--frms-primary);
+  white-space: normal;
+}
+
+.employee-identity.employee-identity.employee-identity :is(.manager-header-user, .staff-header-user, .admin-header-user) {
+  width: auto;
+  gap: 10px;
+}
+
+.employee-identity.employee-identity.employee-identity :is(.manager-header-avatar, .staff-header-avatar, .admin-header-avatar) {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  font-size: 11px;
+}
+
+.employee-identity.employee-identity.employee-identity :is(.manager-header-user-text, .staff-header-user-text, .admin-header-user-text) {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.employee-identity.employee-identity.employee-identity :is(.manager-header-user-text, .staff-header-user-text, .admin-header-user-text) strong {
+  color: var(--frms-text);
+  font-size: 12px;
+}
+
+.employee-identity.employee-identity.employee-identity :is(.manager-header-user-text, .staff-header-user-text, .admin-header-user-text) span {
+  margin-top: 2px;
+  color: #6b778c;
+  font-size: 10px;
+}
+
+.employee-identity.employee-identity.employee-identity :is(.manager-profile-avatar, .staff-profile-avatar) {
+  width: 58px;
+  height: 58px;
+  font-size: 18px;
+}
+
+.employee-identity.employee-identity.employee-identity :is(.manager-profile, .staff-profile) strong {
+  color: #111827;
+  font-size: 14px;
+}
+
+.employee-identity.employee-identity.employee-identity :is(.manager-profile-email, .staff-profile-email) {
+  color: #738095;
+  font-size: 11px;
+}
+
+.employee-identity.employee-identity.employee-identity :is(.manager-role-badge, .staff-role-badge) {
+  color: var(--frms-primary);
+  font-size: 10px;
+}
+
+@media (min-width: 901px) {
+  .employee-identity.employee-identity.employee-identity :is(.manager-body, .staff-body, .admin-body) {
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    padding: 8px;
+  }
+
+  .employee-identity.employee-identity.employee-identity :is(.manager-sidebar, .staff-sidebar) {
+    padding: 18px;
+    margin: 0;
+    border: 1px solid #e3e8f0;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgb(15 23 42 / 6%);
+  }
+
+  .employee-identity.employee-identity.employee-identity :is(.manager-profile, .staff-profile) {
+    display: flex;
+  }
+
+  .employee-identity.employee-identity.employee-identity :is(.manager-nav, .staff-nav) {
+    flex-direction: column;
+    margin-top: 18px;
+    padding-bottom: 0;
+    overflow-x: visible;
+  }
+
+  .employee-identity.employee-identity.employee-identity :is(.manager-nav-link, .staff-nav-link) {
+    white-space: normal;
+  }
+}
+
+/* BOM keeps a compact brand + avatar header on small screens. */
+@media (max-width: 700px) {
+  .employee-identity.employee-identity.employee-identity :is(.manager-portal-badge, .staff-portal-badge, .admin-portal-badge,
+    .manager-header-user-text, .staff-header-user-text, .admin-header-user-text) {
+    display: none;
+  }
+}

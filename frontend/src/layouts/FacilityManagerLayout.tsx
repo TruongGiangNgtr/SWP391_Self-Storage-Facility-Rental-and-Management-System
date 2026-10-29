@@ -16,6 +16,7 @@ import { useAuth } from '../auth/auth.context'
 import { BrandLogo } from '../components/BrandLogo'
 import { EmployeePortalFooter } from '../components/EmployeePortalFooter'
 import '../styles/manager.css'
+import '../styles/employeeIdentity.css'
 
 function getInitials(fullName?: string | null) {
   if (!fullName?.trim()) {
@@ -72,7 +73,7 @@ export function FacilityManagerLayout() {
   const initials = getInitials(user?.fullName)
 
   return (
-    <div className="manager-shell">
+    <div className="manager-shell employee-identity">
       <a className="portal-skip-link" href="#manager-main">Skip to content</a>
       <header className="manager-header">
         <div className="manager-brand">
@@ -89,7 +90,7 @@ export function FacilityManagerLayout() {
 
           <div className="manager-header-user-text">
             <strong>{displayName}</strong>
-            <span>{user?.email ?? 'Employee account'}</span>
+            <span>Facility Manager</span>
           </div>
         </div>
       </header>

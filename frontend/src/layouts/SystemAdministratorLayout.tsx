@@ -15,6 +15,7 @@ import { useAuth } from '../auth/auth.context'
 import { BrandLogo } from '../components/BrandLogo'
 import '../styles/manager.css'
 import '../styles/admin.css'
+import '../styles/employeeIdentity.css'
 
 function getInitials(fullName?: string | null) {
   if (!fullName?.trim()) {
@@ -71,13 +72,13 @@ export function SystemAdministratorLayout() {
   const initials = getInitials(user?.fullName)
 
   return (
-    <div className="admin-shell">
+    <div className="admin-shell employee-identity">
       <a className="portal-skip-link" href="#admin-main">Skip to content</a>
       <header className="admin-header">
         <div className="admin-brand">
           <BrandLogo size="small" />
           <span className="admin-portal-badge">
-            System Administrator
+            SYSTEM ADMINISTRATOR PORTAL
           </span>
         </div>
 
@@ -85,7 +86,7 @@ export function SystemAdministratorLayout() {
           <div className="admin-header-avatar">{initials}</div>
           <div className="admin-header-user-text">
             <strong>{displayName}</strong>
-            <span>{user?.email ?? 'Employee account'}</span>
+            <span>System Administrator</span>
           </div>
         </div>
       </header>

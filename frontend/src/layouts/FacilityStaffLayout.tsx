@@ -13,6 +13,7 @@ import { useAuth } from '../auth/auth.context'
 import { BrandLogo } from '../components/BrandLogo'
 import { EmployeePortalFooter } from '../components/EmployeePortalFooter'
 import '../styles/staff.css'
+import '../styles/employeeIdentity.css'
 
 function getInitials(fullName?: string | null) {
   if (!fullName?.trim()) return 'FS'
@@ -39,7 +40,7 @@ export function FacilityStaffLayout() {
   const initials = getInitials(user?.fullName)
 
   return (
-    <div className="staff-shell">
+    <div className="staff-shell employee-identity">
       <a className="portal-skip-link" href="#staff-main">Skip to content</a>
       <header className="staff-header">
         <div className="staff-brand">
@@ -51,7 +52,7 @@ export function FacilityStaffLayout() {
           <div className="staff-header-avatar">{initials}</div>
           <div className="staff-header-user-text">
             <strong>{displayName}</strong>
-            <span>{user?.email ?? 'Employee account'}</span>
+            <span>Facility Staff</span>
           </div>
         </div>
       </header>
