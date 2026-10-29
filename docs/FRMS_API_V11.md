@@ -3,6 +3,7 @@
 > **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](FRMS_InApp_Notifications_Review.md). Only OD-06 / IMPL-CUSACT-01 is being revised. The proposed read DTO and visibility are not implemented; approve contract/routing before coordinated FE/BE changes. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
 
 **Version:** V11.0 REVIEW CANDIDATE  
+**Public policy topic revision:** 2026-10-29 — `REV-2026-10-29-PUBLIC-POLICY-CONSOLIDATION` (SRS §0.0.11); four Help Center articles replace the former six-topic list; no Policy schema or business-rule change.
 **Approved CCCD format revision:** 2026-10-26 — `REV-2026-10-26-CCCD-12-DIGITS` (SRS OD-10); exact 12 ASCII digits, existing error envelope; backend/runtime OpenAPI alignment pending.
 **Approved Customer revision:** 2026-10-25 — `REV-2026-10-25-CUSTOMER-CCCD-CONTINUATION` (SRS OD-09), team approval confirmed by owner; existing 400 VALIDATION_ERROR + errors.cccd approved; requirement synchronization only, not runtime acceptance.
 **Date:** 2026-10-22 (Customer Transaction History requirements approval; recurring BackgroundJobs reconciliation dated 2026-10-21)\
@@ -275,16 +276,16 @@ This is a non-persisted read projection of approved explanatory content plus the
 ```json
 {
   "policyKey": "reservation-cancellation",
-  "title": "Reservation and cancellation",
-  "summary": "Public explanation of the current reservation and cancellation rules.",
+  "title": "Reservation & Account Requirements",
+  "summary": "How to choose storage, meet account requirements and confirm or cancel a reservation.",
   "policyId": "uuid",
   "version": 1,
   "effectiveFrom": "2026-10-01T00:00:00Z",
   "effectiveTo": null,
   "sections": [
     {
-      "heading": "Before making a reservation",
-      "body": "Choose a facility, unit type and rental period. Sign in before creating your reservation."
+      "heading": "Before reserving",
+      "body": "Choose a facility, storage type and rental period. Sign in and review current details before confirming your reservation."
     }
   ]
 }
@@ -422,7 +423,7 @@ For `RENTAL_FEE`, the configured `MonthlyPaymentDueDay` is the final non-overdue
 
 ## 13.11 Endpoint Registry
 
-The CAT-001..005 public access/filter/view changes, PUB-POL-001/002 and Anonymous AI access below are approved governing contracts under section 0.0.6. Previously approved protected business/authentication contracts remain unchanged. Endpoint implementation and Swagger/frontend synchronization must be verified separately before feature acceptance.
+The CAT-001..005 public access/filter/view changes, PUB-POL-001/002 and Anonymous AI access below are approved governing contracts under SRS §0.0.6, with the four-topic PUB-POL catalogue superseded by SRS §0.0.11. Previously approved protected business/authentication contracts remain unchanged. Endpoint implementation and Swagger/frontend synchronization must be verified separately before feature acceptance.
 
 | API ID | Method | Endpoint | Description | Allowed access / role(s) | Feature |
 |---|---|---|---|---|---|
@@ -812,20 +813,20 @@ GET /api/v1/public/policies?page=1&pageSize=20
 GET /api/v1/public/policies/{policyKey}
 ```
 
-Read-only projection for these Help Center topics, in the listed order:
+Read-only projection for these four Help Center topics, in the listed order (SRS §0.0.11):
 
 ```text
 reservation-cancellation
-identity-verification
 deposit-payment-refund
 storage-access-handover-contract
 facility-rules-prohibited-items
-account-privacy
 ```
 
-PUB-POL-001 returns paginated PublicPolicySummary; PUB-POL-002 returns PublicPolicyDetail, with schemas in section 13.10.3b. No current ACTIVE Policy -> 404 RESOURCE_NOT_FOUND for either endpoint. With a current Policy, the list includes only published topics (possibly empty); unknown/unpublished policyKey or missing article content -> 404 RESOURCE_NOT_FOUND for detail. Never fabricate a policy version, success article or threshold. All six required GWP-04 topics must have approved published content before acceptance can pass.
+`reservation-cancellation` now includes the former CCCD/own-account-access guidance; `identity-verification` and `account-privacy` are removed as separate public article keys. A frontend route for either former key may redirect to `reservation-cancellation`, while PUB-POL-002 returns 404 RESOURCE_NOT_FOUND for those removed keys.
 
-Article text is reviewed/version-controlled deployment content, exposed through a Business-owned read service/provider and API response mapping. Current numerical thresholds/version/effective dates are sourced through the existing Policy service/repository. Use a single current Policy snapshot per response; no new table, content-editor CRUD endpoint, policy approval workflow or historical-publication capability is introduced. Explanatory copy must be finalized by the team before publishing; SAMPLE POLICY, OTP/Google/password-reset promises, arbitrary fee/currency values and unsupported prohibited-item rules are not authoritative content.
+PUB-POL-001 returns paginated PublicPolicySummary; PUB-POL-002 returns PublicPolicyDetail, with schemas in section 13.10.3b. No current ACTIVE Policy -> 404 RESOURCE_NOT_FOUND for either endpoint. With a current Policy, the list includes only published topics (possibly empty); unknown/unpublished policyKey or missing article content -> 404 RESOURCE_NOT_FOUND for detail. Never fabricate a policy version, success article or threshold. All four required GWP-04 topics must have reviewed and approved content before release acceptance can pass. Local manual review content alone is not publication approval.
+
+Article text is reviewed/version-controlled deployment content, exposed through a Business-owned read service/provider and API response mapping. The current projection attaches PolicyId, version and effective dates from one ACTIVE Policy snapshot; these identify the persisted Policy parameters, not an independently versioned copy of each article. This response does not expose numerical Policy thresholds, so article bodies may describe those rules generally but must not invent or hard-code a changing threshold. No new table, content-editor CRUD endpoint, policy approval workflow or historical-publication capability is introduced. Explanatory copy must be finalized by the team before production publication; SAMPLE POLICY, OTP/Google/password-reset promises, arbitrary fee/currency values and unsupported prohibited-item rules are not authoritative content. The Facility Rules source catalogue remains a draft requiring separate team review.
 
 Current public policy describes new rentals. Existing Reservation/Contract rules remain governed by captured PolicyId, accessible only through authorized private-resource APIs. A policy topic is not a persisted Policy row and the public API does not return BOM-008 policy history, CustomerId, captured Contract terms or internal management fields.
 

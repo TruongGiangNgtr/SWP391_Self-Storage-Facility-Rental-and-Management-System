@@ -375,6 +375,14 @@ Three V11 Markdown specifications are maintained as a single **review candidate*
 
 Document synchronization alone does not approve PostgreSQL architecture, provisional directory APIs, unrelated feature development, production migrations or live bank operations. Customer activity reads remain limited to OD-06/07; OD-09 separately approves conditional CCCD and continuation, not wider personal-data reads. AUTH-004 owner-only CCCD is now observed in source at `2945788`; OD-09's new reservation gate/continuation still require implementation and acceptance. Optional Customer.Address remains approved. No build, NUnit, PostgreSQL E2E, compiled Swagger, Postman or Playwright results are claimed by this documentation update.
 
+## 0.0.11 Approved Change Record — REV-2026-10-29-PUBLIC-POLICY-CONSOLIDATION
+
+**Owner approval:** On 2026-10-29 the owner approved reducing the public Help Center catalogue from six overlapping articles to four focused articles. This changes GWP-04 presentation content and the PUB-POL-001/002 topic allowlist, not the underlying Policy entity, captured PolicyId, financial rules, lifecycle, access rights or database schema.
+
+The four topics, in display order, are `reservation-cancellation` (Reservation & Account Requirements, including CCCD and own-account data access), `deposit-payment-refund` (Deposit, Invoices & Refunds), `storage-access-handover-contract` (Storage Rental & Return), and `facility-rules-prohibited-items` (Facility Rules & Prohibited Items). The former `identity-verification` and `account-privacy` articles are consolidated into the first topic; they are no longer separate PUB-POL keys. Existing frontend links to those former Help articles may redirect to the consolidated topic. This does not introduce an identity-verification process or a complete legal privacy notice.
+
+The Facility Rules item catalogue still has `DRAFT_REQUIRES_LEGAL_AND_BUSINESS_APPROVAL` status and no effective date. The owner's approval of this four-topic structure and local review copy does not mark that source APPROVED or certify production publication. Team review of public copy and applicable GWP-04 acceptance tests remain separate. Article version wording must distinguish the current persisted Policy parameters from the independently edited explanatory copy; configurable numerical thresholds may not be invented or hard-coded into article text.
+
 ## 0.1 Authority Order
 
 For implementation, review, testing, and conflict resolution:
@@ -2448,7 +2456,7 @@ GWP denotes a public functional capability, not a business role or new end-to-en
 | `GWP-01` | Public Facility & UnitType Search | Anonymous/Customer search location + mode/type/size + inclusive month range; return matching ACTIVE Facilities and only matching UnitTypes with capacity > 0 in every requested month; identical public projection without personal data or holds |
 | `GWP-02` | Storage Sizing Guidance (Size Guide) | Read offered Private/Public UnitTypes, existing size/description/current price; use the selected type/size in subsequent search; optional AI uses AI-001 and failure leaves manual selection available |
 | `GWP-03` | How It Works | Explain Reservation, Deposit, scheduled handover/offline first-month receipt, Contract, visits and return using approved semantics; static content introduces no new lifecycle/API |
-| `GWP-04` | Public Help / Policies / Contact | Read current public policy articles and contact information; no raw BOM policy/history, ticket creation or personal settlement; numerical policy text agrees with authoritative current Policy |
+| `GWP-04` | Public Help / Policies / Contact | Read the four current public policy articles in §0.0.11 and contact information; no raw BOM policy/history, ticket creation or personal settlement; numerical policy text agrees with authoritative current Policy |
 | `GWP-05` | Authentication Continuation | Ordinary Customer login enters the authenticated Customer area; interrupted action resumes the validated pending operation with preserved non-sensitive selection; re-read current data; no automatic business submission or global identity gate |
 
 GWP-01..05 are required supporting Release 1 capabilities. The optional AI portion of GWP-02/CWP-02 is not promoted to a blocker by this revision. New ownership assignments are not inferred; delivery ownership is allocated by the existing project process.
@@ -4279,7 +4287,7 @@ These are required tests for the revised implementation, not evidence that they 
 | `API-PUB-003` | Intermediate month has zero capacity; alternatives cover different months/types | Exclude unavailable UnitType; do not sum/swap different types/months to fabricate one valid result |
 | `API-PUB-004` | Filtered pagination/count/sort; repeated multi-Facility UnitType | Filter before page/count; stable order; CAT-005 deduplicates; valid no-match -> empty list |
 | `API-PUB-005` | Invalid/missing paired months, mode/UUID/sort/page or availableOnly | Documented 400 stable error/traceId; no business writes |
-| `API-PUB-006` | Current public policy list/detail, unknown/unpublished topic, no ACTIVE Policy | Current metadata and approved content; missing -> documented 404; no history/customer/BOM fields |
+| `API-PUB-006` | Four current public policy topics in approved order; detail, removed/unknown/unpublished topic, no ACTIVE Policy | Current metadata and approved content; missing -> documented 404; no history/customer/BOM fields |
 | `SEC-PUB-001` | Same public request by Anonymous, Customer A and Customer B | Equal identity-independent fields for same data snapshot; no Discount/private personalization |
 | `SEC-PUB-002` | Anonymous private lists/detail/create/payment/support/profile, including modified URLs/IDs | 401 and no personal data/counts/business mutation; webhook still requires provider validation |
 | `SEC-PUB-003` | Anonymous operational view; wrong-role/wrong-Facility employee operational view | 401/403 as applicable; no public fallback or role/Facility bypass; default public returns only public fields |
