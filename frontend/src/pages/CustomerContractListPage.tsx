@@ -23,7 +23,7 @@ function ContractFilterForm({ initial, facilities, onApply }: { initial: Contrac
   return <form className="panel contracts-filter-form" aria-label="Filter contracts on this page" onSubmit={submit}>
     <div className="form-field"><label htmlFor="contract-search">Search this page</label><div className="contracts-search"><Search size={18} aria-hidden="true" /><input id="contract-search" type="search" value={draft.query} placeholder="Facility, storage type, unit or period" onChange={event => setDraft(current => ({ ...current, query: event.target.value }))} /></div></div>
     <div className="form-field"><label htmlFor="contract-facility">Facility</label><select id="contract-facility" value={draft.facility} onChange={event => setDraft(current => ({ ...current, facility: event.target.value }))}><option value="">All Facilities</option>{facilities.map(facility => <option key={facility.id} value={facility.id}>{facility.name}</option>)}</select></div>
-    <div className="form-field"><label htmlFor="contract-status">Status</label><select id="contract-status" value={draft.status} onChange={event => setDraft(current => ({ ...current, status: event.target.value as ContractFilters['status'] }))}><option value="">All Statuses</option><option value="ACTIVE">Active</option><option value="COMPLETED">Completed</option><option value="TERMINATED">Terminated</option></select></div>
+    <div className="form-field"><label htmlFor="contract-status">Status</label><select id="contract-status" value={draft.status} onChange={event => setDraft(current => ({ ...current, status: event.target.value as ContractFilters['status'] }))}><option value="">All Statuses</option><option value="ACTIVE">Active</option><option value="COMPLETED">Completed</option><option value="TERMINATED">Closed</option></select></div>
     <button className="button" type="submit"><SlidersHorizontal size={16} aria-hidden="true" />Apply Filters</button>
   </form>
 }
@@ -104,7 +104,7 @@ export function CustomerContractListPage() {
     </article>
   }
   function renderHistory() {
-    return <section className="contracts-history"><div className="contracts-section-heading"><div><h2>Contract History</h2><p className="muted">Your completed and terminated rental contracts.</p></div><span>{historyContracts.length} on this page</span></div>{historyContracts.length ? <div className="contracts-card-list">{historyContracts.map(renderCard)}</div> : <EmptyState message="No contract history on this page matches your filters." />}</section>
+    return <section className="contracts-history"><div className="contracts-section-heading"><div><h2>Contract History</h2><p className="muted">Your completed and closed rental contracts.</p></div><span>{historyContracts.length} on this page</span></div>{historyContracts.length ? <div className="contracts-card-list">{historyContracts.map(renderCard)}</div> : <EmptyState message="No contract history on this page matches your filters." />}</section>
   }
   function renderPanel(historyOnly: boolean) {
     if (loading || filterPending) return <LoadingState label={loading ? 'Loading your contracts…' : 'Loading storage details for your search…'} />

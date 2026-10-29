@@ -41,7 +41,7 @@ const vnd = (value: number) => new Intl.NumberFormat('vi-VN', {
   style: 'currency', currency: 'VND', maximumFractionDigits: 0,
 }).format(value)
 const textDate = (value: string | null | undefined) => value?.slice(0, 10) ?? '—'
-const readableStatus = (value: string | null | undefined) => typeof value === 'string' ? value.replaceAll('_', ' ') : 'UNKNOWN'
+const readableStatus = (value: string | null | undefined) => value === 'TERMINATED' ? 'Closed' : typeof value === 'string' ? value.replaceAll('_', ' ') : 'UNKNOWN'
 const scopedTab = (tab: ActivityTab) => tab === 'reservations' || tab === 'contracts'
 
 function readableError(error: unknown): string {
@@ -152,7 +152,7 @@ function detailFields(detail: DetailState): { label: string; value: ReactNode }[
     return [
       { label: 'Contract', value: employeeContractLabel(r) }, { label: 'Facility', value: <EmployeeEntityLabel kind="facility" id={r.facilityId} /> },
       { label: 'Customer', value: <EmployeeEntityLabel kind="customer" id={r.customerId} /> }, { label: 'Reservation', value: r.reservationId ? <EmployeeReservationLabel customerId={r.customerId} /> : '—' },
-      { label: 'Storage Unit', value: employeeUnitLabel(r) }, { label: 'Status', value: r.status },
+      { label: 'Storage Unit', value: employeeUnitLabel(r) }, { label: 'Status', value: readableStatus(r.status) },
       { label: 'Rental period', value: employeeMonthRange(r.startMonth, r.endMonth) },
       { label: 'Captured policy', value: <EmployeeEntityLabel kind="policy" id={r.policyId} /> },
       { label: 'Captured discount', value: <EmployeeEntityLabel kind="discount" id={r.discountId} scope={r.customerId} empty="No discount" /> },
