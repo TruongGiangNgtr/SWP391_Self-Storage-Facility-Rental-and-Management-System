@@ -12,9 +12,9 @@ export function HelpCenterPage() {
   const { user } = useAuth()
   const policies = usePublicPolicies()
   return <main className="page-container public-help-center">
-    <section className="help-hero"><div className="gwp-container"><nav className="flow-breadcrumb" aria-label="Breadcrumb"><Link to="/">Home</Link><span aria-hidden="true">/</span><span aria-current="page">Help Center</span></nav><div className="help-hero-copy"><h1>Help Center</h1><p>Read public policies and find the information you need before reserving storage.</p></div></div></section>
+    <section className="help-hero"><div className="gwp-container"><nav className="flow-breadcrumb" aria-label="Breadcrumb"><Link to="/">Home</Link><span aria-hidden="true">/</span><span aria-current="page">Help Center</span></nav><div className="help-hero-copy"><h1>Help Center</h1><p>Four concise guides to booking, payments, rental and storage rules.</p></div></div></section>
     <section className="help-policies" aria-labelledby="help-policies-heading"><div className="gwp-container">
-      <div className="help-section-heading"><h2 id="help-policies-heading">System Policies</h2><p>Published articles describe the current public policy for new rentals.</p></div>
+      <div className="help-section-heading"><h2 id="help-policies-heading">Storage Policies</h2><p>Find the rules you need before and during your rental.</p></div>
       <ApiErrorAlert error={policies.error} />
       {policies.error && <button className="button button-secondary" type="button" onClick={policies.refresh}>Retry Public Policies</button>}
       {policies.loading ? <LoadingState label="Loading current public policies…" /> : policies.data && <>

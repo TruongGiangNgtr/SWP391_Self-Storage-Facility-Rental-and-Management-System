@@ -9,7 +9,7 @@ export const publicPolicyApi = {
     const raw = await httpClient.getPublic('/public/policies?page=1&pageSize=20', signal)
     try {
       const response = readPublicCollection(raw, isPublicPolicySummary, item => item.policyKey, 1, 20)
-      // All six approved topics fit on the first standard page. Do not label a
+      // All four topics fit on the first standard page. Do not label a
       // topic unpublished from a truncated page or mixed Policy snapshots.
       if (response.pagination.totalItems !== response.data.length || response.data.length > PUBLIC_POLICY_TOPICS.length ||
         response.data.some(item => !samePublicPolicySnapshot(response.data[0], item))) throw new PublicPolicyContractError()

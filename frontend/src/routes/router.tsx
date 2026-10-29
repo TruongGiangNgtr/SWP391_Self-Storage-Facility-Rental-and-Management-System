@@ -93,6 +93,8 @@ export function AppRouter() {
     <Route path="how-it-works" element={<HowItWorksPage />} />
     <Route path="size-guide" element={<SizeGuidePage />} />
     <Route path="help" element={<HelpCenterPage />} />
+    <Route path="help/policies/identity-verification" element={<Navigate to="/help/policies/reservation-cancellation" replace />} />
+    <Route path="help/policies/account-privacy" element={<Navigate to="/help/policies/reservation-cancellation" replace />} />
     <Route path="help/policies/:policyKey" element={<PublicPolicyDetailPage />} />
 
     <Route
