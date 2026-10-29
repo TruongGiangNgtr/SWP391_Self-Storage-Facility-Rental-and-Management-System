@@ -1,0 +1,348 @@
+/* Home preview: all visual changes stay inside this route. */
+.frms-customer.support-surface .home-depth {
+  --home-ink: #102b4e;
+  --home-muted: #52647a;
+  --home-brand: #245ce0;
+  background: #f7f9fc;
+  color: var(--home-ink);
+}
+.home-depth ::selection { color: #102b4e; background: #d5e4ff; }
+.home-depth :is(input, textarea) { caret-color: #245ce0; }
+.home-depth :is(a, button, input, select, summary):focus-visible { outline: 3px solid #245ce0; outline-offset: 4px; }
+.home-depth #home-storage-search { scroll-margin-top: 110px; }
+.frms-customer.support-surface .home-depth .public-hero {
+  position: relative; isolation: isolate; padding: 48px 0 0; background: #edf3fb;
+}
+.home-depth .public-hero::before {
+  content: ''; position: absolute; z-index: -1; inset: 0 0 160px;
+  background: url('/images/home/fstorent-facility.webp') center 44% / cover no-repeat;
+  filter: blur(40px); opacity: .07; pointer-events: none; clip-path: inset(0);
+}
+.frms-customer.support-surface .home-depth .public-hero-grid {
+  grid-template-columns: .9fr 1.1fr; gap: 48px; align-items: center; padding-bottom: 80px;
+}
+.frms-customer.support-surface .home-depth .public-hero-copy { padding: 0 0 0 4px; }
+.frms-customer.support-surface .home-depth .public-hero h1 {
+  font-size: clamp(48px, 5.2vw, 76px); line-height: 1.08; max-width: 13ch; letter-spacing: -.04em;
+}
+.home-depth .public-hero h1 span { color: #245ce0; }
+.frms-customer.support-surface .home-depth .public-hero-description { max-width: 44ch; margin: 24px 0; font-size: 17px; line-height: 1.75; }
+.home-depth .public-hero-actions { gap: 24px; margin: 28px 0; }
+.frms-customer.support-surface .home-depth .button { min-height: 48px; border-radius: 10px; font-size: 14px; }
+.home-depth .public-hero-actions .button { padding-inline: 22px; gap: 18px; box-shadow: 0 8px 20px #245ce029; }
+.frms-customer.support-surface .home-depth .public-hero-benefits { gap: 10px 24px; flex-wrap: wrap; font-size: 12px; }
+.home-depth-scene { position: relative; padding: 0 0 26px 20px; min-width: 0; }
+.frms-customer.support-surface .home-depth .public-hero-media {
+  aspect-ratio: 3 / 2; border-radius: 16px; box-shadow: 0 24px 48px -20px #18345d55; background: #e3ebf4;
+}
+.frms-customer.support-surface .home-depth .public-hero-media > img { object-fit: contain; }
+.home-depth-caption {
+  position: absolute; bottom: 0; left: -8px; right: 52px; display: flex; align-items: center; gap: 16px;
+  padding: 20px 22px; background: #fffffff5; backdrop-filter: blur(16px); border-radius: 12px;
+  box-shadow: 0 12px 32px -14px #18345d55;
+}
+.home-depth-caption > span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 10px; background: #edf3ff; color: #245ce0; flex: 0 0 48px; }
+.home-depth-caption strong { font-size: 17px; }
+.home-depth-caption p { font-size: 13px; color: #52647a; margin: 6px 0 0; }
+.home-depth-caption a { margin-left: auto; min-width: 44px; min-height: 44px; display: grid; place-items: center; color: #245ce0; }
+.frms-customer.support-surface .home-depth .public-hero-search { position: relative; margin: -44px 0 0; transform: translateY(0); z-index: 1; }
+.frms-customer.support-surface .home-depth .public-search-panel {
+  padding: 28px 32px 20px; background: #fff; border: 0; border-radius: 16px;
+  box-shadow: 0 18px 52px -22px #18345d40;
+}
+.home-depth .public-search-panel:focus-within { box-shadow: 0 18px 52px -22px #18345d66; }
+.home-depth .public-search-header { margin-bottom: 22px; }
+.home-depth .public-search-header h2 { font-size: 22px; }
+.home-depth .public-search-header .muted { font-size: 13px; }
+.home-depth .public-search-form { gap: 18px; }
+.home-depth .public-rental-period { background: #f6f8fc; }
+.frms-customer.support-surface .home-depth .public-benefits-section { padding: 48px 0 32px; border: 0; background: #edf3fb; }
+.frms-customer.support-surface .home-depth .public-benefits-grid { gap: 32px; }
+.frms-customer.support-surface .home-depth .public-benefit-card { align-items: center; gap: 16px; }
+.home-depth .public-benefit-card h2 { font-size: 16px; margin: 0 0 7px; }
+.home-depth .public-benefit-card p { font-size: 13px; line-height: 1.65; }
+.frms-customer.support-surface .home-depth .public-benefit-card .public-icon-tile { background: #fff; border-radius: 12px; width: 48px; height: 48px; flex-basis: 48px; }
+.frms-customer.support-surface .home-depth .public-home-section { padding-block: 88px; background: #f7f9fc; }
+.frms-customer.support-surface .home-depth .public-home-tint { background: #edf3fb; }
+.frms-customer.support-surface .home-depth .public-section-heading { max-width: 680px; margin-bottom: 40px; }
+.frms-customer.support-surface .home-depth .public-section-heading h2 { font-size: clamp(28px, 3vw, 40px); line-height: 1.25; letter-spacing: -.03em; }
+.home-depth .public-section-heading p { font-size: 16px; line-height: 1.75; max-width: 58ch; }
+.frms-customer.support-surface .home-depth .public-mode-grid { gap: 32px; align-items: start; }
+.frms-customer.support-surface .home-depth .public-mode-card { border: 0; background: #fff; border-radius: 16px; box-shadow: 0 18px 42px -26px #18345d55; }
+.home-depth .public-mode-card:nth-child(2) { margin-top: 48px; }
+.frms-customer.support-surface .home-depth .public-mode-art { aspect-ratio: 2.6; border: 0; background: #fff; padding: 20px 12px 0; }
+.frms-customer.support-surface .home-depth .public-mode-copy { padding: 26px 32px; }
+.home-depth .public-mode-copy h3 { font-size: 26px; }
+.home-depth .public-mode-copy p { line-height: 1.75; }
+.frms-customer.support-surface .home-depth .public-mode-copy > strong { font-size: 14px; font-weight: 500; color: #52647a; margin-top: 20px; }
+.frms-customer.support-surface .home-depth .public-mode-link { padding: 18px 32px; border-top: 1px solid #e8edf5; }
+.home-depth .public-mode-link:hover { background: #f1f6ff; }
+.home-depth .public-home-section:has(.public-steps-grid) > .gwp-container { display: grid; grid-template-columns: .7fr 1.3fr; gap: 0 64px; }
+.home-depth .public-home-section:has(.public-steps-grid) .public-section-heading { grid-column: 1; margin: 0; }
+.frms-customer.support-surface .home-depth .public-steps-grid { grid-column: 2; grid-row: 1 / 3; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 32px; }
+.frms-customer.support-surface .home-depth .public-steps-grid li { padding: 0; border: 0; }
+.home-depth .public-home-section:has(.public-steps-grid) .public-section-action { text-align: left; margin-top: 24px; align-self: start; }
+.frms-customer.support-surface .home-depth .public-step-number { background: #e8effc; margin-bottom: 18px; font-size: 18px; width: 44px; height: 44px; border-radius: 10px; }
+.home-depth .public-steps-grid h3 { font-size: 17px; }
+.home-depth .public-steps-grid p { font-size: 13px; line-height: 1.75; }
+.frms-customer.support-surface .home-depth .public-home-section:has(.public-lifestyle-grid) { background: #102b4e; color: #fff; }
+.frms-customer.support-surface .home-depth .public-lifestyle-grid { gap: 64px; }
+.frms-customer.support-surface .home-depth .public-lifestyle-grid h2 { color: #fff; font-size: clamp(30px, 3vw, 42px); }
+.frms-customer.support-surface .home-depth .public-lifestyle-grid .public-section-description { color: #d0deef; line-height: 1.8; }
+.frms-customer.support-surface .home-depth .public-lifestyle-media { border-radius: 16px; box-shadow: 0 22px 48px -22px #06172b88; }
+.frms-customer.support-surface .home-depth .public-purpose-card { padding: 14px 0; color: #e3ecf8; font-size: 13px; gap: 12px; }
+.home-depth .public-purpose-card .public-design-icon { filter: brightness(0) invert(1); opacity: .9; }
+.frms-customer.support-surface .home-depth .public-featured-grid { gap: 24px; }
+.frms-customer.support-surface .home-depth .public-featured-card { border: 0; border-radius: 16px; background: #fff; box-shadow: 0 16px 40px -24px #18345d40; }
+.home-depth .public-featured-copy { padding: 24px; }
+.home-depth .public-featured-copy h3 { font-size: 20px; }
+.home-depth .public-featured-copy .flow-facility-address { font-size: 13px; min-height: 44px; }
+.frms-customer.support-surface .home-depth .public-contact-grid { max-width: none; gap: 48px; }
+.frms-customer.support-surface .home-depth .public-contact-card { align-items: flex-start; text-align: left; padding: 26px 0 0; border-color: #c7d5e8; gap: 16px; }
+.home-depth .public-contact-card .button { width: auto; }
+.frms-customer.support-surface .home-depth .storage-ready { background: #fff; padding-block: 56px; }
+@media (prefers-reduced-motion: no-preference) {
+  .home-depth .public-hero-media { animation: home-arrive .7s cubic-bezier(.16, 1, .3, 1); }
+  .home-depth .public-search-panel { transition: box-shadow .22s ease; }
+  .home-depth .public-featured-card { transition: transform .22s ease, box-shadow .22s ease; }
+  .home-depth .public-featured-card:hover { transform: translateY(-5px); box-shadow: 0 24px 44px -24px #18345d55; }
+  @keyframes home-arrive { from { transform: translateY(14px); filter: saturate(.8); } to { transform: translateY(0); filter: saturate(1); } }
+}
+@media (max-width: 1100px) {
+  .frms-customer.support-surface .home-depth .public-hero-grid { gap: 32px; }
+  .frms-customer.support-surface .home-depth .public-hero h1 { font-size: clamp(44px, 5.2vw, 64px); }
+  .home-depth-caption { left: 0; right: 16px; padding: 16px; }
+  .home-depth .public-home-section:has(.public-steps-grid) > .gwp-container { gap: 0 32px; }
+}
+@media (max-width: 760px) {
+  .frms-customer.support-surface .home-depth .public-hero { padding-top: 40px; }
+  .frms-customer.support-surface .home-depth .public-hero-grid { grid-template-columns: 1fr; gap: 32px; padding-bottom: 64px; }
+  .frms-customer.support-surface .home-depth .public-hero h1 { font-size: clamp(44px, 8vw, 64px); }
+  .home-depth .public-hero-actions { margin-block: 24px; }
+  .home-depth-scene { padding-left: 16px; }
+  .frms-customer.support-surface .home-depth .public-hero-media { aspect-ratio: 3 / 2; }
+  .home-depth-caption { right: 24px; left: 0; padding: 14px 16px; }
+  .home-depth-caption strong { font-size: 15px; }
+  .frms-customer.support-surface .home-depth .public-search-panel { padding: 24px 20px 18px; }
+  .frms-customer.support-surface .home-depth .public-benefits-grid { grid-template-columns: 1fr; gap: 16px; }
+  .frms-customer.support-surface .home-depth .public-home-section { padding-block: 56px; }
+  .frms-customer.support-surface .home-depth .public-mode-grid { grid-template-columns: 1fr; gap: 24px; }
+  .home-depth .public-mode-card:nth-child(2) { margin-top: 0; }
+  .home-depth .public-home-section:has(.public-steps-grid) > .gwp-container { display: block; }
+  .home-depth .public-home-section:has(.public-steps-grid) .public-section-heading { margin-bottom: 32px; }
+  .frms-customer.support-surface .home-depth .public-steps-grid { gap: 28px 20px; }
+  .frms-customer.support-surface .home-depth .public-lifestyle-grid { grid-template-columns: 1fr; gap: 32px; }
+  .frms-customer.support-surface .home-depth .public-featured-grid { grid-template-columns: 1fr; }
+  .frms-customer.support-surface .home-depth .public-contact-grid { grid-template-columns: 1fr; gap: 32px; }
+}
+@media (max-width: 400px) {
+  .frms-customer.support-surface .home-depth .public-hero h1 { font-size: 42px; }
+  .home-depth .public-hero-actions { gap: 16px; }
+  .home-depth-caption { right: 8px; gap: 10px; }
+  .home-depth-caption > span { width: 40px; height: 40px; flex-basis: 40px; }
+  .home-depth-caption p { font-size: 11px; }
+  .frms-customer.support-surface .home-depth .public-steps-grid { grid-template-columns: 1fr; }
+}
+
+/* Desktop direction: a continuous misted canvas with separate floating surfaces. */
+.home-ambient-scene { display: none; }
+@media (min-width: 1024px) {
+  .frms-customer.support-surface .home-depth {
+    --home-surface: rgb(196 218 252 / 88%);
+    --home-search-surface: rgb(188 213 250 / 94%);
+    --home-elevation: inset 0 1px 1px rgb(255 255 255 / 85%), inset 0 -2px 2px rgb(126 161 213 / 24%), 0 12px 18px -12px rgb(25 57 103 / 38%), 0 32px 50px -28px rgb(25 57 103 / 45%);
+    position: relative; isolation: isolate;
+    background: #edf5ff;
+  }
+  .home-ambient-scene {
+    display: block; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    overflow: hidden; background: #e1edfb;
+  }
+  .home-ambient-scene > span {
+    position: absolute; inset: -5%; background: center / cover no-repeat url('/images/home/fstorent-facility.webp');
+    filter: blur(5px) saturate(.75); transform: scale(1.04);
+  }
+  .home-ambient-scene::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(110deg, rgb(229 242 255 / 91%), rgb(218 237 255 / 78%) 55%, rgb(210 231 254 / 85%));
+  }
+  .home-depth :is(.home-depth-scene, .public-search-panel, .public-mode-card, .public-featured-card, .public-contact-card, .public-steps-grid) {
+    /* The background image is already blurred; panels only need translucent color. */
+    backdrop-filter: none;
+  }
+  .frms-customer.support-surface .home-depth :is(.public-hero, .public-benefits-section, .public-home-section, .public-home-tint, .public-home-section:has(.public-lifestyle-grid), .storage-ready) {
+    background: transparent;
+  }
+  .home-depth .public-hero::before { content: none; }
+  .frms-customer.support-surface .home-depth :is(.muted, .public-hero-description, .public-section-description, .public-section-heading > p, .public-hero-benefits, .public-mode-copy > p, .public-mode-copy > strong, .public-steps-grid p, .public-benefit-card p, .home-depth-caption p) { color: #253c58; }
+  .home-depth .public-hero h1 span { color: #1c4dc7; }
+  .frms-customer.support-surface .home-depth .public-hero { padding: 40px 0 0; }
+  .frms-customer.support-surface .home-depth .public-hero-grid {
+    grid-template-columns: 1fr 1fr; align-items: stretch; gap: 36px; padding-bottom: 0;
+  }
+  .frms-customer.support-surface .home-depth .public-hero-copy {
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 24px 8px; border-radius: 0; background: transparent; box-shadow: none;
+  }
+  .frms-customer.support-surface .home-depth .public-hero h1 {
+    font-size: clamp(44px, 4.6vw, 66px); line-height: 1.12; letter-spacing: -.035em; max-width: none;
+    text-shadow: 0 1px 0 rgb(255 255 255 / 90%), 0 12px 24px rgb(25 57 103 / 15%);
+  }
+  .frms-customer.support-surface .home-depth .public-hero-description { margin: 22px 0 0; font-size: 16px; }
+  .home-depth .public-hero-actions { gap: 12px 20px; margin: 24px 0; }
+  .frms-customer.support-surface .home-depth .public-hero-benefits { margin-top: 0; gap: 12px 20px; }
+  .home-depth-scene {
+    display: flex; flex-direction: column; padding: 0; border-radius: 16px;
+    background: var(--home-surface); box-shadow: var(--home-elevation);
+  }
+  .frms-customer.support-surface .home-depth .public-hero-media {
+    flex: 0 0 auto; aspect-ratio: 3 / 2; box-shadow: none; border-radius: 16px 16px 0 0;
+  }
+  .home-depth-caption {
+    position: static; flex: 1; min-height: 100px; gap: 14px; padding: 20px 24px;
+    background: transparent; backdrop-filter: none; box-shadow: none; border-radius: 0 0 16px 16px;
+  }
+  .home-depth-caption strong { font-size: 16px; }
+  .frms-customer.support-surface .home-depth .public-hero-search { margin: 36px 0 0; transform: none; }
+  .frms-customer.support-surface .home-depth .public-search-panel {
+    background: var(--home-search-surface); box-shadow: var(--home-elevation);
+  }
+  .home-depth .home-depth-caption > span,
+  .frms-customer.support-surface .home-depth :is(.public-search-mark, .public-step-number) { background: #c1d7fc; border-color: #abc7f3; color: #174bc7; }
+  .frms-customer.support-surface .home-depth .public-search-bottom { background: #e5efff; border-color: #b9cfee; }
+  .home-depth .public-rental-period { background: transparent; }
+  .frms-customer.support-surface .home-depth .public-mode-art { background: var(--home-surface); }
+  .frms-customer.support-surface .home-depth .home-size-guidance {
+    align-items: center; flex-wrap: wrap; gap: 4px 14px; margin: 28px 0 0;
+    color: #213e64; font-size: 14px;
+  }
+  .frms-customer.support-surface .home-depth .public-benefits-section { padding: 40px 0 0; }
+  .frms-customer.support-surface .home-depth .public-benefits-grid { gap: 24px; }
+  .frms-customer.support-surface .home-depth .public-benefit-card {
+    padding: 16px 0; align-items: flex-start; border-radius: 0;
+    background: transparent; box-shadow: none;
+  }
+  .frms-customer.support-surface .home-depth .public-benefit-card .public-icon-tile { background: #edf3ff; }
+  .frms-customer.support-surface .home-depth .public-home-section { padding: 64px 0 0; }
+  .frms-customer.support-surface .home-depth .public-mode-grid { align-items: stretch; gap: 28px; }
+  .home-depth .public-mode-card:nth-child(2) { margin-top: 0; }
+  .frms-customer.support-surface .home-depth :is(.public-mode-card, .public-featured-card) {
+    background: var(--home-surface); box-shadow: var(--home-elevation);
+  }
+  .home-depth .public-home-section:has(.public-steps-grid) > .gwp-container {
+    grid-template-columns: .7fr 1.3fr; grid-template-rows: auto 1fr; align-items: start;
+  }
+  .home-depth .public-home-section:has(.public-steps-grid) .public-section-action { justify-self: start; margin-top: 28px; }
+  .home-depth .public-home-section:has(.public-steps-grid) .public-steps-grid {
+    padding: 32px; background: var(--home-surface); border-radius: 16px; box-shadow: var(--home-elevation);
+  }
+  .frms-customer.support-surface .home-depth .public-lifestyle-grid { gap: 28px; align-items: stretch; }
+  .frms-customer.support-surface .home-depth .public-lifestyle-media { box-shadow: var(--home-elevation); }
+  .home-depth .public-lifestyle-grid > div {
+    padding: 24px 8px; align-content: center; border-radius: 0;
+    background: transparent; box-shadow: none;
+  }
+  .frms-customer.support-surface .home-depth .public-lifestyle-grid h2 { color: var(--home-ink); }
+  .frms-customer.support-surface .home-depth .public-lifestyle-grid .public-section-description { color: #213e64; }
+  .frms-customer.support-surface .home-depth .public-purpose-card { color: var(--home-ink); }
+  .home-depth .public-purpose-card .public-design-icon { filter: none; opacity: 1; }
+  .frms-customer.support-surface .home-depth .public-contact-grid { gap: 28px; }
+  .frms-customer.support-surface .home-depth .public-contact-card {
+    padding: 28px; border: 0; border-radius: 16px; background: var(--home-surface); box-shadow: var(--home-elevation);
+  }
+  .frms-customer.support-surface .home-depth .storage-ready { padding: 64px 0; }
+  .home-depth .storage-ready-inner > div:first-child { max-width: 56%; }
+  .home-depth .storage-ready-inner { gap: 28px; }
+
+  /* Unboxed copy keeps its own depth instead of becoming another panel. */
+  .frms-customer.support-surface .home-depth :is(.public-section-heading > h2, .public-lifestyle-grid h2, .storage-ready h2) {
+    color: #103c7a;
+    text-shadow: 0 1px 0 rgb(255 255 255 / 95%), 0 9px 18px rgb(20 57 110 / 18%);
+    text-wrap: balance;
+  }
+  .frms-customer.support-surface .home-depth :is(.public-section-heading > p, .public-benefit-card p, .storage-ready p) {
+    color: #213e64; font-weight: 500; text-shadow: 0 1px 1px rgb(241 248 255 / 90%);
+  }
+  .frms-customer.support-surface .home-depth .public-benefit-card h2 { color: #123e7b; font-size: 17px; }
+  .frms-customer.support-surface .home-depth .public-benefit-card .public-icon-tile {
+    background: #bed7ff; box-shadow: inset 0 1px 1px #ffffffbd, 0 8px 14px -8px #174c9a70;
+  }
+  .home-depth .public-purpose-card strong { color: #123e7b; font-size: 14px; }
+  .frms-customer.support-surface .home-depth .public-purpose-card .public-icon-tile { background: #bed7ff; }
+  /* One navigation button family across the Home content, including the shared closing CTA. */
+  .frms-customer.support-surface .home-depth :is(a.home-nav-button, .storage-ready-actions > a) {
+    display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+    min-height: 48px; padding: 12px 18px; border: 0; border-radius: 10px;
+    background: #f4f7fd; color: #214a87;
+    box-shadow: inset 0 1px 1px rgb(255 255 255 / 75%), 0 8px 16px -10px rgb(23 61 123 / 50%);
+    font-size: 14px; font-weight: 600; line-height: 24px; text-decoration: none; text-shadow: none;
+  }
+  .frms-customer.support-surface .home-depth :is(a.home-nav-button, .storage-ready-actions > a):hover {
+    background: #e9eff9; color: #173c73; text-decoration: none;
+    box-shadow: inset 0 1px 1px rgb(255 255 255 / 80%), 0 10px 20px -10px rgb(23 61 123 / 55%);
+  }
+  .frms-customer.support-surface .home-depth :is(a.home-nav-button.button:not(.button-secondary), .storage-ready-actions > a.button) {
+    background: #245ce0; color: #fff;
+  }
+  .frms-customer.support-surface .home-depth :is(a.home-nav-button.button:not(.button-secondary), .storage-ready-actions > a.button):hover {
+    background: #194bc5;
+  }
+  .frms-customer.support-surface .home-depth :is(a.home-nav-button, .storage-ready-actions > a):focus-visible {
+    outline: 3px solid #245ce0; outline-offset: 4px;
+  }
+  .home-depth :is(.home-nav-button, .storage-ready-actions > a) > svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .frms-customer.support-surface .home-depth .public-mode-link.home-nav-button {
+    margin: 0 32px 28px; align-self: stretch; justify-content: space-between;
+  }
+  .home-depth .home-depth-caption > div { flex: 1; min-width: 0; }
+  .home-depth .home-depth-caption > .home-nav-button { flex-shrink: 0; margin-left: 0; }
+  .home-depth .storage-ready-actions { gap: 12px; }
+
+  /* Route-scoped chrome: keep the existing links and customer account actions. */
+  .frms-customer.home-shell .flow-header {
+    inset: 14px 24px auto; height: 72px; max-width: 1240px; margin-inline: auto;
+    border: 0; border-radius: 16px; background: rgb(207 226 252 / 97%);
+    box-shadow: inset 0 1px 1px #ffffffdb, 0 10px 28px -14px #153d7b61;
+  }
+  .frms-customer.home-shell .flow-header-inner { padding-inline: 24px; gap: 20px; }
+  .frms-customer.home-shell .flow-header .flow-brand { color: #103563; }
+  .frms-customer.home-shell .flow-header .flow-brand-mark {
+    background: #1d56ce; box-shadow: inset 0 1px 1px #ffffff40, 0 6px 12px -5px #174caf80;
+  }
+  .frms-customer.home-shell .flow-top-nav { gap: 8px; }
+  .frms-customer.home-shell .flow-top-nav a { padding: 0 12px; border-radius: 8px; color: #173e73; font-weight: 500; }
+  .frms-customer.home-shell .flow-top-nav a:hover { background: #b5cff8; color: #103c7a; }
+  .frms-customer.home-shell .customer-header-actions > .button { background: #1c54cc; box-shadow: 0 6px 12px -6px #174caf80; }
+  .frms-customer.home-shell .flow-account { color: #123e7b; }
+  .frms-customer.home-shell .flow-footer {
+    position: relative; z-index: 1; margin: 0 24px 24px; border-radius: 16px;
+    background: rgb(18 52 103 / 97%); color: #d8e7ff;
+    box-shadow: inset 0 1px 1px #b8d4ff66, 0 16px 32px -18px #123d7b80;
+  }
+  .frms-customer.home-shell .flow-footer-inner { max-width: 1240px; padding: 44px 36px 24px; font-size: 13px; }
+  .frms-customer.home-shell .flow-footer .brand-accent { color: #9fc5ff; }
+  .frms-customer.home-shell .flow-footer h2 { color: #afceff; font-size: 12px; }
+  .frms-customer.home-shell .flow-footer :is(a:not(.flow-brand), button):hover { color: #fff; text-decoration: underline; text-underline-offset: 4px; }
+  .frms-customer.home-shell .flow-copyright { border-top-color: #7498c966; color: #bfd5f4; }
+  .frms-customer.home-shell :is(.flow-header, .flow-footer) :is(a, button):focus-visible { outline: 3px solid #76a8ff; outline-offset: 3px; }
+}
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .home-depth :is(.home-depth-scene, .public-search-panel, .public-mode-card, .public-steps-grid, .public-lifestyle-media, .public-featured-card, .public-contact-card) {
+    transform-origin: center;
+    transition: transform .32s cubic-bezier(.2, .8, .2, 1), box-shadow .32s ease;
+  }
+  .home-depth:not(.is-scrolling) :is(.home-depth-scene, .public-search-panel, .public-mode-card, .public-steps-grid, .public-lifestyle-media, .public-featured-card, .public-contact-card):hover {
+    transform: perspective(1400px) translateY(-8px) rotateX(var(--home-rotate-x, 0deg)) rotateY(var(--home-rotate-y, 0deg));
+    box-shadow: inset 0 1px 1px rgb(255 255 255 / 90%), inset 0 -2px 2px rgb(126 161 213 / 28%), 0 18px 24px -16px rgb(25 57 103 / 36%), 0 44px 64px -30px rgb(25 57 103 / 48%);
+  }
+  .home-depth .public-search-panel:focus-within { transform: none; }
+  .home-depth :is(.public-hero-copy > h1, .public-hero-description, .public-hero-actions, .public-hero-benefits, .public-section-heading > h2, .public-section-heading > p, .public-benefit-card, .public-lifestyle-grid > div > h2, .public-section-description, .storage-ready h2, .storage-ready p) {
+    transition: transform .24s cubic-bezier(.2, .8, .2, 1), text-shadow .24s ease;
+  }
+  .home-depth:not(.is-scrolling) :is(.public-hero-copy > h1, .public-hero-description, .public-hero-actions, .public-hero-benefits, .public-section-heading > h2, .public-section-heading > p, .public-benefit-card, .public-lifestyle-grid > div > h2, .public-section-description, .storage-ready h2, .storage-ready p):hover {
+    transform: translateY(-5px);
+  }
+  .home-depth :is(.public-hero-copy > h1, .public-section-heading > h2, .public-lifestyle-grid > div > h2, .storage-ready h2):hover {
+    text-shadow: 0 8px 18px rgb(25 57 103 / 12%);
+  }
+}
