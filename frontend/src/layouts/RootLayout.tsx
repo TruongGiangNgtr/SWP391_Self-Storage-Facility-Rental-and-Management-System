@@ -9,10 +9,11 @@ export function RootLayout() {
   const location = useLocation()
   const employeeSurface = Boolean(user && user.role !== 'CUSTOMER') || /^\/(?:staff|manager|business|admin|auth\/employee)(?:\/|$)/.test(location.pathname)
   const previousPage = useRef<{ pathname: string; hash: string } | null>(null)
+  const guestErrorSurface = !user && ['/404', '/forbidden'].includes(location.pathname)
   const publicPath = location.pathname === '/' || location.pathname === '/customer/storage-search' || location.pathname === '/facilities' || location.pathname.startsWith('/facilities/') ||
     ['/how-it-works', '/size-guide', '/help'].includes(location.pathname) || location.pathname.startsWith('/help/')
 
-  const customerPage = publicPath || location.pathname === '/customer' || location.pathname.startsWith('/customer/') || location.pathname.startsWith('/auth/customer/')
+  const customerPage = publicPath || guestErrorSurface || location.pathname === '/customer' || location.pathname.startsWith('/customer/') || location.pathname.startsWith('/auth/customer/')
 
   useEffect(() => {
     if (!customerPage) return
@@ -32,7 +33,7 @@ export function RootLayout() {
     }
   }, [customerPage, location.pathname, location.hash])
 
-  if (publicPath) {
+  if (publicPath || guestErrorSurface) {
     return <CustomerLayout publicPage><Outlet /></CustomerLayout>
   }
 

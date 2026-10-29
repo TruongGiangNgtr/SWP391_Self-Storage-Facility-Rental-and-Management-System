@@ -1,0 +1,235 @@
+/* Guest desktop surfaces follow the approved Home. Route activation is explicit in CustomerLayout. */
+@media (min-width: 1024px) {
+  .frms-customer.customer-shell.guest-depth-shell {
+    --guest-ink: #102b4e;
+    --guest-muted: #314d70;
+    --guest-brand: #245ce0;
+    --guest-surface: rgb(196 218 252 / 88%);
+    --guest-soft: rgb(234 242 255 / 94%);
+    --guest-elevation: inset 0 1px 1px rgb(255 255 255 / 85%), inset 0 -2px 2px rgb(126 161 213 / 24%), 0 12px 18px -12px rgb(25 57 103 / 38%), 0 32px 50px -28px rgb(25 57 103 / 45%);
+    position: relative; isolation: isolate; background: #edf5ff; color: var(--guest-ink);
+  }
+  .frms-customer.customer-shell.guest-depth-shell::before, .frms-customer.customer-shell.guest-depth-shell::after {
+    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  }
+  .frms-customer.customer-shell.guest-depth-shell::before {
+    background: center / cover no-repeat url('/images/home/fstorent-facility.webp');
+    filter: blur(5px) saturate(.75); transform: scale(1.04);
+  }
+  .frms-customer.customer-shell.guest-depth-shell::after {
+    background: linear-gradient(110deg, rgb(229 242 255 / 91%), rgb(218 237 255 / 78%) 55%, rgb(210 231 254 / 85%));
+  }
+  .frms-customer.customer-shell.guest-depth-shell .customer-body { padding-bottom: 0; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content > main { background: transparent; min-height: 60vh; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content :is(h1, h2) {
+    color: #103c7a; text-shadow: 0 1px 0 #fffffff2, 0 9px 18px #14396e21;
+    letter-spacing: -.025em; text-wrap: balance;
+  }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content h1 { font-size: clamp(38px, 3.8vw, 54px); line-height: 1.15; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content h2 { font-size: clamp(24px, 2.5vw, 34px); line-height: 1.3; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content h3 { color: var(--guest-ink); }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content :is(p, li) { line-height: 1.75; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content .muted { color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content a:not(:where(.flow-breadcrumb a, .help-contents a)),
+  .frms-customer.customer-shell.guest-depth-shell .customer-content .button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+    min-height: 48px; padding: 12px 18px; border: 0; border-radius: 10px;
+    background: #f4f7fd; color: #214a87; font-size: 14px; font-weight: 600; line-height: 24px;
+    box-shadow: inset 0 1px 1px #ffffffbf, 0 8px 16px -10px #173d7b80; text-decoration: none;
+  }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content a:not(:where(.flow-breadcrumb a, .help-contents a)):hover,
+  .frms-customer.customer-shell.guest-depth-shell .customer-content .button:hover:not(:disabled) { background: #e9eff9; color: #173c73; text-decoration: none; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content .button:not(.button-secondary) { background: #245ce0; color: #fff; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content .button:not(.button-secondary):hover:not(:disabled) { background: #194bc5; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content .button:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content :is(a, button, input, select, textarea, summary):focus-visible { outline: 3px solid #245ce0; outline-offset: 4px; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content :is(input, select, textarea) {
+    background-color: #f7faff; color: var(--guest-ink); border-color: #a9c1e1; border-radius: 10px;
+    caret-color: #245ce0;
+  }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content :is(input, textarea)::placeholder { color: #566b86; opacity: 1; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content ::selection { color: #102b4e; background: #c4d9ff; }
+  .frms-customer.customer-shell.guest-depth-shell .flow-breadcrumb { margin-bottom: 28px; color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .flow-breadcrumb a { color: #174caf; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content :is([id], .booking-filter-rail) { scroll-margin-top: 112px; }
+  .frms-customer.customer-shell.guest-depth-shell .storage-ready { background: transparent; padding: 56px 0; }
+  .frms-customer.customer-shell.guest-depth-shell .storage-ready-actions { gap: 12px; }
+  .frms-customer.customer-shell.guest-depth-shell .storage-ready p { color: var(--guest-muted); }
+
+  /* 1. How It Works: a readable sequence and grouped preparation/account surfaces. */
+  .frms-customer.customer-shell.guest-depth-shell :is(.how-hero, .how-section, .how-tint) { background: transparent; }
+  .frms-customer.customer-shell.guest-depth-shell .how-hero { padding: 32px 0 48px; }
+  .frms-customer.customer-shell.guest-depth-shell .how-hero-grid { grid-template-columns: 1fr 1fr; gap: 40px; padding-top: 8px; }
+  .frms-customer.customer-shell.guest-depth-shell .how-intro { color: var(--guest-muted); line-height: 1.8; }
+  .frms-customer.customer-shell.guest-depth-shell .how-hero-media { border: 0; box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .how-section { padding: 32px 0; }
+  .frms-customer.customer-shell.guest-depth-shell .how-section-heading { text-align: left; max-width: 780px; margin: 0 0 28px; }
+  .frms-customer.customer-shell.guest-depth-shell .how-steps { max-width: none; gap: 20px; }
+  .frms-customer.customer-shell.guest-depth-shell :is(.how-step, .how-account-card, .how-important) {
+    background: var(--guest-surface); border: 0; border-radius: 16px; box-shadow: var(--guest-elevation);
+  }
+  .frms-customer.customer-shell.guest-depth-shell .how-step { padding: 28px 32px; gap: 24px; }
+  .frms-customer.customer-shell.guest-depth-shell .how-step-copy { max-width: 86ch; }
+  .frms-customer.customer-shell.guest-depth-shell .how-step-copy :is(p, .how-step-note) { color: #243f63; }
+  .frms-customer.customer-shell.guest-depth-shell .how-step-copy .how-step-note { background: var(--guest-soft); padding: 14px 18px; }
+  .frms-customer.customer-shell.guest-depth-shell :is(.how-step-number, .how-icon-tile) { background: #b7d0f8; color: #174caf; border: 0; }
+  .frms-customer.customer-shell.guest-depth-shell .how-narrow { max-width: 1240px; }
+  .frms-customer.customer-shell.guest-depth-shell .how-account-card { padding: 32px; }
+  .frms-customer.customer-shell.guest-depth-shell .how-account-card :is(p, li) { color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .how-label { background: #e6efff; color: #174caf; }
+  .frms-customer.customer-shell.guest-depth-shell .how-preparation-grid { padding: 28px 32px; border-radius: 16px; background: var(--guest-surface); box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .how-rental-grid article { background: transparent; border: 0; padding: 12px 0; }
+  .frms-customer.customer-shell.guest-depth-shell :is(.how-account-note, .how-rental-note) { color: var(--guest-muted); }
+
+  /* 2. Size Guide: catalog controls remain a separate, clear task surface. */
+  .frms-customer.customer-shell.guest-depth-shell :is(.size-guide-hero, .size-guide-catalog, .size-guide-assistant-section) { background: transparent; border: 0; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-hero { padding: 32px 0 40px; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-hero-copy { margin: 36px 0 0; max-width: 860px; text-align: left; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-hero-copy > .muted { max-width: 64ch; color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell :is(.size-guide-icon, .size-guide-size) { background: #b7d0f8; color: #174caf; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-catalog { padding: 24px 0 32px; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-catalog-heading { text-align: left; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-mode-description { max-width: 76ch; margin: 20px 0 28px; text-align: left; color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-tabs { background: var(--guest-soft); border: 0; padding: 6px; box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-tabs button { padding-inline: 24px; color: #214a87; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-tabs [aria-selected='true'] { background: #245ce0; color: #fff; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-toolbar { padding: 20px 24px; background: var(--guest-soft); border-radius: 16px; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; align-items: stretch; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-card { display: flex; flex-direction: column; border: 0; border-radius: 16px; background: var(--guest-surface); box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-card-media { min-height: 200px; border: 0; background: #e3edfc; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-video-preview { height: auto; aspect-ratio: 16 / 9; background: #e3edfc; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-media-fallback { color: #425d7f; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-card-content { padding: 28px; }
+  .frms-customer.customer-shell.guest-depth-shell :is(.size-guide-mode, .size-guide-description p, .size-guide-price > span, .size-guide-price small, .size-guide-catalog-note) { color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-price { border-color: #a8c2e7; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-section { padding: 32px 0 56px; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant { width: 100%; max-width: none; margin-inline: 0; padding: 32px; border: 0; border-radius: 16px; background: var(--guest-surface); box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-heading { max-width: none; margin: 0 0 28px; text-align: left; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-message { border: 0; background: var(--guest-soft); }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-workspace { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.35fr); align-items: start; gap: 32px; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-context { display: grid; gap: 24px; min-width: 0; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-context > .size-guide-assistant-message { margin: 0; padding: 0; border-radius: 0; background: transparent; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-context details { margin-top: 12px; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-context summary { cursor: pointer; color: #214a87; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-context :is(p, li) { color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-request { min-width: 0; margin: 0; padding: 24px; border-radius: 16px; background: var(--guest-soft); }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-controls { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-controls > .button { min-height: 48px; margin-top: 0; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-input textarea { min-height: 200px; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-ai-input-help { color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-assistant-links { justify-content: flex-start; gap: 12px; padding-top: 24px; border-top: 1px solid #aac3e6; }
+  .frms-customer.customer-shell.guest-depth-shell .size-guide-ai-card { background: var(--guest-soft); border: 0; box-shadow: none; }
+
+  /* 3. Help Center: four published topics remain the system-wide policy entry. */
+  .frms-customer.customer-shell.guest-depth-shell :is(.help-hero, .help-policies, .help-support-section) { background: transparent; border: 0; }
+  .frms-customer.customer-shell.guest-depth-shell .help-hero { padding: 32px 0; }
+  .frms-customer.customer-shell.guest-depth-shell .help-hero-copy { max-width: 760px; margin: 36px 0 0; text-align: left; }
+  .frms-customer.customer-shell.guest-depth-shell .help-hero-copy > p { color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .help-policies { padding: 24px 0 40px; }
+  .frms-customer.customer-shell.guest-depth-shell .help-section-heading { margin: 0 0 28px; }
+  .frms-customer.customer-shell.guest-depth-shell .help-policy-grid { gap: 28px; }
+  .frms-customer.customer-shell.guest-depth-shell .help-policy-card { padding: 32px; border: 0; border-radius: 16px; background: var(--guest-surface); box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .help-policy-card h3 { font-size: 22px; }
+  .frms-customer.customer-shell.guest-depth-shell :is(.help-policy-card > p, .help-policy-metadata dt, .help-policy-metadata dd, .help-snapshot-note, .help-support-note) { color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell :is(.help-public-label, .help-icon-tile) { background: #b7d0f8; color: #174caf; }
+  .frms-customer.customer-shell.guest-depth-shell .help-policy-card .help-read-link { align-self: flex-start; margin-top: auto; }
+  .frms-customer.customer-shell.guest-depth-shell .help-support-section { padding: 0 0 56px; }
+  .frms-customer.customer-shell.guest-depth-shell .help-support-banner { padding: 28px 32px; border: 0; background: var(--guest-surface); box-shadow: var(--guest-elevation); }
+
+  /* 4. Policy detail: opaque reading surface over the same static Guest backdrop. */
+  .frms-customer.customer-shell.guest-depth-shell .public-policy-detail { gap: 28px; padding-top: 32px; }
+  .frms-customer.customer-shell.guest-depth-shell .help-article-heading { padding-block: 12px; max-width: 1000px; }
+  .frms-customer.customer-shell.guest-depth-shell .help-article-summary { max-width: 75ch; color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .help-article-grid { grid-template-columns: 248px minmax(0, 1fr); gap: 28px; }
+  .frms-customer.customer-shell.guest-depth-shell .help-contents { top: 112px; padding: 24px; border: 0; border-radius: 16px; background: var(--guest-surface); box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .help-contents h2 { font-size: 18px; }
+  .frms-customer.customer-shell.guest-depth-shell .help-contents ol { padding-left: 18px; }
+  .frms-customer.customer-shell.guest-depth-shell .help-contents a { color: #214a87; border-radius: 8px; text-decoration: none; }
+  .frms-customer.customer-shell.guest-depth-shell .help-contents a:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .frms-customer.customer-shell.guest-depth-shell .help-article { padding: 36px; border: 0; border-radius: 16px; background: #f4f7fd; box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .help-article h2 { font-size: 24px; }
+  .frms-customer.customer-shell.guest-depth-shell .help-article p { max-width: 78ch; color: #243f63; line-height: 1.85; }
+  .frms-customer.customer-shell.guest-depth-shell .help-article > section + section { border-color: #c7d7ec; }
+  .frms-customer.customer-shell.guest-depth-shell .help-existing-terms { padding: 28px 32px; border: 0; border-radius: 16px; background: var(--guest-surface); box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .help-existing-terms h2 { font-size: 22px; }
+
+  /* 5. Find Storage: retain filter/result behavior, with clear nested surfaces. */
+  .frms-customer.customer-shell.guest-depth-shell .booking-search-heading { padding-block: 8px 12px; }
+  .frms-customer.customer-shell.guest-depth-shell .booking-search-heading p { color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .booking-journey { padding-bottom: 24px; border-color: #b5cceb; }
+  .frms-customer.customer-shell.guest-depth-shell .booking-filter-rail { top: 112px; }
+  .frms-customer.customer-shell.guest-depth-shell .booking-filter-rail .public-search-panel,
+  .frms-customer.customer-shell.guest-depth-shell .booking-search-results :is(.public-search-start, .public-result-facility) {
+    border: 0; border-radius: 16px; background: var(--guest-surface); box-shadow: var(--guest-elevation);
+  }
+  .frms-customer.customer-shell.guest-depth-shell .booking-filter-rail .public-search-panel { padding: 24px; }
+  .frms-customer.customer-shell.guest-depth-shell .booking-filter-rail .public-search-intro h2 { font-size: 20px; }
+  .frms-customer.customer-shell.guest-depth-shell .booking-search-start h2 { font-size: 32px; }
+  .frms-customer.customer-shell.guest-depth-shell .booking-filter-rail .public-search-bottom { background: transparent; }
+  .frms-customer.customer-shell.guest-depth-shell .booking-filter-rail :is(input, select, .public-month-trigger, .public-location-trigger) { background: #f4f7fd; border-color: #a9c1e1; }
+  .frms-customer.customer-shell.guest-depth-shell .booking-filter-rail .public-search-header { border-color: #a9c1e1; }
+  .frms-customer.customer-shell.guest-depth-shell .booking-filter-help { padding: 24px 0 0; }
+  .frms-customer.customer-shell.guest-depth-shell .booking-filter-help .booking-guide-link { width: 100%; }
+  .frms-customer.customer-shell.guest-depth-shell .booking-search-results .public-results-toolbar { padding: 20px 24px; border: 0; border-radius: 16px; background: var(--guest-soft); }
+  .frms-customer.customer-shell.guest-depth-shell .booking-search-results .public-results-toolbar h2 { font-size: 24px; }
+  .frms-customer.customer-shell.guest-depth-shell .public-result-facility .public-facility-heading-text h2 { font-size: 24px; }
+  .frms-customer.customer-shell.guest-depth-shell .public-unit-card { border-color: #b4cbea; border-radius: 12px; background: var(--guest-soft); box-shadow: none; }
+  .frms-customer.customer-shell.guest-depth-shell .public-unit-card .unit-price strong { color: #103c7a; }
+  .frms-customer.customer-shell.guest-depth-shell .public-booking-note { padding: 24px; background: var(--guest-soft); border: 0; border-radius: 16px; }
+  .frms-customer.customer-shell.guest-depth-shell .public-booking-note a { flex-shrink: 0; }
+
+  /* 6. Facility detail: location and storage choices keep their existing hierarchy. */
+  .frms-customer.customer-shell.guest-depth-shell .public-facility-page .page-heading { padding-top: 8px; }
+  .frms-customer.customer-shell.guest-depth-shell .public-facility-cover { border: 0; border-radius: 16px; box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .public-facility-summary { padding: 28px; border: 0; border-radius: 16px; background: var(--guest-surface); box-shadow: var(--guest-elevation); gap: 32px; }
+  .frms-customer.customer-shell.guest-depth-shell .facility-location-card { background: var(--guest-soft); border: 0; border-radius: 12px; }
+  .frms-customer.customer-shell.guest-depth-shell .public-facility-summary h2 { font-size: 26px; }
+  .frms-customer.customer-shell.guest-depth-shell :is(.facility-location-address, .facility-about p) { color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .facility-options-heading { margin-top: 8px; padding-block: 12px; }
+  .frms-customer.customer-shell.guest-depth-shell .booking-options-list { min-width: 0; padding: 28px; border-radius: 16px; background: var(--guest-surface); box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .booking-options-list .section-heading h3 { font-size: 22px; }
+  .frms-customer.customer-shell.guest-depth-shell .booking-options-list .section-heading { flex-wrap: wrap; gap: 16px; }
+  .frms-customer.customer-shell.guest-depth-shell .public-facility-page .eyebrow { color: #36557c; }
+
+  /* 7. Customer Sign In: reuse the existing auth frame and all form behavior. */
+  .frms-customer.customer-shell.guest-depth-shell .customer-auth-feature { max-width: 1240px; padding: 32px 24px 56px; gap: 24px; }
+  .frms-customer.customer-shell.guest-depth-shell .support-auth-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+  .frms-customer.customer-shell.guest-depth-shell .support-auth-story { position: static; gap: 28px; padding: 24px 8px; border: 0; background: transparent; box-shadow: none; }
+  .frms-customer.customer-shell.guest-depth-shell .support-auth-story h2 { max-width: 14ch; font-size: clamp(36px, 3.3vw, 48px); }
+  .frms-customer.customer-shell.guest-depth-shell .support-auth-story p { color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .support-auth-story img { border-radius: 16px; box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .support-auth-layout > .auth-card { max-width: none; padding: 32px; border: 0; border-radius: 16px; background: var(--guest-surface); box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .customer-auth-heading h1 { font-size: 34px; line-height: 1.25; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-auth-heading p { color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .customer-auth-feature .form-grid { gap: 18px; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-auth-feature input { min-height: 48px; background: #f4f7fd; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-auth-divider::before,
+  .frms-customer.customer-shell.guest-depth-shell .customer-auth-divider::after { background: #aac3e6; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-auth-divider { color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .customer-auth-small { color: var(--guest-muted); }
+  .frms-customer.customer-shell.guest-depth-shell .customer-auth-feature .auth-switch { width: 100%; justify-self: stretch; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-content [aria-invalid='true'] { border-color: #b91c1c; }
+
+  /* 8. Registration shares the same frame; optional profile details remain optional. */
+  .frms-customer.customer-shell.guest-depth-shell .customer-auth-optional { padding: 12px 16px; border: 0; border-radius: 12px; background: var(--guest-soft); }
+  .frms-customer.customer-shell.guest-depth-shell .customer-auth-optional summary { color: #214a87; font-weight: 600; }
+  .frms-customer.customer-shell.guest-depth-shell .customer-auth-optional small { color: var(--guest-muted); }
+
+  /* Anonymous error pages reuse the public shell; employee error rendering is unchanged. */
+  .frms-customer.customer-shell.guest-depth-shell .support-error-page { display: grid; place-items: center; min-height: calc(100vh - 80px); padding: 56px 24px; }
+  .frms-customer.customer-shell.guest-depth-shell .support-error-panel { width: min(720px, 100%); padding: 48px; border: 0; border-radius: 16px; background: var(--guest-surface); box-shadow: var(--guest-elevation); }
+  .frms-customer.customer-shell.guest-depth-shell .support-error-panel > svg { color: #245ce0; }
+  .frms-customer.customer-shell.guest-depth-shell .support-error-panel h1 { font-size: clamp(32px, 3vw, 44px); }
+  .frms-customer.customer-shell.guest-depth-shell .support-error-panel p { color: var(--guest-muted); }
+
+  /* This portal dialog is the existing anonymous reservation sign-in gate only. */
+  .frms-customer.reservation-sign-in-design.flow-dialog { background: #dceaff; color: #102b4e; border: 0; border-radius: 16px; box-shadow: 0 24px 64px -24px #153d7b80; }
+  .frms-customer.reservation-sign-in-design .panel { background: #f4f7fd; border: 0; border-radius: 12px; }
+  .frms-customer.reservation-sign-in-design.flow-dialog .button { min-height: 48px; padding: 12px 18px; border: 0; border-radius: 10px; background: #245ce0; color: #fff; font-size: 14px; line-height: 24px; }
+  .frms-customer.reservation-sign-in-design.flow-dialog .button-secondary { background: #f4f7fd; color: #214a87; }
+  .frms-customer.reservation-sign-in-design.flow-dialog :is(.muted, .dialog-subtitle, .customer-auth-divider) { color: #314d70; }
+}
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .frms-customer.customer-shell.guest-depth-shell :is(.how-hero-media, .how-step, .how-account-card, .size-guide-card, .help-policy-card) { transition: transform .24s ease; }
+  .frms-customer.customer-shell.guest-depth-shell :is(.how-hero-media, .how-step, .how-account-card, .size-guide-card, .help-policy-card):hover { transform: translateY(-4px); }
+}
