@@ -12,7 +12,8 @@ import '../styles/customer-auth.css'
 import '../styles/support-pages.css'
 import '../styles/rental-flow.css'
 import '../styles/finance-flow.css'
-import '../styles/guest-depth.css'
+import '../styles/home-editorial.css'
+import '../styles/guest-editorial.css'
 import '../styles/customer-overview-depth.css'
 import '../styles/customer-visits-depth.css'
 import '../styles/customer-reservations-depth.css'
@@ -65,7 +66,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
     </nav>
   }
 
-  return <div className={`frms-customer customer-shell ${pathname === '/' || guestDepthSurface || overviewDepthSurface || visitsDepthSurface || reservationsDepthSurface || contractsDepthSurface ? 'home-shell' : ''} ${guestDepthSurface ? 'guest-depth-shell' : ''} ${overviewDepthSurface ? 'overview-depth-shell' : ''} ${visitsDepthSurface ? 'visits-depth-shell' : ''} ${reservationsDepthSurface ? 'reservations-depth-shell' : ''} ${contractsDepthSurface ? 'contracts-depth-shell' : ''} ${supportSurface || rentalSurface || financeSurface ? 'support-surface' : ''} ${rentalSurface ? 'rental-surface' : ''} ${financeSurface ? 'finance-surface' : ''} ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
+  return <div className={`frms-customer customer-shell ${pathname === '/' || guestDepthSurface || overviewDepthSurface || visitsDepthSurface || reservationsDepthSurface || contractsDepthSurface ? 'home-shell' : ''} ${guestDepthSurface ? 'guest-editorial-shell' : ''} ${pathname === '/' || guestDepthSurface ? 'editorial-shell' : ''} ${overviewDepthSurface ? 'overview-depth-shell' : ''} ${visitsDepthSurface ? 'visits-depth-shell' : ''} ${reservationsDepthSurface ? 'reservations-depth-shell' : ''} ${contractsDepthSurface ? 'contracts-depth-shell' : ''} ${supportSurface || rentalSurface || financeSurface ? 'support-surface' : ''} ${rentalSurface ? 'rental-surface' : ''} ${financeSurface ? 'finance-surface' : ''} ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
     <a className="customer-skip-link" href="#customer-main">Skip to content</a>
     <header className="flow-header">
       <div className="flow-header-inner">
