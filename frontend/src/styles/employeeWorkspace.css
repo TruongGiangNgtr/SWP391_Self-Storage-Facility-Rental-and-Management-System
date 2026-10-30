@@ -144,7 +144,7 @@
   & :is(.staff-signout, .manager-signout):hover { background: var(--employee-nav-hover); color: #fff; }
   & :is(.staff-sidebar, .manager-sidebar) :focus-visible { outline-color: #93c5fd; }
   & :is(.staff-main, .manager-main, .admin-main, .bo-main) { min-width: 0; padding: 12px clamp(4px, 1vw, 16px) 40px; }
-  & .employee-page-content { min-width: 0; }
+  & .employee-page-content { min-width: 0; animation: employee-page-fade 180ms cubic-bezier(0.22, 1, 0.36, 1); }
   & h1 { margin-top: 0; font-size: clamp(28px, 2.4vw, 34px); line-height: 1.25; letter-spacing: -.03em; text-wrap: balance; }
   & h2 { font-size: 20px; line-height: 1.35; }
   & h3 { font-size: 18px; line-height: 1.4; }
@@ -331,6 +331,7 @@
 }
 
 @keyframes employee-feedback { from { opacity: .8; } to { opacity: 1; } }
+@keyframes employee-page-fade { from { opacity: .94; } to { opacity: 1; } }
 
 @media (min-width: 1021px) {
   .employee-workspace.employee-workspace.employee-identity.employee-identity:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :is(.staff-sidebar, .manager-sidebar) {

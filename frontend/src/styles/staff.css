@@ -376,7 +376,7 @@
 .fwp-table tbody tr:last-child td { border-bottom: 0; }
 .fwp-table tbody tr:hover td { background: #fafbff; }
 .fwp-row-selected td { background: #f4f7ff !important; }
-.fwp-table code { color: #44526a; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; }
+.fwp-table code { color: var(--frms-secondary); font-family: var(--frms-font-body); font-variant-numeric: tabular-nums; font-size: 12px; }
 
 .fwp-customer-cell { display: flex; flex-direction: column; gap: 3px; }
 .fwp-customer-cell strong { color: #1b2538; font-size: 11px; }
@@ -456,9 +456,9 @@
   gap: 12px;
   margin-bottom: 14px;
   padding: 13px 15px;
-  border-left: 3px solid var(--frms-primary);
-  border-radius: 0 10px 10px 0;
-  background: #f6f8ff;
+  border: 1px solid var(--frms-primary-border);
+  border-radius: var(--frms-radius-control);
+  background: var(--frms-primary-soft);
 }
 .fwp-stage-intro > span { padding: 3px 7px; border-radius: 5px; color: var(--frms-primary); background: #fff; font-size: 9px; font-weight: 800; }
 .fwp-stage-intro strong { color: #25324a; font-size: 12px; }

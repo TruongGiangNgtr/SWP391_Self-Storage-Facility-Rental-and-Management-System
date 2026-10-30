@@ -2,7 +2,7 @@ import { Component, Suspense, type ReactNode } from 'react'
 import { LoadingState } from './PageStates'
 import { useLocation, Outlet } from 'react-router-dom'
 import { EmployeeLabelsProvider } from './EmployeeEntityLabel'
-import FadeContent from './react-bits/FadeContent'
+// Pure CSS page transition replaces gsap FadeContent runtime.
 
 class WorkspaceBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
@@ -22,12 +22,12 @@ class WorkspaceBoundary extends Component<{ children: ReactNode }, { failed: boo
 export function EmployeePageTransition() {
   const { pathname } = useLocation()
   return (
-    <FadeContent transitionKey={pathname}>
+    <div key={pathname} className="employee-page-content">
       <WorkspaceBoundary key={pathname}>
         <Suspense fallback={<LoadingState label="Loading workspace..." />}>
           <EmployeeLabelsProvider><Outlet /></EmployeeLabelsProvider>
         </Suspense>
       </WorkspaceBoundary>
-    </FadeContent>
+    </div>
   )
 }
