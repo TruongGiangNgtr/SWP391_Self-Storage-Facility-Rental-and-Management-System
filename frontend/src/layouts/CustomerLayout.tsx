@@ -13,6 +13,8 @@ import '../styles/support-pages.css'
 import '../styles/rental-flow.css'
 import '../styles/finance-flow.css'
 import '../styles/guest-depth.css'
+import '../styles/customer-overview-depth.css'
+import '../styles/customer-visits-depth.css'
 
 function Brand({ footer = false }: { footer?: boolean }) {
   return <Link className={`flow-brand ${footer ? 'flow-brand-footer' : ''}`} to="/" aria-label="FStoRent Home">
@@ -35,6 +37,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
   }
   const { pathname } = useLocation()
   const overviewDepthSurface = pathname === '/customer'
+  const visitsDepthSurface = pathname === '/customer/visits' || /^\/customer\/visits\/[^/]+$/.test(pathname) || /^\/customer\/contracts\/[^/]+\/(access-visits|return-visits)\/new$/.test(pathname)
   const guestDepthSurface = ['/how-it-works', '/size-guide', '/help', '/facilities', '/customer/storage-search', '/auth/customer/login', '/auth/customer/register'].includes(pathname) || pathname.startsWith('/help/policies/') || pathname.startsWith('/facilities/') || (!user && ['/404', '/forbidden'].includes(pathname))
   const supportSurface = ['/', '/how-it-works', '/size-guide', '/help', '/customer', '/customer/account-settings', '/customer/notifications'].includes(pathname) || pathname.startsWith('/help/') || pathname.startsWith('/auth/customer/')
   const rentalSurface = pathname === '/customer/contracts' || /^\/customer\/contracts\/[^/]+(?:\/access-visits\/new)?$/.test(pathname) || pathname === '/customer/visits' || /^\/customer\/visits\/[^/]+$/.test(pathname)
@@ -58,7 +61,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
     </nav>
   }
 
-  return <div className={`frms-customer customer-shell ${pathname === '/' || guestDepthSurface || overviewDepthSurface ? 'home-shell' : ''} ${guestDepthSurface ? 'guest-depth-shell' : ''} ${overviewDepthSurface ? 'overview-depth-shell' : ''} ${supportSurface || rentalSurface || financeSurface ? 'support-surface' : ''} ${rentalSurface ? 'rental-surface' : ''} ${financeSurface ? 'finance-surface' : ''} ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
+  return <div className={`frms-customer customer-shell ${pathname === '/' || guestDepthSurface || overviewDepthSurface || visitsDepthSurface ? 'home-shell' : ''} ${guestDepthSurface ? 'guest-depth-shell' : ''} ${overviewDepthSurface ? 'overview-depth-shell' : ''} ${visitsDepthSurface ? 'visits-depth-shell' : ''} ${supportSurface || rentalSurface || financeSurface ? 'support-surface' : ''} ${rentalSurface ? 'rental-surface' : ''} ${financeSurface ? 'finance-surface' : ''} ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
     <a className="customer-skip-link" href="#customer-main">Skip to content</a>
     <header className="flow-header">
       <div className="flow-header-inner">
