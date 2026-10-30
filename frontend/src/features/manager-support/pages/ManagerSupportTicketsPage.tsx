@@ -1,3 +1,4 @@
+import { EmployeeModal } from '../../../components/EmployeeModal'
 import { EmployeeEntityLabel } from '../../../components/EmployeeEntityLabel'
 import type { ChangeEvent, MouseEvent } from "react";
 import { useState } from "react";
@@ -168,8 +169,8 @@ export default function ManagerSupportTicketsPage() {
         </section>
       )}
 
-      {selectedTicketId && (
-        <div className="mwp05-drawer-layer" role="presentation" onMouseDown={() => setSelectedTicketId(null)}>
+      {selectedTicketId && (<EmployeeModal label="Support ticket detail" busy={assignOpen} onClose={() => setSelectedTicketId(null)}>
+        <div className="mwp05-drawer-layer" role="presentation" onMouseDown={() => { if (!assignOpen) setSelectedTicketId(null) }}>
           <div onMouseDown={(event: MouseEvent<HTMLDivElement>) => event.stopPropagation()}>
             <SupportTicketDetailDrawer
               ticket={detail.ticket}
@@ -179,7 +180,7 @@ export default function ManagerSupportTicketsPage() {
               onAssign={() => setAssignOpen(true)}
             />
           </div>
-        </div>
+        </div></EmployeeModal>
       )}
 
       <AssignSupportStaffDialog

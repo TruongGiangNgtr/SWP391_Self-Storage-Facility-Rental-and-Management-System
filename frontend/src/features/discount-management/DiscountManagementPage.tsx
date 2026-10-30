@@ -1,3 +1,4 @@
+import { EmployeeModal } from '../../components/EmployeeModal'
 import { CustomerPicker } from './CustomerPicker'
 import {
   type SyntheticEvent,
@@ -826,16 +827,13 @@ export function DiscountManagementPage() {
         </div>
       </div>
 
-      {modalOpen && (
+      {modalOpen && (<EmployeeModal labelledBy="discount-form-title" onClose={closeFormModal} busy={isSaving}>
         <div
           className="facility-modal-backdrop"
           onMouseDown={closeFormModal}
         >
           <div
             className="facility-modal discount-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="discount-form-title"
             onMouseDown={(event) => event.stopPropagation()}
           >
             <div className="facility-modal-header">
@@ -1013,7 +1011,7 @@ export function DiscountManagementPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div></EmployeeModal>
       )}
     </section>
   )

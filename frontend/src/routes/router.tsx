@@ -1,74 +1,78 @@
+import { lazy, Suspense } from 'react'
+import { LoadingState } from '../components/PageStates'
 import { Navigate, Route, Routes, useLocation, type Location } from 'react-router-dom'
-import { DiscountAndExtraFeePage } from '../features/discount-management/DiscountAndExtraFeePage'
 import { RequireAuth } from '../auth/RequireAuth'
 import { RequireRole } from '../auth/RequireRole'
-import { RootLayout } from '../layouts/RootLayout'
-import { CustomerLoginPage } from '../pages/CustomerLoginPage'
-import { CustomerRegisterPage } from '../pages/CustomerRegisterPage'
-import { CustomerPortalPage } from '../pages/CustomerPortalPage'
-import { CustomerUnavailablePage } from '../pages/CustomerUnavailablePage'
-import { CustomerNotificationsPage } from '../pages/CustomerNotificationsPage'
-import { CustomerAccountSettingsPage } from '../pages/CustomerAccountSettingsPage'
 import { CUSTOMER_UNAVAILABLE_PAGES } from '../features/customer-navigation/customerNavigation'
-import { CustomerContractListPage } from '../pages/CustomerContractListPage'
-import { CustomerContractDetailPage } from '../pages/CustomerContractDetailPage'
-import { ContractRenewalPage } from '../pages/ContractRenewalPage'
-import { AccessVisitCreatePage } from '../pages/AccessVisitCreatePage'
-import { ReturnVisitCreatePage } from '../pages/ReturnVisitCreatePage'
-import { CustomerSupportListPage } from '../pages/CustomerSupportListPage'
-import { CustomerSupportCreatePage } from '../pages/CustomerSupportCreatePage'
-import { CustomerSupportDetailPage } from '../pages/CustomerSupportDetailPage'
-import { EmployeeLoginPage } from '../pages/EmployeeLoginPage'
-import { ForbiddenPage } from '../pages/ForbiddenPage'
-import { HomePage } from '../pages/HomePage'
-import { PublicStorageSearchPage } from '../pages/PublicStorageSearchPage'
-import { PublicFacilityDetailPage } from '../pages/PublicFacilityDetailPage'
-import { HelpCenterPage } from '../pages/HelpCenterPage'
-import { PublicPolicyDetailPage } from '../pages/PublicPolicyDetailPage'
-import { SizeGuidePage } from '../pages/SizeGuidePage'
-import { HowItWorksPage } from '../pages/HowItWorksPage'
-import { InvoiceDetailPage } from '../pages/InvoiceDetailPage'
-import { InvoiceListPage } from '../pages/InvoiceListPage'
-import { CustomerFeeReturnPage } from '../pages/CustomerFeeReturnPage'
-import { NotFoundPage } from '../pages/NotFoundPage'
-import { PaymentResultPage } from '../pages/PaymentResultPage'
-import { FacilityReportsPage } from '../features/manager-reports/FacilityReportsPage'
-import { BusinessReportsPage } from '../features/business-reports/BusinessReportsPage'
-import { BusinessOperationsLayout } from '../layouts/BusinessOperationsLayout'
-import { FacilityManagerLayout } from '../layouts/FacilityManagerLayout'
-import { SystemAdministratorLayout } from '../layouts/SystemAdministratorLayout'
-import { FacilityStaffLayout } from '../layouts/FacilityStaffLayout'
-import { FacilityManagementPage } from '../features/facility-management/FacilityManagementPage'
-import { MultiFacilityMonitoringPage } from '../features/multi-facility-monitoring/MultiFacilityMonitoringPage'
-import { UnitTypePricingPage } from '../features/unit-type-pricing/UnitTypePricingPage'
-import { PolicyVersionManagementPage } from '../features/policy-version-management/PolicyVersionManagementPage'
-import { HandoverUnitSelectionPage } from '../features/handover-unit-selection/HandoverUnitSelectionPage'
-import { PhysicalUnitManagementPage } from '../features/physical-unit-management/PhysicalUnitManagementPage'
-import { FacilityOperationsPage } from '../features/manager-monitoring/FacilityOperationsPage'
-import { ReturnsInspectionsPage } from '../features/manager-returns/ReturnsInspectionsPage'
-import ManagerSupportTicketsPage from '../features/manager-support/pages/ManagerSupportTicketsPage'
-import UserAccountMonitoringPage from '../features/admin-user-monitoring/UserAccountMonitoringPage'
-import EmployeeAccountManagementPage from '../features/admin-employee-management/EmployeeAccountManagementPage'
-import RoleFacilityAssignmentPage from '../features/admin-role-facility-assignment/RoleFacilityAssignmentPage'
-import CustomerAccountStatusPage from '../features/admin-customer-status/CustomerAccountStatusPage'
-import AccessManagementPage from '../features/admin-access-management/AccessManagementPage'
-import LoginHistoryPage from '../features/admin-login-history/LoginHistoryPage'
-import ActivityLogManagementPage from '../features/admin-activity-logs/ActivityLogManagementPage'
-import { ReservationConfirmPage } from '../pages/ReservationConfirmPage'
-import { ReservationCreatePage } from '../pages/ReservationCreatePage'
-import { ReservationDetailPage } from '../pages/ReservationDetailPage'
-import { ReservationListPage } from '../pages/ReservationListPage'
-import { StorageSearchPage } from '../pages/StorageSearchPage'
-import { VisitDetailPage } from '../pages/VisitDetailPage'
-import { VisitListPage } from '../pages/VisitListPage'
-import { StaffWorkItemsPage } from '../pages/StaffWorkItemsPage'
-import { StaffHandoverPage } from '../pages/StaffHandoverPage'
-import { StaffAccessVisitPage } from '../pages/StaffAccessVisitPage'
-import { StaffContractPage } from '../pages/StaffContractPage'
-import { StaffContractListPage } from '../pages/StaffContractListPage'
-import { StaffReturnsPage } from '../pages/StaffReturnsPage'
-import { StaffSupportPage } from '../pages/StaffSupportPage'
 import { CustomerErrorAudience } from '../components/ErrorAudienceContext'
+
+const RootLayout = lazy(() => import('../layouts/RootLayout').then(module => ({ default: module.RootLayout })))
+const CustomerLoginPage = lazy(() => import('../pages/CustomerLoginPage').then(module => ({ default: module.CustomerLoginPage })))
+const CustomerRegisterPage = lazy(() => import('../pages/CustomerRegisterPage').then(module => ({ default: module.CustomerRegisterPage })))
+const CustomerPortalPage = lazy(() => import('../pages/CustomerPortalPage').then(module => ({ default: module.CustomerPortalPage })))
+const CustomerUnavailablePage = lazy(() => import('../pages/CustomerUnavailablePage').then(module => ({ default: module.CustomerUnavailablePage })))
+const CustomerNotificationsPage = lazy(() => import('../pages/CustomerNotificationsPage').then(module => ({ default: module.CustomerNotificationsPage })))
+const CustomerAccountSettingsPage = lazy(() => import('../pages/CustomerAccountSettingsPage').then(module => ({ default: module.CustomerAccountSettingsPage })))
+const CustomerContractListPage = lazy(() => import('../pages/CustomerContractListPage').then(module => ({ default: module.CustomerContractListPage })))
+const CustomerContractDetailPage = lazy(() => import('../pages/CustomerContractDetailPage').then(module => ({ default: module.CustomerContractDetailPage })))
+const ContractRenewalPage = lazy(() => import('../pages/ContractRenewalPage').then(module => ({ default: module.ContractRenewalPage })))
+const AccessVisitCreatePage = lazy(() => import('../pages/AccessVisitCreatePage').then(module => ({ default: module.AccessVisitCreatePage })))
+const ReturnVisitCreatePage = lazy(() => import('../pages/ReturnVisitCreatePage').then(module => ({ default: module.ReturnVisitCreatePage })))
+const CustomerSupportListPage = lazy(() => import('../pages/CustomerSupportListPage').then(module => ({ default: module.CustomerSupportListPage })))
+const CustomerSupportCreatePage = lazy(() => import('../pages/CustomerSupportCreatePage').then(module => ({ default: module.CustomerSupportCreatePage })))
+const CustomerSupportDetailPage = lazy(() => import('../pages/CustomerSupportDetailPage').then(module => ({ default: module.CustomerSupportDetailPage })))
+const EmployeeLoginPage = lazy(() => import('../pages/EmployeeLoginPage').then(module => ({ default: module.EmployeeLoginPage })))
+const ForbiddenPage = lazy(() => import('../pages/ForbiddenPage').then(module => ({ default: module.ForbiddenPage })))
+const HomePage = lazy(() => import('../pages/HomePage').then(module => ({ default: module.HomePage })))
+const PublicStorageSearchPage = lazy(() => import('../pages/PublicStorageSearchPage').then(module => ({ default: module.PublicStorageSearchPage })))
+const PublicFacilityDetailPage = lazy(() => import('../pages/PublicFacilityDetailPage').then(module => ({ default: module.PublicFacilityDetailPage })))
+const HelpCenterPage = lazy(() => import('../pages/HelpCenterPage').then(module => ({ default: module.HelpCenterPage })))
+const PublicPolicyDetailPage = lazy(() => import('../pages/PublicPolicyDetailPage').then(module => ({ default: module.PublicPolicyDetailPage })))
+const SizeGuidePage = lazy(() => import('../pages/SizeGuidePage').then(module => ({ default: module.SizeGuidePage })))
+const HowItWorksPage = lazy(() => import('../pages/HowItWorksPage').then(module => ({ default: module.HowItWorksPage })))
+const InvoiceDetailPage = lazy(() => import('../pages/InvoiceDetailPage').then(module => ({ default: module.InvoiceDetailPage })))
+const InvoiceListPage = lazy(() => import('../pages/InvoiceListPage').then(module => ({ default: module.InvoiceListPage })))
+const CustomerFeeReturnPage = lazy(() => import('../pages/CustomerFeeReturnPage').then(module => ({ default: module.CustomerFeeReturnPage })))
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage').then(module => ({ default: module.NotFoundPage })))
+const PaymentResultPage = lazy(() => import('../pages/PaymentResultPage').then(module => ({ default: module.PaymentResultPage })))
+const BusinessOperationsLayout = lazy(() => import('../layouts/BusinessOperationsLayout').then(module => ({ default: module.BusinessOperationsLayout })))
+const FacilityManagerLayout = lazy(() => import('../layouts/FacilityManagerLayout').then(module => ({ default: module.FacilityManagerLayout })))
+const SystemAdministratorLayout = lazy(() => import('../layouts/SystemAdministratorLayout').then(module => ({ default: module.SystemAdministratorLayout })))
+const FacilityStaffLayout = lazy(() => import('../layouts/FacilityStaffLayout').then(module => ({ default: module.FacilityStaffLayout })))
+const ReservationConfirmPage = lazy(() => import('../pages/ReservationConfirmPage').then(module => ({ default: module.ReservationConfirmPage })))
+const ReservationCreatePage = lazy(() => import('../pages/ReservationCreatePage').then(module => ({ default: module.ReservationCreatePage })))
+const ReservationDetailPage = lazy(() => import('../pages/ReservationDetailPage').then(module => ({ default: module.ReservationDetailPage })))
+const ReservationListPage = lazy(() => import('../pages/ReservationListPage').then(module => ({ default: module.ReservationListPage })))
+const StorageSearchPage = lazy(() => import('../pages/StorageSearchPage').then(module => ({ default: module.StorageSearchPage })))
+const VisitDetailPage = lazy(() => import('../pages/VisitDetailPage').then(module => ({ default: module.VisitDetailPage })))
+const VisitListPage = lazy(() => import('../pages/VisitListPage').then(module => ({ default: module.VisitListPage })))
+
+const FacilityReportsPage = lazy(() => import('../features/manager-reports/FacilityReportsPage').then(module => ({ default: module.FacilityReportsPage })))
+const BusinessReportsPage = lazy(() => import('../features/business-reports/BusinessReportsPage').then(module => ({ default: module.BusinessReportsPage })))
+const FacilityManagementPage = lazy(() => import('../features/facility-management/FacilityManagementPage').then(module => ({ default: module.FacilityManagementPage })))
+const MultiFacilityMonitoringPage = lazy(() => import('../features/multi-facility-monitoring/MultiFacilityMonitoringPage').then(module => ({ default: module.MultiFacilityMonitoringPage })))
+const UnitTypePricingPage = lazy(() => import('../features/unit-type-pricing/UnitTypePricingPage').then(module => ({ default: module.UnitTypePricingPage })))
+const PolicyVersionManagementPage = lazy(() => import('../features/policy-version-management/PolicyVersionManagementPage').then(module => ({ default: module.PolicyVersionManagementPage })))
+const HandoverUnitSelectionPage = lazy(() => import('../features/handover-unit-selection/HandoverUnitSelectionPage').then(module => ({ default: module.HandoverUnitSelectionPage })))
+const PhysicalUnitManagementPage = lazy(() => import('../features/physical-unit-management/PhysicalUnitManagementPage').then(module => ({ default: module.PhysicalUnitManagementPage })))
+const FacilityOperationsPage = lazy(() => import('../features/manager-monitoring/FacilityOperationsPage').then(module => ({ default: module.FacilityOperationsPage })))
+const ReturnsInspectionsPage = lazy(() => import('../features/manager-returns/ReturnsInspectionsPage').then(module => ({ default: module.ReturnsInspectionsPage })))
+const ManagerSupportTicketsPage = lazy(() => import('../features/manager-support/pages/ManagerSupportTicketsPage'))
+const UserAccountMonitoringPage = lazy(() => import('../features/admin-user-monitoring/UserAccountMonitoringPage'))
+const EmployeeAccountManagementPage = lazy(() => import('../features/admin-employee-management/EmployeeAccountManagementPage'))
+const RoleFacilityAssignmentPage = lazy(() => import('../features/admin-role-facility-assignment/RoleFacilityAssignmentPage'))
+const CustomerAccountStatusPage = lazy(() => import('../features/admin-customer-status/CustomerAccountStatusPage'))
+const AccessManagementPage = lazy(() => import('../features/admin-access-management/AccessManagementPage'))
+const LoginHistoryPage = lazy(() => import('../features/admin-login-history/LoginHistoryPage'))
+const ActivityLogManagementPage = lazy(() => import('../features/admin-activity-logs/ActivityLogManagementPage'))
+const DiscountAndExtraFeePage = lazy(() => import('../features/discount-management/DiscountAndExtraFeePage').then(module => ({ default: module.DiscountAndExtraFeePage })))
+const StaffWorkItemsPage = lazy(() => import('../pages/StaffWorkItemsPage').then(module => ({ default: module.StaffWorkItemsPage })))
+const StaffHandoverPage = lazy(() => import('../pages/StaffHandoverPage').then(module => ({ default: module.StaffHandoverPage })))
+const StaffAccessVisitPage = lazy(() => import('../pages/StaffAccessVisitPage').then(module => ({ default: module.StaffAccessVisitPage })))
+const StaffContractPage = lazy(() => import('../pages/StaffContractPage').then(module => ({ default: module.StaffContractPage })))
+const StaffContractListPage = lazy(() => import('../pages/StaffContractListPage').then(module => ({ default: module.StaffContractListPage })))
+const StaffReturnsPage = lazy(() => import('../pages/StaffReturnsPage').then(module => ({ default: module.StaffReturnsPage })))
+const StaffSupportPage = lazy(() => import('../pages/StaffSupportPage').then(module => ({ default: module.StaffSupportPage })))
 
 export function AppRouter() {
   const location = useLocation()
@@ -83,6 +87,7 @@ export function AppRouter() {
 
   return (
     <CustomerErrorAudience.Provider value={customerAudience}>
+    <Suspense fallback={<LoadingState label="Loading page..." />}>
     <Routes location={backgroundLocation ?? location}>
   {/* ROOT LAYOUT + CUSTOMER */}
   <Route element={<RootLayout />}>
@@ -421,6 +426,7 @@ export function AppRouter() {
         </Route>
       </Routes>
     )}
+    </Suspense>
     </CustomerErrorAudience.Provider>
   )
 }

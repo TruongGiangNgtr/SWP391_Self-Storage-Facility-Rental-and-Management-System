@@ -1,11 +1,16 @@
+import { Eye, Pencil, Search, ShieldCheck, X } from 'lucide-react'
+import { ApiErrorAlert } from '../../components/ApiErrorAlert'
+import { presentApiError, type ApiErrorPresentation } from '../../api/apiErrorPresentation'
+import type { Pagination } from '../../api/api.types'
+import { EmployeeModal } from '../../components/EmployeeModal'
 import {
   type SyntheticEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import { businessApi } from '../../../src/api/businessApi'
-import { ApiRequestError } from '../../../src/api/httpClient'
 
 import type {
   Facility,
@@ -41,10 +46,17 @@ export function FacilityManagementPage() {
     useState(true)
 
   const [pageError, setPageError] =
-    useState<string | null>(null)
+    useState<ApiErrorPresentation | null>(null)
   const [currentPage, setCurrentPage] =
     useState(1)
 
+  const [pagination, setPagination] = useState<Pagination | null>(null)
+  const [revision, setRevision] = useState(0)
+  const [isSaving, setIsSaving] = useState(false)
+  const saving = useRef(false)
+  const [operationError, setOperationError] = useState<ApiErrorPresentation | null>(null)
+  const [facilities, setFacilities] =
+  useState<Facility[]>([])
   const pageSize = 5
   useEffect(() => {
   let cancelled = false
@@ -56,48 +68,28 @@ export function FacilityManagementPage() {
     try {
       const response =
         await businessApi.listFacilities(
-          1,
-          100,
+          currentPage,
+          pageSize,
         )
 
       if (cancelled) {
         return
       }
 
+      if (currentPage > Math.max(1, response.pagination.totalPages)) {
+        setCurrentPage(Math.max(1, response.pagination.totalPages))
+        return
+      }
+      setPagination(response.pagination)
       setFacilities(response.data)
     } catch (error) {
       if (cancelled) {
         return
       }
 
-      if (error instanceof ApiRequestError) {
-        
-
-        if (error.status === 401) {
-          setFacilities([])
-          setPageError(
-            'Unauthorized. Please sign in as Business Operations Manager.',
-          )
-          return
-        }
-
-        if (error.status === 403) {
-          setFacilities([])
-          setPageError(
-            'You do not have permission to access Facility Management.',
-          )
-          return
-        }
-
-        setFacilities([])
-        setPageError(error.message)
-        return
-      }
-
       setFacilities([])
-      setPageError(
-        'Unable to load facilities.',
-      )
+      setPagination(null)
+      setPageError(presentApiError(error))
     } finally {
       if (!cancelled) {
         setIsLoading(false)
@@ -110,9 +102,7 @@ export function FacilityManagementPage() {
   return () => {
     cancelled = true
   }
-}, [])
-  const [facilities, setFacilities] =
-  useState<Facility[]>([])
+}, [currentPage, revision])
   const [isCreateOpen, setIsCreateOpen] =
     useState(false)
   const [selectedFacility, setSelectedFacility] =
@@ -141,8 +131,8 @@ const [editErrors, setEditErrors] =
   const [statusFilter, setStatusFilter] = useState<
     'ALL' | FacilityStatus
   >('ALL')
-  
-  const totalFacilities = facilities.length
+
+  const totalFacilities = pagination?.totalItems ?? 0
 
   const activeFacilities = facilities.filter(
     (facility) => facility.status === 'ACTIVE',
@@ -156,7 +146,7 @@ const [editErrors, setEditErrors] =
     const normalizedSearch = searchTerm
       .trim()
       .toLowerCase()
-      
+
     return facilities.filter((facility) => {
       const matchesStatus =
         statusFilter === 'ALL' ||
@@ -176,34 +166,15 @@ const [editErrors, setEditErrors] =
 
       return matchesStatus && matchesSearch
     })
-    
+
   }, [facilities, searchTerm, statusFilter])
-  const totalPages = Math.max(
-    1,
-    Math.ceil(
-      filteredFacilities.length / pageSize,
-    ),
-  )
-  const paginatedFacilities = useMemo(() => {
-  const startIndex =
-    (currentPage - 1) * pageSize
-
-    const endIndex =
-      startIndex + pageSize
-
-    return filteredFacilities.slice(
-      startIndex,
-      endIndex,
-    )
-  }, [
-    filteredFacilities,
-    currentPage,
-    pageSize,
-  ])
+  const totalPages = Math.max(1, pagination?.totalPages ?? 1)
+  const paginatedFacilities = filteredFacilities
   function openViewModal(facility: Facility) {
     setSelectedFacility(facility)
   }
   function openEditModal(facility: Facility) {
+    setOperationError(null)
     setEditingFacility(facility)
 
     setEditForm({
@@ -263,6 +234,10 @@ async function handleEditFacility(
       return
     }
 
+    if (saving.current) return
+    saving.current = true
+    setIsSaving(true)
+    setOperationError(null)
     try {
       const response =
         await businessApi.updateFacility(
@@ -288,16 +263,17 @@ async function handleEditFacility(
 
       setEditingFacility(null)
       setEditErrors({})
+      setRevision(value => value + 1)
     } catch (error) {
-      if (error instanceof ApiRequestError) {
-        window.alert(error.message)
-        return
-      }
-
-      window.alert('Unable to update facility.')
+      setOperationError(presentApiError(error))
+    } finally {
+      saving.current = false
+      setIsSaving(false)
     }
   }
   function closeEditModal() {
+    if (saving.current) return
+    setOperationError(null)
     setEditingFacility(null)
     setEditErrors({})
   }
@@ -309,10 +285,13 @@ async function handleEditFacility(
     facility: Facility,
     action: FacilityStatusAction,
   ) {
+    setOperationError(null)
     setStatusActionFacility(facility)
     setStatusAction(action)
   }
   function closeStatusConfirmation() {
+    if (saving.current) return
+    setOperationError(null)
     setStatusActionFacility(null)
     setStatusAction(null)
   }
@@ -321,6 +300,10 @@ async function handleEditFacility(
       return
     }
 
+    if (saving.current) return
+    saving.current = true
+    setIsSaving(true)
+    setOperationError(null)
     try {
       const response =
         statusAction === 'ACTIVATE'
@@ -340,37 +323,25 @@ async function handleEditFacility(
         ),
       )
 
-      closeStatusConfirmation()
+      setStatusActionFacility(null)
+      setStatusAction(null)
+      setRevision(value => value + 1)
     } catch (error) {
-      if (error instanceof ApiRequestError) {
-        window.alert(error.message)
-        return
-      }
-
-      window.alert(
-        `Unable to ${
-          statusAction === 'ACTIVATE'
-            ? 'activate'
-            : 'deactivate'
-        } facility.`,
-      )
+      setOperationError(presentApiError(error))
+    } finally {
+      saving.current = false
+      setIsSaving(false)
     }
   }
-  const firstVisibleItem =
-    filteredFacilities.length === 0
-      ? 0
-      : (currentPage - 1) * pageSize + 1
-
-  const lastVisibleItem = Math.min(
-    currentPage * pageSize,
-    filteredFacilities.length,
-  )
   function openCreateModal() {
+    setOperationError(null)
         setCreateForm(emptyCreateFacilityForm)
         setCreateErrors({})
         setIsCreateOpen(true)
         }
         function closeCreateModal() {
+    if (saving.current) return
+    setOperationError(null)
         setIsCreateOpen(false)
         setCreateErrors({})
         }
@@ -418,7 +389,11 @@ async function handleEditFacility(
                 return
             }
 
-            try {
+    if (saving.current) return
+    saving.current = true
+    setIsSaving(true)
+    setOperationError(null)
+    try {
               const response =
                 await businessApi.createFacility({
                   name,
@@ -428,7 +403,7 @@ async function handleEditFacility(
                   description:
                     createForm.description.trim() || null,
                 })
-                
+
 
               setFacilities((current) => [
                 response.data,
@@ -437,34 +412,28 @@ async function handleEditFacility(
 
               setSearchTerm('')
               setStatusFilter('ALL')
-              setCurrentPage(1)
 
               setCreateForm(emptyCreateFacilityForm)
               setCreateErrors({})
               setIsCreateOpen(false)
-            } catch (error) {
-              if (error instanceof ApiRequestError) {
-                window.alert(error.message)
-                return
-              }
-
-              window.alert('Unable to create facility.')
-            }
-
-            
-            }
-
+      setCurrentPage(1)
+        setRevision(value => value + 1)
+    } catch (error) {
+      setOperationError(presentApiError(error))
+    } finally {
+      saving.current = false
+      setIsSaving(false)
+    }
+  }
   return (
-    <section className="facility-page">
+    <section className="facility-page facility-registry">
       <div className="facility-breadcrumb">
         Business Operations / Facilities
       </div>
 
       <div className="facility-page-heading">
         <div>
-          <span className="facility-eyebrow">
-            FACILITY MANAGEMENT
-          </span>
+
 
           <h1>Facility Management</h1>
 
@@ -495,7 +464,7 @@ async function handleEditFacility(
               TOTAL FACILITIES
             </span>
 
-            <strong>{totalFacilities}</strong>
+            <strong>{isLoading || pageError ? '—' : totalFacilities}</strong>
 
             <p>Facilities across the system</p>
           </div>
@@ -508,10 +477,10 @@ async function handleEditFacility(
         <article className="facility-summary-card">
           <div>
             <span className="facility-summary-label">
-              ACTIVE FACILITIES
+              ACTIVE ON THIS PAGE
             </span>
 
-            <strong>{activeFacilities}</strong>
+            <strong>{isLoading || pageError ? '—' : activeFacilities}</strong>
 
             <p className="facility-summary-success">
               Accepting new reservations
@@ -526,10 +495,10 @@ async function handleEditFacility(
         <article className="facility-summary-card">
           <div>
             <span className="facility-summary-label">
-              INACTIVE FACILITIES
+              INACTIVE ON THIS PAGE
             </span>
 
-            <strong>{inactiveFacilities}</strong>
+            <strong>{isLoading || pageError ? '—' : inactiveFacilities}</strong>
 
             <p>New reservations disabled</p>
           </div>
@@ -542,19 +511,16 @@ async function handleEditFacility(
 
       <div className="facility-toolbar">
         <div className="facility-search-wrapper">
-          <span className="facility-search-icon">
-            ⌕
-          </span>
+          <Search className="facility-search-icon" size={18} aria-hidden="true" />
 
           <input
             type="search"
-            aria-label="Search facilities by name, address or contact"
+            aria-label="Search this page by name, address or contact"
             value={searchTerm}
             onChange={(event) => {
               setSearchTerm(event.target.value)
-              setCurrentPage(1)
             }}
-            placeholder="Search by facility name, address or contact..."
+            placeholder="Search this page by name, address or contact..."
             className="facility-search-input"
           />
         </div>
@@ -567,9 +533,9 @@ async function handleEditFacility(
                 ? 'facility-filter-button facility-filter-button--active'
                 : 'facility-filter-button'
             }
+            aria-pressed={statusFilter === 'ALL'}
             onClick={() => {
               setStatusFilter('ALL')
-              setCurrentPage(1)
             }}
           >
             All
@@ -582,9 +548,9 @@ async function handleEditFacility(
                 ? 'facility-filter-button facility-filter-button--active'
                 : 'facility-filter-button'
             }
+            aria-pressed={statusFilter === 'ACTIVE'}
             onClick={() => {
             setStatusFilter('ACTIVE')
-            setCurrentPage(1)
           }}
           >
             Active
@@ -597,9 +563,9 @@ async function handleEditFacility(
                 ? 'facility-filter-button facility-filter-button--active'
                 : 'facility-filter-button'
             }
+            aria-pressed={statusFilter === 'INACTIVE'}
             onClick={() => {
               setStatusFilter('INACTIVE')
-              setCurrentPage(1)
             }}
           >
             Inactive
@@ -612,7 +578,6 @@ async function handleEditFacility(
           onClick={() => {
             setSearchTerm('')
             setStatusFilter('ALL')
-            setCurrentPage(1)
           }}
         >
           Clear filters
@@ -631,12 +596,12 @@ async function handleEditFacility(
           </div>
 
           <span>
-            Showing {filteredFacilities.length} facilities
+            {filteredFacilities.length} of {facilities.length} loaded facilities match. Search and filters cover this directory page only.
           </span>
         </div>
 
-        <div className="facility-table-scroll">
-          <table className="facility-table">
+        <div className="facility-table-scroll" role="region" aria-label="Facility results, scroll horizontally for more columns" tabIndex={0}>
+          <table className="facility-table" aria-label="Facility directory">
             <thead>
               <tr>
                 <th>Facility</th>
@@ -656,7 +621,7 @@ async function handleEditFacility(
                     <div className="facility-state-content">
                       <div className="facility-spinner" />
 
-                      <strong>Loading facilities...</strong>
+                      <strong role="status">Loading facilities...</strong>
 
                       <span>
                         Retrieving the latest facility data.
@@ -680,7 +645,8 @@ async function handleEditFacility(
                         Unable to load facilities
                       </strong>
 
-                      <span>{pageError}</span>
+                      <ApiErrorAlert error={pageError} />
+                      <button type="button" className="facility-secondary-button" onClick={() => setRevision(value => value + 1)}>Retry</button>
                     </div>
                   </td>
                 </tr>
@@ -759,19 +725,19 @@ async function handleEditFacility(
                      <button
                         type="button"
                         className="facility-icon-button"
-                        title="Edit facility"
+                        title="Edit facility" aria-label={`Edit ${facility.name}`}
                         onClick={() => openEditModal(facility)}
                       >
-                        ✎
+                        <Pencil size={18} aria-hidden="true" />
                       </button>
 
                       <button
                         type="button"
                         className="facility-icon-button"
-                        title="View facility"
+                        title="View facility" aria-label={`View ${facility.name}`}
                         onClick={() => openViewModal(facility)}
                       >
-                        ◉
+                        <Eye size={18} aria-hidden="true" />
                       </button>
                     </div>
                   </td>
@@ -830,7 +796,6 @@ async function handleEditFacility(
                             onClick={() => {
                               setSearchTerm('')
                               setStatusFilter('ALL')
-                              setCurrentPage(1)
                             }}
                           >
                             Clear Filters
@@ -850,15 +815,13 @@ async function handleEditFacility(
 
           <div className="facility-pagination">
             <span>
-              Showing {firstVisibleItem}–
-              {lastVisibleItem} of{' '}
-              {filteredFacilities.length} facilities
+              Directory page {currentPage} of {totalPages} / {totalFacilities} facilities
             </span>
 
             <button
               type="button"
               className="facility-page-button"
-              disabled={currentPage === 1}
+              disabled={isLoading || currentPage === 1}
               onClick={() =>
                 setCurrentPage((current) =>
                   Math.max(1, current - 1),
@@ -876,8 +839,7 @@ async function handleEditFacility(
               type="button"
               className="facility-page-button"
               disabled={
-                currentPage === totalPages ||
-                filteredFacilities.length === 0
+                isLoading || currentPage >= totalPages
               }
               onClick={() =>
                 setCurrentPage((current) =>
@@ -895,9 +857,7 @@ async function handleEditFacility(
       </div>
 
       <div className="facility-governance-card">
-        <div className="facility-governance-icon">
-          §
-        </div>
+        <ShieldCheck className="facility-governance-icon" size={20} aria-hidden="true" />
 
         <div>
           <h2>
@@ -911,25 +871,20 @@ async function handleEditFacility(
           </p>
         </div>
       </div>
-      {isCreateOpen && (
+      {isCreateOpen && (<EmployeeModal labelledBy="create-facility-title" onClose={closeCreateModal} busy={isSaving}>
   <div
     className="facility-modal-backdrop"
     onMouseDown={closeCreateModal}
   >
     <div
       className="facility-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="create-facility-title"
       onMouseDown={(event) =>
         event.stopPropagation()
       }
     >
       <div className="facility-modal-header">
         <div>
-          <span className="facility-eyebrow">
-            FACILITY MANAGEMENT
-          </span>
+
 
           <h2 id="create-facility-title">
             Create Facility
@@ -944,10 +899,10 @@ async function handleEditFacility(
         <button
           type="button"
           className="facility-modal-close"
-          onClick={closeCreateModal}
+          disabled={isSaving} onClick={closeCreateModal}
           aria-label="Close create facility dialog"
         >
-          ×
+          <X size={20} aria-hidden="true" />
         </button>
       </div>
 
@@ -959,9 +914,11 @@ async function handleEditFacility(
       </div>
 
       <form
-        className="facility-form"
+        className="facility-form" aria-busy={isSaving}
         onSubmit={handleCreateFacility}
       >
+        <ApiErrorAlert error={operationError} />
+        <fieldset className="employee-form-fields" disabled={isSaving}>
         <div className="facility-form-field">
           <label htmlFor="facility-name">
             Facility Name
@@ -970,6 +927,9 @@ async function handleEditFacility(
 
           <input
             id="facility-name"
+            required
+            aria-invalid={Boolean(createErrors.name)}
+            aria-describedby={createErrors.name ? "facility-name-error" : undefined}
             type="text"
             value={createForm.name}
             onChange={(event) =>
@@ -982,7 +942,7 @@ async function handleEditFacility(
           />
 
           {createErrors.name && (
-            <small className="facility-form-error">
+            <small id="facility-name-error" className="facility-form-error" role="alert">
               {createErrors.name}
             </small>
           )}
@@ -996,6 +956,9 @@ async function handleEditFacility(
 
           <input
             id="facility-address"
+            required
+            aria-invalid={Boolean(createErrors.address)}
+            aria-describedby={createErrors.address ? "facility-address-error" : undefined}
             type="text"
             value={createForm.address}
             onChange={(event) =>
@@ -1008,7 +971,7 @@ async function handleEditFacility(
           />
 
           {createErrors.address && (
-            <small className="facility-form-error">
+            <small id="facility-address-error" className="facility-form-error" role="alert">
               {createErrors.address}
             </small>
           )}
@@ -1056,7 +1019,7 @@ async function handleEditFacility(
           <button
             type="button"
             className="facility-secondary-button"
-            onClick={closeCreateModal}
+            disabled={isSaving} onClick={closeCreateModal}
           >
             Cancel
           </button>
@@ -1065,32 +1028,28 @@ async function handleEditFacility(
             type="submit"
             className="facility-primary-button"
           >
-            Create Facility
+            {isSaving ? 'Creating facility...' : 'Create Facility'}
           </button>
         </div>
+        </fieldset>
       </form>
     </div>
-  </div>
+  </div></EmployeeModal>
 )}
-     {selectedFacility && (
+     {selectedFacility && (<EmployeeModal labelledBy="facility-detail-title" onClose={closeViewModal} busy={isSaving}>
   <div
     className="facility-modal-backdrop"
     onMouseDown={closeViewModal}
   >
     <div
       className="facility-modal facility-detail-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="facility-detail-title"
       onMouseDown={(event) =>
         event.stopPropagation()
       }
     >
       <div className="facility-modal-header">
         <div>
-          <span className="facility-eyebrow">
-            FACILITY DETAILS
-          </span>
+
 
           <h2 id="facility-detail-title">
             {selectedFacility.name}
@@ -1108,7 +1067,7 @@ async function handleEditFacility(
           onClick={closeViewModal}
           aria-label="Close facility detail"
         >
-          ×
+          <X size={20} aria-hidden="true" />
         </button>
       </div>
 
@@ -1172,25 +1131,22 @@ async function handleEditFacility(
         </button>
       </div>
     </div>
-  </div>
+  </div></EmployeeModal>
 )}
-     {editingFacility && (
+     {editingFacility && (<EmployeeModal labelledBy="edit-facility-title" onClose={closeEditModal} busy={isSaving}>
   <div
     className="facility-modal-backdrop"
     onMouseDown={closeEditModal}
   >
     <div
       className="facility-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="edit-facility-title"
       onMouseDown={(event) =>
         event.stopPropagation()
       }
     >
       <div className="facility-modal-header">
         <div>
-         
+
 
           <h2 id="edit-facility-title">
             Edit Facility
@@ -1205,10 +1161,10 @@ async function handleEditFacility(
         <button
           type="button"
           className="facility-modal-close"
-          onClick={closeEditModal}
+          disabled={isSaving} onClick={closeEditModal}
           aria-label="Close edit facility dialog"
         >
-          ×
+          <X size={20} aria-hidden="true" />
         </button>
       </div>
 
@@ -1222,9 +1178,11 @@ async function handleEditFacility(
       </div>
 
       <form
-        className="facility-form"
+        className="facility-form" aria-busy={isSaving}
         onSubmit={handleEditFacility}
       >
+        <ApiErrorAlert error={operationError} />
+        <fieldset className="employee-form-fields" disabled={isSaving}>
         <div className="facility-form-field">
           <label htmlFor="edit-facility-name">
             Facility Name
@@ -1233,6 +1191,9 @@ async function handleEditFacility(
 
           <input
             id="edit-facility-name"
+            required
+            aria-invalid={Boolean(editErrors.name)}
+            aria-describedby={editErrors.name ? "edit-facility-name-error" : undefined}
             type="text"
             value={editForm.name}
             onChange={(event) =>
@@ -1244,7 +1205,7 @@ async function handleEditFacility(
           />
 
           {editErrors.name && (
-            <small className="facility-form-error">
+            <small id="edit-facility-name-error" className="facility-form-error" role="alert">
               {editErrors.name}
             </small>
           )}
@@ -1258,6 +1219,9 @@ async function handleEditFacility(
 
           <input
             id="edit-facility-address"
+            required
+            aria-invalid={Boolean(editErrors.address)}
+            aria-describedby={editErrors.address ? "edit-facility-address-error" : undefined}
             type="text"
             value={editForm.address}
             onChange={(event) =>
@@ -1269,7 +1233,7 @@ async function handleEditFacility(
           />
 
           {editErrors.address && (
-            <small className="facility-form-error">
+            <small id="edit-facility-address-error" className="facility-form-error" role="alert">
               {editErrors.address}
             </small>
           )}
@@ -1315,7 +1279,7 @@ async function handleEditFacility(
           <button
             type="button"
             className="facility-secondary-button"
-            onClick={closeEditModal}
+            disabled={isSaving} onClick={closeEditModal}
           >
             Cancel
           </button>
@@ -1324,23 +1288,21 @@ async function handleEditFacility(
             type="submit"
             className="facility-primary-button"
           >
-            Save Changes
+            {isSaving ? 'Saving changes...' : 'Save Changes'}
           </button>
         </div>
+        </fieldset>
       </form>
     </div>
-  </div>
-)}   
-     {statusActionFacility && statusAction && (
+  </div></EmployeeModal>
+)}
+     {statusActionFacility && statusAction && (<EmployeeModal labelledBy="facility-status-dialog-title" role="alertdialog" onClose={closeStatusConfirmation} busy={isSaving}>
   <div
     className="facility-modal-backdrop"
     onMouseDown={closeStatusConfirmation}
   >
     <div
       className="facility-confirm-dialog"
-      role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="facility-status-dialog-title"
       onMouseDown={(event) =>
         event.stopPropagation()
       }
@@ -1352,9 +1314,7 @@ async function handleEditFacility(
       </div>
 
       <div className="facility-confirm-content">
-        <span className="facility-eyebrow">
-          FACILITY LIFECYCLE
-        </span>
+
 
         <h2 id="facility-status-dialog-title">
           {statusAction === 'ACTIVATE'
@@ -1390,11 +1350,12 @@ async function handleEditFacility(
         )}
       </div>
 
+      <ApiErrorAlert error={operationError} />
       <div className="facility-confirm-actions">
         <button
           type="button"
           className="facility-secondary-button"
-          onClick={closeStatusConfirmation}
+          disabled={isSaving} onClick={closeStatusConfirmation}
         >
           Cancel
         </button>
@@ -1406,15 +1367,15 @@ async function handleEditFacility(
               ? 'facility-confirm-button facility-confirm-button--activate'
               : 'facility-confirm-button facility-confirm-button--deactivate'
           }
-          onClick={confirmStatusChange}
+          disabled={isSaving} onClick={confirmStatusChange}
         >
-          {statusAction === 'ACTIVATE'
+          {isSaving ? 'Updating facility...' : statusAction === 'ACTIVATE'
             ? 'Activate Facility'
             : 'Deactivate Facility'}
         </button>
       </div>
     </div>
-  </div>
+  </div></EmployeeModal>
 )}
     </section>
   )

@@ -1,0 +1,17 @@
+dialog.employee-modal-frame:not(.admin-modal-frame, .manager-dialog) {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  box-sizing: border-box;
+}
+dialog.employee-modal-frame:not([open]) { display: none; }
+dialog.employee-modal-frame:not(.admin-modal-frame, .manager-dialog)::backdrop { background: transparent; }
+dialog.employee-modal-frame > div { min-width: 0; }

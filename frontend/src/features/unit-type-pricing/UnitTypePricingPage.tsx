@@ -1,3 +1,4 @@
+import { EmployeeModal } from '../../components/EmployeeModal'
 import {
   type SyntheticEvent,
   useEffect,
@@ -651,16 +652,13 @@ export function UnitTypePricingPage() {
         </div>
       </div>
 
-      {editingUnitType && (
+      {editingUnitType && (<EmployeeModal labelledBy="unit-type-price-title" onClose={closePriceModal} busy={isSaving}>
         <div
           className="facility-modal-backdrop"
           onMouseDown={closePriceModal}
         >
           <div
             className="facility-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="unit-type-price-title"
             onMouseDown={(event) =>
               event.stopPropagation()
             }
@@ -769,7 +767,7 @@ export function UnitTypePricingPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div></EmployeeModal>
       )}
     </section>
   )

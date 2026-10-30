@@ -5,6 +5,7 @@ import {
   useState,
 } from 'react'
 import { businessApi } from '../../api/businessApi'
+import { EmployeeModal } from '../../components/EmployeeModal'
 import { ApiRequestError } from '../../api/httpClient'
 import type {
   CreatePolicyVersionRequest,
@@ -696,16 +697,16 @@ export function PolicyVersionManagementPage() {
         </div>
       </div>
 
-      {isCreateOpen && (
+      {isCreateOpen && (<EmployeeModal labelledBy="create-policy-version-title" onClose={closeCreateModal} busy={isSaving}>
         <div
           className="facility-modal-backdrop"
           onMouseDown={closeCreateModal}
         >
           <div
             className="facility-modal policy-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="create-policy-version-title"
+            data-modal-surface="policy"
+            data-modal-content="true"
+            data-title-id="create-policy-version-title"
             onMouseDown={(event) => event.stopPropagation()}
           >
             <div className="facility-modal-header">
@@ -856,18 +857,18 @@ export function PolicyVersionManagementPage() {
             </form>
           </div>
         </div>
-      )}
+      </EmployeeModal>)}
 
-      {selectedPolicy && (
+      {selectedPolicy && (<EmployeeModal labelledBy="policy-detail-title" onClose={() => setSelectedPolicy(null)}>
         <div
           className="facility-modal-backdrop"
           onMouseDown={() => setSelectedPolicy(null)}
         >
           <div
             className="facility-modal facility-detail-modal policy-detail-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="policy-detail-title"
+            data-modal-surface="policy"
+            data-modal-content="true"
+            data-title-id="policy-detail-title"
             onMouseDown={(event) => event.stopPropagation()}
           >
             <div className="facility-modal-header">
@@ -946,7 +947,7 @@ export function PolicyVersionManagementPage() {
             </div>
           </div>
         </div>
-      )}
+      </EmployeeModal>)}
     </section>
   )
 }

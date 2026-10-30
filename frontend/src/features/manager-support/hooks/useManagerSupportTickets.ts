@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   assignSupportTicketStaff,
   getSupportTicket,
@@ -28,6 +28,7 @@ export interface ManagerSupportFilters {
 
 export function useManagerSupportTickets() {
   const [tickets, setTickets] = useState<SupportTicketDetail[]>([]);
+  const requestRef = useRef(0);
   const [pagination, setPagination] = useState(DEFAULT_PAGINATION);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ApiErrorShape | null>(null);
@@ -38,16 +39,18 @@ export function useManagerSupportTickets() {
   });
 
   const load = useCallback(async (page = 1) => {
+    const requestId = ++requestRef.current;
     setLoading(true);
     setError(null);
     try {
       const result = await listSupportTickets({ page, pageSize: 20 });
+      if (requestId !== requestRef.current) return;
       setTickets(result.data ?? []);
       setPagination(result.pagination ?? { ...DEFAULT_PAGINATION, page });
     } catch (err) {
-      setError(normalizeApiError(err));
+      if (requestId === requestRef.current) setError(normalizeApiError(err));
     } finally {
-      setLoading(false);
+      if (requestId === requestRef.current) setLoading(false);
     }
   }, []);
 
@@ -92,10 +95,14 @@ export function useManagerSupportTicketDetail(ticketId: string | null) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ApiErrorShape | null>(null);
   const [assigning, setAssigning] = useState(false);
+  const requestRef = useRef(0);
 
   const refresh = useCallback(async () => {
+    const requestId = ++requestRef.current;
     if (!ticketId) {
-      setTicket(null);
+      // invalidated previous requests via ++requestRef.current
+      if (requestId === requestRef.current) setLoading(false);
+      if (requestId === requestRef.current) setTicket(null);
       setError(null);
       return;
     }
@@ -104,12 +111,13 @@ export function useManagerSupportTicketDetail(ticketId: string | null) {
     setError(null);
     try {
       const result = await getSupportTicket(ticketId);
+      if (requestId !== requestRef.current) return;
       setTicket(result.data);
     } catch (err) {
-      setError(normalizeApiError(err));
-      setTicket(null);
+      if (requestId === requestRef.current) setError(normalizeApiError(err));
+      if (requestId === requestRef.current) setTicket(null);
     } finally {
-      setLoading(false);
+      if (requestId === requestRef.current) setLoading(false);
     }
   }, [ticketId]);
 

@@ -1,3 +1,4 @@
+import { EmployeeModal } from '../../../components/EmployeeModal'
 import { EmployeeEntityLabel } from '../../../components/EmployeeEntityLabel'
 import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent, MouseEvent } from "react";
@@ -80,12 +81,10 @@ export function AssignSupportStaffDialog({
   }
 
   return (
-    <div className="mwp05-modal-backdrop" role="presentation" onMouseDown={onClose}>
+    <EmployeeModal labelledBy="mwp05-assign-title" busy={submitting} onClose={onClose}>
+    <div className="mwp05-modal-backdrop" role="presentation" onMouseDown={() => { if (!submitting) onClose() }}>
       <section
         className="mwp05-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="mwp05-assign-title"
         onMouseDown={(event: MouseEvent<HTMLElement>) => event.stopPropagation()}
       >
         <div className="mwp05-modal__header">
@@ -93,7 +92,7 @@ export function AssignSupportStaffDialog({
             <p className="mwp05-eyebrow">Open support ticket</p>
             <h2 id="mwp05-assign-title">Assign responsible staff</h2>
           </div>
-          <button className="mwp05-icon-button" type="button" onClick={onClose} aria-label="Close">
+          <button className="mwp05-icon-button" type="button" onClick={onClose} disabled={submitting} aria-label="Close">
             ×
           </button>
         </div>
@@ -114,13 +113,14 @@ export function AssignSupportStaffDialog({
               onChange={(event: ChangeEvent<HTMLSelectElement>) => { setEmployeeId(event.target.value); setValidation(null); }}
               disabled={submitting || loading || Boolean(lookupError) || staff.length === 0}
               aria-invalid={Boolean(validation || error)}
+              aria-describedby="mwp05-staff-hint mwp05-assign-error"
             >
               <option value="">{loading ? "Loading staff..." : "Select a staff member"}</option>
               {staff.map((member) => (
                 <option key={member.employeeId} value={member.employeeId}>{member.fullName}</option>
               ))}
             </select>
-            <small>Choose an active staff member in your facility.</small>
+            <small id="mwp05-staff-hint">Choose an active staff member in your facility.</small>
           </label>
           {!loading && !lookupError && staff.length === 0 && <p role="status">No active Facility Staff found.</p>}
           {lookupError && (
@@ -138,6 +138,7 @@ export function AssignSupportStaffDialog({
             </div>
           )}
 
+          <div id="mwp05-assign-error" role="alert">
           {validation && <div className="mwp05-inline-error">{validation}</div>}
           {error && (
             <div className="mwp05-inline-error" data-testid="mwp05-assign-error">
@@ -146,6 +147,7 @@ export function AssignSupportStaffDialog({
             </div>
           )}
 
+          </div>
           <div className="mwp05-modal__actions">
             <button className="mwp05-button mwp05-button--secondary" type="button" onClick={onClose} disabled={submitting}>
               Cancel
@@ -157,5 +159,6 @@ export function AssignSupportStaffDialog({
         </form>
       </section>
     </div>
+    </EmployeeModal>
   );
 }

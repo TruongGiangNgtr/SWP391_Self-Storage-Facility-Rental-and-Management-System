@@ -1,4 +1,5 @@
 import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
+import { EmployeeModal } from '../../components/EmployeeModal'
 import {
   AlertTriangle,
   Check,
@@ -79,21 +80,21 @@ function ManagerDialog({
   onClose,
   children,
 }: ManagerDialogProps) {
-  const ref = useRef<HTMLDialogElement>(null)
+  // EmployeeModal manages native dialog lifecycle, focus entry/trap/restoration, and Escape.
 
   useEffect(() => {
-    ref.current?.showModal()
-    return () => ref.current?.close()
+  // showModal is handled by EmployeeModal
+    return undefined
   }, [])
 
   return (
-    <dialog
-      ref={ref}
+    <EmployeeModal
+      role="dialog"
       className="manager-dialog"
-      aria-labelledby="manager-dialog-title"
-      onCancel={(event) => {
+      labelledBy="manager-dialog-title" busy={busy}
+      onClose={() => { /*
         event.preventDefault()
-        if (!busy) {
+        */ if (!busy) {
           onClose()
         }
       }}
@@ -114,7 +115,7 @@ function ManagerDialog({
         </button>
       </div>
       {children}
-    </dialog>
+    </EmployeeModal>
   )
 }
 
@@ -220,6 +221,7 @@ export function PhysicalUnitManagementPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isVerifyingUnitType, setIsVerifyingUnitType] = useState(false)
   const [isLoadingDetail, setIsLoadingDetail] = useState(false)
+  const detailRequest = useRef(0)
 
   const loadUnitTypes = useCallback(async () => {
     if (!facilityId) {
@@ -356,11 +358,11 @@ export function PhysicalUnitManagementPage() {
   }, [units])
 
   function closeDialog() {
-    if (isSubmitting || isLoadingDetail) {
+    if (isSubmitting) {
       return
     }
 
-    setDialogMode(null)
+    detailRequest.current += 1; setIsLoadingDetail(false); setIsVerifyingUnitType(false); setDialogMode(null)
     setSelectedUnit(null)
     setForm(EMPTY_FORM)
     setFormError(null)
@@ -372,10 +374,10 @@ export function PhysicalUnitManagementPage() {
     setForm(EMPTY_FORM)
     setVerifiedUnitType(null)
     setFormError(null)
-    setDialogMode('create')
+    detailRequest.current += 1; setIsLoadingDetail(false); setIsVerifyingUnitType(false); setDialogMode('create')
   }
 
-  async function fetchUnitType(unitTypeId: string): Promise<UnitTypeAvailability | null> {
+  async function fetchUnitType(unitTypeId: string, requestId = detailRequest.current): Promise<UnitTypeAvailability | null> {
     const normalized = unitTypeId.trim()
     if (!normalized) {
       setVerifiedUnitType(null)
@@ -395,20 +397,22 @@ export function PhysicalUnitManagementPage() {
 
     try {
       const response = await catalogApi.getUnitType(normalized)
+      if (requestId !== detailRequest.current) return null
       const unitType = response.data
       setVerifiedUnitType(unitType)
       setUnitTypeCache((current) => ({ ...current, [unitType.unitTypeId]: unitType }))
       return unitType
     } catch (error) {
       setVerifiedUnitType(null)
-      setFormError(apiErrorMessage(error, 'Unable to verify this Unit Type.'))
+      if (requestId === detailRequest.current) setFormError(apiErrorMessage(error, 'Unable to verify this Unit Type.'))
       return null
     } finally {
-      setIsVerifyingUnitType(false)
+      if (requestId === detailRequest.current) setIsVerifyingUnitType(false)
     }
   }
 
   async function openDetail(unit: StorageUnit) {
+    const requestId = ++detailRequest.current
     setDialogMode('detail')
     setSelectedUnit(unit)
     setIsLoadingDetail(true)
@@ -416,17 +420,19 @@ export function PhysicalUnitManagementPage() {
 
     try {
       const response = await storageUnitApi.get(unit.storageUnitId)
+      if (requestId !== detailRequest.current) return
       const current = response.data
       setSelectedUnit(current)
-      await fetchUnitType(current.unitTypeId)
+      await fetchUnitType(current.unitTypeId, requestId)
     } catch (error) {
-      setFormError(apiErrorMessage(error, 'Unable to load the latest StorageUnit detail.'))
+      if (requestId === detailRequest.current) setFormError(apiErrorMessage(error, 'Unable to load the latest StorageUnit detail.'))
     } finally {
-      setIsLoadingDetail(false)
+      if (requestId === detailRequest.current) setIsLoadingDetail(false)
     }
   }
 
   async function openEdit(unit: StorageUnit) {
+    const requestId = ++detailRequest.current
     setDialogMode('edit')
     setSelectedUnit(unit)
     setForm({
@@ -440,6 +446,7 @@ export function PhysicalUnitManagementPage() {
 
     try {
       const response = await storageUnitApi.get(unit.storageUnitId)
+      if (requestId !== detailRequest.current) return
       const current = response.data
       setSelectedUnit(current)
       setForm({
@@ -453,16 +460,17 @@ export function PhysicalUnitManagementPage() {
       // IN_USE / INSPECTION cannot reassign Unit Type in MWP-02, so a catalogue
       // verification failure must not block a valid location-only edit.
       if (current.status !== 'IN_USE' && current.status !== 'INSPECTION' && !currentType) {
-        await fetchUnitType(current.unitTypeId)
+        await fetchUnitType(current.unitTypeId, requestId)
       }
     } catch (error) {
-      setFormError(apiErrorMessage(error, 'Unable to load the latest StorageUnit before editing.'))
+      if (requestId === detailRequest.current) setFormError(apiErrorMessage(error, 'Unable to load the latest StorageUnit before editing.'))
     } finally {
-      setIsLoadingDetail(false)
+      if (requestId === detailRequest.current) setIsLoadingDetail(false)
     }
   }
 
   async function openStatus(unit: StorageUnit) {
+    const requestId = ++detailRequest.current
     setDialogMode('status')
     setSelectedUnit(unit)
     setFormError(null)
@@ -470,11 +478,12 @@ export function PhysicalUnitManagementPage() {
 
     try {
       const response = await storageUnitApi.get(unit.storageUnitId)
+      if (requestId !== detailRequest.current) return
       setSelectedUnit(response.data)
     } catch (error) {
-      setFormError(apiErrorMessage(error, 'Unable to load the latest StorageUnit status.'))
+      if (requestId === detailRequest.current) setFormError(apiErrorMessage(error, 'Unable to load the latest StorageUnit status.'))
     } finally {
-      setIsLoadingDetail(false)
+      if (requestId === detailRequest.current) setIsLoadingDetail(false)
     }
   }
 
@@ -600,7 +609,7 @@ export function PhysicalUnitManagementPage() {
   }
 
   function closeDialogAfterSubmit() {
-    setDialogMode(null)
+    detailRequest.current += 1; setIsLoadingDetail(false); setIsVerifyingUnitType(false); setDialogMode(null)
     setSelectedUnit(null)
     setForm(EMPTY_FORM)
     setFormError(null)
@@ -875,7 +884,7 @@ export function PhysicalUnitManagementPage() {
         <ManagerDialog
           title={`Edit ${selectedUnit.unitCode}`}
           description="Location may be maintained operationally. Unit Type reassignment is blocked while the unit is IN_USE or INSPECTION and remains server-authoritative."
-          busy={isSubmitting || isLoadingDetail || isVerifyingUnitType}
+          busy={isSubmitting}
           onClose={closeDialog}
         >
           {isLoadingDetail ? (
@@ -918,7 +927,7 @@ export function PhysicalUnitManagementPage() {
         <ManagerDialog
           title={selectedUnit.unitCode}
           description="Latest server-authoritative StorageUnit detail."
-          busy={isLoadingDetail}
+          busy={false}
           onClose={closeDialog}
         >
           {isLoadingDetail ? (
@@ -952,7 +961,7 @@ export function PhysicalUnitManagementPage() {
         <ManagerDialog
           title="Change operational status"
           description="Only preventive-maintenance status changes are available here. Handover and return status changes must follow their respective workflows."
-          busy={isSubmitting || isLoadingDetail}
+          busy={isSubmitting}
           onClose={closeDialog}
         >
           {isLoadingDetail ? (

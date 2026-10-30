@@ -14,6 +14,7 @@ import { BrandLogo } from '../components/BrandLogo'
 import { EmployeePortalFooter } from '../components/EmployeePortalFooter'
 import '../styles/staff.css'
 import '../styles/employeeIdentity.css'
+import '../styles/employeeWorkspace.css'
 
 function getInitials(fullName?: string | null) {
   if (!fullName?.trim()) return 'FS'

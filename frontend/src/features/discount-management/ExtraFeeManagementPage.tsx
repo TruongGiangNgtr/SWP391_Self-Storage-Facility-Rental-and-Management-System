@@ -1,3 +1,4 @@
+import { EmployeeModal } from '../../components/EmployeeModal'
 import { useEffect, useState, type SyntheticEvent } from 'react'
 import { businessApi } from '../../api/businessApi'
 import type { ApiCollectionResponse } from '../../api/api.types'
@@ -73,8 +74,8 @@ export function ExtraFeeManagementPage() {
       <div className="facility-table-footer"><span>{response.pagination.totalItems} fee types</span>
         <PaginationControls pagination={response.pagination} onPageChange={setPage} /></div>
     </div>}
-    {editing && <div className="facility-modal-backdrop" onKeyDown={event => { if (event.key === 'Escape' && !saving) setEditing(null) }}>
-      <div className="facility-modal discount-modal" role="dialog" aria-modal="true" aria-labelledby="fee-edit-title">
+    {editing && <EmployeeModal labelledBy="fee-edit-title" busy={saving} onClose={() => setEditing(null)}><div className="facility-modal-backdrop" onKeyDown={event => { if (event.key === 'Escape' && !saving) setEditing(null) }}>
+      <div className="facility-modal discount-modal">
         <div className="facility-modal-header"><h2 id="fee-edit-title">Edit Extra Fee</h2>
           <button className="facility-modal-close" disabled={saving} aria-label="Close extra fee dialog" onClick={() => setEditing(null)}>×</button></div>
         <form className="facility-form" onSubmit={save}>
@@ -89,6 +90,6 @@ export function ExtraFeeManagementPage() {
             <button className="facility-primary-button" disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</button></div>
         </form>
       </div>
-    </div>}
+    </div></EmployeeModal>}
   </div>
 }

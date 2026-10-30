@@ -66,57 +66,7 @@
   font-size: 10px;
 }
 
-.employee-identity.employee-identity.employee-identity :is(.manager-profile-avatar, .staff-profile-avatar) {
-  width: 58px;
-  height: 58px;
-  font-size: 18px;
-}
-
-.employee-identity.employee-identity.employee-identity :is(.manager-profile, .staff-profile) strong {
-  color: #111827;
-  font-size: 14px;
-}
-
-.employee-identity.employee-identity.employee-identity :is(.manager-profile-email, .staff-profile-email) {
-  color: #738095;
-  font-size: 11px;
-}
-
-.employee-identity.employee-identity.employee-identity :is(.manager-role-badge, .staff-role-badge) {
-  color: var(--frms-primary);
-  font-size: 10px;
-}
-
-@media (min-width: 901px) {
-  .employee-identity.employee-identity.employee-identity :is(.manager-body, .staff-body, .admin-body) {
-    display: grid;
-    grid-template-columns: 248px minmax(0, 1fr);
-    padding: 8px;
-  }
-
-  .employee-identity.employee-identity.employee-identity :is(.manager-sidebar, .staff-sidebar) {
-    padding: 18px;
-    margin: 0;
-    border: 1px solid #e3e8f0;
-    border-radius: 16px;
-    box-shadow: 0 1px 3px rgb(15 23 42 / 6%);
-  }
-
-  .employee-identity.employee-identity.employee-identity :is(.manager-profile, .staff-profile) {
-    display: flex;
-  }
-
-  .employee-identity.employee-identity.employee-identity :is(.manager-nav, .staff-nav) {
-    flex-direction: column;
-    margin-top: 18px;
-    padding-bottom: 0;
-    overflow-x: visible;
-  }
-
-  .employee-identity.employee-identity.employee-identity :is(.manager-nav-link, .staff-nav-link) {
-    white-space: normal;
-  }
-}
+/* Sidebar and profile card styles are owned by employeeWorkspace.css across all four employee roles. */
 
 /* BOM keeps a compact brand + avatar header on small screens. */
 @media (max-width: 700px) {

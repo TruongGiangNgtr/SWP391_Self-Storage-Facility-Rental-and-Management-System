@@ -13,6 +13,7 @@ import { useAuth } from '../auth/auth.context'
 import { BrandLogo } from '../components/BrandLogo'
 import '../styles/manager.css'
 import '../styles/business-sidebar.css'
+import '../styles/employeeWorkspace.css'
 interface BusinessOperationsLayoutProps {
   basePath?: string
 }

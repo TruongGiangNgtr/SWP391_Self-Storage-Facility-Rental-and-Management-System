@@ -1,7 +1,9 @@
+import { EmployeeModal } from '../../components/EmployeeModal'
+import { formatUtcDateTime } from '../../utils/formatters'
 import { employeeContractLabel, employeeMonthRange, employeeUnitLabel } from '../../utils/employeePresentation'
 import type { ReactNode } from 'react'
 import { EmployeeEntityLabel, EmployeeReservationLabel } from '../../components/EmployeeEntityLabel'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Activity, ArrowRight, Building2, CalendarDays, CreditCard, FileText,
   RefreshCw, Search, ShieldCheck, TrendingUp, X,
@@ -135,12 +137,12 @@ async function loadDetail(tab: ActivityTab, item: ActivityRecord): Promise<Detai
   }
 }
 
-function detailFields(detail: DetailState): { label: string; value: ReactNode }[] {
+function detailFields(detail: DetailState, facilityNames: ReadonlyMap<string, string>): { label: string; value: ReactNode }[] {
   const { tab, record } = detail
   if (tab === 'reservations') {
     const r = record as ReservationDetail
     return [
-      { label: 'Reservation', value: <EmployeeReservationLabel customerId={r.customerId} /> }, { label: 'Facility', value: <EmployeeEntityLabel kind="facility" id={r.facilityId} /> },
+      { label: 'Reservation', value: <EmployeeReservationLabel customerId={r.customerId} /> }, { label: 'Facility', value: facilityNames.get(r.facilityId) ?? <EmployeeEntityLabel kind="facility" id={r.facilityId} /> },
       { label: 'Customer', value: <EmployeeEntityLabel kind="customer" id={r.customerId} /> }, { label: 'Unit Type', value: <EmployeeEntityLabel kind="unitType" id={r.unitTypeId} /> },
       { label: 'Rental period', value: employeeMonthRange(r.startMonth, r.endMonth) },
       { label: 'Status', value: r.status }, { label: 'Deposit invoice status', value: r.depositInvoice?.status },
@@ -150,7 +152,7 @@ function detailFields(detail: DetailState): { label: string; value: ReactNode }[
   if (tab === 'contracts') {
     const r = record as HandoverContractDetail
     return [
-      { label: 'Contract', value: employeeContractLabel(r) }, { label: 'Facility', value: <EmployeeEntityLabel kind="facility" id={r.facilityId} /> },
+      { label: 'Contract', value: employeeContractLabel(r) }, { label: 'Facility', value: facilityNames.get(r.facilityId) ?? <EmployeeEntityLabel kind="facility" id={r.facilityId} /> },
       { label: 'Customer', value: <EmployeeEntityLabel kind="customer" id={r.customerId} /> }, { label: 'Reservation', value: r.reservationId ? <EmployeeReservationLabel customerId={r.customerId} /> : '—' },
       { label: 'Storage Unit', value: employeeUnitLabel(r) }, { label: 'Status', value: readableStatus(r.status) },
       { label: 'Rental period', value: employeeMonthRange(r.startMonth, r.endMonth) },
@@ -173,7 +175,7 @@ function detailFields(detail: DetailState): { label: string; value: ReactNode }[
     { label: 'Type', value: r.invoiceType }, { label: 'Billing month', value: r.billingMonth },
     { label: 'Status', value: r.status }, { label: 'Base amount', value: vnd(r.baseAmount) },
     { label: 'Discount', value: vnd(r.discountAmount) }, { label: 'Amount due', value: vnd(r.amountDue) },
-    { label: 'Due date', value: textDate(r.dueDate) }, { label: 'Paid at (UTC)', value: r.paidAt },
+    { label: 'Due date', value: textDate(r.dueDate) }, { label: 'Paid at (GMT+7)', value: r.paidAt ? formatUtcDateTime(r.paidAt) : undefined },
   ]
 }
 
@@ -199,7 +201,10 @@ export function MultiFacilityMonitoringPage() {
   const [detail, setDetail] = useState<DetailState | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
-  const [openingDetail, setOpeningDetail] = useState(false)
+  const [detailTarget, setDetailTarget] = useState<{ tab: ActivityTab; item: ActivityRecord } | null>(null)
+  const detailRequest = useRef(0)
+  const closeDetail = useCallback(() => { detailRequest.current += 1; setDetailTarget(null); setDetail(null); setDetailLoading(false); setDetailError('') }, [])
+  useEffect(() => () => { detailRequest.current += 1 }, [])
 
   const isFacilityFiltered = Boolean(facilityId) && scopedTab(tab)
   const requestPage = isFacilityFiltered ? 1 : page
@@ -256,10 +261,10 @@ export function MultiFacilityMonitoringPage() {
   }, [tab, requestPage, facilityId, revision, isFacilityFiltered])
 
   useEffect(() => {
-    if (!detail) return
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') setDetail(null) }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    // Escape is handled by EmployeeModal.
+    return undefined
+    // no manual window keydown listener needed
+    // handled by native dialog cancel event
   }, [detail])
 
   const facilityNames = useMemo(() => new Map(facilities.map(item => [item.facilityId, item.name])), [facilities])
@@ -284,7 +289,7 @@ export function MultiFacilityMonitoringPage() {
   const totalPages = isFacilityFiltered && search.trim() ? Math.ceil((facilityFilteredCount ?? 0) / PAGE_SIZE) : pagination.totalPages
   const activeFacilities = facilities.filter(item => item.status === 'ACTIVE').length
 
-  const chooseFacility = (id: string) => { setFacilityId(id); setPage(1); setSearch(''); setDetail(null) }
+  const chooseFacility = (id: string) => { closeDetail(); setFacilityId(id); setPage(1); setSearch('') }
   const chooseTab = (next: ActivityTab) => {
     if (next === tab) return
     // Clear records in the click batch, BEFORE React renders the new tab.
@@ -296,26 +301,27 @@ export function MultiFacilityMonitoringPage() {
     setPagination({ totalItems: 0, totalPages: 0 })
     setTab(next)
     setPage(1)
-    setSearch('')
-    setDetail(null)
+    setSearch(''); closeDetail()
+    // detail state cleared via closeDetail or setDetail(null)
     setDetailError('')
   }
-  const refresh = () => { setRevision(value => value + 1); setDetail(null); setDetailError('') }
-  const openRecord = async (item: ActivityRecord) => {
-    if (openingDetail) return
-    setOpeningDetail(true)
+  const refresh = () => { closeDetail(); setRevision(value => value + 1) }
+  const openRecord = async (item: ActivityRecord, currentTab: ActivityTab = tab) => {
+    const requestId = ++detailRequest.current
+    setDetailTarget({ tab: currentTab, item })
     setDetailError('')
-    setDetail(null)
-    setDetailLoading(true)
+    // detail state cleared via closeDetail or setDetail(null)
+    setDetail(null); setDetailLoading(true)
     try {
-      const record = await loadDetail(tab, item)
+      const record = await loadDetail(currentTab, item)
+      if (requestId !== detailRequest.current) return
       if (!record) { setDetailError('Record details are not available. Refresh to retry.'); return }
-      setDetail({ tab, record })
+      setDetail({ tab: currentTab, record })
     } catch (error) {
-      setDetailError(readableError(error))
+      if (requestId === detailRequest.current) { setDetailError(readableError(error)); setDetail(null) }
     } finally {
-      setOpeningDetail(false)
-      setDetailLoading(false)
+      // Request sequence guard replaces single-flight lock.
+      if (requestId === detailRequest.current) setDetailLoading(false)
     }
   }
 
@@ -430,16 +436,18 @@ export function MultiFacilityMonitoringPage() {
 
     <p className="mfm-footnote">Read-only dashboard. Authoritative permissions, rental status, revenue and usage calculations remain on the server. Use the Reports page to review reporting and export availability.</p>
 
-    {detail && <div className="mfm-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setDetail(null) }}>
-      <aside className="mfm-drawer" role="dialog" aria-modal="true" aria-label={`${detail.tab} record details`}>
+    {detailTarget && <EmployeeModal label={`${detailTarget.tab} record details`} onClose={closeDetail}><div className="mfm-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) closeDetail() }}>
+      <aside className="mfm-drawer">
         <div className="mfm-drawer-heading"><div><span>System-wide read</span>
-          <h2>{detail.tab.slice(0, 1).toUpperCase() + detail.tab.slice(1, -1)} details</h2></div>
-          <button type="button" aria-label="Close detail" className="mfm-close" onClick={() => setDetail(null)}><X size={20}/></button></div>
-        <dl className="mfm-details">{detailFields(detail).map(field => <div key={field.label}>
+          <h2>{detailTarget.tab.slice(0, 1).toUpperCase() + detailTarget.tab.slice(1, -1)} details</h2></div>
+          <button type="button" aria-label="Close detail" className="mfm-close" onClick={closeDetail}><X size={20}/></button></div>
+        {detailLoading && !detail && <div role="status" className="mfm-message">Loading record detail…</div>}
+        {detailError && <div role="alert" className="mfm-error">Unable to open record: {detailError} <button type="button" disabled={detailLoading} onClick={() => void openRecord(detailTarget.item, detailTarget.tab)}>Retry</button></div>}
+        {detail && <dl className="mfm-details">{detailFields(detail, facilityNames).map(field => <div key={field.label}>
           <dt>{field.label}</dt><dd>{field.value ?? '—'}</dd>
-        </div>)}</dl>
+        </div>)}</dl>}
         <p className="mfm-footnote">Detail fetched from the authorized server endpoint. All values are read-only.</p>
       </aside>
-    </div>}
+    </div></EmployeeModal>}
   </div>
 }
