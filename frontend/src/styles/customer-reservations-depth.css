@@ -1,0 +1,152 @@
+/* Reservations, its checkout dialogs and linked invoice details share approved desktop materials. */
+@media (min-width: 1024px) {
+  .frms-customer:is(.customer-shell.reservations-depth-shell, .customer-shell.contracts-depth-shell, .flow-dialog.customer-renewal, .flow-dialog.customer-return-request, .flow-dialog.reservation-create-design, .flow-dialog.customer-handover-schedule, .flow-dialog.reservation-cccd-dialog) {
+    --reservation-surface: #c4dafc;
+    --reservation-soft: #e7effc;
+    --reservation-ink: #102b4e;
+    --reservation-muted: #314d70;
+    --reservation-line: #a9c1e1;
+    --reservation-shadow: inset 0 1px 1px #ffffffd9, 0 12px 18px -12px #19396761, 0 32px 50px -28px #19396773;
+    color: var(--reservation-ink);
+    & .flow-page { gap: 28px; }
+    & .narrow-page { max-width: none; }
+    & .page-heading { border: 0; padding: 0; }
+    & .page-heading h1 { color: #103563; font-size: 36px; line-height: 1.25; letter-spacing: -.025em; text-shadow: 0 1px 0 #fffffff2, 0 9px 18px #14396e21; }
+    & .page-heading p { max-width: 65ch; margin-top: 12px; font-size: 15px; line-height: 1.75; }
+    & :is(h2, h3, dd) { color: var(--reservation-ink); }
+    & :is(.muted, dt, .reservations-created, .reservations-facility, .reservations-facts small, .remaining-helper) { color: var(--reservation-muted); }
+    & .panel { padding: 24px; border: 0; border-radius: 16px; background: var(--reservation-surface); box-shadow: var(--reservation-shadow); }
+    & :is(.button, .reservations-text-link, .reservations-text-button, .reservation-detail-text-link, .invoice-detail-text-link, .invoice-detail-text-button, .remaining-page-navigation > a, .payment-result-history, .contracts-text-link, .contracts-text-button, .contract-detail-text-link, .contract-detail-text-button, .tracking-text-link, .renewal-refresh, .return-request-text-button) {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto;
+      min-height: 36px; height: auto; padding: 6px 12px; border: 0; border-radius: 8px;
+      background: #f4f7fd; color: #214a87; font-size: 13px; font-weight: 600; line-height: 24px; text-decoration: none;
+      box-shadow: inset 0 1px 1px #ffffffbf, 0 4px 10px -7px #173d7b73;
+    }
+    & :is(.button, .reservations-text-link, .reservations-text-button, .reservation-detail-text-link, .invoice-detail-text-link, .invoice-detail-text-button, .remaining-page-navigation > a, .payment-result-history, .contracts-text-link, .contracts-text-button, .contract-detail-text-link, .contract-detail-text-button, .tracking-text-link, .renewal-refresh, .return-request-text-button):hover:not(:disabled) { background: #e9eff9; color: #173c73; text-decoration: none; }
+    & .button:not(.button-secondary):not(.button-danger) { min-height: 44px; padding: 10px 16px; background: #245ce0; color: #fff; }
+    & .button:not(.button-secondary):not(.button-danger):hover:not(:disabled) { background: #194bc5; }
+    & :is(.button-danger, .reservations-cancel-link) { background: #fff1f3; color: #9f2338; }
+    & :is(.button-danger, .reservations-cancel-link):hover:not(:disabled) { background: #ffe2e8; color: #8d2032; }
+    & :is(button, .button):disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+    & :is(input, select, textarea) { min-height: 44px; padding: 10px 12px; border: 1px solid #9bb7df; border-radius: 10px; background: #f4f7fd; color: var(--reservation-ink); font-size: 13px; caret-color: #245ce0; }
+    & :is(input, textarea)::placeholder { color: #526988; opacity: 1; }
+    & :is(a, button, input, select, textarea, summary):focus-visible { outline: 3px solid #245ce0; outline-offset: 4px; }
+    & ::selection { background: #b4d0ff; color: #102b4e; }
+    & [id] { scroll-margin-top: 112px; }
+    & .customer-tabs { gap: 12px; padding: 4px 0 12px; border-color: var(--reservation-line); }
+    & .customer-tabs button { padding: 10px 12px; border: 0; border-radius: 8px; background: var(--reservation-soft); color: #214a87; }
+    & .customer-tabs button[aria-selected='true'] { background: #245ce0; color: #fff; }
+    & .reservations-heading { align-items: center; gap: 24px; }
+    & .reservations-heading-actions { align-items: center; }
+    & .reservations-filter-form { background: #9dbff0; gap: 16px; }
+    & .reservations-filter-form label { color: #214a87; }
+    & .reservations-card-heading { border-color: var(--reservation-line); }
+    & .reservations-facts { gap: 24px; padding: 0; background: transparent; border: 0; }
+    & .reservations-facts dd { font-size: 15px; }
+    & .reservations-card-actions { padding-top: 20px; border-color: var(--reservation-line); gap: 16px; }
+    & .reservations-callout { padding: 16px; background: var(--reservation-soft); color: var(--reservation-muted); border: 0; border-radius: 12px; }
+    & .reservations-help { background: var(--reservation-soft); box-shadow: none; gap: 20px; }
+    & .reservations-help h2 { font-size: 18px; }
+    & :is(.reservations-help-icon, .reservation-detail-icon, .invoice-detail-icon, .remaining-icon) { background: var(--reservation-soft); color: #214a87; border: 0; border-radius: 10px; }
+    & .reservation-detail-columns { gap: 24px; align-items: start; }
+    & .reservation-detail-stack { gap: 24px; }
+    & .reservation-detail-card-heading { padding-bottom: 20px; border-color: var(--reservation-line); }
+    & .reservation-detail-card-heading h2 { font-size: 20px; }
+    & :is(.reservation-detail-facts, .reservation-detail-invoice-facts) { gap: 20px; }
+    & .reservation-detail-facts > div { padding: 0; background: transparent; border: 0; }
+    & .reservation-detail-facts dd { font-size: 14px; line-height: 1.7; }
+    & .reservation-detail-invoice-amount { padding: 16px; border: 0; border-radius: 12px; background: var(--reservation-soft); }
+    & .reservation-detail-invoice-amount dd { color: #103c7a; font-size: 28px; font-variant-numeric: tabular-nums; }
+    & .reservation-detail-invoice-actions { gap: 12px; padding-top: 20px; border-color: var(--reservation-line); }
+    & .reservation-detail-first-month .notice { background: var(--reservation-soft); border: 0; border-radius: 12px; color: var(--reservation-muted); }
+    & .reservation-detail-cancel { background: var(--reservation-soft); box-shadow: none; }
+    & .reservation-detail-cancel-form { gap: 20px; }
+    & :is(.remaining-info, .handover-schedule-notice, .payment-result-pending-note) { padding: 16px; border: 0; border-radius: 12px; background: var(--reservation-soft); color: var(--reservation-muted); }
+    & .reservation-create-content { padding: 0; background: transparent; box-shadow: none; }
+    & .booking-review-layout { gap: 24px; }
+    & .reservation-create-selection { border: 0; border-radius: 16px; background: var(--reservation-surface); box-shadow: var(--reservation-shadow); overflow: hidden; }
+    & .booking-selection-overview { grid-template-columns: minmax(0, 1fr); padding: 0; gap: 0; }
+    & .booking-selection-image.facility-illustration { width: 100%; height: auto; aspect-ratio: 16 / 10; margin: 0; border-radius: 0; background: var(--reservation-soft); }
+    & .booking-selection-image.facility-illustration img { object-fit: contain; }
+    & .booking-selection-overview .dialog-selection { padding: 24px; }
+    & .dialog-selection strong { font-size: 22px; color: var(--reservation-ink); }
+    & .dialog-selection small { color: var(--reservation-muted); }
+    & .reservation-create-selection .detail-list { padding: 0 24px 24px; gap: 20px; }
+    & .detail-list dt { color: var(--reservation-muted); }
+    & .detail-list dd { color: var(--reservation-ink); }
+    & .booking-review-summary { padding: 24px; border: 0; border-radius: 16px; background: #9dbff0; box-shadow: var(--reservation-shadow); top: 110px; }
+    & .booking-review-summary > p { color: var(--reservation-muted); }
+    & .booking-review-summary .booking-summary-price { color: #103c7a; font-size: 28px; }
+    & .reservation-create-actions { border-color: #809fc9; }
+    & .reservation-create-actions .button { width: 100%; }
+    & .handover-schedule-facts { background: var(--reservation-soft); border: 0; padding: 20px; border-radius: 12px; gap: 20px; }
+    & .handover-schedule-facts dt { color: var(--reservation-muted); }
+    & .handover-schedule-facts dd { color: var(--reservation-ink); }
+    & .handover-schedule-type { background: var(--reservation-soft); color: #214a87; border: 0; border-radius: 8px; }
+    & .flow-date-card { padding: 20px; background: var(--reservation-soft); border: 0; border-radius: 12px; }
+    & .handover-schedule-form { gap: 20px; }
+    & .handover-schedule-actions { gap: 12px; padding-top: 20px; border-color: var(--reservation-line); background: transparent; }
+    & .reservation-cccd-step { max-width: 640px; padding: 0; border: 0; background: transparent; box-shadow: none; }
+    & .reservation-cccd-intro { gap: 16px; }
+    & .reservation-cccd-intro h2 { color: var(--reservation-ink); font-size: 22px; }
+    & .reservation-cccd-icon { background: var(--reservation-soft); color: #214a87; }
+    & .reservation-cccd-note { color: var(--reservation-muted); }
+    & .reservation-cccd-actions { background: transparent; gap: 12px; }
+    & .payment-result-card { max-width: 860px; margin-inline: auto; width: 100%; }
+    & .payment-result-facts { padding: 20px; gap: 20px; border: 0; border-radius: 12px; background: var(--reservation-soft); }
+    & .payment-result-outcome { padding-bottom: 24px; border-color: var(--reservation-line); }
+    & .payment-result-reference { color: #314d70; border-color: var(--reservation-line); }
+    & .payment-result-reference p { overflow-wrap: anywhere; }
+    & .invoice-detail-card-heading { border-color: var(--reservation-line); }
+    & .invoice-detail-columns { gap: 28px; }
+    & .invoice-detail-amounts { padding: 20px; border: 0; border-radius: 12px; background: var(--reservation-soft); }
+    & .invoice-detail-total dd { color: #103c7a; }
+    & .invoice-detail-payment { padding-top: 24px; border-color: var(--reservation-line); }
+    & .form-error { background: #fff1f2; color: #8d2032; border-color: #dba7b0; }
+  }
+  .frms-customer:is(.flow-dialog.reservation-create-design, .flow-dialog.customer-handover-schedule, .flow-dialog.reservation-cccd-dialog, .flow-dialog.customer-renewal, .flow-dialog.customer-return-request) {
+    padding: 32px; border: 0; border-radius: 16px; background: #c4dafc;
+    box-shadow: inset 0 1px 1px #ffffffd9, 0 28px 70px -24px #102b4e99;
+    scrollbar-width: thin; scrollbar-color: #809dc9 transparent;
+    &::backdrop { background: #102b4e80; }
+    & .dialog-subtitle { color: #314d70; }
+    & .flow-dialog-heading h1 { font-size: 28px; color: #103563; }
+    & .eyebrow { display: none; }
+    & .action-row { background: #c4dafc; border: 0; }
+    & .booking-review-summary { position: static; box-shadow: none; }
+    & .reservation-create-selection { background: #e7effc; box-shadow: none; }
+  }
+  .frms-customer.reservation-create-design.flow-dialog { width: 1040px; max-width: calc(100vw - 64px); }
+  .frms-customer.customer-handover-schedule.flow-dialog { width: 760px; max-width: calc(100vw - 64px); }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .frms-customer.customer-shell.reservations-depth-shell .reservations-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .frms-customer.customer-shell.reservations-depth-shell .reservation-detail-columns { grid-template-columns: minmax(0, 1fr); }
+}
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .frms-customer.customer-shell.reservations-depth-shell .reservations-card { transition: transform .2s ease-out; }
+  .frms-customer.customer-shell.reservations-depth-shell .reservations-card:hover { transform: translateY(-3px); }
+}
+@media (min-width: 1024px) {
+  .frms-customer.customer-shell.reservations-depth-shell .booking-selection-image.facility-illustration { height: 280px; aspect-ratio: auto; }
+  .frms-customer.customer-shell.reservations-depth-shell .booking-selection-image.facility-illustration img { width: 100%; height: 100%; object-fit: cover; }
+  .frms-customer.reservation-create-design.flow-dialog .booking-selection-image.facility-illustration { height: 220px; aspect-ratio: auto; }
+  .frms-customer.reservation-create-design.flow-dialog .booking-selection-image.facility-illustration img { width: 100%; height: 100%; object-fit: cover; }
+  .frms-customer.customer-shell.reservations-depth-shell .reservation-detail-card { border: 0; }
+  .frms-customer.customer-shell.reservations-depth-shell .reservation-detail-invoice .reservation-detail-invoice-amount { padding: 16px; border-radius: 12px; background: #e7effc; }
+  .frms-customer.customer-shell.reservations-depth-shell .reservation-detail-cancel .button-danger,
+  .frms-customer.customer-shell.reservations-depth-shell .reservations-cancel-link { color: #9f2338; background: #fff1f3; }
+  .frms-customer:is(.reservation-create-design, .customer-handover-schedule, .reservation-cccd-dialog).flow-dialog .button:not(.button-secondary):not(.button-danger) { color: #fff; background: #245ce0; }
+  .frms-customer.customer-handover-schedule.flow-dialog .handover-schedule-content { box-shadow: none; }
+  .frms-customer.customer-handover-schedule.flow-dialog .handover-schedule-type { width: fit-content; padding: 8px 12px; line-height: 1.5; }
+}
+@media (min-width: 1024px) {
+  .frms-customer.customer-shell.reservations-depth-shell .payment-result-facts > div { padding: 0; border: 0; border-radius: 0; background: transparent; }
+  .frms-customer.customer-shell.reservations-depth-shell .payment-result-outcome { border-radius: 0; box-shadow: none; }
+  .frms-customer.customer-shell.reservations-depth-shell .rental-context { border-color: #a9c1e1; color: #314d70; }
+  .frms-customer.customer-shell.reservations-depth-shell .rental-context a { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 6px 12px; border: 0; border-radius: 8px; background: #f4f7fd; color: #214a87; font-size: 13px; font-weight: 600; line-height: 24px; text-decoration: none; box-shadow: inset 0 1px 1px #ffffffbf, 0 4px 10px -7px #173d7b73; }
+  .frms-customer.customer-shell.reservations-depth-shell .rental-context a:hover { background: #e9eff9; color: #173c73; }
+}
+@media (min-width: 1024px) {
+  .frms-customer.reservation-create-design.flow-dialog .booking-review-summary .booking-summary-price { font-size: 22px; line-height: 1.4; }
+}

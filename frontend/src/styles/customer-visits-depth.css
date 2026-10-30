@@ -1,0 +1,102 @@
+/* Desktop My Visits uses the approved Home and Overview materials. */
+@media (min-width: 1024px) {
+  .frms-customer.customer-shell.visits-depth-shell .flow-page { gap: 28px; }
+  .frms-customer.customer-shell.visits-depth-shell .narrow-page { max-width: none; }
+  .frms-customer.customer-shell.visits-depth-shell .page-heading { border: 0; padding: 0; }
+  .frms-customer.customer-shell.visits-depth-shell .page-heading h1 {
+    font-size: 36px; line-height: 1.25; letter-spacing: -.025em; color: #103563;
+    text-shadow: 0 1px 0 #fffffff2, 0 9px 18px #14396e21;
+  }
+  .frms-customer.customer-shell.visits-depth-shell .page-heading p { max-width: 65ch; margin-top: 12px; font-size: 15px; line-height: 1.75; }
+  .frms-customer.customer-shell.visits-depth-shell .panel {
+    padding: 24px; border: 0; border-radius: 16px;
+    background: var(--overview-surface); box-shadow: var(--overview-elevation);
+  }
+  .frms-customer.customer-shell.visits-depth-shell :is(h2, h3, dd) { color: #102b4e; }
+  .frms-customer.customer-shell.visits-depth-shell :is(.muted, dt, .visits-facility, .visits-card-title p, .visit-detail-card-heading p, .remaining-helper) { color: #314d70; }
+  .frms-customer.customer-shell.visits-depth-shell :is(.button, .visits-text-link, .visits-related a, .visits-text-button, .visit-detail-text-link, .visit-detail-text-button, .remaining-page-navigation > a, .remaining-page-navigation > button, .return-request-text-button) {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 36px; padding: 6px 12px; border: 0; border-radius: 8px;
+    background: #f4f7fd; color: #214a87; font-size: 13px; font-weight: 600;
+    line-height: 24px; text-decoration: none;
+    box-shadow: inset 0 1px 1px #ffffffbf, 0 4px 10px -7px #173d7b73;
+  }
+  .frms-customer.customer-shell.visits-depth-shell :is(.button, .visits-text-link, .visits-related a, .visits-text-button, .visit-detail-text-link, .visit-detail-text-button, .remaining-page-navigation > a, .remaining-page-navigation > button, .return-request-text-button):hover:not(:disabled) { background: #e9eff9; color: #173c73; text-decoration: none; }
+  .frms-customer.customer-shell.visits-depth-shell .button:not(.button-secondary):not(.button-danger) { min-height: 44px; padding: 10px 16px; background: #245ce0; color: #fff; }
+  .frms-customer.customer-shell.visits-depth-shell .button:not(.button-secondary):not(.button-danger):hover:not(:disabled) { background: #194bc5; }
+  .frms-customer.customer-shell.visits-depth-shell .button.button-danger { background: #fff1f3; color: #9f2338; }
+  .frms-customer.customer-shell.visits-depth-shell .button.button-danger:hover:not(:disabled) { background: #ffe2e8; }
+  .frms-customer.customer-shell.visits-depth-shell :is(button, .button):disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+  .frms-customer.customer-shell.visits-depth-shell :is(input, select, textarea) {
+    min-height: 44px; padding: 10px 12px; border: 1px solid #9bb7df; border-radius: 10px;
+    background: #f4f7fd; color: #102b4e; font-size: 13px; caret-color: #245ce0;
+  }
+  .frms-customer.customer-shell.visits-depth-shell :is(input, textarea)::placeholder { color: #526988; opacity: 1; }
+  .frms-customer.customer-shell.visits-depth-shell :is(a, button, input, select, textarea, summary):focus-visible { outline: 3px solid #245ce0; outline-offset: 4px; }
+  .frms-customer.customer-shell.visits-depth-shell ::selection { background: #b4d0ff; color: #102b4e; }
+  .frms-customer.customer-shell.visits-depth-shell [id] { scroll-margin-top: 112px; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-heading { align-items: center; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-heading-actions { align-items: center; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-filter-form { gap: 16px; background: var(--overview-emphasis); }
+  .frms-customer.customer-shell.visits-depth-shell .visits-filter-form label { font-size: 12px; color: #214a87; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-list-summary { margin-block: 0; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-list-summary p { font-size: 12px; color: #314d70; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-card-list { gap: 24px; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-card-heading { padding-bottom: 20px; border-color: #a9c1e1; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-card-heading h2 { font-size: 20px; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-card-facts { gap: 24px; padding-block: 24px; }
+  .frms-customer.customer-shell.visits-depth-shell :is(.visits-icon, .visit-detail-icon, .visit-detail-fact-icon, .remaining-icon) { background: #e7effc; color: #214a87; border: 0; border-radius: 10px; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-fact h3 { color: #314d70; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-related a { color: #214a87; text-underline-offset: 4px; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-card-footer { border-color: #a9c1e1; gap: 16px; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-card-note { color: #314d70; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-guidelines { background: #e7effc; box-shadow: none; padding: 20px 24px; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-guidelines h2 { font-size: 16px; }
+  .frms-customer.customer-shell.visits-depth-shell .customer-tabs { border-color: #a9c1e1; gap: 12px; padding: 4px 0 12px; }
+  .frms-customer.customer-shell.visits-depth-shell .customer-tabs button { border-radius: 8px; padding: 10px 12px; color: #214a87; background: #e7effc; }
+  .frms-customer.customer-shell.visits-depth-shell .customer-tabs button[aria-selected='true'] { color: #fff; background: #245ce0; border-color: transparent; }
+  .frms-customer.customer-shell.visits-depth-shell .visit-detail-card-heading { padding-bottom: 20px; margin-bottom: 24px; border-color: #a9c1e1; }
+  .frms-customer.customer-shell.visits-depth-shell .visit-detail-facts { gap: 24px; }
+  .frms-customer.customer-shell.visits-depth-shell .visit-detail-facts > div { padding: 16px; border: 0; background: #e7effc; border-radius: 12px; }
+  .frms-customer.customer-shell.visits-depth-shell .visit-detail-facts dd { color: #102b4e; }
+  .frms-customer.customer-shell.visits-depth-shell .visit-detail-notice { background: #e7effc; color: #314d70; font-size: 13px; }
+  .frms-customer.customer-shell.visits-depth-shell .visit-detail-actions { border-color: #a9c1e1; padding-top: 20px; }
+  .frms-customer.customer-shell.visits-depth-shell .visit-detail-edit .flow-date-card { background: #e7effc; }
+  .frms-customer.customer-shell.visits-depth-shell .access-schedule-layout { gap: 24px; }
+  .frms-customer.customer-shell.visits-depth-shell .remaining-facts { background: transparent; border-color: #a9c1e1; }
+  .frms-customer.customer-shell.visits-depth-shell .remaining-info { background: #e7effc; color: #314d70; }
+  .frms-customer.customer-shell.visits-depth-shell .flow-date-card { background: #e7effc; border: 0; border-radius: 12px; padding: 20px; }
+  .frms-customer.customer-shell.visits-depth-shell .access-journey { border-color: #a9c1e1; }
+  .frms-customer.customer-shell.visits-depth-shell .page-state { color: #314d70; }
+  .frms-customer.customer-shell.visits-depth-shell .form-error { background: #fff1f2; color: #8d2032; border-color: #dba7b0; }
+  .frms-customer.customer-shell.visits-depth-shell .return-request-context { background: var(--overview-surface); border: 0; border-radius: 16px; padding: 24px; box-shadow: var(--overview-elevation); }
+  .frms-customer:is(.visit-reschedule-dialog, .customer-return-request.flow-dialog) {
+    border: 0; border-radius: 16px; background: #c4dafc; color: #102b4e;
+    box-shadow: inset 0 1px 1px #ffffffd9, 0 28px 70px -24px #102b4e99;
+  }
+  .frms-customer:is(.visit-reschedule-dialog, .customer-return-request.flow-dialog)::backdrop { background: #102b4e80; }
+  .frms-customer:is(.visit-reschedule-dialog, .customer-return-request.flow-dialog) :is(input, select, textarea) { background: #f4f7fd; color: #102b4e; border-color: #9bb7df; border-radius: 10px; }
+  .frms-customer:is(.visit-reschedule-dialog, .customer-return-request.flow-dialog) .flow-date-card { background: #e7effc; border: 0; border-radius: 12px; }
+  .frms-customer:is(.visit-reschedule-dialog, .customer-return-request.flow-dialog) .button-secondary { background: #f4f7fd; color: #214a87; border: 0; border-radius: 8px; }
+  .frms-customer:is(.visit-reschedule-dialog, .customer-return-request.flow-dialog) :is(a, button, input, textarea):focus-visible { outline: 3px solid #245ce0; outline-offset: 4px; }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .frms-customer.customer-shell.visits-depth-shell .visits-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .frms-customer.customer-shell.visits-depth-shell .visits-filter-form > .button { justify-self: start; }
+}
+
+@media (min-width: 1024px) {
+  .frms-customer.customer-shell.visits-depth-shell :is(.return-request-date, .return-request-policy) {
+    padding: 24px; border: 0; border-radius: 16px; background: var(--overview-surface); box-shadow: var(--overview-elevation);
+  }
+  .frms-customer.customer-shell.visits-depth-shell .return-request-notice { background: #e7effc; color: #314d70; border-radius: 12px; }
+  .frms-customer.customer-shell.visits-depth-shell .return-request-policy-grid article { border-color: #a9c1e1; }
+  .frms-customer.customer-shell.visits-depth-shell .return-request-date .flow-date-card { padding: 0; background: transparent; }
+  .frms-customer:is(.visit-reschedule-dialog, .customer-return-request.flow-dialog) .action-row { background: #c4dafc; border: 0; }
+  .frms-customer.customer-return-request.flow-dialog .button:not(.button-secondary) { background: #245ce0; color: #fff; border: 0; border-radius: 8px; }
+  .frms-customer.customer-return-request.flow-dialog .return-request-text-button { padding: 6px 12px; min-height: 36px; border-radius: 8px; background: #f4f7fd; color: #214a87; }
+}
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .frms-customer.customer-shell.visits-depth-shell .visits-card { transition: transform .2s ease-out; }
+  .frms-customer.customer-shell.visits-depth-shell .visits-card:hover { transform: translateY(-3px); }
+}
