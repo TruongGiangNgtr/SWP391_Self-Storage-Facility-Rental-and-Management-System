@@ -1,6 +1,6 @@
 /* Reservations, its checkout dialogs and linked invoice details share approved desktop materials. */
 @media (min-width: 1024px) {
-  .frms-customer:is(.customer-shell.reservations-depth-shell, .flow-dialog.reservation-create-design, .flow-dialog.customer-handover-schedule, .flow-dialog.reservation-cccd-dialog) {
+  .frms-customer:is(.customer-shell.reservations-depth-shell, .customer-shell.contracts-depth-shell, .flow-dialog.customer-renewal, .flow-dialog.customer-return-request, .flow-dialog.reservation-create-design, .flow-dialog.customer-handover-schedule, .flow-dialog.reservation-cccd-dialog) {
     --reservation-surface: #c4dafc;
     --reservation-soft: #e7effc;
     --reservation-ink: #102b4e;
@@ -16,13 +16,13 @@
     & :is(h2, h3, dd) { color: var(--reservation-ink); }
     & :is(.muted, dt, .reservations-created, .reservations-facility, .reservations-facts small, .remaining-helper) { color: var(--reservation-muted); }
     & .panel { padding: 24px; border: 0; border-radius: 16px; background: var(--reservation-surface); box-shadow: var(--reservation-shadow); }
-    & :is(.button, .reservations-text-link, .reservations-text-button, .reservation-detail-text-link, .invoice-detail-text-link, .invoice-detail-text-button, .remaining-page-navigation > a, .payment-result-history) {
+    & :is(.button, .reservations-text-link, .reservations-text-button, .reservation-detail-text-link, .invoice-detail-text-link, .invoice-detail-text-button, .remaining-page-navigation > a, .payment-result-history, .contracts-text-link, .contracts-text-button, .contract-detail-text-link, .contract-detail-text-button, .tracking-text-link, .renewal-refresh, .return-request-text-button) {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto;
       min-height: 36px; height: auto; padding: 6px 12px; border: 0; border-radius: 8px;
       background: #f4f7fd; color: #214a87; font-size: 13px; font-weight: 600; line-height: 24px; text-decoration: none;
       box-shadow: inset 0 1px 1px #ffffffbf, 0 4px 10px -7px #173d7b73;
     }
-    & :is(.button, .reservations-text-link, .reservations-text-button, .reservation-detail-text-link, .invoice-detail-text-link, .invoice-detail-text-button, .remaining-page-navigation > a, .payment-result-history):hover:not(:disabled) { background: #e9eff9; color: #173c73; text-decoration: none; }
+    & :is(.button, .reservations-text-link, .reservations-text-button, .reservation-detail-text-link, .invoice-detail-text-link, .invoice-detail-text-button, .remaining-page-navigation > a, .payment-result-history, .contracts-text-link, .contracts-text-button, .contract-detail-text-link, .contract-detail-text-button, .tracking-text-link, .renewal-refresh, .return-request-text-button):hover:not(:disabled) { background: #e9eff9; color: #173c73; text-decoration: none; }
     & .button:not(.button-secondary):not(.button-danger) { min-height: 44px; padding: 10px 16px; background: #245ce0; color: #fff; }
     & .button:not(.button-secondary):not(.button-danger):hover:not(:disabled) { background: #194bc5; }
     & :is(.button-danger, .reservations-cancel-link) { background: #fff1f3; color: #9f2338; }
@@ -104,7 +104,7 @@
     & .invoice-detail-payment { padding-top: 24px; border-color: var(--reservation-line); }
     & .form-error { background: #fff1f2; color: #8d2032; border-color: #dba7b0; }
   }
-  .frms-customer:is(.flow-dialog.reservation-create-design, .flow-dialog.customer-handover-schedule, .flow-dialog.reservation-cccd-dialog) {
+  .frms-customer:is(.flow-dialog.reservation-create-design, .flow-dialog.customer-handover-schedule, .flow-dialog.reservation-cccd-dialog, .flow-dialog.customer-renewal, .flow-dialog.customer-return-request) {
     padding: 32px; border: 0; border-radius: 16px; background: #c4dafc;
     box-shadow: inset 0 1px 1px #ffffffd9, 0 28px 70px -24px #102b4e99;
     scrollbar-width: thin; scrollbar-color: #809dc9 transparent;

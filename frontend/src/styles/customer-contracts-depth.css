@@ -1,0 +1,92 @@
+/* Customer Contracts and renewal/return dialogs use the approved depth materials. */
+@media (min-width: 1024px) {
+  .frms-customer:is(.customer-shell.contracts-depth-shell, .flow-dialog.customer-renewal, .flow-dialog.customer-return-request) {
+    & :is(.contract-detail-heading, .tracking-page-heading) { padding: 0; border: 0; }
+    & :is(.contract-detail-heading, .tracking-page-heading) h1 { font-size: 36px; line-height: 1.25; letter-spacing: -.025em; color: #103563; text-shadow: 0 1px 0 #fffffff2, 0 9px 18px #14396e21; }
+    & :is(.contract-detail-heading, .tracking-page-heading) p { max-width: 65ch; margin-top: 12px; color: #314d70; font-size: 15px; line-height: 1.75; }
+    & .contracts-heading { align-items: center; }
+    & .contracts-filter-form { padding: 24px; gap: 16px; background: #9dbff0; }
+    & .contracts-filter-form label { color: #214a87; font-size: 12px; }
+    & :is(.contracts-soft-button, .contract-detail-soft-button) { background: #f4f7fd; color: #214a87; }
+    & :is(.contracts-soft-button, .contract-detail-soft-button):hover { background: #e9eff9; color: #173c73; }
+    & .contracts-list-summary { margin-block: 0; }
+    & .contracts-list-summary p { color: #314d70; font-size: 12px; }
+    & :is(.contracts-list-summary > div, .contracts-actions, .contract-detail-actions) { gap: 12px; }
+    & .contracts-card { padding: 24px; }
+    & .contracts-card-heading { border-color: #a9c1e1; }
+    & .contracts-card-heading h2 { font-size: 20px; }
+    & :is(.contracts-facts, .contracts-storage-facts) { background: transparent; border: 0; padding: 0; gap: 24px; }
+    & :is(.contracts-callout, .contract-detail-banner) { padding: 20px; border: 0; border-radius: 12px; background: #e7effc; color: #314d70; }
+    & :is(.contracts-actions, .contracts-history-footer) { border-color: #a9c1e1; }
+    & .contracts-history { gap: 24px; }
+    & .contracts-section-heading { color: #314d70; }
+    & .contracts-section-heading h2 { color: #103563; font-size: 24px; }
+    & .contracts-charges { align-items: center; gap: 24px; }
+    & .contracts-charges select { background: #e3edfc; }
+    & .contracts-charges-content small { color: #314d70; }
+    & :is(.contracts-icon, .contracts-callout-icon, .tracking-icon) { background: #e7effc; color: #214a87; border: 0; border-radius: 10px; }
+    & :is(.contracts-facility, .contracts-facts dt, .contracts-facts small, .contract-detail-helper) { color: #314d70; }
+    & .contract-detail-columns { gap: 24px; align-items: start; }
+    & .contract-detail-stack { gap: 24px; }
+    & .contract-detail-card { padding: 24px; border: 0; }
+    & .contract-detail-card-heading { border-color: #a9c1e1; padding-bottom: 20px; }
+    & .contract-detail-card-heading h2 { font-size: 20px; }
+    & :is(.contract-detail-facts, .contract-detail-storage-facts) { gap: 20px; }
+    & .contract-detail-facts > div { padding: 0; background: transparent; border: 0; }
+    & :is(.contract-detail-unit, .contract-detail-deposit) { padding: 16px; border: 0; border-radius: 12px; background: #e7effc; }
+    & .contract-detail-deposit strong { color: #103c7a; font-variant-numeric: tabular-nums; }
+    & .rental-contract-summary { padding: 24px; border: 0; border-radius: 16px; background: #9dbff0; box-shadow: var(--reservation-shadow); }
+    & .rental-contract-summary dl { gap: 24px; }
+    & .contract-detail-access { padding-top: 20px; border-color: #809fc9; }
+    & .contract-detail-help { background: #e7effc; box-shadow: none; }
+    & :is(.renewal-context, .renewal-selection, .renewal-summary, .renewal-confirmation, .return-request-context, .return-request-date, .return-request-policy) { padding: 24px; border: 0; border-radius: 16px; background: #c4dafc; box-shadow: var(--reservation-shadow); }
+    & :is(.renewal-summary, .renewal-confirmation) { background: #9dbff0; }
+    & :is(.renewal-form, .renewal-facts, .return-request-form) { gap: 24px; }
+    & :is(.renewal-helper, .renewal-label, .renewal-summary p, .return-request-helper, .return-request-policy-grid p) { color: #314d70; }
+    & .renewal-selection .renewal-facts { background: #e7effc; padding: 16px; border: 0; border-radius: 12px; }
+    & .renewal-selection .renewal-facts > div { background: transparent; border: 0; padding: 0; }
+    & .renewal-summary dl > div { border-color: #809fc9; }
+    & :is(.renewal-info, .renewal-notice, .return-request-notice) { padding: 16px; border: 0; border-radius: 12px; background: #e7effc; color: #314d70; }
+    & :is(.renewal-actions, .return-request-actions, .return-request-outcome) { border-color: #a9c1e1; background: transparent; }
+    & :is(.renewal-actions, .return-request-actions > div) { gap: 12px; }
+    & .tracking-page-heading { gap: 24px; align-items: center; }
+    & .tracking-navigation { gap: 12px; flex-wrap: wrap; }
+    & .tracking-contract { background: #9dbff0; }
+    & :is(.tracking-contract-heading, .tracking-card-heading, .tracking-record-heading) { gap: 12px; }
+    & .tracking-card-heading { padding-bottom: 16px; border-color: #a9c1e1; }
+    & .tracking-card-heading h3 { color: #102b4e; font-size: 18px; }
+    & :is(.tracking-columns, .tracking-stack) { gap: 24px; }
+    & .tracking-record { padding: 20px; border: 0; border-radius: 12px; background: #e7effc; margin-top: 16px; }
+    & .tracking-record + .tracking-record { border-top: 0; }
+    & .tracking-record h4 { color: #102b4e; font-size: 15px; }
+    & .tracking-facts { gap: 16px 24px; }
+    & :is(.tracking-note, .tracking-condition-note, .tracking-completed) { color: #314d70; font-size: 13px; line-height: 1.7; }
+    & .tracking-notice { padding: 16px; border: 0; border-radius: 12px; background: #e7effc; color: #314d70; }
+    & .tracking-warning { background: #fff4da; color: #7a4b00; }
+    & .tracking-settlement-metrics { gap: 16px; }
+    & .tracking-settlement-metrics > div { padding: 16px; border: 0; border-radius: 12px; background: #e7effc; }
+    & .tracking-settlement-metrics dd { font-size: 24px; color: #103c7a; font-variant-numeric: tabular-nums; }
+  }
+  .frms-customer:is(.customer-renewal, .customer-return-request).flow-dialog {
+    width: 960px; max-width: calc(100vw - 64px); padding: 28px; background: #c4dafc; border: 0; border-radius: 16px;
+    & :is(.renewal-context, .renewal-selection, .renewal-summary, .renewal-confirmation, .return-request-context, .return-request-date, .return-request-policy) { padding: 20px; background: #e7effc; box-shadow: none; }
+    & :is(.renewal-summary, .renewal-confirmation) { background: #9dbff0; }
+    & .flow-dialog-heading h1 { font-size: 28px; line-height: 1.3; color: #103563; }
+    & .button:not(.button-secondary):not(.button-danger) { color: #fff; background: #245ce0; }
+    & .button-secondary { color: #214a87; background: #f4f7fd; }
+    & :is(.renewal-actions, .return-request-actions) { background: #c4dafc; }
+    & .return-request-date .flow-date-card { background: transparent; padding: 0; }
+  }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .frms-customer.customer-shell.contracts-depth-shell .contracts-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .frms-customer.customer-shell.contracts-depth-shell :is(.contract-detail-columns, .tracking-columns) { grid-template-columns: minmax(0, 1fr); }
+}
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .frms-customer.customer-shell.contracts-depth-shell .contracts-card { transition: transform .2s ease-out; }
+  .frms-customer.customer-shell.contracts-depth-shell .contracts-card:hover { transform: translateY(-3px); }
+}
+@media (min-width: 1024px) {
+  .frms-customer.customer-shell.contracts-depth-shell .contracts-card-meta a { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 12px; border: 0; border-radius: 8px; background: #f4f7fd; color: #214a87; font-size: 12px; font-weight: 600; line-height: 24px; text-decoration: none; box-shadow: inset 0 1px 1px #ffffffbf, 0 4px 10px -7px #173d7b73; }
+  .frms-customer.customer-shell.contracts-depth-shell .contracts-card-meta a:hover { background: #e9eff9; color: #173c73; }
+}

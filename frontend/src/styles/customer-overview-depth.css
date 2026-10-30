@@ -1,7 +1,7 @@
-/* Approved Home materials shared by Customer Overview, Visits and Reservations. */
+/* Approved Home materials shared by Customer Overview, Visits, Reservations and Contracts. */
 .frms-customer .overview-refresh > span { display: none; }
 @media (min-width: 1024px) {
-  .frms-customer.customer-shell:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) {
+  .frms-customer.customer-shell:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) {
     --overview-surface: rgb(196 218 252 / 94%);
     --overview-emphasis: #9dbff0;
     --overview-soft: #e7effc;
@@ -21,50 +21,50 @@
     background: #edf5ff;
     color: var(--overview-ink);
   }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell)::before,
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell)::after {
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell)::before,
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell)::after {
     content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell)::before {
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell)::before {
     background: center / cover no-repeat url('/images/home/fstorent-facility.webp');
     filter: blur(5px) saturate(.75); transform: scale(1.04);
   }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell)::after {
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell)::after {
     background: linear-gradient(110deg, #e5f2ffe8, #daedffc7 55%, #d2e7fed9);
   }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .customer-body-sidebar {
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .customer-body-sidebar {
     max-width: 1288px; padding: 40px 24px 56px;
     grid-template-columns: 216px minmax(0, 1fr); gap: 28px;
   }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .customer-sidebar {
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .customer-sidebar {
     position: sticky; top: 110px; padding: 12px; border: 0;
     background: var(--overview-emphasis);
     box-shadow: inset 0 1px 1px #ffffffd9, 0 18px 32px -18px #153d7b80;
     max-height: calc(100dvh - 134px); overflow-y: auto;
     scrollbar-width: thin; scrollbar-color: #809dc9 transparent;
   }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .sidebar-profile {
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .sidebar-profile {
     padding: 20px 8px 24px; background: transparent;
     border-bottom: 1px solid #8aa9d3; border-radius: 0; gap: 6px;
   }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .sidebar-profile .flow-avatar {
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .sidebar-profile .flow-avatar {
     width: 56px; height: 56px; margin-bottom: 10px; font-size: 17px;
     background: #1d56ce; box-shadow: 0 8px 16px -8px #174caf80;
   }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .sidebar-profile strong { color: #123563; font-size: 16px; }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .sidebar-profile small { color: var(--overview-muted); }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .profile-role { background: transparent; color: #214a87; }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .customer-sidebar nav a {
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .sidebar-profile strong { color: #123563; font-size: 16px; }
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .sidebar-profile small { color: var(--overview-muted); }
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .profile-role { background: transparent; color: #214a87; }
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .customer-sidebar nav a {
     min-height: 44px; padding: 10px 12px; border-radius: 10px; color: #173e73; gap: 10px;
   }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .customer-sidebar nav a:hover:not(.active) { background: #e7effc; }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .customer-sidebar nav a.active {
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .customer-sidebar nav a:hover:not(.active) { background: #e7effc; }
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .customer-sidebar nav a.active {
     background: #245ce0; color: #fff; box-shadow: 0 8px 14px -8px #174caf80;
   }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .sidebar-logout { background: transparent; color: #a42332; border-color: #a9c1e1; }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .sidebar-logout:hover { background: #f4f7fd; }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .flow-breadcrumb { color: var(--overview-muted); margin-bottom: 24px; }
-  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell) .flow-breadcrumb a { color: #214a87; }
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .sidebar-logout { background: transparent; color: #a42332; border-color: #a9c1e1; }
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .sidebar-logout:hover { background: #f4f7fd; }
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .flow-breadcrumb { color: var(--overview-muted); margin-bottom: 24px; }
+  .frms-customer:is(.overview-depth-shell, .visits-depth-shell, .reservations-depth-shell, .contracts-depth-shell) .flow-breadcrumb a { color: #214a87; }
   .frms-customer.overview-depth-shell .customer-overview { gap: 28px; }
   .frms-customer.overview-depth-shell .overview-heading { gap: 20px; border: 0; padding: 0; }
   .frms-customer.overview-depth-shell .overview-heading > div { min-width: 0; }
