@@ -34,6 +34,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
     navigate('/auth/customer/login', { replace: true, state: null })
   }
   const { pathname } = useLocation()
+  const overviewDepthSurface = pathname === '/customer'
   const guestDepthSurface = ['/how-it-works', '/size-guide', '/help', '/facilities', '/customer/storage-search', '/auth/customer/login', '/auth/customer/register'].includes(pathname) || pathname.startsWith('/help/policies/') || pathname.startsWith('/facilities/') || (!user && ['/404', '/forbidden'].includes(pathname))
   const supportSurface = ['/', '/how-it-works', '/size-guide', '/help', '/customer', '/customer/account-settings', '/customer/notifications'].includes(pathname) || pathname.startsWith('/help/') || pathname.startsWith('/auth/customer/')
   const rentalSurface = pathname === '/customer/contracts' || /^\/customer\/contracts\/[^/]+(?:\/access-visits\/new)?$/.test(pathname) || pathname === '/customer/visits' || /^\/customer\/visits\/[^/]+$/.test(pathname)
@@ -57,7 +58,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
     </nav>
   }
 
-  return <div className={`frms-customer customer-shell ${pathname === '/' || guestDepthSurface ? 'home-shell' : ''} ${guestDepthSurface ? 'guest-depth-shell' : ''} ${supportSurface || rentalSurface || financeSurface ? 'support-surface' : ''} ${rentalSurface ? 'rental-surface' : ''} ${financeSurface ? 'finance-surface' : ''} ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
+  return <div className={`frms-customer customer-shell ${pathname === '/' || guestDepthSurface || overviewDepthSurface ? 'home-shell' : ''} ${guestDepthSurface ? 'guest-depth-shell' : ''} ${overviewDepthSurface ? 'overview-depth-shell' : ''} ${supportSurface || rentalSurface || financeSurface ? 'support-surface' : ''} ${rentalSurface ? 'rental-surface' : ''} ${financeSurface ? 'finance-surface' : ''} ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
     <a className="customer-skip-link" href="#customer-main">Skip to content</a>
     <header className="flow-header">
       <div className="flow-header-inner">
