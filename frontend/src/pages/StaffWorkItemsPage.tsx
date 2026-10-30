@@ -1,16 +1,18 @@
-import { EmployeeEntityLabel } from '../components/EmployeeEntityLabel'
+import { EmployeeEntityLabel, useEmployeeLabelLookup } from '../components/EmployeeEntityLabel'
 import { CalendarDays, RefreshCw, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import type { ApiCollectionResponse } from '../api/api.types'
 import { presentApiError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { visitApi } from '../api/visitApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { StatusBadge } from '../components/StatusBadge'
 import { isReservationWorkItem, type StaffWorkItem } from '../features/handover/handover.types'
 import { isAccessWorkItem } from '../features/visits/accessValidation'
+import { fetchAllEmployeePages } from '../utils/employeePresentation'
 import { getCurrentBusinessDate } from '../utils/formatters'
 import '../styles/staff.css'
+
+const PAGE_SIZE = 20
 
 type HandoverStage = 'reservation-check-in' | 'handover'
 export type StaffQueueMode = 'daily' | HandoverStage | 'handle-handover' | 'access'
@@ -96,6 +98,7 @@ function actionLabel(item: StaffWorkItem) {
 
 export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) {
   const copy = PAGE_COPY[mode]
+  const lookupLabel = useEmployeeLabelLookup()
   const [params, setParams] = useSearchParams()
   const isHandover = mode === 'handle-handover'
   const stage: HandoverStage = params.get('tab') === 'handover' ? 'handover' : 'reservation-check-in'
@@ -114,41 +117,52 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
   const [retry, setRetry] = useState(0)
   const [snapshot, setSnapshot] = useState<{
     key: string
-    response: ApiCollectionResponse<StaffWorkItem> | null
+    items: StaffWorkItem[] | null
     error: ApiErrorPresentation | null
   } | null>(null)
-  const key = `${date}:${page}:${retry}`
+  const key = `${date}:${retry}`
   const loading = snapshot?.key !== key
-  const response = loading ? null : snapshot.response
+  const allItems = loading ? null : snapshot.items
   const error = loading ? null : snapshot.error
 
   useEffect(() => {
     let active = true
-    visitApi.listStaffWorkItems({ date, page })
-      .then((nextResponse) => {
-        if (active) setSnapshot({ key, response: nextResponse, error: null })
+    fetchAllEmployeePages((nextPage, pageSize) => visitApi.listStaffWorkItems({ date, page: nextPage, pageSize }))
+      .then((nextResult) => {
+        if (active) setSnapshot({ key, items: nextResult.items, error: null })
       })
       .catch((caughtError: unknown) => {
-        if (active) setSnapshot({ key, response: null, error: presentApiError(caughtError) })
+        if (active) setSnapshot({ key, items: null, error: presentApiError(caughtError) })
       })
     return () => { active = false }
-  }, [date, page, key])
+  }, [date, key])
 
-  const visibleItems = useMemo(() => {
+  const filteredItems = useMemo(() => {
     const needle = search.trim().toLowerCase()
-    return (response?.data ?? []).filter((item) => {
+    return (allItems ?? []).filter((item) => {
       if (!matchesMode(item, queueMode)) return false
       if (!needle) return true
       return [
         item.workType,
+        readableWorkType(item.workType),
         item.referenceId,
         item.entityId ?? '',
         item.status,
+        item.scheduledDate,
         item.customer?.fullName ?? '',
         item.customer?.phoneNumber ?? '',
+        lookupLabel('contract', item.entityId),
+        lookupLabel('contractUnit', item.entityId),
       ].some((value) => value.toLowerCase().includes(needle))
     })
-  }, [queueMode, response?.data, search])
+  }, [allItems, lookupLabel, queueMode, search])
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const visibleItems = useMemo(
+    () => filteredItems.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filteredItems, safePage],
+  )
 
   return (
     <div className="fwp-page" data-testid={`${copy.feature.toLowerCase()}-page`}>
@@ -168,22 +182,23 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
           {(['reservation-check-in', 'handover'] as const).map((item, index) => {
             const query = new URLSearchParams(params)
             query.set('tab', item === 'handover' ? 'handover' : 'check-in')
+            query.delete('page')
             return <Link key={item} className={`fwp-tab${stage === item ? ' active' : ''}`} aria-current={stage === item ? 'page' : undefined} to={`?${query}`}>
               <span>Stage {index + 1}</span><strong>{PAGE_COPY[item].title}</strong>
             </Link>
           })}
         </nav>
-        <p className="fwp-toolbar-note">{PAGE_COPY[stage].description} Stages show matching items on the current work-list page.</p>
+        <p className="fwp-toolbar-note">{PAGE_COPY[stage].description}</p>
       </>}
 
       <section className="fwp-summary" aria-label="Work list summary">
         <div className="fwp-summary-card">
           <span>Total work items</span>
-          <strong>{response?.pagination.totalItems ?? '—'}</strong>
+          <strong>{loading || !allItems ? '—' : allItems.length}</strong>
         </div>
         <div className="fwp-summary-card">
-          <span>Matching items on this page</span>
-          <strong>{loading ? '—' : visibleItems.length}</strong>
+          <span>Matching items</span>
+          <strong>{loading ? '—' : filteredItems.length}</strong>
         </div>
       </section>
 
@@ -209,13 +224,20 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
           </div>
         </label>
         <label className="fwp-toolbar-search">
-          <span>Search this page</span>
+          <span>Search work items</span>
           <div className="fwp-input-with-icon">
             <Search size={16} aria-hidden="true" />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Customer, phone or status…" />
+            <input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value)
+                setPage(1)
+              }}
+              placeholder="Customer, phone, unit or status…"
+            />
           </div>
         </label>
-        <p className="fwp-toolbar-note">Search applies to this page. Use Previous and Next to review more work items for the selected date.</p>
+        <p className="fwp-toolbar-note">Search and stage filters apply across all work items for the selected date.</p>
       </section>
 
       <ApiErrorAlert error={error} />
@@ -229,7 +251,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
       {!loading && !error && visibleItems.length === 0 && (
         <div className="fwp-state-card">
           <strong>No matching work items</strong>
-          <p>No work items on this page match your filters. Try another page or date.</p>
+          <p>No work items for the selected date match your filters.</p>
         </div>
       )}
 
@@ -249,7 +271,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
               </thead>
               <tbody>
                 {visibleItems.map((item) => {
-                  const target = workItemLink(item, response?.pagination.page ?? page)
+                  const target = workItemLink(item, safePage)
                   const link = target && isHandover ? `${target}&workTab=${stage === 'handover' ? 'handover' : 'check-in'}&workDate=${encodeURIComponent(date)}` : target
                   return (
                     <tr key={`${item.workType}-${item.referenceId}`}>
@@ -276,12 +298,12 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
           </div>
         </section>
       )}
-      {!loading && !error && response && response.pagination.totalPages > 1 && (
+      {!loading && !error && totalPages > 1 && (
         <footer className="fwp-pagination">
-          <span>Page {response.pagination.page} of {response.pagination.totalPages} · {response.pagination.totalItems} total work items</span>
+          <span>Page {safePage} of {totalPages} · {filteredItems.length} matching work items</span>
           <div>
-            <button className="fwp-button fwp-button-secondary" type="button" disabled={loading || response.pagination.page <= 1} onClick={() => setPage(response.pagination.page - 1)}>Previous</button>
-            <button className="fwp-button fwp-button-secondary" type="button" disabled={loading || response.pagination.page >= response.pagination.totalPages} onClick={() => setPage(response.pagination.page + 1)}>Next</button>
+            <button className="fwp-button fwp-button-secondary" type="button" disabled={loading || safePage <= 1} onClick={() => setPage(safePage - 1)}>Previous</button>
+            <button className="fwp-button fwp-button-secondary" type="button" disabled={loading || safePage >= totalPages} onClick={() => setPage(safePage + 1)}>Next</button>
           </div>
         </footer>
       )}

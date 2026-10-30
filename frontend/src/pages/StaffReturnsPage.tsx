@@ -2,7 +2,6 @@ import { EmployeeEntityLabel } from '../components/EmployeeEntityLabel'
 import { Camera, CheckCircle2, RefreshCw, RotateCcw, ShieldAlert, WalletCards } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import type { ApiCollectionResponse } from '../api/api.types'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { businessApi } from '../api/businessApi'
 import { inspectionApi } from '../api/inspectionApi'
@@ -21,8 +20,11 @@ import type {
   InspectionDetail,
   InspectionListItem,
 } from '../features/return-management/return.types'
+import { fetchAllEmployeePages } from '../utils/employeePresentation'
 import { formatMoney, formatUtcDateTime, getCurrentBusinessDate } from '../utils/formatters'
 import '../styles/staff.css'
+
+const PAGE_SIZE = 20
 
 type ReturnTab = 'confirmation' | 'inspection' | 'fees'
 
@@ -58,25 +60,31 @@ function ReturnConfirmationPanel() {
   const [error, setError] = useState<ApiErrorPresentation | null>(null)
   const [loadError, setLoadError] = useState<ApiErrorPresentation | null>(null)
   const [result, setResult] = useState<ConfirmActualReturnResult | null>(null)
-  const [response, setResponse] = useState<ApiCollectionResponse<StaffWorkItem> | null>(null)
+  const [workItems, setWorkItems] = useState<StaffWorkItem[]>([])
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
     setLoadError(null)
     try {
-      const next = await visitApi.listStaffWorkItems({ date, page })
-      setResponse(next)
+      const next = await fetchAllEmployeePages((nextPage, pageSize) => visitApi.listStaffWorkItems({ date, page: nextPage, pageSize }))
+      setWorkItems(next.items)
     } catch (caughtError) {
       setLoadError(presentApiError(caughtError))
     } finally {
       setLoading(false)
     }
-  }, [date, page])
+  }, [date])
 
   useEffect(() => { void load() }, [load, retry])
 
-  const returns = useMemo(() => (response?.data ?? []).filter((item) => item.workType === 'RETURN_VISIT'), [response])
+  const returns = useMemo(() => workItems.filter((item) => item.workType === 'RETURN_VISIT'), [workItems])
+  const totalPages = Math.max(1, Math.ceil(returns.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const visibleReturns = useMemo(
+    () => returns.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [returns, safePage],
+  )
 
   async function checkIn(item: StaffWorkItem) {
     setBusyId(item.referenceId)
@@ -123,7 +131,7 @@ function ReturnConfirmationPanel() {
         <button className="fwp-button fwp-button-secondary" type="button" disabled={loading} onClick={() => setRetry((value) => value + 1)}>
           <RefreshCw size={16} /> Refresh
         </button>
-        <p className="fwp-toolbar-note">Showing return visits on this page. Use Previous and Next to review more visits.</p>
+        <p className="fwp-toolbar-note">Showing all return visits scheduled for the selected date.</p>
       </section>
 
       <ApiErrorAlert error={error ?? loadError} />
@@ -142,14 +150,14 @@ function ReturnConfirmationPanel() {
       {loading ? (
         <div className="fwp-state-grid">{Array.from({ length: 4 }).map((_, index) => <div className="fwp-skeleton" key={index} />)}</div>
       ) : returns.length === 0 ? (
-        <div className="fwp-state-card"><strong>No RETURN visits on this page</strong><p>There are no current-page return visits for the selected date.</p></div>
+        <div className="fwp-state-card"><strong>No RETURN visits for this date</strong><p>There are no return visits scheduled for the selected date.</p></div>
       ) : (
         <section className="fwp-table-card">
           <div className="fwp-table-wrap">
             <table className="fwp-table">
               <thead><tr><th>Customer</th><th>Visit</th><th>Contract</th><th>Status</th><th>Actual return date</th><th>Action</th></tr></thead>
               <tbody>
-                {returns.map((item) => (
+                {visibleReturns.map((item) => (
                   <tr key={item.referenceId} className={requestedVisitId === item.referenceId ? 'fwp-row-selected' : ''}>
                     <td>{item.customer ? <div className="fwp-customer-cell"><strong>{item.customer.fullName}</strong><span>{item.customer.phoneNumber}</span></div> : <span className="fwp-muted">Customer context unavailable</span>}</td>
                     <td>Return visit · {item.scheduledDate}</td>
@@ -180,12 +188,12 @@ function ReturnConfirmationPanel() {
               </tbody>
             </table>
           </div>
-          {response && response.pagination.totalPages > 1 && (
+          {totalPages > 1 && (
             <footer className="fwp-pagination">
-              <span>Page {response.pagination.page} of {response.pagination.totalPages}</span>
+              <span>Page {safePage} of {totalPages} · {returns.length} return visits</span>
               <div>
-                <button className="fwp-button fwp-button-secondary" type="button" disabled={response.pagination.page <= 1} onClick={() => setPage(response.pagination.page - 1)}>Previous</button>
-                <button className="fwp-button fwp-button-secondary" type="button" disabled={response.pagination.page >= response.pagination.totalPages} onClick={() => setPage(response.pagination.page + 1)}>Next</button>
+                <button className="fwp-button fwp-button-secondary" type="button" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}>Previous</button>
+                <button className="fwp-button fwp-button-secondary" type="button" disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)}>Next</button>
               </div>
             </footer>
           )}
@@ -205,7 +213,7 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
   const requestedInspectionId = searchParams.get('inspectionId')
   const [page, setPage] = useState(1)
   const [retry, setRetry] = useState(0)
-  const [list, setList] = useState<ApiCollectionResponse<InspectionListItem> | null>(null)
+  const [inspections, setInspections] = useState<InspectionListItem[]>([])
   const [loadingList, setLoadingList] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(requestedInspectionId)
   const [detail, setDetail] = useState<InspectionDetail | null>(null)
@@ -231,15 +239,15 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
     setLoadingList(true)
     setLoadError(null)
     try {
-      const next = await inspectionApi.list(page)
-      setList(next)
-      if (!selectedId && next.data.length > 0) setSelectedId(next.data[0].inspectionId)
+      const next = await fetchAllEmployeePages((nextPage, pageSize) => inspectionApi.list(nextPage, pageSize))
+      setInspections(next.items)
+      if (!selectedId && next.items.length > 0) setSelectedId(next.items[0].inspectionId)
     } catch (caughtError) {
       setLoadError(presentApiError(caughtError))
     } finally {
       setLoadingList(false)
     }
-  }, [page, selectedId])
+  }, [selectedId])
 
   const loadDetail = useCallback(async (inspectionId: string) => {
     setLoadingDetail(true)
@@ -271,6 +279,13 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
       .catch((caughtError) => { if (active) setLoadError(presentApiError(caughtError)) })
     return () => { active = false }
   }, [mode, retry])
+
+  const totalPages = Math.max(1, Math.ceil(inspections.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const visibleInspections = useMemo(
+    () => inspections.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [inspections, safePage],
+  )
 
   function chooseInspection(inspectionId: string) {
     setSelectedId(inspectionId)
@@ -386,21 +401,21 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
     <div className="fwp-inspection-layout">
       <section className="fwp-inspection-list-card" aria-label="Facility inspections">
         <div className="fwp-card-header">
-          <div><strong>Facility Inspections</strong><span>{list?.pagination.totalItems ?? 0} total</span></div>
+          <div><strong>Facility Inspections</strong><span>{inspections.length} total</span></div>
           <button className="fwp-icon-button" type="button" aria-label="Refresh inspections" disabled={loadingList} onClick={() => setRetry((value) => value + 1)}><RefreshCw size={16} /></button>
         </div>
         {loadingList ? <div className="fwp-state-grid compact">{Array.from({ length: 4 }).map((_, index) => <div className="fwp-skeleton" key={index} />)}</div> : (
           <div className="fwp-inspection-list">
-            {(list?.data ?? []).map((item) => (
+            {visibleInspections.map((item) => (
               <button key={item.inspectionId} type="button" className={selectedId === item.inspectionId ? 'fwp-inspection-item active' : 'fwp-inspection-item'} onClick={() => chooseInspection(item.inspectionId)}>
                 <div><strong>{item.status.replaceAll('_', ' ')} inspection</strong><span><EmployeeEntityLabel kind="contract" id={item.contractId} /></span></div>
                 <StatusBadge status={item.status} />
               </button>
             ))}
-            {list?.data.length === 0 && <p className="fwp-muted">No inspections on this page.</p>}
+            {visibleInspections.length === 0 && <p className="fwp-muted">No inspections found.</p>}
           </div>
         )}
-        {list && list.pagination.totalPages > 1 && <div className="fwp-mini-pagination"><button type="button" disabled={list.pagination.page <= 1} onClick={() => setPage(list.pagination.page - 1)}>‹</button><span>{list.pagination.page}/{list.pagination.totalPages}</span><button type="button" disabled={list.pagination.page >= list.pagination.totalPages} onClick={() => setPage(list.pagination.page + 1)}>›</button></div>}
+        {totalPages > 1 && <div className="fwp-mini-pagination"><button type="button" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}>‹</button><span>{safePage}/{totalPages}</span><button type="button" disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)}>›</button></div>}
       </section>
 
       <section className="fwp-inspection-detail-card">

@@ -1,29 +1,39 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
 import { listAdminUsers, normalizeAdminApiError } from '../api/adminApi'
 import type { Pagination } from '../api/api.types'
 import type { AdminApiErrorShape, AdminUserAccount, UserAccountStatus } from '../models/adminUser'
+import { fetchAllEmployeePages } from '../utils/employeePresentation'
 
-const PAGE_SIZE = 100
-const EMPTY_PAGINATION: Pagination = { page: 1, pageSize: PAGE_SIZE, totalItems: 0, totalPages: 0 }
+const PAGE_SIZE = 20
 
 export function useAdminCustomers() {
   const [accounts, setAccounts] = useState<AdminUserAccount[]>([])
-  const [pagination, setPagination] = useState<Pagination>(EMPTY_PAGINATION)
   const [requestedPage, setRequestedPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<AdminApiErrorShape | null>(null)
-  const [status, setStatus] = useState<'ALL' | UserAccountStatus>('ALL')
-  const [search, setSearch] = useState('')
+  const [statusState, setStatusState] = useState<'ALL' | UserAccountStatus>('ALL')
+  const [searchState, setSearchState] = useState('')
 
-  const load = useCallback(async (page = 1) => {
+  const setStatus: Dispatch<SetStateAction<'ALL' | UserAccountStatus>> = useCallback((next) => {
+    setRequestedPage(1)
+    setStatusState(next)
+  }, [])
+
+  const setSearch: Dispatch<SetStateAction<string>> = useCallback((next) => {
+    setRequestedPage(1)
+    setSearchState(next)
+  }, [])
+
+  const fetchAll = useCallback(async (page = 1) => {
     const targetPage = Math.max(1, Math.trunc(page))
     setRequestedPage(targetPage)
     setLoading(true)
     setError(null)
     try {
-      const response = await listAdminUsers({ page: targetPage, pageSize: PAGE_SIZE })
-      setAccounts((response.data ?? []).filter((account) => account.role === 'CUSTOMER' && Boolean(account.profile?.customerId)))
-      setPagination(response.pagination ?? { ...EMPTY_PAGINATION, page: targetPage })
+      const allAccounts = await fetchAllEmployeePages((nextPage, pageSize) =>
+        listAdminUsers({ page: nextPage, pageSize }),
+      )
+      setAccounts(allAccounts.items.filter((account) => account.role === 'CUSTOMER' && Boolean(account.profile?.customerId)))
     } catch (requestError) {
       setAccounts([])
       setError(normalizeAdminApiError(requestError))
@@ -32,12 +42,12 @@ export function useAdminCustomers() {
     }
   }, [])
 
-  useEffect(() => { void load(1) }, [load])
+  useEffect(() => { void fetchAll(1) }, [fetchAll])
 
-  const visibleAccounts = useMemo(() => {
-    const needle = search.trim().toLowerCase()
+  const filteredAccounts = useMemo(() => {
+    const needle = searchState.trim().toLowerCase()
     return accounts.filter((account) => {
-      if (status !== 'ALL' && account.status !== status) return false
+      if (statusState !== 'ALL' && account.status !== statusState) return false
       if (!needle) return true
       return [
         account.userAccountId,
@@ -48,9 +58,29 @@ export function useAdminCustomers() {
         account.profile?.cccd ?? '',
       ].some((value) => value.toLowerCase().includes(needle))
     })
-  }, [accounts, search, status])
+  }, [accounts, searchState, statusState])
 
-  const refresh = useCallback(() => load(requestedPage), [load, requestedPage])
+  const totalPages = Math.max(1, Math.ceil(filteredAccounts.length / PAGE_SIZE))
+  const safePage = Math.min(requestedPage, totalPages)
+  const visibleAccounts = useMemo(
+    () => filteredAccounts.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filteredAccounts, safePage],
+  )
+  const pagination: Pagination = useMemo(
+    () => ({
+      page: safePage,
+      pageSize: PAGE_SIZE,
+      totalItems: filteredAccounts.length,
+      totalPages: filteredAccounts.length === 0 ? 0 : totalPages,
+    }),
+    [filteredAccounts.length, safePage, totalPages],
+  )
+
+  const loadPage = useCallback(async (page = 1) => {
+    setRequestedPage(Math.max(1, Math.trunc(page)))
+  }, [])
+
+  const refresh = useCallback(() => fetchAll(safePage || 1), [fetchAll, safePage])
 
   return {
     accounts: visibleAccounts,
@@ -58,11 +88,11 @@ export function useAdminCustomers() {
     pagination,
     loading,
     error,
-    status,
+    status: statusState,
     setStatus,
-    search,
+    search: searchState,
     setSearch,
-    loadPage: load,
+    loadPage,
     refresh,
   }
 }

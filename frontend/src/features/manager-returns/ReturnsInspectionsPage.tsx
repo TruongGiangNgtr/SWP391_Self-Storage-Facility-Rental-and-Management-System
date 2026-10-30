@@ -1,5 +1,6 @@
 import { EmployeeModal } from '../../components/EmployeeModal'
-import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
+import { EmployeeEntityLabel, useEmployeeLabelLookup } from '../../components/EmployeeEntityLabel'
+import { fetchAllEmployeePages } from '../../utils/employeePresentation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle, ArrowUpRight, CheckCircle2, ClipboardCheck, Clock3, RefreshCw, RotateCcw, Search, ShieldCheck, X } from 'lucide-react'
 import { useAuth } from '../../auth/auth.context'
@@ -9,7 +10,6 @@ import { contractApi } from '../../api/contractApi'
 import { storageUnitApi, type StorageUnit } from '../../api/storageUnitApi'
 import { facilityReportApi, type FacilityOperationsReport } from '../../api/facilityReportApi'
 import { presentApiError } from '../../api/apiErrorPresentation'
-import type { ApiCollectionResponse } from '../../api/api.types'
 import type { InspectionDetail, InspectionListItem, DamageRecordDetail, DamageTypeDetail } from '../return-management/return.types'
 import type { VisitDetail } from '../visits/visit.types'
 import type { HandoverContractDetail } from '../handover/contract.types'
@@ -26,6 +26,7 @@ interface OpenInspection { inspection: InspectionDetail; contract: HandoverContr
 
 export function ReturnsInspectionsPage() {
   const { user } = useAuth()
+  const lookupLabel = useEmployeeLabelLookup()
   const facilityId = user?.facilityId || null
   const [view, setView] = useState<View>('inspections')
   const [page, setPage] = useState(1)
@@ -33,8 +34,6 @@ export function ReturnsInspectionsPage() {
   const [filter, setFilter] = useState<Filter>('ALL')
   const [inspections, setInspections] = useState<InspectionListItem[]>([])
   const [visits, setVisits] = useState<VisitDetail[]>([])
-  const [pages, setPages] = useState(0)
-  const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [listError, setListError] = useState('')
   const [types, setTypes] = useState<DamageTypeDetail[]>([])
@@ -70,24 +69,22 @@ export function ReturnsInspectionsPage() {
     if (!facilityId) { setListError('No assigned Facility. Contact your System Administrator.'); setLoading(false); return }
     setLoading(true)
     setListError('')
-    const request: Promise<ApiCollectionResponse<InspectionListItem | VisitDetail>> = view === 'inspections'
-      ? inspectionApi.list(page, PAGE_SIZE)
-      : visitApi.list(page, PAGE_SIZE)
+    const request = view === 'inspections'
+      ? fetchAllEmployeePages((p, size) => inspectionApi.list(p, size))
+      : fetchAllEmployeePages((p, size) => visitApi.list(p, size))
     request.then(r => {
       if (!alive) return
       if (view === 'inspections') {
         // INS-001 carries authoritative FacilityId; never show another facility's row.
-        setInspections((r.data as InspectionListItem[]).filter(i => i.facilityId === facilityId))
+        setInspections((r.items as InspectionListItem[]).filter(i => i.facilityId === facilityId))
       } else {
         // VIS-003 is already scoped at the server and has no FacilityId in its DTO.
-        setVisits((r.data as VisitDetail[]).filter(v => v.visitType === 'RETURN'))
+        setVisits((r.items as VisitDetail[]).filter(v => v.visitType === 'RETURN'))
       }
-      setTotal(r.pagination.totalItems)
-      setPages(r.pagination.totalPages)
-    }).catch(e => { if (alive) { setListError(errorText(e)); setTotal(0); setPages(0); setInspections([]); setVisits([]) } })
+    }).catch(e => { if (alive) { setListError(errorText(e)); setInspections([]); setVisits([]) } })
       .finally(() => { if (alive) setLoading(false) })
     return () => { alive = false }
-  }, [facilityId, page, view, revision])
+  }, [facilityId, view, revision])
 
   useEffect(() => {
     let alive = true
@@ -101,8 +98,52 @@ export function ReturnsInspectionsPage() {
     return () => { alive = false }
   }, [facilityId, revision])
 
-  const visibleInspections = useMemo(() => inspections.filter(i => (filter === 'ALL' || i.status === filter) && JSON.stringify(i).toLowerCase().includes(search.trim().toLowerCase())), [inspections, filter, search])
-  const visibleVisits = useMemo(() => visits.filter(v => JSON.stringify(v).toLowerCase().includes(search.trim().toLowerCase())), [visits, search])
+  const matchingInspections = useMemo(() => {
+    const needle = search.trim().toLowerCase()
+    return inspections.filter(i => {
+      if (filter !== 'ALL' && i.status !== filter) return false
+      if (!needle) return true
+      const text = [
+        i.status,
+        i.status.replaceAll('_', ' '),
+        i.completedAt ?? '',
+        lookupLabel('contract', i.contractId),
+        lookupLabel('contractUnit', i.contractId),
+        lookupLabel('unit', i.storageUnitId),
+        lookupLabel('employee', i.employeeId),
+      ].join(' ').toLowerCase()
+      return text.includes(needle)
+    })
+  }, [inspections, filter, search, lookupLabel])
+
+  const matchingVisits = useMemo(() => {
+    const needle = search.trim().toLowerCase()
+    if (!needle) return visits
+    return visits.filter(v => {
+      const text = [
+        v.status,
+        v.status.replaceAll('_', ' '),
+        v.visitDate ?? '',
+        v.actualReturnDate ?? '',
+        lookupLabel('contract', v.entityId),
+        lookupLabel('contractUnit', v.entityId),
+        lookupLabel('employee', v.employeeId),
+      ].join(' ').toLowerCase()
+      return text.includes(needle)
+    })
+  }, [visits, search, lookupLabel])
+
+  const total = view === 'inspections' ? matchingInspections.length : matchingVisits.length
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const currentPage = Math.min(page, pages)
+  const visibleInspections = useMemo(
+    () => matchingInspections.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [matchingInspections, currentPage],
+  )
+  const visibleVisits = useMemo(
+    () => matchingVisits.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [matchingVisits, currentPage],
+  )
   const pendingDecisions = selected?.inspection.damages.filter(d => d.status === 'PENDING') ?? []
 
   const openInspection = useCallback(async (id: string) => {
@@ -181,12 +222,12 @@ export function ReturnsInspectionsPage() {
 
   return <main className="mop-page" data-testid="manager-returns-inspections-page">
     <header className="mop-page-header"><div><h1>Returns & Inspections</h1><p>Monitor physical returns, Inspection progress and approve or reject recorded Damage at your Facility.</p><span className="mop-facility-id"><EmployeeEntityLabel kind="facility" id={facilityId} /></span></div><button type="button" className="mop-btn mop-btn-secondary" onClick={refresh}><RefreshCw size={16}/> Refresh</button></header>
-    <div className="mop-stats mop-return-stats"><div><span>Units under inspection</span><strong>{report ? report.inspectionUnits : '—'}</strong><small>Current facility snapshot</small></div><div><span>Inspections on this page</span><strong>{inspections.length}</strong><small>Page {page} · facility-scoped</small></div><div><span>In progress on this page</span><strong>{inspections.filter(i => i.status === 'IN_PROGRESS').length}</strong><small>Claimed by Facility Staff</small></div><div><span>Pending Damage (selected)</span><strong>{selected ? pendingDecisions.length : '—'}</strong><small>Open an Inspection to review</small></div></div>
+    <div className="mop-stats mop-return-stats"><div><span>Units under inspection</span><strong>{report ? report.inspectionUnits : '—'}</strong><small>Current facility snapshot</small></div><div><span>Total inspections</span><strong>{inspections.length}</strong><small>Facility-scoped</small></div><div><span>In progress</span><strong>{inspections.filter(i => i.status === 'IN_PROGRESS').length}</strong><small>Claimed by Facility Staff</small></div><div><span>Pending Damage (selected)</span><strong>{selected ? pendingDecisions.length : '—'}</strong><small>Open an Inspection to review</small></div></div>
     <section className="mop-section"><div className="mop-section-heading"><div><h2><RotateCcw size={19}/> Return work queue</h2><p>Review return visits and inspection findings. Managers decide damage charges; staff claim inspections and finalize returns.</p></div></div>
       <div role="tablist" aria-label="Return monitoring view" className="mop-tabs"><button type="button" role="tab" aria-selected={view === 'inspections'} className={`mop-tab ${view === 'inspections' ? 'active' : ''}`} onClick={() => switchView('inspections')}><ClipboardCheck size={16}/>Inspections</button><button type="button" role="tab" aria-selected={view === 'return-visits'} className={`mop-tab ${view === 'return-visits' ? 'active' : ''}`} onClick={() => switchView('return-visits')}><Clock3 size={16}/>RETURN Visits</button></div>
-      <div className="mop-table-toolbar"><label className="mop-search"><Search size={16}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search this page by status or note" aria-label="Search current page"/></label>{view === 'inspections' && <label className="mop-select-label">Status <select value={filter} onChange={e => setFilter(e.target.value as Filter)}><option value="ALL">All statuses</option><option value="PENDING">Pending</option><option value="IN_PROGRESS">In progress</option><option value="COMPLETED">Completed</option></select></label>}<span className="mop-small">{total} records across all statuses and types</span></div>
-      {loading ? <p className="mop-empty">Loading {view}…</p> : listError ? <div role="alert" className="mop-alert">{listError}<button type="button" onClick={refresh}>Retry</button></div> : view === 'inspections' ? visibleInspections.length ? <div className="mop-table">{visibleInspections.map(i => <button key={i.inspectionId} className="mop-table-row" type="button" onClick={() => void openInspection(i.inspectionId)}><span className="mop-record"><strong>{i.status.replaceAll('_', ' ')} inspection</strong><small><EmployeeEntityLabel kind="contract" id={i.contractId} /> · <EmployeeEntityLabel kind="unit" id={i.storageUnitId} /></small></span><span className="mop-secondary">{i.completedAt ? `Completed ${date(i.completedAt)}` : i.employeeId ? <EmployeeEntityLabel kind="employee" id={i.employeeId} /> : 'Awaiting Staff claim'}</span>{badge(i.status)}<ArrowUpRight size={17}/></button>)}</div> : <p className="mop-empty">No Inspections match this page and filter.</p> : visibleVisits.length ? <div className="mop-table">{visibleVisits.map(v => <button key={v.visitId} type="button" className="mop-table-row" onClick={() => void openReturnVisit(v.visitId)}><span className="mop-record"><strong>Return visit · {date(v.visitDate)}</strong><small><EmployeeEntityLabel kind="contract" id={v.entityId} /> · Scheduled {date(v.visitDate)}</small></span><span className="mop-secondary">{v.actualReturnDate ? `Physical return ${date(v.actualReturnDate)}` : 'Return not yet confirmed'}</span>{badge(v.status)}<ArrowUpRight size={17}/></button>)}</div> : <p className="mop-empty">No return visits on this page. Try another page to review more visits.</p>}
-      <div className="mop-pagination"><button className="mop-btn mop-btn-secondary" type="button" disabled={loading || page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button><span>Page {page} / {Math.max(1, pages)}</span><button className="mop-btn mop-btn-secondary" type="button" disabled={loading || page >= pages} onClick={() => setPage(p => p + 1)}>Next</button></div>
+      <div className="mop-table-toolbar"><label className="mop-search"><Search size={16}/><input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder="Search by unit, contract, staff or status" aria-label="Search return queue"/></label>{view === 'inspections' && <label className="mop-select-label">Status <select value={filter} onChange={e => { setFilter(e.target.value as Filter); setPage(1) }}><option value="ALL">All statuses</option><option value="PENDING">Pending</option><option value="IN_PROGRESS">In progress</option><option value="COMPLETED">Completed</option></select></label>}<span className="mop-small">{total} matching records</span></div>
+      {loading ? <p className="mop-empty">Loading {view}…</p> : listError ? <div role="alert" className="mop-alert">{listError}<button type="button" onClick={refresh}>Retry</button></div> : view === 'inspections' ? visibleInspections.length ? <div className="mop-table">{visibleInspections.map(i => <button key={i.inspectionId} className="mop-table-row" type="button" onClick={() => void openInspection(i.inspectionId)}><span className="mop-record"><strong>{i.status.replaceAll('_', ' ')} inspection</strong><small><EmployeeEntityLabel kind="contract" id={i.contractId} /> · <EmployeeEntityLabel kind="unit" id={i.storageUnitId} /></small></span><span className="mop-secondary">{i.completedAt ? `Completed ${date(i.completedAt)}` : i.employeeId ? <EmployeeEntityLabel kind="employee" id={i.employeeId} /> : 'Awaiting Staff claim'}</span>{badge(i.status)}<ArrowUpRight size={17}/></button>)}</div> : <p className="mop-empty">No Inspections match the current filters.</p> : visibleVisits.length ? <div className="mop-table">{visibleVisits.map(v => <button key={v.visitId} type="button" className="mop-table-row" onClick={() => void openReturnVisit(v.visitId)}><span className="mop-record"><strong>Return visit · {date(v.visitDate)}</strong><small><EmployeeEntityLabel kind="contract" id={v.entityId} /> · Scheduled {date(v.visitDate)}</small></span><span className="mop-secondary">{v.actualReturnDate ? `Physical return ${date(v.actualReturnDate)}` : 'Return not yet confirmed'}</span>{badge(v.status)}<ArrowUpRight size={17}/></button>)}</div> : <p className="mop-empty">No return visits match the current filters.</p>}
+      <div className="mop-pagination"><button className="mop-btn mop-btn-secondary" type="button" disabled={loading || currentPage <= 1} onClick={() => setPage(Math.max(1, currentPage - 1))}>Previous</button><span>Page {currentPage} / {pages}</span><button className="mop-btn mop-btn-secondary" type="button" disabled={loading || currentPage >= pages} onClick={() => setPage(currentPage + 1)}>Next</button></div>
     </section>
     {typesError && <p className="mop-alert" role="alert">DamageType catalogue unavailable: {typesError}</p>}
     {detailTarget && <EmployeeModal labelledBy="mop-return-detail-title" busy={busy || !!decision} onClose={closeDetail}>

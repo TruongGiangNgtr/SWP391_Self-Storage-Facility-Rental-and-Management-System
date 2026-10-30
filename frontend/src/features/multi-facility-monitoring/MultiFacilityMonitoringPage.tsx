@@ -1,8 +1,8 @@
 import { EmployeeModal } from '../../components/EmployeeModal'
 import { formatUtcDateTime } from '../../utils/formatters'
-import { employeeContractLabel, employeeMonthRange, employeeUnitLabel } from '../../utils/employeePresentation'
+import { employeeContractLabel, employeeMonthRange, employeeUnitLabel, fetchAllEmployeePages } from '../../utils/employeePresentation'
 import type { ReactNode } from 'react'
-import { EmployeeEntityLabel, EmployeeReservationLabel } from '../../components/EmployeeEntityLabel'
+import { EmployeeEntityLabel, EmployeeReservationLabel, useEmployeeLabelLookup, type EmployeeLabelKind } from '../../components/EmployeeEntityLabel'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Activity, ArrowRight, Building2, CalendarDays, CreditCard, FileText,
@@ -96,6 +96,71 @@ function activityDescription(tab: ActivityTab, item: ActivityRecord, facilityNam
   }
 }
 
+function activitySearchText(
+  tab: ActivityTab,
+  item: ActivityRecord,
+  facilityNames: ReadonlyMap<string, string>,
+  lookupLabel: (kind: EmployeeLabelKind, id?: string | null, scope?: string) => string,
+): string {
+  switch (tab) {
+    case 'reservations': {
+      const r = item as ReservationDetail
+      return [
+        r.status,
+        readableStatus(r.status),
+        r.startMonth,
+        r.endMonth,
+        r.depositInvoice?.status ?? '',
+        facilityNames.get(r.facilityId) ?? '',
+        lookupLabel('customer', r.customerId),
+        lookupLabel('unitType', r.unitTypeId),
+      ].join(' ').toLowerCase()
+    }
+    case 'contracts': {
+      const c = item as BusinessContractSummary
+      return [
+        c.status,
+        readableStatus(c.status),
+        c.startMonth,
+        c.endMonth,
+        c.unitCode ?? '',
+        c.unitTypeName ?? '',
+        employeeContractLabel(c),
+        facilityNames.get(c.facilityId) ?? '',
+        lookupLabel('customer', c.customerId),
+      ].join(' ').toLowerCase()
+    }
+    case 'visits': {
+      const v = item as VisitDetail
+      return [
+        v.visitType,
+        readableStatus(v.visitType),
+        v.status,
+        readableStatus(v.status),
+        v.visitDate ?? '',
+        v.actualReturnDate ?? '',
+        lookupLabel('contract', v.entityId),
+        lookupLabel('contractUnit', v.entityId),
+        lookupLabel('employee', v.employeeId),
+      ].join(' ').toLowerCase()
+    }
+    case 'invoices': {
+      const i = item as InvoiceDetail
+      return [
+        i.invoiceType,
+        readableStatus(i.invoiceType),
+        i.status,
+        readableStatus(i.status),
+        i.billingMonth ?? '',
+        i.dueDate ?? '',
+        String(i.amountDue),
+        lookupLabel('contract', i.entityId),
+        lookupLabel('contractUnit', i.entityId),
+      ].join(' ').toLowerCase()
+    }
+  }
+}
+
 function statusBadge(status: string | null | undefined) {
   const safeStatus = typeof status === 'string' ? status : 'UNKNOWN'
   return <span className={`mfm-status mfm-status--${safeStatus.toLowerCase().replaceAll('_', '-')}`}>
@@ -110,21 +175,6 @@ function listRecords(tab: ActivityTab, page: number, pageSize: number): Promise<
     case 'visits': return visitApi.list(page, pageSize)
     case 'invoices': return billingApi.listInvoices(page, pageSize)
   }
-}
-
-/** The current RES-002 and CON-001 endpoints lack a server-side Facility filter.
- * Fetch all authorized pages ONLY when a specific Facility is selected, so a
- * facility filter never misrepresents a single global page as complete data.
- * This does not calculate financial KPIs or replace REP-003.
- */
-async function listForFacility(tab: ActivityTab, facilityId: string): Promise<ActivityRecord[]> {
-  const first = await listRecords(tab, 1, 100)
-  const matches = [...first.data].filter(item => 'facilityId' in item && item.facilityId === facilityId)
-  for (let page = 2; page <= first.pagination.totalPages; page += 1) {
-    const response = await listRecords(tab, page, 100)
-    matches.push(...response.data.filter(item => 'facilityId' in item && item.facilityId === facilityId))
-  }
-  return matches
 }
 
 async function loadDetail(tab: ActivityTab, item: ActivityRecord): Promise<DetailRecord> {
@@ -180,6 +230,7 @@ function detailFields(detail: DetailState, facilityNames: ReadonlyMap<string, st
 }
 
 export function MultiFacilityMonitoringPage() {
+  const lookupLabel = useEmployeeLabelLookup()
   const [revision, setRevision] = useState(0)
   const [facilities, setFacilities] = useState<Facility[]>([])
   const [facilityLoading, setFacilityLoading] = useState(true)
@@ -197,7 +248,6 @@ export function MultiFacilityMonitoringPage() {
   const [rows, setRows] = useState<ActivityRecord[]>([])
   const [activityLoading, setActivityLoading] = useState(true)
   const [activityError, setActivityError] = useState('')
-  const [pagination, setPagination] = useState({ totalItems: 0, totalPages: 0 })
   const [detail, setDetail] = useState<DetailState | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
@@ -207,7 +257,6 @@ export function MultiFacilityMonitoringPage() {
   useEffect(() => () => { detailRequest.current += 1 }, [])
 
   const isFacilityFiltered = Boolean(facilityId) && scopedTab(tab)
-  const requestPage = isFacilityFiltered ? 1 : page
 
   useEffect(() => {
     let current = true
@@ -245,27 +294,17 @@ export function MultiFacilityMonitoringPage() {
     setActivityLoading(true)
     setActivityError('')
     setRows([])
-    const work = isFacilityFiltered
-      ? listForFacility(tab, facilityId).then(data => ({ data, pagination: {
-        totalItems: data.length, totalPages: Math.ceil(data.length / PAGE_SIZE), page: 1, pageSize: PAGE_SIZE,
-      } }))
-      : listRecords(tab, requestPage, PAGE_SIZE)
-    work.then(result => {
+    fetchAllEmployeePages((p, size) => listRecords(tab, p, size)).then(result => {
       if (!current) return
-      setRows(result.data)
-      setPagination({ totalItems: result.pagination.totalItems, totalPages: result.pagination.totalPages })
+      const filteredByFacility = isFacilityFiltered
+        ? result.items.filter(item => 'facilityId' in item && item.facilityId === facilityId)
+        : result.items
+      setRows(filteredByFacility)
     }).catch(error => {
-      if (current) { setRows([]); setPagination({ totalItems: 0, totalPages: 0 }); setActivityError(readableError(error)) }
+      if (current) { setRows([]); setActivityError(readableError(error)) }
     }).finally(() => { if (current) setActivityLoading(false) })
     return () => { current = false }
-  }, [tab, requestPage, facilityId, revision, isFacilityFiltered])
-
-  useEffect(() => {
-    // Escape is handled by EmployeeModal.
-    return undefined
-    // no manual window keydown listener needed
-    // handled by native dialog cancel event
-  }, [detail])
+  }, [tab, facilityId, revision, isFacilityFiltered])
 
   const facilityNames = useMemo(() => new Map(facilities.map(item => [item.facilityId, item.name])), [facilities])
   const facilityName = (id: string) => facilityNames.get(id) ?? 'Facility name unavailable'
@@ -274,19 +313,17 @@ export function MultiFacilityMonitoringPage() {
     `${item.name} ${item.address} ${item.contactInfo ?? ''}`.toLowerCase().includes(facilitySearch.trim().toLowerCase()),
   ), [facilities, facilityStatus, facilitySearch])
   const currentFacility = facilities.find(item => item.facilityId === facilityId)
-  const visibleRows = useMemo(() => {
-    const matching = rows.filter(item => {
-      const content = JSON.stringify(item).toLowerCase() + ' ' +
-        (scopedTab(tab) ? facilityNames.get((item as ReservationDetail | BusinessContractSummary).facilityId) ?? '' : '')
-      return content.includes(search.trim().toLowerCase())
-    })
-    return isFacilityFiltered ? matching.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) : matching
-  }, [rows, search, page, tab, facilityNames, isFacilityFiltered])
-  const facilityFilteredCount = isFacilityFiltered
-    ? rows.filter(item => (JSON.stringify(item).toLowerCase() + ' ' +
-      (facilityNames.get((item as ReservationDetail | BusinessContractSummary).facilityId) ?? '')).includes(search.trim().toLowerCase())).length
-    : null
-  const totalPages = isFacilityFiltered && search.trim() ? Math.ceil((facilityFilteredCount ?? 0) / PAGE_SIZE) : pagination.totalPages
+  const matchingRows = useMemo(() => {
+    const needle = search.trim().toLowerCase()
+    if (!needle) return rows
+    return rows.filter(item => activitySearchText(tab, item, facilityNames, lookupLabel).includes(needle))
+  }, [rows, search, tab, facilityNames, lookupLabel])
+  const totalPages = Math.max(1, Math.ceil(matchingRows.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const visibleRows = useMemo(
+    () => matchingRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [matchingRows, currentPage],
+  )
   const activeFacilities = facilities.filter(item => item.status === 'ACTIVE').length
 
   const chooseFacility = (id: string) => { closeDetail(); setFacilityId(id); setPage(1); setSearch('') }
@@ -298,11 +335,9 @@ export function MultiFacilityMonitoringPage() {
     setRows([])
     setActivityLoading(true)
     setActivityError('')
-    setPagination({ totalItems: 0, totalPages: 0 })
     setTab(next)
     setPage(1)
     setSearch(''); closeDetail()
-    // detail state cleared via closeDetail or setDetail(null)
     setDetailError('')
   }
   const refresh = () => { closeDetail(); setRevision(value => value + 1) }
@@ -310,7 +345,6 @@ export function MultiFacilityMonitoringPage() {
     const requestId = ++detailRequest.current
     setDetailTarget({ tab: currentTab, item })
     setDetailError('')
-    // detail state cleared via closeDetail or setDetail(null)
     setDetail(null); setDetailLoading(true)
     try {
       const record = await loadDetail(currentTab, item)
@@ -320,7 +354,6 @@ export function MultiFacilityMonitoringPage() {
     } catch (error) {
       if (requestId === detailRequest.current) { setDetailError(readableError(error)); setDetail(null) }
     } finally {
-      // Request sequence guard replaces single-flight lock.
       if (requestId === detailRequest.current) setDetailLoading(false)
     }
   }
@@ -409,12 +442,11 @@ export function MultiFacilityMonitoringPage() {
       {facilityId && !scopedTab(tab) && <div className="mfm-context-note" role="status">
         Visits and Invoices are shown system-wide. Their list responses do not include FacilityId, so this view does not claim a Facility-level filter for these records.
       </div>}
-      {isFacilityFiltered && <div className="mfm-context-note">Facility filter uses all authorized pages of {tab} because the existing API has no server-side FacilityId query parameter.</div>}
       <div className="mfm-toolbar mfm-activity-toolbar">
         <label className="mfm-search"><Search size={16}/><input type="search" value={search}
           onChange={event => { setSearch(event.target.value); setPage(1) }}
-          placeholder={isFacilityFiltered ? `Search ${tab} in this Facility` : 'Search records on this page'} aria-label="Search activity records" /></label>
-        <span className="mfm-subtle">{isFacilityFiltered ? `${facilityFilteredCount} matching records` : `${pagination.totalItems} records across all Facilities`}</span>
+          placeholder={`Search ${tab} by customer, unit, facility or status`} aria-label="Search activity records" /></label>
+        <span className="mfm-subtle">{matchingRows.length} matching {tab}</span>
       </div>
       {activityLoading ? <div className="mfm-message" role="status">Loading authorized {tab}…</div> : activityError ? <div className="mfm-error" role="alert">
         {activityError} <button type="button" onClick={refresh}>Retry</button></div> : visibleRows.length === 0 ?
@@ -426,9 +458,9 @@ export function MultiFacilityMonitoringPage() {
           </button>)}
         </div>}
       {!activityLoading && !activityError && totalPages > 1 && <div className="mfm-pagination">
-        <span>Page {page} of {totalPages}</span>
-        <button type="button" className="mfm-button mfm-button--secondary" disabled={page <= 1} onClick={() => setPage(value => value - 1)}>Previous</button>
-        <button type="button" className="mfm-button mfm-button--secondary" disabled={page >= totalPages} onClick={() => setPage(value => value + 1)}>Next</button>
+        <span>Page {currentPage} of {totalPages}</span>
+        <button type="button" className="mfm-button mfm-button--secondary" disabled={currentPage <= 1} onClick={() => setPage(Math.max(1, currentPage - 1))}>Previous</button>
+        <button type="button" className="mfm-button mfm-button--secondary" disabled={currentPage >= totalPages} onClick={() => setPage(currentPage + 1)}>Next</button>
       </div>}
       {detailError && <div role="alert" className="mfm-error">Unable to open record: {detailError}</div>}
       {detailLoading && <div role="status" className="mfm-message">Loading record detail…</div>}

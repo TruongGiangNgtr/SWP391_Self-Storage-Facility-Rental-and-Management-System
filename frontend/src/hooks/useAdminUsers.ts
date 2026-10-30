@@ -3,6 +3,8 @@ import {
   useEffect,
   useMemo,
   useState,
+  type Dispatch,
+  type SetStateAction,
 } from 'react'
 import {
   getAdminUser,
@@ -10,18 +12,16 @@ import {
   normalizeAdminApiError,
 } from '../api/adminApi'
 import type { Pagination } from '../api/api.types'
-import type {
-  AdminApiErrorShape,
-  AdminUserAccount,
-  AdminUserFilters,
+import { useEmployeeLabelLookup } from '../components/EmployeeEntityLabel'
+import {
+  USER_ROLE_LABELS,
+  type AdminApiErrorShape,
+  type AdminUserAccount,
+  type AdminUserFilters,
 } from '../models/adminUser'
+import { fetchAllEmployeePages } from '../utils/employeePresentation'
 
-const DEFAULT_PAGINATION: Pagination = {
-  page: 1,
-  pageSize: 20,
-  totalItems: 0,
-  totalPages: 0,
-}
+const PAGE_SIZE = 20
 
 const DEFAULT_FILTERS: AdminUserFilters = {
   status: 'ALL',
@@ -30,20 +30,31 @@ const DEFAULT_FILTERS: AdminUserFilters = {
 }
 
 export function useAdminUsers() {
+  const lookupLabel = useEmployeeLabelLookup()
   const [accounts, setAccounts] = useState<AdminUserAccount[]>([])
-  const [pagination, setPagination] = useState<Pagination>(DEFAULT_PAGINATION)
+  const [requestedPage, setRequestedPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<AdminApiErrorShape | null>(null)
-  const [filters, setFilters] = useState<AdminUserFilters>(DEFAULT_FILTERS)
+  const [filters, setFiltersState] = useState<AdminUserFilters>(DEFAULT_FILTERS)
 
-  const load = useCallback(async (page = 1) => {
+  const setFilters: Dispatch<SetStateAction<AdminUserFilters>> = useCallback((next) => {
+    setRequestedPage(1)
+    setFiltersState(next)
+  }, [])
+
+  const fetchAll = useCallback(async (page = 1) => {
+    const targetPage = Number.isFinite(page)
+      ? Math.max(1, Math.trunc(page))
+      : 1
+    setRequestedPage(targetPage)
     setLoading(true)
     setError(null)
 
     try {
-      const response = await listAdminUsers({ page, pageSize: 20 })
-      setAccounts(response.data ?? [])
-      setPagination(response.pagination ?? { ...DEFAULT_PAGINATION, page })
+      const allAccounts = await fetchAllEmployeePages((nextPage, pageSize) =>
+        listAdminUsers({ page: nextPage, pageSize }),
+      )
+      setAccounts(allAccounts.items)
     } catch (requestError) {
       setAccounts([])
       setError(normalizeAdminApiError(requestError))
@@ -53,10 +64,10 @@ export function useAdminUsers() {
   }, [])
 
   useEffect(() => {
-    void load(1)
-  }, [load])
+    void fetchAll(1)
+  }, [fetchAll])
 
-  const visibleAccounts = useMemo(() => {
+  const filteredAccounts = useMemo(() => {
     const needle = filters.search.trim().toLowerCase()
 
     return accounts.filter((account) => {
@@ -77,16 +88,42 @@ export function useAdminUsers() {
         account.profile?.fullName ?? '',
         account.email,
         account.phoneNumber,
+        account.role,
+        USER_ROLE_LABELS[account.role] ?? '',
         account.profile?.customerId ?? '',
         account.profile?.employeeId ?? '',
         account.profile?.facilityId ?? '',
+        lookupLabel('facility', account.profile?.facilityId),
       ].some((value) => value.toLowerCase().includes(needle))
     })
-  }, [accounts, filters])
+  }, [accounts, filters, lookupLabel])
+
+  const totalPages = Math.max(1, Math.ceil(filteredAccounts.length / PAGE_SIZE))
+  const safePage = Math.min(requestedPage, totalPages)
+  const visibleAccounts = useMemo(
+    () => filteredAccounts.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filteredAccounts, safePage],
+  )
+  const pagination: Pagination = useMemo(
+    () => ({
+      page: safePage,
+      pageSize: PAGE_SIZE,
+      totalItems: filteredAccounts.length,
+      totalPages: filteredAccounts.length === 0 ? 0 : totalPages,
+    }),
+    [filteredAccounts.length, safePage, totalPages],
+  )
+
+  const loadPage = useCallback(async (page = 1) => {
+    const targetPage = Number.isFinite(page)
+      ? Math.max(1, Math.trunc(page))
+      : 1
+    setRequestedPage(targetPage)
+  }, [])
 
   const refresh = useCallback(
-    () => load(pagination.page || 1),
-    [load, pagination.page],
+    () => fetchAll(safePage || 1),
+    [fetchAll, safePage],
   )
 
   return {
@@ -97,7 +134,7 @@ export function useAdminUsers() {
     error,
     filters,
     setFilters,
-    loadPage: load,
+    loadPage,
     refresh,
   }
 }

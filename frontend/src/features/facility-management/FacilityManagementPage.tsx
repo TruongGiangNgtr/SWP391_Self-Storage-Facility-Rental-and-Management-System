@@ -1,7 +1,6 @@
 import { Eye, Pencil, Search, ShieldCheck, X } from 'lucide-react'
 import { ApiErrorAlert } from '../../components/ApiErrorAlert'
 import { presentApiError, type ApiErrorPresentation } from '../../api/apiErrorPresentation'
-import type { Pagination } from '../../api/api.types'
 import { EmployeeModal } from '../../components/EmployeeModal'
 import {
   type SyntheticEvent,
@@ -42,7 +41,7 @@ const emptyCreateFacilityForm: CreateFacilityForm = {
 
 
 export function FacilityManagementPage() {
- const [isLoading, setIsLoading] =
+  const [isLoading, setIsLoading] =
     useState(true)
 
   const [pageError, setPageError] =
@@ -50,65 +49,55 @@ export function FacilityManagementPage() {
   const [currentPage, setCurrentPage] =
     useState(1)
 
-  const [pagination, setPagination] = useState<Pagination | null>(null)
   const [revision, setRevision] = useState(0)
   const [isSaving, setIsSaving] = useState(false)
   const saving = useRef(false)
   const [operationError, setOperationError] = useState<ApiErrorPresentation | null>(null)
   const [facilities, setFacilities] =
-  useState<Facility[]>([])
+    useState<Facility[]>([])
   const pageSize = 5
   useEffect(() => {
-  let cancelled = false
+    let cancelled = false
 
-  async function loadFacilities() {
-    setIsLoading(true)
-    setPageError(null)
+    async function loadFacilities() {
+      setIsLoading(true)
+      setPageError(null)
 
-    try {
-      const response =
-        await businessApi.listFacilities(
-          currentPage,
-          pageSize,
-        )
+      try {
+        const allFacilities =
+          await businessApi.listAllFacilities()
 
-      if (cancelled) {
-        return
-      }
+        if (cancelled) {
+          return
+        }
 
-      if (currentPage > Math.max(1, response.pagination.totalPages)) {
-        setCurrentPage(Math.max(1, response.pagination.totalPages))
-        return
-      }
-      setPagination(response.pagination)
-      setFacilities(response.data)
-    } catch (error) {
-      if (cancelled) {
-        return
-      }
+        setFacilities(allFacilities)
+      } catch (error) {
+        if (cancelled) {
+          return
+        }
 
-      setFacilities([])
-      setPagination(null)
-      setPageError(presentApiError(error))
-    } finally {
-      if (!cancelled) {
-        setIsLoading(false)
+        setFacilities([])
+        setPageError(presentApiError(error))
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false)
+        }
       }
     }
-  }
 
-  void loadFacilities()
+    void loadFacilities()
 
-  return () => {
-    cancelled = true
-  }
-}, [currentPage, revision])
+    return () => {
+      cancelled = true
+    }
+  }, [revision])
   const [isCreateOpen, setIsCreateOpen] =
     useState(false)
   const [selectedFacility, setSelectedFacility] =
     useState<Facility | null>(null)
   const [editingFacility, setEditingFacility] =
-  useState<Facility | null>(null)
+    useState<Facility | null>(null)
   const [statusActionFacility, setStatusActionFacility] =
     useState<Facility | null>(null)
 
@@ -119,20 +108,20 @@ export function FacilityManagementPage() {
       emptyCreateFacilityForm,
     )
 
-const [editErrors, setEditErrors] =
-  useState<CreateFacilityErrors>({})
+  const [editErrors, setEditErrors] =
+    useState<CreateFacilityErrors>({})
   const [createForm, setCreateForm] =
     useState<CreateFacilityForm>(
-    emptyCreateFacilityForm,
-  )
+      emptyCreateFacilityForm,
+    )
   const [createErrors, setCreateErrors] =
-  useState<CreateFacilityErrors>({})
+    useState<CreateFacilityErrors>({})
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<
     'ALL' | FacilityStatus
   >('ALL')
 
-  const totalFacilities = pagination?.totalItems ?? 0
+  const totalFacilities = facilities.length
 
   const activeFacilities = facilities.filter(
     (facility) => facility.status === 'ACTIVE',
@@ -162,14 +151,22 @@ const [editErrors, setEditErrors] =
           .includes(normalizedSearch) ||
         facility.contactInfo
           ?.toLowerCase()
+          .includes(normalizedSearch) ||
+        facility.description
+          ?.toLowerCase()
           .includes(normalizedSearch)
 
       return matchesStatus && matchesSearch
     })
 
   }, [facilities, searchTerm, statusFilter])
-  const totalPages = Math.max(1, pagination?.totalPages ?? 1)
-  const paginatedFacilities = filteredFacilities
+  const totalPages = Math.max(1, Math.ceil(filteredFacilities.length / pageSize))
+  const safePage = Math.min(currentPage, totalPages)
+  const paginatedFacilities = useMemo(() => {
+    const startIndex = (safePage - 1) * pageSize
+    return filteredFacilities.slice(startIndex, startIndex + pageSize)
+  }, [filteredFacilities, pageSize, safePage])
+
   function openViewModal(facility: Facility) {
     setSelectedFacility(facility)
   }
@@ -205,7 +202,7 @@ const [editErrors, setEditErrors] =
       }))
     }
   }
-async function handleEditFacility(
+  async function handleEditFacility(
     event: SyntheticEvent<HTMLFormElement>,
   ) {
     event.preventDefault()
@@ -335,89 +332,89 @@ async function handleEditFacility(
   }
   function openCreateModal() {
     setOperationError(null)
-        setCreateForm(emptyCreateFacilityForm)
-        setCreateErrors({})
-        setIsCreateOpen(true)
-        }
-        function closeCreateModal() {
+    setCreateForm(emptyCreateFacilityForm)
+    setCreateErrors({})
+    setIsCreateOpen(true)
+  }
+  function closeCreateModal() {
     if (saving.current) return
     setOperationError(null)
-        setIsCreateOpen(false)
-        setCreateErrors({})
-        }
-        function updateCreateField(
-            field: keyof CreateFacilityForm,
-            value: string,
-            ) {
-            setCreateForm((current) => ({
-                ...current,
-                [field]: value,
-            }))
+    setIsCreateOpen(false)
+    setCreateErrors({})
+  }
+  function updateCreateField(
+    field: keyof CreateFacilityForm,
+    value: string,
+  ) {
+    setCreateForm((current) => ({
+      ...current,
+      [field]: value,
+    }))
 
-            if (
-                field === 'name' ||
-                field === 'address'
-            ) {
-                setCreateErrors((current) => ({
-                ...current,
-                [field]: undefined,
-                }))
-            }
-            }
-        async function handleCreateFacility(
-            event: SyntheticEvent<HTMLFormElement>,
-            ) {
-            event.preventDefault()
+    if (
+      field === 'name' ||
+      field === 'address'
+    ) {
+      setCreateErrors((current) => ({
+        ...current,
+        [field]: undefined,
+      }))
+    }
+  }
+  async function handleCreateFacility(
+    event: SyntheticEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault()
 
-            const name = createForm.name.trim()
-            const address = createForm.address.trim()
+    const name = createForm.name.trim()
+    const address = createForm.address.trim()
 
-            const nextErrors: CreateFacilityErrors = {}
+    const nextErrors: CreateFacilityErrors = {}
 
-            if (!name) {
-                nextErrors.name =
-                'Facility name is required.'
-            }
+    if (!name) {
+      nextErrors.name =
+        'Facility name is required.'
+    }
 
-            if (!address) {
-                nextErrors.address =
-                'Address is required.'
-            }
+    if (!address) {
+      nextErrors.address =
+        'Address is required.'
+    }
 
-            if (Object.keys(nextErrors).length > 0) {
-                setCreateErrors(nextErrors)
-                return
-            }
+    if (Object.keys(nextErrors).length > 0) {
+      setCreateErrors(nextErrors)
+      return
+    }
 
     if (saving.current) return
     saving.current = true
     setIsSaving(true)
     setOperationError(null)
     try {
-              const response =
-                await businessApi.createFacility({
-                  name,
-                  address,
-                  contactInfo:
-                    createForm.contactInfo.trim() || null,
-                  description:
-                    createForm.description.trim() || null,
-                })
+      const response =
+        await businessApi.createFacility({
+          name,
+          address,
+          contactInfo:
+            createForm.contactInfo.trim() || null,
+          description:
+            createForm.description.trim() || null,
+        })
 
 
-              setFacilities((current) => [
-                response.data,
-                ...current,
-              ])
+      setFacilities((current) => [
+        response.data,
+        ...current,
+      ])
 
-              setSearchTerm('')
-              setStatusFilter('ALL')
+      setSearchTerm('')
+      setStatusFilter('ALL')
 
-              setCreateForm(emptyCreateFacilityForm)
-              setCreateErrors({})
-              setIsCreateOpen(false)
+      setCreateForm(emptyCreateFacilityForm)
+      setCreateErrors({})
+      setIsCreateOpen(false)
       setCurrentPage(1)
-        setRevision(value => value + 1)
+      setRevision(value => value + 1)
     } catch (error) {
       setOperationError(presentApiError(error))
     } finally {
@@ -477,7 +474,7 @@ async function handleEditFacility(
         <article className="facility-summary-card">
           <div>
             <span className="facility-summary-label">
-              ACTIVE ON THIS PAGE
+              ACTIVE FACILITIES
             </span>
 
             <strong>{isLoading || pageError ? '—' : activeFacilities}</strong>
@@ -495,7 +492,7 @@ async function handleEditFacility(
         <article className="facility-summary-card">
           <div>
             <span className="facility-summary-label">
-              INACTIVE ON THIS PAGE
+              INACTIVE FACILITIES
             </span>
 
             <strong>{isLoading || pageError ? '—' : inactiveFacilities}</strong>
@@ -515,12 +512,13 @@ async function handleEditFacility(
 
           <input
             type="search"
-            aria-label="Search this page by name, address or contact"
+            aria-label="Search facilities by name, address or contact"
             value={searchTerm}
             onChange={(event) => {
               setSearchTerm(event.target.value)
+              setCurrentPage(1)
             }}
-            placeholder="Search this page by name, address or contact..."
+            placeholder="Search by name, address or contact..."
             className="facility-search-input"
           />
         </div>
@@ -536,6 +534,7 @@ async function handleEditFacility(
             aria-pressed={statusFilter === 'ALL'}
             onClick={() => {
               setStatusFilter('ALL')
+              setCurrentPage(1)
             }}
           >
             All
@@ -550,8 +549,9 @@ async function handleEditFacility(
             }
             aria-pressed={statusFilter === 'ACTIVE'}
             onClick={() => {
-            setStatusFilter('ACTIVE')
-          }}
+              setStatusFilter('ACTIVE')
+              setCurrentPage(1)
+            }}
           >
             Active
           </button>
@@ -566,6 +566,7 @@ async function handleEditFacility(
             aria-pressed={statusFilter === 'INACTIVE'}
             onClick={() => {
               setStatusFilter('INACTIVE')
+              setCurrentPage(1)
             }}
           >
             Inactive
@@ -578,6 +579,7 @@ async function handleEditFacility(
           onClick={() => {
             setSearchTerm('')
             setStatusFilter('ALL')
+            setCurrentPage(1)
           }}
         >
           Clear filters
@@ -596,7 +598,7 @@ async function handleEditFacility(
           </div>
 
           <span>
-            {filteredFacilities.length} of {facilities.length} loaded facilities match. Search and filters cover this directory page only.
+            {filteredFacilities.length} of {facilities.length} facilities match
           </span>
         </div>
 
@@ -722,7 +724,7 @@ async function handleEditFacility(
                         </button>
                       )}
 
-                     <button
+                      <button
                         type="button"
                         className="facility-icon-button"
                         title="Edit facility" aria-label={`Edit ${facility.name}`}
@@ -771,39 +773,40 @@ async function handleEditFacility(
                     </td>
                   </tr>
                 )}
-                {!isLoading &&
-                  !pageError &&
-                  facilities.length > 0 &&
-                  filteredFacilities.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="facility-empty-state"
-                      >
-                        <div className="facility-state-content">
-                          <strong>
-                            No matching facilities
-                          </strong>
+              {!isLoading &&
+                !pageError &&
+                facilities.length > 0 &&
+                filteredFacilities.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="facility-empty-state"
+                    >
+                      <div className="facility-state-content">
+                        <strong>
+                          No matching facilities
+                        </strong>
 
-                          <span>
-                            Try another search term or clear
-                            the current filters.
-                          </span>
+                        <span>
+                          Try another search term or clear
+                          the current filters.
+                        </span>
 
-                          <button
-                            type="button"
-                            className="facility-secondary-button"
-                            onClick={() => {
-                              setSearchTerm('')
-                              setStatusFilter('ALL')
-                            }}
-                          >
-                            Clear Filters
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
+                        <button
+                          type="button"
+                          className="facility-secondary-button"
+                          onClick={() => {
+                            setSearchTerm('')
+                            setStatusFilter('ALL')
+                            setCurrentPage(1)
+                          }}
+                        >
+                          Clear Filters
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
             </tbody>
           </table>
         </div>
@@ -815,16 +818,16 @@ async function handleEditFacility(
 
           <div className="facility-pagination">
             <span>
-              Directory page {currentPage} of {totalPages} / {totalFacilities} facilities
+              Page {safePage} of {totalPages} / {filteredFacilities.length} facilities
             </span>
 
             <button
               type="button"
               className="facility-page-button"
-              disabled={isLoading || currentPage === 1}
+              disabled={isLoading || safePage === 1}
               onClick={() =>
-                setCurrentPage((current) =>
-                  Math.max(1, current - 1),
+                setCurrentPage(
+                  Math.max(1, safePage - 1),
                 )
               }
             >
@@ -832,20 +835,20 @@ async function handleEditFacility(
             </button>
 
             <span className="facility-page-number">
-              {currentPage}
+              {safePage}
             </span>
 
             <button
               type="button"
               className="facility-page-button"
               disabled={
-                isLoading || currentPage >= totalPages
+                isLoading || safePage >= totalPages
               }
               onClick={() =>
-                setCurrentPage((current) =>
+                setCurrentPage(
                   Math.min(
                     totalPages,
-                    current + 1,
+                    safePage + 1,
                   ),
                 )
               }

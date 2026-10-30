@@ -1,5 +1,5 @@
-import { employeeText } from '../../utils/employeePresentation'
-import { EmployeeEntityLabel, EmployeeReservationLabel } from '../../components/EmployeeEntityLabel'
+import { employeeText, fetchAllEmployeePages } from '../../utils/employeePresentation'
+import { EmployeeEntityLabel, EmployeeReservationLabel, useEmployeeLabelLookup } from '../../components/EmployeeEntityLabel'
 import {
   Check,
   ClipboardList,
@@ -64,6 +64,7 @@ function unitErrorMessage(error: unknown) {
 
 export function HandoverUnitSelectionPage() {
   const { user } = useAuth()
+  const lookupLabel = useEmployeeLabelLookup()
   const facilityId = user?.facilityId ?? null
 
   const [reservations, setReservations] =
@@ -118,8 +119,10 @@ export function HandoverUnitSelectionPage() {
     setReservationError(null)
 
     try {
-      const response = await reservationApi.list(1, 100)
-      setReservations(response.data)
+      const nextReservations = await fetchAllEmployeePages((nextPage, pageSize) =>
+        reservationApi.list(nextPage, pageSize),
+      )
+      setReservations(nextReservations.items)
     } catch (error) {
       setReservations([])
       setReservationError(reservationErrorMessage(error))
@@ -191,17 +194,20 @@ export function HandoverUnitSelectionPage() {
 
       return [
         reservation.reservationId,
+        reservation.customerId,
         reservation.unitTypeId,
         reservation.startMonth,
         reservation.endMonth,
         reservation.status,
         visit.visitDate,
         visit.visitId,
+        lookupLabel('customer', reservation.customerId),
+        lookupLabel('unitType', reservation.unitTypeId),
       ].some((value) =>
         value.toLowerCase().includes(normalizedSearch),
       )
     })
-  }, [facilityId, reservationSearch, reservations])
+  }, [facilityId, lookupLabel, reservationSearch, reservations])
 
   const selectedReservation = useMemo(
     () => handoverReservations.find(
@@ -250,11 +256,12 @@ export function HandoverUnitSelectionPage() {
         unit.unitCode,
         unit.locationInfo ?? '',
         unit.storageUnitId,
+        lookupLabel('unitType', unit.unitTypeId),
       ].some((value) =>
         value.toLowerCase().includes(normalizedSearch),
       )
     })
-  }, [selectedReservation, unitSearch, units])
+  }, [lookupLabel, selectedReservation, unitSearch, units])
 
   async function selectReservation(
     reservation: ReservationDetail,
@@ -423,8 +430,8 @@ export function HandoverUnitSelectionPage() {
               onChange={(event) =>
                 setReservationSearch(event.target.value)
               }
-              aria-label="Search reservations by rental period or status"
-              placeholder="Search rental period or status"
+              aria-label="Search reservations by customer, unit type, rental period or status"
+              placeholder="Search customer, unit type or rental period"
             />
           </label>
 

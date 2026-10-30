@@ -1,4 +1,4 @@
-import { EmployeeEntityLabel } from '../components/EmployeeEntityLabel'
+import { EmployeeEntityLabel, useEmployeeLabelLookup } from '../components/EmployeeEntityLabel'
 import { CheckCircle2, LifeBuoy, RefreshCw, Search, ShieldAlert } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -14,9 +14,11 @@ import {
   type SupportTicketDetail,
   type SupportTicketStatus,
 } from '../features/manager-support/models/supportTicket'
+import { fetchAllEmployeePages } from '../utils/employeePresentation'
 import { formatUtcDateTime } from '../utils/formatters'
 import '../styles/staff.css'
 
+const PAGE_SIZE = 20
 
 function readable(value: string) {
   return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (part) => part.toUpperCase())
@@ -24,6 +26,7 @@ function readable(value: string) {
 
 export function StaffSupportPage() {
   const { user } = useAuth()
+  const lookupLabel = useEmployeeLabelLookup()
   const [searchParams, setSearchParams] = useSearchParams()
   const requestedTicketId = searchParams.get('ticketId')
   const [page, setPage] = useState(1)
@@ -32,7 +35,6 @@ export function StaffSupportPage() {
   const [statusFilter, setStatusFilter] = useState<'ALL' | SupportTicketStatus>('ALL')
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | SupportTicketCategory>('ALL')
   const [tickets, setTickets] = useState<SupportTicketDetail[]>([])
-  const [pagination, setPagination] = useState({ page: 1, pageSize: 20, totalItems: 0, totalPages: 0 })
   const [selectedId, setSelectedId] = useState<string | null>(requestedTicketId)
   const [detail, setDetail] = useState<SupportTicketDetail | null>(null)
   const [loadingList, setLoadingList] = useState(true)
@@ -46,16 +48,15 @@ export function StaffSupportPage() {
     setLoadingList(true)
     setError(null)
     try {
-      const response = await listSupportTickets({ page, pageSize: 20 })
-      setTickets(response.data)
-      setPagination(response.pagination)
-      setSelectedId((current) => current ?? response.data[0]?.supportTicketId ?? null)
+      const nextTickets = await fetchAllEmployeePages((nextPage, pageSize) => listSupportTickets({ page: nextPage, pageSize }))
+      setTickets(nextTickets.items)
+      setSelectedId((current) => current ?? nextTickets.items[0]?.supportTicketId ?? null)
     } catch (caughtError) {
       setError(presentApiError(caughtError))
     } finally {
       setLoadingList(false)
     }
-  }, [page])
+  }, [])
 
   const loadDetail = useCallback(async (ticketId: string) => {
     setLoadingDetail(true)
@@ -75,7 +76,7 @@ export function StaffSupportPage() {
   useEffect(() => { void loadList() }, [loadList, retry])
   useEffect(() => { if (selectedId) void loadDetail(selectedId) }, [loadDetail, selectedId, retry])
 
-  const visibleTickets = useMemo(() => {
+  const filteredTickets = useMemo(() => {
     const needle = search.trim().toLowerCase()
     return tickets.filter((ticket) => {
       if (statusFilter !== 'ALL' && ticket.status !== statusFilter) return false
@@ -86,12 +87,24 @@ export function StaffSupportPage() {
         ticket.contractId,
         ticket.customerId,
         ticket.category,
+        readable(ticket.category),
         ticket.status,
         ticket.description,
         ticket.assignedEmployeeId ?? '',
+        lookupLabel('contract', ticket.contractId),
+        lookupLabel('contractUnit', ticket.contractId),
+        lookupLabel('customer', ticket.customerId),
+        lookupLabel('employee', ticket.assignedEmployeeId),
       ].some((value) => value.toLowerCase().includes(needle))
     })
-  }, [categoryFilter, search, statusFilter, tickets])
+  }, [categoryFilter, lookupLabel, search, statusFilter, tickets])
+
+  const totalPages = Math.max(1, Math.ceil(filteredTickets.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const visibleTickets = useMemo(
+    () => filteredTickets.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filteredTickets, safePage],
+  )
 
   const assignedToCurrentStaff = Boolean(
     detail?.assignedEmployeeId && user?.employeeId && detail.assignedEmployeeId === user.employeeId,
@@ -142,26 +155,45 @@ export function StaffSupportPage() {
       </header>
 
       <section className="fwp-summary" aria-label="Support work summary">
-        <div className="fwp-summary-card"><span>Server total</span><strong>{pagination.totalItems}</strong></div>
-        <div className="fwp-summary-card"><span>Visible on page</span><strong>{visibleTickets.length}</strong></div>
+        <div className="fwp-summary-card"><span>Server total</span><strong>{tickets.length}</strong></div>
+        <div className="fwp-summary-card"><span>Matching tickets</span><strong>{filteredTickets.length}</strong></div>
         <div className="fwp-summary-card"><span>Assigned to me</span><strong>{tickets.filter((ticket) => ticket.assignedEmployeeId === user?.employeeId).length}</strong></div>
       </section>
 
       <section className="fwp-toolbar fwp-support-toolbar" aria-label="Support ticket filters">
         <label className="fwp-input-with-icon">
           <Search size={16} />
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search current API page" />
+          <input
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value)
+              setPage(1)
+            }}
+            placeholder="Search customer, unit, staff or description"
+          />
         </label>
         <label>
           <span>Status</span>
-          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'ALL' | SupportTicketStatus)}>
+          <select
+            value={statusFilter}
+            onChange={(event) => {
+              setStatusFilter(event.target.value as 'ALL' | SupportTicketStatus)
+              setPage(1)
+            }}
+          >
             <option value="ALL">All statuses</option>
             {SUPPORT_TICKET_STATUSES.map((status) => <option key={status} value={status}>{readable(status)}</option>)}
           </select>
         </label>
         <label>
           <span>Category</span>
-          <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value as 'ALL' | SupportTicketCategory)}>
+          <select
+            value={categoryFilter}
+            onChange={(event) => {
+              setCategoryFilter(event.target.value as 'ALL' | SupportTicketCategory)
+              setPage(1)
+            }}
+          >
             <option value="ALL">All categories</option>
             {SUPPORT_TICKET_CATEGORIES.map((category) => <option key={category} value={category}>{readable(category)}</option>)}
           </select>
@@ -179,7 +211,7 @@ export function StaffSupportPage() {
           {loadingList ? (
             <div className="fwp-state-grid compact">{Array.from({ length: 5 }).map((_, index) => <div className="fwp-skeleton" key={index} />)}</div>
           ) : visibleTickets.length === 0 ? (
-            <div className="fwp-state-card"><strong>No matching Support Tickets</strong><p>No accessible rows on this API page match the current local filters.</p></div>
+            <div className="fwp-state-card"><strong>No matching Support Tickets</strong><p>No accessible tickets in your facility match the current filters.</p></div>
           ) : (
             <div className="fwp-table-wrap">
               <table className="fwp-table">
@@ -200,12 +232,12 @@ export function StaffSupportPage() {
             </div>
           )}
 
-          {pagination.totalPages > 1 && (
+          {totalPages > 1 && (
             <footer className="fwp-pagination">
-              <span>Page {pagination.page} of {pagination.totalPages}</span>
+              <span>Page {safePage} of {totalPages} · {filteredTickets.length} matching tickets</span>
               <div>
-                <button className="fwp-button fwp-button-secondary" type="button" disabled={pagination.page <= 1} onClick={() => setPage(pagination.page - 1)}>Previous</button>
-                <button className="fwp-button fwp-button-secondary" type="button" disabled={pagination.page >= pagination.totalPages} onClick={() => setPage(pagination.page + 1)}>Next</button>
+                <button className="fwp-button fwp-button-secondary" type="button" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}>Previous</button>
+                <button className="fwp-button fwp-button-secondary" type="button" disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)}>Next</button>
               </div>
             </footer>
           )}

@@ -1,7 +1,7 @@
 import { EmployeeModal } from '../../components/EmployeeModal'
 import { formatUtcDateTime } from '../../utils/formatters'
-import { employeeContractLabel, employeeMonthRange, employeeUnitLabel } from '../../utils/employeePresentation'
-import { EmployeeEntityLabel, EmployeeReservationLabel } from '../../components/EmployeeEntityLabel'
+import { employeeContractLabel, employeeMonthRange, employeeUnitLabel, fetchAllEmployeePages } from '../../utils/employeePresentation'
+import { EmployeeEntityLabel, EmployeeReservationLabel, useEmployeeLabelLookup, type EmployeeLabelKind } from '../../components/EmployeeEntityLabel'
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Activity, ArrowUpRight, CalendarDays, ClipboardList, CreditCard, FileText, RefreshCw, Search, Warehouse, X } from 'lucide-react'
@@ -61,8 +61,80 @@ function titleOf(tab: Tab, item: RecordItem) {
   const i = item as InvoiceDetail
   return `${i.invoiceType.replaceAll('_', ' ')} invoice · ${i.billingMonth ?? date(i.dueDate)}`
 }
-function itemSearch(tab: Tab, item: RecordItem): string {
-  return JSON.stringify(item).toLowerCase() + (tab === 'units' ? ` ${(item as StorageUnit).unitCode}` : '')
+function itemSearch(
+  tab: Tab,
+  item: RecordItem,
+  unitTypeNames: Record<string, string>,
+  lookupLabel: (kind: EmployeeLabelKind, id?: string | null, scope?: string) => string,
+): string {
+  switch (tab) {
+    case 'reservations': {
+      const r = item as ReservationDetail
+      return [
+        r.status,
+        r.status.replaceAll('_', ' '),
+        r.startMonth,
+        r.endMonth,
+        r.depositInvoice?.status ?? '',
+        r.reservationVisit?.visitDate ?? '',
+        r.reservationVisit?.status ?? '',
+        lookupLabel('customer', r.customerId),
+        lookupLabel('unitType', r.unitTypeId),
+      ].join(' ').toLowerCase()
+    }
+    case 'contracts': {
+      const c = item as HandoverContractDetail
+      return [
+        c.status,
+        c.status.replaceAll('_', ' '),
+        c.startMonth,
+        c.endMonth,
+        employeeContractLabel(c),
+        employeeUnitLabel(c),
+        lookupLabel('customer', c.customerId),
+        lookupLabel('unitType', c.storageUnit?.unitTypeId),
+      ].join(' ').toLowerCase()
+    }
+    case 'visits': {
+      const v = item as VisitDetail
+      return [
+        v.visitType,
+        v.visitType.replaceAll('_', ' '),
+        v.status,
+        v.status.replaceAll('_', ' '),
+        v.visitDate ?? '',
+        v.actualReturnDate ?? '',
+        lookupLabel('contract', v.entityId),
+        lookupLabel('contractUnit', v.entityId),
+        lookupLabel('employee', v.employeeId),
+      ].join(' ').toLowerCase()
+    }
+    case 'invoices': {
+      const i = item as InvoiceDetail
+      return [
+        i.invoiceType,
+        i.invoiceType.replaceAll('_', ' '),
+        i.status,
+        i.status.replaceAll('_', ' '),
+        i.billingMonth ?? '',
+        i.dueDate ?? '',
+        String(i.amountDue),
+        lookupLabel('contract', i.entityId),
+        lookupLabel('contractUnit', i.entityId),
+      ].join(' ').toLowerCase()
+    }
+    case 'units': {
+      const u = item as StorageUnit
+      return [
+        u.unitCode,
+        u.status,
+        u.status.replaceAll('_', ' '),
+        u.locationInfo ?? '',
+        unitTypeNames[u.unitTypeId] ?? '',
+        lookupLabel('unitType', u.unitTypeId),
+      ].join(' ').toLowerCase()
+    }
+  }
 }
 function ListRow({ tab, item, onSelect, unitTypeNames }: { tab: Tab; item: RecordItem; onSelect: () => void; unitTypeNames: Record<string, string> }) {
   let sub: ReactNode = ''
@@ -145,6 +217,7 @@ function RecordDetail({ detail, refreshing, facilityName, unitTypeNames }: { det
 
 export function FacilityOperationsPage() {
   const { user } = useAuth()
+  const lookupLabel = useEmployeeLabelLookup()
   const facilityId = user?.facilityId || null
   const [unitView, setUnitView] = useState<'list' | 'timeline'>('list')
   const [facilityName, setFacilityName] = useState('Name unavailable')
@@ -155,8 +228,6 @@ export function FacilityOperationsPage() {
   const [report, setReport] = useState<FacilityOperationsReport | null>(null)
   const [reportError, setReportError] = useState('')
   const [records, setRecords] = useState<RecordItem[]>([])
-  const [totalPages, setTotalPages] = useState(0)
-  const [totalItems, setTotalItems] = useState(0)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [reportLoading, setReportLoading] = useState(true)
@@ -211,40 +282,48 @@ export function FacilityOperationsPage() {
     setError('')
     if (!facilityId) { setLoading(false); setError('Assigned Facility is missing. Contact an administrator.'); return }
     setLoading(true)
-    let work: Promise<ApiCollectionResponse<unknown>>
-    switch (tab) {
-      case 'reservations': work = reservationApi.list(page, PAGE_SIZE); break
-      case 'contracts': work = contractApi.list(page, PAGE_SIZE); break
-      case 'visits': work = visitApi.list(page, PAGE_SIZE); break
-      case 'invoices': work = billingApi.listInvoices(page, PAGE_SIZE); break
-      case 'units': work = storageUnitApi.listByFacility(facilityId, page, PAGE_SIZE)
+    const readTabPage = (targetPage: number, size: number): Promise<ApiCollectionResponse<RecordItem>> => {
+      switch (tab) {
+        case 'reservations': return reservationApi.list(targetPage, size)
+        case 'contracts': return contractApi.list(targetPage, size)
+        case 'visits': return visitApi.list(targetPage, size)
+        case 'invoices': return billingApi.listInvoices(targetPage, size)
+        case 'units': return storageUnitApi.listByFacility(facilityId, targetPage, size)
+      }
     }
-    work.then(r => {
+    fetchAllEmployeePages(readTabPage).then(r => {
       if (!alive) return
       // All Manager list endpoints must already be facility-scoped on the server.
       // This additional check only prevents inconsistent data from appearing in this workspace.
-      const items = (r.data as RecordItem[]).filter(i => {
+      const items = r.items.filter(i => {
         if (tab === 'units') return (i as StorageUnit).facilityId === facilityId
         if (tab === 'reservations') return (i as ReservationDetail).facilityId === facilityId
         if (tab === 'contracts') return (i as HandoverContractDetail).facilityId === facilityId
         return true // Visits and invoices do not expose a FacilityId in their canonical DTOs.
       })
       setRecords(items)
-      setTotalPages(r.pagination.totalPages)
-      setTotalItems(r.pagination.totalItems)
-    }).catch(e => { if (alive) { setError(pageError(e)); setTotalPages(0); setTotalItems(0) } }).finally(() => { if (alive) setLoading(false) })
+    }).catch(e => { if (alive) { setError(pageError(e)) } }).finally(() => { if (alive) setLoading(false) })
     return () => { alive = false }
-  }, [facilityId, tab, page, revision])
+  }, [facilityId, tab, revision])
 
-  const visible = useMemo(() => records.filter(r => itemSearch(tab, r).includes(query.trim().toLowerCase())), [records, tab, query])
+  const matchingRecords = useMemo(() => {
+    const needle = query.trim().toLowerCase()
+    if (!needle) return records
+    return records.filter(r => itemSearch(tab, r, unitTypeNames, lookupLabel).includes(needle))
+  }, [records, tab, query, unitTypeNames, lookupLabel])
+  const totalItems = matchingRecords.length
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE)
+  const currentPage = Math.min(page, Math.max(1, totalPages))
+  const visible = useMemo(
+    () => matchingRecords.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [matchingRecords, currentPage],
+  )
   const chooseTab = (next: Tab) => {
     if (next === tab) return
     // Clear the previous record type before rendering the newly selected tab.
     setRecords([])
     setLoading(true)
     setError('')
-    setTotalPages(0)
-    setTotalItems(0)
     setTab(next)
     setPage(1)
     setQuery('')
@@ -295,9 +374,9 @@ export function FacilityOperationsPage() {
       <div className="mop-tabs" role="tablist" aria-label="Operations record type">{tabs.map(t => { const Icon = t.icon; return <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} className={`mop-tab ${tab === t.key ? 'active' : ''}`} onClick={() => chooseTab(t.key)}><Icon size={15}/>{t.label}</button> })}</div>
       {tab === 'units' && <div className="mop-table-toolbar"><strong>Storage units</strong><div><button type="button" className="mop-btn mop-btn-secondary" aria-pressed={unitView === 'list'} onClick={() => setUnitView('list')}>List</button> <button type="button" className="mop-btn mop-btn-secondary" aria-pressed={unitView === 'timeline'} onClick={() => { setUnitView('timeline'); closeDetail() }}>Timeline</button></div></div>}
       {tab === 'units' && unitView === 'timeline' ? (facilityId ? <StorageUnitTimeline key={facilityId} facilityId={facilityId} revision={revision} /> : <p className="mop-alert">No facility is assigned.</p>) : <>
-      <div className="mop-table-toolbar"><label className="mop-search"><Search size={16}/><input value={query} onChange={e => setQuery(e.target.value)} placeholder={`Filter ${tab} on this page`} aria-label={`Filter ${tab} on current page`}/></label><span className="mop-small">{totalItems} records · Page {page} {totalPages > 0 ? `of ${totalPages}` : ''}</span></div>
-      {loading ? <div className="mop-empty">Loading {tab}…</div> : error ? <div className="mop-alert" role="alert">{error}<button type="button" onClick={refresh}>Retry</button></div> : visible.length === 0 ? <div className="mop-empty">{records.length ? 'No records match the current-page filter.' : `No ${tab} found in this Facility.`}</div> : <div className="mop-table" role="tabpanel">{visible.map(i => <ListRow unitTypeNames={unitTypeNames} key={itemId(tab, i)} tab={tab} item={i} onSelect={() => void openRecord(i, tab)}/>)}</div>}
-      <div className="mop-pagination"><button type="button" className="mop-btn mop-btn-secondary" disabled={loading || page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button><span>Page {page} / {Math.max(1, totalPages)}</span><button type="button" className="mop-btn mop-btn-secondary" disabled={loading || page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button></div>
+      <div className="mop-table-toolbar"><label className="mop-search"><Search size={16}/><input value={query} onChange={e => { setQuery(e.target.value); setPage(1) }} placeholder={`Search ${tab} by customer, unit, type or status`} aria-label={`Search ${tab} across facility`}/></label><span className="mop-small">{totalItems} matching {tab} · Page {currentPage} {totalPages > 0 ? `of ${totalPages}` : ''}</span></div>
+      {loading ? <div className="mop-empty">Loading {tab}…</div> : error ? <div className="mop-alert" role="alert">{error}<button type="button" onClick={refresh}>Retry</button></div> : visible.length === 0 ? <div className="mop-empty">{records.length ? 'No records match your search filter.' : `No ${tab} found in this Facility.`}</div> : <div className="mop-table" role="tabpanel">{visible.map(i => <ListRow unitTypeNames={unitTypeNames} key={itemId(tab, i)} tab={tab} item={i} onSelect={() => void openRecord(i, tab)}/>)}</div>}
+      <div className="mop-pagination"><button type="button" className="mop-btn mop-btn-secondary" disabled={loading || currentPage <= 1} onClick={() => setPage(Math.max(1, currentPage - 1))}>Previous</button><span>Page {currentPage} / {Math.max(1, totalPages)}</span><button type="button" className="mop-btn mop-btn-secondary" disabled={loading || currentPage >= totalPages} onClick={() => setPage(currentPage + 1)}>Next</button></div>
       </>}
     </section>
     <p className="mop-footnote">Revenue reporting is currently unavailable. Use Reports to review available facility information.</p>

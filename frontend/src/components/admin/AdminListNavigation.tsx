@@ -8,7 +8,7 @@ export function AdminListNavigation({ pagination, loading, onPage }: {
   if (pagination.totalItems === 0) return null
   return (
     <nav className="awp01-pagination" aria-label="Account directory pages">
-      <span>Directory page {pagination.page} of {Math.max(pagination.totalPages, 1)} · {pagination.totalItems} total accounts</span>
+      <span>Directory page {pagination.page} of {Math.max(pagination.totalPages, 1)} · {pagination.totalItems} matching accounts</span>
       <div>
         <button type="button" className="awp01-button awp01-button--secondary" disabled={loading || pagination.page <= 1} onClick={() => onPage(pagination.page - 1)}>Previous</button>
         <button type="button" className="awp01-button awp01-button--secondary" disabled={loading || pagination.page >= pagination.totalPages} onClick={() => onPage(pagination.page + 1)}>Next</button>
@@ -27,8 +27,8 @@ export function AdminFilterScope({ loading, page, loaded, matching, onClear }: {
   return (
     <div className="admin-filter-scope">
       <div role="status">
-        <strong>{loading ? 'Loading accounts…' : `${matching} of ${loaded} loaded accounts match`}</strong>
-        <p>Search and filters cover directory page {page} only. Other pages may contain more matches.</p>
+        <strong>{loading ? 'Loading accounts…' : `${matching} shown on page ${page} · ${loaded} total accounts loaded`}</strong>
+        <p>Search and filters apply across all loaded accounts in the directory.</p>
       </div>
       <button type="button" className="awp01-button awp01-button--secondary" onClick={onClear} disabled={loading}>Clear filters</button>
     </div>

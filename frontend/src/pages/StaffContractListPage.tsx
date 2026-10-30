@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
-import type { ApiCollectionResponse } from '../api/api.types'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { contractApi } from '../api/contractApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
@@ -9,7 +8,9 @@ import { EmptyState, LoadingState, PaginationControls } from '../components/Page
 import { StatusBadge } from '../components/StatusBadge'
 import { StaffContractDrawer } from '../components/StaffContractDrawer'
 import { isContractListResponse, type ContractListItem } from '../features/contracts/contractListPresentation'
-import { employeeMonthRange, employeeText, employeeUnitLabel } from '../utils/employeePresentation'
+import { employeeMonthRange, employeeText, employeeUnitLabel, fetchAllEmployeePages } from '../utils/employeePresentation'
+
+const PAGE_SIZE = 20
 
 export function StaffContractListPage() {
   const [params, setParams] = useSearchParams()
@@ -20,36 +21,56 @@ export function StaffContractListPage() {
   const [quarter, setQuarter] = useState('')
   const [year, setYear] = useState(() => new Intl.DateTimeFormat('en', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric' }).format(new Date()))
   const [activeOnly, setActiveOnly] = useState(false)
-  const key = `${page}:${revision}`
+  const key = String(revision)
   const [snapshot, setSnapshot] = useState<{
     key: string
-    response: ApiCollectionResponse<ContractListItem> | null
+    contracts: ContractListItem[] | null
     error: ApiErrorPresentation | null
   } | null>(null)
   const loading = snapshot?.key !== key
-  const response = loading ? null : snapshot?.response
+  const allContracts = loading ? null : snapshot?.contracts ?? null
   const error = loading ? null : snapshot?.error ?? null
   const validYear = /^\d{1,4}$/.test(year) && Number(year) >= 1 && Number(year) <= 9999
   const quarterStart = `${year.padStart(4, '0')}-${String(Number(quarter) * 3 - 2).padStart(2, '0')}`
   const quarterEnd = `${year.padStart(4, '0')}-${String(Number(quarter) * 3).padStart(2, '0')}`
-  const visibleContracts = (response?.data ?? []).filter(contract =>
-    (!activeOnly || contract.status === 'ACTIVE') &&
-    (!quarter || (validYear && contract.startMonth <= quarterEnd && contract.endMonth >= quarterStart)))
+
+  const filteredContracts = useMemo(
+    () => (allContracts ?? []).filter(contract =>
+      (!activeOnly || contract.status === 'ACTIVE') &&
+      (!quarter || (validYear && contract.startMonth <= quarterEnd && contract.endMonth >= quarterStart))),
+    [activeOnly, allContracts, quarter, quarterEnd, quarterStart, validYear],
+  )
+  const totalPages = Math.max(1, Math.ceil(filteredContracts.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const visibleContracts = useMemo(
+    () => filteredContracts.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filteredContracts, safePage],
+  )
+
   function changePage(next: number) {
     setParams(next === 1 ? {} : { page: String(next) })
   }
 
   useEffect(() => {
     let active = true
-    contractApi.list(page).then(result => {
-      if (active) setSnapshot(isContractListResponse(result, page)
-        ? { key, response: result, error: null }
-        : { key, response: null, error: presentValidationError('The contract list could not be loaded. Please refresh and try again.') })
+    fetchAllEmployeePages(async (nextPage, pageSize) => {
+      const result = await contractApi.list(nextPage, pageSize)
+      if (!isContractListResponse(result, nextPage)) {
+        throw new Error('INVALID_CONTRACT_LIST_RESPONSE')
+      }
+      return result
+    }).then(result => {
+      if (active) setSnapshot({ key, contracts: result.items as ContractListItem[], error: null })
     }).catch((caught: unknown) => {
-      if (active) setSnapshot({ key, response: null, error: presentApiError(caught) })
+      if (!active) return
+      if (caught instanceof Error && caught.message === 'INVALID_CONTRACT_LIST_RESPONSE') {
+        setSnapshot({ key, contracts: null, error: presentValidationError('The contract list could not be loaded. Please refresh and try again.') })
+        return
+      }
+      setSnapshot({ key, contracts: null, error: presentApiError(caught) })
     })
     return () => { active = false }
-  }, [page, key])
+  }, [key])
 
   return (
     <div className="page-container flow-page staff-flow">
@@ -63,10 +84,10 @@ export function StaffContractListPage() {
           <RefreshCw size={16} aria-hidden="true" /> Refresh
         </button>
       </section>
-      <section className="fwp-toolbar" aria-label="Contract filters on this page">
+      <section className="fwp-toolbar" aria-label="Contract filters">
         <label>
           <span>Quarter</span>
-          <select value={quarter} onChange={event => setQuarter(event.target.value)}>
+          <select value={quarter} onChange={event => { setQuarter(event.target.value); changePage(1) }}>
             <option value="">All quarters</option>
             <option value="1">Q1 · January–March</option>
             <option value="2">Q2 · April–June</option>
@@ -76,25 +97,25 @@ export function StaffContractListPage() {
         </label>
         <label>
           <span>Year</span>
-          <input type="number" min="1" max="9999" step="1" value={year} disabled={!quarter} aria-invalid={Boolean(quarter) && !validYear} aria-describedby={quarter && !validYear ? 'contract-year-error' : undefined} onChange={event => setYear(event.target.value)} />
+          <input type="number" min="1" max="9999" step="1" value={year} disabled={!quarter} aria-invalid={Boolean(quarter) && !validYear} aria-describedby={quarter && !validYear ? 'contract-year-error' : undefined} onChange={event => { setYear(event.target.value); changePage(1) }} />
         </label>
         <label>
           <span>Status</span>
-          <select value={activeOnly ? 'ACTIVE' : ''} onChange={event => setActiveOnly(event.target.value === 'ACTIVE')}>
+          <select value={activeOnly ? 'ACTIVE' : ''} onChange={event => { setActiveOnly(event.target.value === 'ACTIVE'); changePage(1) }}>
             <option value="">All statuses</option>
             <option value="ACTIVE">Active only</option>
           </select>
         </label>
-        <button className="button button-secondary" type="button" onClick={() => { setQuarter(''); setActiveOnly(false) }}>Clear Filters</button>
+        <button className="button button-secondary" type="button" onClick={() => { setQuarter(''); setActiveOnly(false); changePage(1) }}>Clear Filters</button>
         {quarter && !validYear && <p id="contract-year-error" className="fwp-toolbar-note" role="alert">Enter a year from 1 to 9999.</p>}
-        <p className="fwp-toolbar-note">Filters apply only to this page. A contract matches if its rental period overlaps the selected quarter. Use Previous and Next to review other pages.</p>
+        <p className="fwp-toolbar-note">Filters apply across all contracts in your facility. A contract matches if its rental period overlaps the selected quarter.</p>
       </section>
       <ApiErrorAlert error={error} />
       {loading && <LoadingState label="Loading contracts…" />}
-      {response && <>
-        <p className="muted" role="status">{visibleContracts.length} matching contracts out of {response.data.length} on this page · {response.pagination.totalItems} total in your facility · Read only</p>
+      {allContracts && <>
+        <p className="muted" role="status">{filteredContracts.length} matching contracts out of {allContracts.length} total in your facility · Read only</p>
         {visibleContracts.length === 0
-          ? <EmptyState message={response.data.length ? 'No contracts on this page match your filters.' : 'No contracts on this page.'} />
+          ? <EmptyState message={allContracts.length ? 'No contracts in your facility match your filters.' : 'No contracts in your facility.'} />
           : <section className="fwp-table-card" aria-label="Facility contracts">
             <div className="fwp-table-wrap">
               <table className="fwp-table">
@@ -105,14 +126,17 @@ export function StaffContractListPage() {
                     <td>{employeeText(contract.unitTypeName ?? contract.storageUnit?.unitTypeName)}</td>
                     <td>{employeeMonthRange(contract.startMonth, contract.endMonth)}</td>
                     <td><StatusBadge status={contract.status} /></td>
-                    <td><button type="button" className="fwp-link-button" aria-label={`View contract · ${employeeUnitLabel(contract)} · ${employeeMonthRange(contract.startMonth, contract.endMonth)}`} onClick={() => setSelectedContractId(contract.contractId)}>View Contract</button></td>
+                    <td><button type="button" className="fwp-link-button" aria-label={`View contract · ${employeeUnitLabel(contract)} · ${employeeMonthRange(contract.startMonth, contract.startMonth ? contract.endMonth : contract.endMonth)}`} onClick={() => setSelectedContractId(contract.contractId)}>View Contract</button></td>
                   </tr>
                 ))}</tbody>
               </table>
             </div>
           </section>}
-        <PaginationControls pagination={response.pagination} onPageChange={changePage} />
-        {response.data.length === 0 && page > 1 && <Link className="button button-secondary" to="/staff/contracts">Back to First Page</Link>}
+        <PaginationControls
+          pagination={{ page: safePage, pageSize: PAGE_SIZE, totalItems: filteredContracts.length, totalPages }}
+          onPageChange={changePage}
+        />
+        {visibleContracts.length === 0 && page > 1 && <Link className="button button-secondary" to="/staff/contracts">Back to First Page</Link>}
       </>}
       {selectedContractId && <StaffContractDrawer contractId={selectedContractId} onClose={() => setSelectedContractId(null)} />}
     </div>

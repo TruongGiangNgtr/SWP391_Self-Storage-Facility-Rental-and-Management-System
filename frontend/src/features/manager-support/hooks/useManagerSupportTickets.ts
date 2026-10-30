@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import {
   assignSupportTicketStaff,
   getSupportTicket,
   listSupportTickets,
   normalizeApiError,
 } from "../../../api/supportTicketApi";
+import { useEmployeeLabelLookup } from "../../../components/EmployeeEntityLabel";
+import { fetchAllEmployeePages } from "../../../utils/employeePresentation";
 import type {
   ApiErrorShape,
   PaginationMeta,
@@ -13,12 +15,7 @@ import type {
   SupportTicketStatus,
 } from "../models/supportTicket";
 
-const DEFAULT_PAGINATION: PaginationMeta = {
-  page: 1,
-  pageSize: 20,
-  totalItems: 0,
-  totalPages: 0,
-};
+const PAGE_SIZE = 20;
 
 export interface ManagerSupportFilters {
   status: "ALL" | SupportTicketStatus;
@@ -27,26 +24,35 @@ export interface ManagerSupportFilters {
 }
 
 export function useManagerSupportTickets() {
+  const lookupLabel = useEmployeeLabelLookup();
   const [tickets, setTickets] = useState<SupportTicketDetail[]>([]);
   const requestRef = useRef(0);
-  const [pagination, setPagination] = useState(DEFAULT_PAGINATION);
+  const [requestedPage, setRequestedPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ApiErrorShape | null>(null);
-  const [filters, setFilters] = useState<ManagerSupportFilters>({
+  const [filters, setFiltersState] = useState<ManagerSupportFilters>({
     status: "ALL",
     category: "ALL",
     search: "",
   });
 
-  const load = useCallback(async (page = 1) => {
+  const setFilters: Dispatch<SetStateAction<ManagerSupportFilters>> = useCallback((next) => {
+    setRequestedPage(1);
+    setFiltersState(next);
+  }, []);
+
+  const fetchAll = useCallback(async (page = 1) => {
+    const targetPage = Number.isFinite(page) ? Math.max(1, Math.trunc(page)) : 1;
+    setRequestedPage(targetPage);
     const requestId = ++requestRef.current;
     setLoading(true);
     setError(null);
     try {
-      const result = await listSupportTickets({ page, pageSize: 20 });
+      const result = await fetchAllEmployeePages((nextPage, pageSize) =>
+        listSupportTickets({ page: nextPage, pageSize }),
+      );
       if (requestId !== requestRef.current) return;
-      setTickets(result.data ?? []);
-      setPagination(result.pagination ?? { ...DEFAULT_PAGINATION, page });
+      setTickets(result.items);
     } catch (err) {
       if (requestId === requestRef.current) setError(normalizeApiError(err));
     } finally {
@@ -55,8 +61,8 @@ export function useManagerSupportTickets() {
   }, []);
 
   useEffect(() => {
-    void load(1);
-  }, [load]);
+    void fetchAll(1);
+  }, [fetchAll]);
 
   const filteredTickets = useMemo(() => {
     const needle = filters.search.trim().toLowerCase();
@@ -69,23 +75,51 @@ export function useManagerSupportTickets() {
         ticket.supportTicketId,
         ticket.contractId,
         ticket.customerId,
+        ticket.category,
+        ticket.category.replaceAll("_", " "),
+        ticket.status,
         ticket.description,
         ticket.assignedEmployeeId ?? "",
+        lookupLabel("contract", ticket.contractId),
+        lookupLabel("contractUnit", ticket.contractId),
+        lookupLabel("customer", ticket.customerId),
+        lookupLabel("employee", ticket.assignedEmployeeId),
       ].some((value) => value.toLowerCase().includes(needle));
     });
-  }, [filters, tickets]);
+  }, [filters, lookupLabel, tickets]);
 
-  const refresh = useCallback(() => load(pagination.page || 1), [load, pagination.page]);
+  const totalPages = Math.max(1, Math.ceil(filteredTickets.length / PAGE_SIZE));
+  const safePage = Math.min(requestedPage, totalPages);
+  const visibleTickets = useMemo(
+    () => filteredTickets.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filteredTickets, safePage],
+  );
+  const pagination: PaginationMeta = useMemo(
+    () => ({
+      page: safePage,
+      pageSize: PAGE_SIZE,
+      totalItems: filteredTickets.length,
+      totalPages: filteredTickets.length === 0 ? 0 : totalPages,
+    }),
+    [filteredTickets.length, safePage, totalPages],
+  );
+
+  const loadPage = useCallback(async (page = 1) => {
+    const targetPage = Number.isFinite(page) ? Math.max(1, Math.trunc(page)) : 1;
+    setRequestedPage(targetPage);
+  }, []);
+
+  const refresh = useCallback(() => fetchAll(safePage || 1), [fetchAll, safePage]);
 
   return {
-    tickets: filteredTickets,
+    tickets: visibleTickets,
     rawTickets: tickets,
     pagination,
     loading,
     error,
     filters,
     setFilters,
-    loadPage: load,
+    loadPage,
     refresh,
   };
 }
