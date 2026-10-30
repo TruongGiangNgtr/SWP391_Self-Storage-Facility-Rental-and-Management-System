@@ -301,19 +301,27 @@
   /* Route-scoped chrome: keep the existing links and customer account actions. */
   .frms-customer.home-shell .flow-header {
     inset: 14px 24px auto; height: 72px; max-width: 1240px; margin-inline: auto;
-    border: 0; border-radius: 16px; background: rgb(207 226 252 / 97%);
-    box-shadow: inset 0 1px 1px #ffffffdb, 0 10px 28px -14px #153d7b61;
+    border: 0; border-radius: 16px; background: #173e73;
+    box-shadow: inset 0 1px 1px #b8d4ff40, 0 12px 28px -14px #102b4e99;
   }
   .frms-customer.home-shell .flow-header-inner { padding-inline: 24px; gap: 20px; }
-  .frms-customer.home-shell .flow-header .flow-brand { color: #103563; }
+  .frms-customer.home-shell .flow-header .flow-brand { color: #fff; }
+  .frms-customer.home-shell .flow-header .brand-accent { color: #a9cbff; }
   .frms-customer.home-shell .flow-header .flow-brand-mark {
     background: #1d56ce; box-shadow: inset 0 1px 1px #ffffff40, 0 6px 12px -5px #174caf80;
   }
   .frms-customer.home-shell .flow-top-nav { gap: 8px; }
-  .frms-customer.home-shell .flow-top-nav a { padding: 0 12px; border-radius: 8px; color: #173e73; font-weight: 500; }
-  .frms-customer.home-shell .flow-top-nav a:hover { background: #b5cff8; color: #103c7a; }
-  .frms-customer.home-shell .customer-header-actions > .button { background: #1c54cc; box-shadow: 0 6px 12px -6px #174caf80; }
-  .frms-customer.home-shell .flow-account { color: #123e7b; }
+  .frms-customer.home-shell .flow-top-nav a { padding: 0 12px; border-radius: 8px; color: #e4eeff; font-weight: 500; }
+  .frms-customer.home-shell .flow-top-nav a.active { color: #fff; text-decoration-color: #a9cbff; }
+  .frms-customer.home-shell .flow-top-nav a:hover { background: #285287; color: #fff; }
+  .frms-customer.home-shell .customer-header-actions > .button {
+    background: #f4f7fd; color: #173e73; box-shadow: 0 6px 12px -6px #081e4080;
+  }
+  .frms-customer.home-shell .customer-header-actions > .button:hover { background: #e1ecfc; }
+  .frms-customer.home-shell .flow-account { color: #fff; }
+  .frms-customer.home-shell .flow-account small { color: #bfd5f4; }
+  .frms-customer.home-shell .flow-header .customer-icon-button { color: #e4eeff; }
+  .frms-customer.home-shell .flow-header .customer-icon-button:hover { background: #285287; color: #fff; }
   .frms-customer.home-shell .flow-footer {
     position: relative; z-index: 1; margin: 0 24px 24px; border-radius: 16px;
     background: rgb(18 52 103 / 97%); color: #d8e7ff;
