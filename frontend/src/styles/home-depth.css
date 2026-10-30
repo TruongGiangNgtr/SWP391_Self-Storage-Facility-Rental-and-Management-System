@@ -144,7 +144,7 @@
   .frms-customer.support-surface .home-depth .public-steps-grid { grid-template-columns: 1fr; }
 }
 
-/* Desktop direction: a continuous misted canvas with separate floating surfaces. */
+/* Desktop direction: a white canvas with separate floating surfaces. */
 .home-ambient-scene { display: none; }
 @media (min-width: 1024px) {
   .frms-customer.support-surface .home-depth {
@@ -152,11 +152,11 @@
     --home-search-surface: rgb(188 213 250 / 94%);
     --home-elevation: inset 0 1px 1px rgb(255 255 255 / 85%), inset 0 -2px 2px rgb(126 161 213 / 24%), 0 12px 18px -12px rgb(25 57 103 / 38%), 0 32px 50px -28px rgb(25 57 103 / 45%);
     position: relative; isolation: isolate;
-    background: #edf5ff;
+    background: #fff;
   }
   .home-ambient-scene {
-    display: block; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    overflow: hidden; background: #e1edfb;
+    display: none; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    overflow: hidden; background: #fff;
   }
   .home-ambient-scene > span {
     position: absolute; inset: -5%; background: center / cover no-repeat url('/images/home/fstorent-facility.webp');
@@ -164,10 +164,10 @@
   }
   .home-ambient-scene::after {
     content: ''; position: absolute; inset: 0;
-    background: linear-gradient(110deg, rgb(229 242 255 / 91%), rgb(218 237 255 / 78%) 55%, rgb(210 231 254 / 85%));
+    background: rgb(255 255 255 / 86%);
   }
   .home-depth :is(.home-depth-scene, .public-search-panel, .public-mode-card, .public-featured-card, .public-contact-card, .public-steps-grid) {
-    /* The background image is already blurred; panels only need translucent color. */
+    /* Panels retain their translucent color without a backdrop filter. */
     backdrop-filter: none;
   }
   .frms-customer.support-surface .home-depth :is(.public-hero, .public-benefits-section, .public-home-section, .public-home-tint, .public-home-section:has(.public-lifestyle-grid), .storage-ready) {

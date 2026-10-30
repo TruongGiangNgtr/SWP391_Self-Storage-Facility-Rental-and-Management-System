@@ -28,14 +28,14 @@ export function PublicPolicyDetailPage() {
     {!valid ? <section className="panel stack"><h1>Policy Topic Not Found</h1><p>This is not a public policy topic. Return to Help Center to choose a policy.</p></section> : <>
       {!article && <h1>{topic?.label}</h1>}
       <ApiErrorAlert error={policy.error} />
-      {policy.error && <div className="action-row"><button className="button button-secondary" type="button" onClick={policy.refresh}>Retry Policy</button><Link className="button button-secondary" to="/help#contact">Contact a Facility</Link></div>}
+      {policy.error && <div className="action-row"><button className="button button-secondary" type="button" onClick={policy.refresh}>Retry Policy</button><Link className="button button-secondary" to="/facilities">Contact a Facility</Link></div>}
       {policy.loading ? <LoadingState label="Loading the current public policy…" /> : article && <>
         <header className="help-article-heading"><h1 id="policy-article-heading">{article.title}</h1><p className="help-article-summary">{article.summary}</p><PublicPolicyMetadata policy={article} /></header>
         <div className="help-article-grid"><nav className="help-contents" aria-label="On this page"><h2>On this page</h2><ol>{article.sections.map((section, index) => <li key={index}><Link to={`/help/policies/${policyKey}#policy-section-${index + 1}`}>{section.heading}</Link></li>)}</ol></nav>
           <article className="help-article" aria-labelledby="policy-article-heading">{article.sections.map((section, index) => <section key={index} aria-labelledby={`policy-section-${index + 1}`}><h2 id={`policy-section-${index + 1}`} tabIndex={-1}>{section.heading}</h2><p className="help-plain-text">{section.body}</p></section>)}</article>
         </div>
         <aside className="help-existing-terms"><h2>Already renting with FStoRent?</h2><p>This guide describes current rules for new rentals. Existing reservations and contracts keep their captured Policy terms. Sign in and check your rental details for the terms that apply to you.</p><Link className="help-read-link" to="/customer/contracts">View My Contracts</Link></aside>
-        <div className="help-article-actions"><Link className="button button-secondary" to="/help">All Policy Guides</Link><Link className="button button-secondary" to="/help#contact">Contact a Facility</Link></div>
+        <div className="help-article-actions"><Link className="button button-secondary" to="/help">All Policy Guides</Link><Link className="button button-secondary" to="/facilities">Contact a Facility</Link></div>
       </>}
     </>}
   </main>

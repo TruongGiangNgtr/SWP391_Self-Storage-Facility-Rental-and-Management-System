@@ -28,11 +28,11 @@ function FacilityDetail() {
     <BookingJourney step={0} />
     <ApiErrorAlert error={!valid ? presentValidationError('This facility link is invalid. Start a new storage search.') : query.error ? presentValidationError(query.error) : facility.error} />
     {facility.loading ? <LoadingState label="Loading facility details…" /> : facility.data && <>
-      <FacilityImage facility={facility.data.data} className="public-facility-cover" eager />
+      <div className="guest-facility-overview"><FacilityImage facility={facility.data.data} className="public-facility-cover" eager />
       <section className="panel public-facility-summary">
         <div className="facility-location-card"><span className="remaining-icon"><MapPin size={24} aria-hidden="true" /></span><p className="eyebrow">Facility Location</p><h2>{facility.data.data.name}</h2><p className="facility-location-address">{facility.data.data.address}</p><a className="button" href="#facility-storage-options">View Storage Options<ArrowRight size={16} aria-hidden="true" /></a></div>
         <div className="facility-about"><div className="remaining-card-heading"><span className="remaining-icon"><Building2 size={22} aria-hidden="true" /></span><h2>About This Facility</h2></div>{facility.data.data.description && <p className="public-description">{facility.data.data.description}</p>}<div className="facility-contact"><h3><MessageCircle size={18} aria-hidden="true" />Contact Information</h3><p>{facility.data.data.contactInfo || 'Contact information is not currently provided for this facility.'}</p></div><p className="public-field-note">Availability depends on your selected storage type and rental months.</p></div>
-      </section>
+      </section></div>
       <div className="facility-options-heading" id="facility-storage-options"><p className="eyebrow">Find Your Space</p><h2>Choose Your Storage and Rental Period</h2><p className="muted">Review storage options for this facility using the filters below.</p></div>
       <div className="booking-facility-options">
       <aside className="booking-filter-rail" aria-label="Facility search preferences"><PublicStorageSearchForm initialValues={hasPeriod ? filters : { ...filters, startMonth: initialPublicFilters().startMonth, endMonth: initialPublicFilters().endMonth }} pinnedFacility={facility.data.data} embedded onDirtyChange={setDirty} onSearch={next => navigate(`/facilities/${encodeURIComponent(facilityId)}?${publicSearchQuery(next)}`)} /></aside>
