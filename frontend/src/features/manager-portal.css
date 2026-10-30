@@ -99,6 +99,19 @@
 .mop-return-extras{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
 .mop-line{display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid #eef2f6;padding:11px 0;font-size:12px;color:#6a7890}
 .mop-line strong{color:#264569}
+.mop-evidence-list{display:flex;flex-direction:column;gap:var(--frms-space-sm);margin-top:var(--frms-space-sm)}
+.mop-evidence-item{display:flex;align-items:center;justify-content:space-between;gap:var(--frms-space-md);padding:var(--frms-space-sm) var(--frms-space-md);border:1px solid var(--frms-border);border-radius:var(--frms-radius-small);background:var(--frms-canvas)}
+.mop-evidence-info{min-width:0;display:flex;align-items:center;gap:var(--frms-space-sm)}
+.mop-evidence-thumb{width:44px;height:44px;flex:0 0 44px;border:1px solid var(--frms-border);border-radius:var(--frms-radius-small);object-fit:cover;background:var(--frms-primary-soft)}
+.mop-evidence-info>div{min-width:0;display:flex;flex-direction:column;gap:3px}
+.mop-evidence-info strong{font-size:var(--frms-font-size-body);color:var(--frms-text);overflow-wrap:anywhere}
+.mop-evidence-info small{font-size:var(--frms-font-size-body);color:var(--frms-secondary)}
+.mop-evidence-modal{width:min(560px,100%)}
+.mop-evidence-preview{margin:var(--frms-space-md) 0;padding:var(--frms-space-md);border:1px solid var(--frms-border);border-radius:var(--frms-radius-control);background:var(--frms-canvas);text-align:center}
+.mop-evidence-preview img,.mop-evidence-preview video{max-width:100%;max-height:380px;border-radius:var(--frms-radius-small);object-fit:contain}
+.mop-decision-context{margin:var(--frms-space-md) 0;padding:var(--frms-space-md);border:1px solid var(--frms-border);border-radius:var(--frms-radius-small);background:var(--frms-canvas);display:flex;flex-direction:column;gap:6px;font-size:var(--frms-font-size-body);color:var(--frms-secondary)}
+.mop-decision-context div{display:flex;justify-content:space-between;gap:var(--frms-space-sm)}
+.mop-decision-context strong{color:var(--frms-text);text-align:right;overflow-wrap:anywhere}
 .mop-confirm-backdrop{justify-content:center;align-items:center;padding:16px;z-index:110}
 .mop-confirm{background:#fff;border-radius:15px;width:min(440px,100%);box-shadow:0 24px 60px #07172938;padding:27px}
 .mop-confirm-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:12px;background:#fff1da;color:#b77716;margin-bottom:16px}

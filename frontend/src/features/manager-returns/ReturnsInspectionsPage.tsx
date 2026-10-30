@@ -2,7 +2,7 @@ import { EmployeeModal } from '../../components/EmployeeModal'
 import { EmployeeEntityLabel, useEmployeeLabelLookup } from '../../components/EmployeeEntityLabel'
 import { fetchAllEmployeePages } from '../../utils/employeePresentation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, ArrowUpRight, CheckCircle2, ClipboardCheck, Clock3, RefreshCw, RotateCcw, Search, ShieldCheck, X } from 'lucide-react'
+import { AlertTriangle, ArrowUpRight, CheckCircle2, ClipboardCheck, Clock3, Eye, RefreshCw, RotateCcw, Search, ShieldCheck, X } from 'lucide-react'
 import { useAuth } from '../../auth/auth.context'
 import { inspectionApi } from '../../api/inspectionApi'
 import { visitApi } from '../../api/visitApi'
@@ -10,13 +10,21 @@ import { contractApi } from '../../api/contractApi'
 import { storageUnitApi, type StorageUnit } from '../../api/storageUnitApi'
 import { facilityReportApi, type FacilityOperationsReport } from '../../api/facilityReportApi'
 import { presentApiError } from '../../api/apiErrorPresentation'
-import type { InspectionDetail, InspectionListItem, DamageRecordDetail, DamageTypeDetail } from '../return-management/return.types'
+import { formatEvidenceSize, getEvidencePreview } from '../return-management/evidencePreviewStore'
+import type {
+  InspectionDetail,
+  InspectionEvidenceDetail,
+  InspectionListItem,
+  DamageRecordDetail,
+  DamageTypeDetail,
+} from '../return-management/return.types'
 import type { VisitDetail } from '../visits/visit.types'
 import type { HandoverContractDetail } from '../handover/contract.types'
 import '../manager-portal.css'
 
 const PAGE_SIZE = 20
 const date = (value?: string | null) => value ? value.slice(0, 10) : '—'
+const dateTimeGmt7 = (value?: string | null) => value ? new Date(value).toLocaleString('en-GB', { timeZone: 'Asia/Ho_Chi_Minh' }) : '—'
 const money = (value: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value)
 const errorText = (e: unknown) => { const r = presentApiError(e); return r.message + (r.traceId ? ` (Trace: ${r.traceId})` : '') }
 const badge = (s: string) => <span className={`mop-status mop-status-${s.toLowerCase().replace(/_/g, '-')}`}>{s === 'TERMINATED' ? 'Closed' : s.replace(/_/g, ' ')}</span>
@@ -44,6 +52,7 @@ export function ReturnsInspectionsPage() {
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
   const [decision, setDecision] = useState<{ damage: DamageRecordDetail; outcome: 'APPROVED' | 'REJECTED' } | null>(null)
+  const [previewEvidence, setPreviewEvidence] = useState<InspectionEvidenceDetail | null>(null)
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
   const [revision, setRevision] = useState(0)
@@ -57,6 +66,7 @@ export function ReturnsInspectionsPage() {
     setSelected(null)
     setSelectedVisit(null)
     setDecision(null)
+    setPreviewEvidence(null)
     setDetailLoading(false)
     setDetailError('')
     setNotice('')
@@ -145,6 +155,8 @@ export function ReturnsInspectionsPage() {
     [matchingVisits, currentPage],
   )
   const pendingDecisions = selected?.inspection.damages.filter(d => d.status === 'PENDING') ?? []
+  const previewRecord = previewEvidence ? getEvidencePreview(previewEvidence.inspectionEvidenceId) : null
+  const previewUrl = previewRecord?.objectUrl || previewRecord?.dataUrl || null
 
   const openInspection = useCallback(async (id: string) => {
     const requestId = ++detailRequest.current
@@ -152,6 +164,7 @@ export function ReturnsInspectionsPage() {
     setDetailLoading(true)
     setSelected(null)
     setSelectedVisit(null)
+    setPreviewEvidence(null)
     setDetailError('')
     setNotice('')
     try {
@@ -184,6 +197,7 @@ export function ReturnsInspectionsPage() {
     setNotice('')
     setSelected(null)
     setSelectedVisit(null)
+    setPreviewEvidence(null)
     try { const r = await visitApi.get(visitId); if (requestId === detailRequest.current) setSelectedVisit(r.data) }
     catch (e) { if (requestId === detailRequest.current) { setDetailError(errorText(e)); setSelectedVisit(null) } }
     finally { if (requestId === detailRequest.current) setDetailLoading(false) }
@@ -229,9 +243,9 @@ export function ReturnsInspectionsPage() {
       {loading ? <p className="mop-empty">Loading {view}…</p> : listError ? <div role="alert" className="mop-alert">{listError}<button type="button" onClick={refresh}>Retry</button></div> : view === 'inspections' ? visibleInspections.length ? <div className="mop-table">{visibleInspections.map(i => <button key={i.inspectionId} className="mop-table-row" type="button" onClick={() => void openInspection(i.inspectionId)}><span className="mop-record"><strong>{i.status.replaceAll('_', ' ')} inspection</strong><small><EmployeeEntityLabel kind="contract" id={i.contractId} /> · <EmployeeEntityLabel kind="unit" id={i.storageUnitId} /></small></span><span className="mop-secondary">{i.completedAt ? `Completed ${date(i.completedAt)}` : i.employeeId ? <EmployeeEntityLabel kind="employee" id={i.employeeId} /> : 'Awaiting Staff claim'}</span>{badge(i.status)}<ArrowUpRight size={17}/></button>)}</div> : <p className="mop-empty">No Inspections match the current filters.</p> : visibleVisits.length ? <div className="mop-table">{visibleVisits.map(v => <button key={v.visitId} type="button" className="mop-table-row" onClick={() => void openReturnVisit(v.visitId)}><span className="mop-record"><strong>Return visit · {date(v.visitDate)}</strong><small><EmployeeEntityLabel kind="contract" id={v.entityId} /> · Scheduled {date(v.visitDate)}</small></span><span className="mop-secondary">{v.actualReturnDate ? `Physical return ${date(v.actualReturnDate)}` : 'Return not yet confirmed'}</span>{badge(v.status)}<ArrowUpRight size={17}/></button>)}</div> : <p className="mop-empty">No return visits match the current filters.</p>}
       <div className="mop-pagination"><button className="mop-btn mop-btn-secondary" type="button" disabled={loading || currentPage <= 1} onClick={() => setPage(Math.max(1, currentPage - 1))}>Previous</button><span>Page {currentPage} / {pages}</span><button className="mop-btn mop-btn-secondary" type="button" disabled={loading || currentPage >= pages} onClick={() => setPage(currentPage + 1)}>Next</button></div>
     </section>
-    {typesError && <p className="mop-alert" role="alert">DamageType catalogue unavailable: {typesError}</p>}
+    {typesError && <p className="mop-alert" role="alert">Damage type catalogue unavailable: {typesError}</p>}
     {detailTarget && <EmployeeModal labelledBy="mop-return-detail-title" busy={busy || !!decision} onClose={closeDetail}>
-    <div className="mop-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget && !busy && !decision) closeDetail() }}>
+    <div className="mop-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget && !busy && !decision && !previewEvidence) closeDetail() }}>
     <div className="mop-drawer mop-return-drawer">
       <div className="mop-drawer-head"><div><small>Returns & Inspections</small><h2 id="mop-return-detail-title">{detailTarget.view === 'inspections' ? 'Inspection detail' : 'RETURN Visit detail'}</h2></div><button type="button" className="mop-icon-button" aria-label="Close record detail" disabled={busy || !!decision} onClick={closeDetail}><X size={20}/></button></div>
     {detailLoading && <p className="mop-alert" role="status">Loading record details…</p>}
@@ -239,15 +253,87 @@ export function ReturnsInspectionsPage() {
     {notice && <div role="status" className="mop-success"><CheckCircle2 size={18}/>{notice}</div>}
     {selectedVisit && <section className="mop-section" aria-label="RETURN Visit detail"><div className="mop-section-heading"><h2>RETURN Visit detail</h2></div><dl className="mop-detail-grid"><div className="mop-detail-field"><dt>Visit</dt><dd>Return visit · {date(selectedVisit.visitDate)}</dd></div><div className="mop-detail-field"><dt>Contract</dt><dd><EmployeeEntityLabel kind="contract" id={selectedVisit.entityId} /></dd></div><div className="mop-detail-field"><dt>Status</dt><dd>{selectedVisit.status}</dd></div><div className="mop-detail-field"><dt>Scheduled</dt><dd>{date(selectedVisit.visitDate)}</dd></div><div className="mop-detail-field"><dt>Actual physical return</dt><dd>{date(selectedVisit.actualReturnDate)}</dd></div><div className="mop-detail-field"><dt>Actual Staff actor</dt><dd><EmployeeEntityLabel kind="employee" id={selectedVisit.employeeId} empty={'—'} /></dd></div></dl></section>}
     {selected && <section className="mop-section" data-testid="manager-inspection-detail"><div className="mop-section-heading"><div><h2>Return inspection {badge(selected.inspection.status)}</h2><p>Read-only findings and terminal Damage decisions. Only Facility Staff can finalize Return.</p></div></div>
-      <dl className="mop-detail-grid"><div className="mop-detail-field"><dt>Contract</dt><dd><EmployeeEntityLabel kind="contract" id={selected.inspection.contractId} /></dd></div><div className="mop-detail-field"><dt>Contract status / period</dt><dd>{selected.contract ? `${selected.contract.status === 'TERMINATED' ? 'Closed' : selected.contract.status} · ${selected.contract.startMonth} → ${selected.contract.endMonth}` : 'Unavailable'}</dd></div><div className="mop-detail-field"><dt>Storage unit</dt><dd>{selected.unit?.unitCode ?? <EmployeeEntityLabel kind="unit" id={selected.inspection.storageUnitId} />} · {selected.unit?.status ?? 'Unknown'}</dd></div><div className="mop-detail-field"><dt>RETURN Visit</dt><dd>{selected.visit ? `${date(selected.visit.visitDate)} · ${selected.visit.status}` : selected.inspection.visitId ? 'Visit details unavailable' : 'External recovery / no Visit'}</dd></div><div className="mop-detail-field"><dt>Actual return date</dt><dd>{date(selected.visit?.actualReturnDate)}</dd></div><div className="mop-detail-field"><dt>Claimed Staff</dt><dd><EmployeeEntityLabel kind="employee" id={selected.inspection.employeeId} empty={'Unclaimed'} /></dd></div><div className="mop-detail-field"><dt>Completed (GMT+7)</dt><dd>{selected.inspection.completedAt ? new Date(selected.inspection.completedAt).toLocaleString('en-GB', { timeZone: 'Asia/Ho_Chi_Minh' }) : '—'}</dd></div><div className="mop-detail-field"><dt>Condition note</dt><dd>{selected.inspection.conditionNote || 'No findings recorded'}</dd></div></dl>
+      <dl className="mop-detail-grid"><div className="mop-detail-field"><dt>Contract</dt><dd><EmployeeEntityLabel kind="contract" id={selected.inspection.contractId} /></dd></div><div className="mop-detail-field"><dt>Contract status / period</dt><dd>{selected.contract ? `${selected.contract.status === 'TERMINATED' ? 'Closed' : selected.contract.status} · ${selected.contract.startMonth} → ${selected.contract.endMonth}` : 'Unavailable'}</dd></div><div className="mop-detail-field"><dt>Storage unit</dt><dd>{selected.unit?.unitCode ?? <EmployeeEntityLabel kind="unit" id={selected.inspection.storageUnitId} />} · {selected.unit?.status ?? 'Unknown'}</dd></div><div className="mop-detail-field"><dt>RETURN Visit</dt><dd>{selected.visit ? `${date(selected.visit.visitDate)} · ${selected.visit.status}` : selected.inspection.visitId ? 'Visit details unavailable' : 'External recovery / no Visit'}</dd></div><div className="mop-detail-field"><dt>Actual return date</dt><dd>{date(selected.visit?.actualReturnDate)}</dd></div><div className="mop-detail-field"><dt>Claimed Staff</dt><dd><EmployeeEntityLabel kind="employee" id={selected.inspection.employeeId} empty={'Unclaimed'} /></dd></div><div className="mop-detail-field"><dt>Completed (GMT+7)</dt><dd>{selected.inspection.completedAt ? dateTimeGmt7(selected.inspection.completedAt) : '—'}</dd></div><div className="mop-detail-field"><dt>Condition note</dt><dd>{selected.inspection.conditionNote || 'No findings recorded'}</dd></div></dl>
       <div className="mop-detail-section"><div className="mop-section-heading"><div><h3>Damage decisions ({selected.inspection.damages.length})</h3><p>APPROVED values may be included in settlement. REJECTED values contribute zero; any PENDING decision blocks finalization.</p></div>{pendingDecisions.length ? <span className="mop-pending"><AlertTriangle size={15}/> {pendingDecisions.length} pending</span> : <span className="mop-status mop-status-approved">No pending decisions</span>}</div>
         {selected.inspection.damages.length === 0 ? <p className="mop-empty">No Damage records associated with this Inspection.</p> : <div className="mop-damage-list">{selected.inspection.damages.map(d => { const typeName = d.damageTypeName || types.find(t => t.damageTypeId === d.damageTypeId)?.name || 'Damage type unavailable'; return <article key={d.damageRecordId} className="mop-damage"><div className="mop-damage-heading"><div><strong>{typeName.replace(/_/g, ' ')}</strong><small>{date(d.createdAt)}</small></div>{badge(d.status)}</div><strong className="mop-amount">{money(d.damageAmount)}</strong><p>{d.note || 'No additional note provided.'}</p>{d.status === 'PENDING' && <div className="mop-decision-buttons"><button type="button" className="mop-btn mop-btn-primary" disabled={busy} onClick={() => setDecision({ damage: d, outcome: 'APPROVED' })}><ShieldCheck size={16}/>Approve</button><button type="button" className="mop-btn mop-btn-danger" disabled={busy} onClick={() => setDecision({ damage: d, outcome: 'REJECTED' })}><X size={16}/>Reject</button></div>}</article> })}</div>}
       </div>
-      <div className="mop-return-extras"><section className="mop-detail-section"><h3>Extra fees ({selected.inspection.extraFees.length})</h3>{selected.inspection.extraFees.length ? selected.inspection.extraFees.map(f => <div className="mop-line" key={f.extraFeeId}><span>{f.reason}</span><strong>{money(f.amount)}</strong></div>) : <p className="mop-muted">No extra fees recorded.</p>}</section><section className="mop-detail-section"><h3>Evidence ({selected.inspection.evidence.length})</h3>{selected.inspection.evidence.length ? selected.inspection.evidence.map(e => <div key={e.inspectionEvidenceId} className="mop-line"><span>{e.evidenceType}</span><small>{date(e.createdAt)}</small></div>) : <p className="mop-muted">No uploaded evidence metadata.</p>}<p className="mop-muted">This view lists evidence details only.</p></section></div>
+      <div className="mop-return-extras">
+        <section className="mop-detail-section">
+          <h3>Extra fees ({selected.inspection.extraFees.length})</h3>
+          {selected.inspection.extraFees.length ? selected.inspection.extraFees.map(f => <div className="mop-line" key={f.extraFeeId}><span>{f.reason}</span><strong>{money(f.amount)}</strong></div>) : <p className="mop-muted">No extra fees recorded.</p>}
+        </section>
+        <section className="mop-detail-section">
+          <h3>Evidence ({selected.inspection.evidence.length})</h3>
+          {selected.inspection.evidence.length ? (
+            <div className="mop-evidence-list">
+              {selected.inspection.evidence.map((e, index) => {
+                const preview = getEvidencePreview(e.inspectionEvidenceId)
+                const thumbUrl = preview?.objectUrl || preview?.dataUrl || null
+                return (
+                  <div key={e.inspectionEvidenceId} className="mop-evidence-item">
+                    <div className="mop-evidence-info">
+                      {e.evidenceType === 'IMAGE' && thumbUrl && (
+                        <img className="mop-evidence-thumb" src={thumbUrl} alt={preview?.fileName || `Evidence ${index + 1}`} />
+                      )}
+                      <div>
+                        <strong>{preview?.fileName || `${e.evidenceType} evidence #${index + 1}`}</strong>
+                        <small>
+                          {e.evidenceType} · {dateTimeGmt7(e.createdAt)}
+                          {preview ? ` · ${formatEvidenceSize(preview.fileSize)}` : ''}
+                        </small>
+                      </div>
+                    </div>
+                    <button type="button" className="mop-btn mop-btn-secondary" onClick={() => setPreviewEvidence(e)}>
+                      <Eye size={15}/> View evidence
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          ) : <p className="mop-muted">No uploaded evidence records.</p>}
+          <p className="mop-muted">Select an evidence item to inspect its preview and condition context before deciding damage charges.</p>
+        </section>
+      </div>
     </section>}
     </div>
     </div>
-    {decision && <EmployeeModal role="alertdialog" labelledBy="mop-decision-heading" busy={busy} onClose={() => setDecision(null)}><div className="mop-confirm-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget && !busy) setDecision(null) }}><div className="mop-confirm"><div className="mop-confirm-icon"><AlertTriangle size={24}/></div><h2 id="mop-decision-heading">{decision.outcome === 'APPROVED' ? 'Approve' : 'Reject'} this Damage?</h2><p>Damage <strong>{decision.damage.damageTypeName || types.find(type => type.damageTypeId === decision.damage.damageTypeId)?.name || 'Recorded damage'}</strong> · {money(decision.damage.damageAmount)}</p><p>This is a terminal audited decision. It cannot be edited or undone. The amount and note entered by Staff will not change.</p><div className="mop-confirm-actions"><button type="button" className="mop-btn mop-btn-secondary" disabled={busy} onClick={() => setDecision(null)}>Cancel</button><button type="button" className={`mop-btn ${decision.outcome === 'APPROVED' ? 'mop-btn-primary' : 'mop-btn-danger'}`} disabled={busy} onClick={() => void confirmDecision()}>{busy ? 'Submitting…' : `Confirm ${decision.outcome.toLowerCase()}`}</button></div></div></div></EmployeeModal>}
+    {previewEvidence && selected && (
+      <EmployeeModal labelledBy="mop-evidence-preview-heading" onClose={() => setPreviewEvidence(null)}>
+        <div className="mop-confirm-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setPreviewEvidence(null) }}>
+          <div className="mop-confirm mop-evidence-modal">
+            <h2 id="mop-evidence-preview-heading">{previewRecord?.fileName || `${previewEvidence.evidenceType} Evidence`}</h2>
+            <p>
+              Uploaded {dateTimeGmt7(previewEvidence.createdAt)} (GMT+7) · Type: <strong>{previewEvidence.evidenceType}</strong>
+              {previewRecord ? ` · ${formatEvidenceSize(previewRecord.fileSize)}` : ''}
+            </p>
+            <div className="mop-evidence-preview">
+              {previewEvidence.evidenceType === 'IMAGE' && previewUrl ? (
+                <img src={previewUrl} alt={previewRecord?.fileName || 'Inspection evidence preview'} />
+              ) : previewEvidence.evidenceType === 'VIDEO' && previewUrl ? (
+                <video src={previewUrl} controls />
+              ) : previewUrl ? (
+                <a className="mop-btn mop-btn-secondary" href={previewUrl} download={previewRecord?.fileName || 'evidence'}>
+                  Download / Open Document
+                </a>
+              ) : (
+                <p className="mop-muted">
+                  Visual file preview is available for evidence uploaded in this browser session. Server detail responses protect raw binary files and provide the verified inspection context below.
+                </p>
+              )}
+            </div>
+            <div className="mop-decision-context">
+              <div><span>Storage unit</span><strong>{selected.unit?.unitCode ?? <EmployeeEntityLabel kind="unit" id={selected.inspection.storageUnitId} />}</strong></div>
+              <div><span>Claimed Staff</span><strong><EmployeeEntityLabel kind="employee" id={selected.inspection.employeeId} empty={'Unclaimed'} /></strong></div>
+              <div><span>Condition note</span><strong>{selected.inspection.conditionNote || 'No findings recorded'}</strong></div>
+            </div>
+            <div className="mop-confirm-actions">
+              <button type="button" className="mop-btn mop-btn-secondary" onClick={() => setPreviewEvidence(null)}>Close preview</button>
+            </div>
+          </div>
+        </div>
+      </EmployeeModal>
+    )}
+    {decision && selected && <EmployeeModal role="alertdialog" labelledBy="mop-decision-heading" busy={busy} onClose={() => setDecision(null)}><div className="mop-confirm-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget && !busy) setDecision(null) }}><div className="mop-confirm"><div className="mop-confirm-icon"><AlertTriangle size={24}/></div><h2 id="mop-decision-heading">{decision.outcome === 'APPROVED' ? 'Approve' : 'Reject'} this Damage?</h2><p>Damage <strong>{decision.damage.damageTypeName || types.find(type => type.damageTypeId === decision.damage.damageTypeId)?.name || 'Recorded damage'}</strong> · {money(decision.damage.damageAmount)}</p><div className="mop-decision-context"><div><span>Staff damage note</span><strong>{decision.damage.note || 'No additional note provided.'}</strong></div><div><span>Inspection condition note</span><strong>{selected.inspection.conditionNote || 'No findings recorded'}</strong></div><div><span>Attached evidence</span><strong>{selected.inspection.evidence.length} item(s)</strong></div></div><p>This is a terminal audited decision. It cannot be edited or undone. The amount and note entered by Staff will not change.</p><div className="mop-confirm-actions"><button type="button" className="mop-btn mop-btn-secondary" disabled={busy} onClick={() => setDecision(null)}>Cancel</button><button type="button" className={`mop-btn ${decision.outcome === 'APPROVED' ? 'mop-btn-primary' : 'mop-btn-danger'}`} disabled={busy} onClick={() => void confirmDecision()}>{busy ? 'Submitting…' : `Confirm ${decision.outcome.toLowerCase()}`}</button></div></div></div></EmployeeModal>}
     </EmployeeModal>}
   </main>
 }

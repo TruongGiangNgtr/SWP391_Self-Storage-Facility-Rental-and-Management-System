@@ -28,6 +28,9 @@ export function StaffHandoverPage() {
   const [validationError, setValidationError] = useState<ApiErrorPresentation | null>(null)
   const customer = context?.workItem?.customer
   const discounts = useCustomerDiscounts(context?.reservation.status === 'CONFIRMED' ? customer?.customerId : undefined, discountPage)
+  const selectedDiscount = discounts.response?.data.find(
+    (item) => item.discountId === discountId && item.customerId === customer?.customerId && item.status === 'ACTIVE',
+  ) ?? null
   const navigate = useNavigate()
   const busy = loading || action !== null
   const returnStage = context?.visit.status === 'CHECKED_IN' ? 'handover' : searchParams.get('workTab') === 'handover' ? 'handover' : 'check-in'
@@ -77,6 +80,8 @@ export function StaffHandoverPage() {
               <div><dt>Rental Period</dt><dd>{formatMonthRange(context.reservation.startMonth, context.reservation.endMonth)}</dd></div>
               <div><dt>Facility</dt><dd><EmployeeEntityLabel kind="facility" id={context.reservation.facilityId} /></dd></div>
               <div><dt>Unit Type</dt><dd><EmployeeEntityLabel kind="unitType" id={context.reservation.unitTypeId} /></dd></div>
+              <div><dt>Locked First-Month Rent</dt><dd><strong>{formatMoney(context.reservation.lockedRentalPrice)}</strong></dd></div>
+              <div><dt>Reservation Deposit</dt><dd>{formatMoney(context.reservation.depositAmount)} · <StatusBadge status={context.reservation.depositInvoice.status} /></dd></div>
             </dl>
           </section>
           <section className="panel stack" aria-label="Reservation visit">
@@ -126,13 +131,21 @@ export function StaffHandoverPage() {
                   {discounts.loading && <LoadingState label="Loading customer discounts..." />}
                   <ApiErrorAlert error={discounts.error} />
                   {discounts.error && <><p className="muted">Discounts could not be loaded. You may explicitly continue with no discount or retry the read.</p><button className="button button-secondary" type="button" disabled={busy} onClick={() => { setDiscountId(''); discounts.refresh() }}>Retry Discounts</button></>}
-                  {!customer && <p className="muted">Return to the matching Work List page to load this customer's discount catalogue. No discount is selected.</p>}
+                  {!customer && <p className="muted">Return to the matching Work List page to load this customer&apos;s discount catalogue. No discount is selected.</p>}
                   {discounts.response?.data.length === 0 && <p className="muted">No customer discounts.</p>}
                   {discounts.response && <footer><PaginationControls pagination={discounts.response.pagination} disabled={busy || discounts.loading} onPageChange={(nextPage) => { setDiscountId(''); setAcknowledgedKey(''); setDiscountPage(nextPage) }} /></footer>}
                 </details>
+                <section className="stack handover-payment-summary" aria-label="Offline payment summary">
+                  <h3>Offline Collection &amp; Billing Summary</h3>
+                  <dl className="detail-list">
+                    <div><dt>First-Month Rent (Collect Offline Now)</dt><dd><strong>{formatMoney(context.reservation.lockedRentalPrice)}</strong></dd></div>
+                    <div><dt>Reservation Deposit</dt><dd>{formatMoney(context.reservation.depositAmount)} ({context.reservation.depositInvoice.status})</dd></div>
+                    <div><dt>Later-Month Discount</dt><dd>{selectedDiscount ? `${selectedDiscount.name} — ${selectedDiscount.percentage}% (applies to eligible Month 2+ invoices)` : 'No discount selected'}</dd></div>
+                  </dl>
+                </section>
                 <label className="receipt-confirmation">
                   <input type="checkbox" checked={receiptAcknowledged} disabled={busy || !validAssignment} onChange={(event) => setAcknowledgedKey(event.target.checked ? confirmationKey : '')} />
-                  <span>I confirm that I have received the full first-month rent of {formatMoney(context.reservation.lockedRentalPrice)} offline and completed the physical handover.</span>
+                  <span>I confirm that I have received the full first-month rent of <strong>{formatMoney(context.reservation.lockedRentalPrice)}</strong> offline and completed the physical handover.</span>
                 </label>
                 <p className="muted">Completing handover records the first-month receipt. No separate first-month invoice or online payment is created. If you retry, do not collect rent again.</p>
                 <button className="button" type="submit" disabled={busy || !validAssignment || !receiptAcknowledged}>{action === 'handover' ? 'Completing Handover...' : 'Complete Handover'}</button>

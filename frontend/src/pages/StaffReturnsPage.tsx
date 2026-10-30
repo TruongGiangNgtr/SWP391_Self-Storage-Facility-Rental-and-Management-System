@@ -1,5 +1,6 @@
 import { EmployeeEntityLabel } from '../components/EmployeeEntityLabel'
-import { Camera, CheckCircle2, RefreshCw, RotateCcw, ShieldAlert, WalletCards } from 'lucide-react'
+import { EmployeeModal } from '../components/EmployeeModal'
+import { Camera, CheckCircle2, Eye, RefreshCw, RotateCcw, ShieldAlert, WalletCards } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { presentApiError, presentValidationError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
@@ -10,6 +11,11 @@ import { useAuth } from '../auth/auth.context'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { StatusBadge } from '../components/StatusBadge'
 import type { StaffWorkItem } from '../features/handover/handover.types'
+import {
+  formatEvidenceSize,
+  getEvidencePreview,
+  saveEvidencePreview,
+} from '../features/return-management/evidencePreviewStore'
 import type {
   ConfirmActualReturnResult,
   DamageTypeDetail,
@@ -18,6 +24,7 @@ import type {
   FinalizeReturnResult,
   FinalStorageUnitStatus,
   InspectionDetail,
+  InspectionEvidenceDetail,
   InspectionListItem,
 } from '../features/return-management/return.types'
 import { fetchAllEmployeePages } from '../utils/employeePresentation'
@@ -35,18 +42,17 @@ const TAB_META: Record<ReturnTab, { label: string; description: string }> = {
   },
   inspection: {
     label: 'Return Inspection',
-    description: 'Claim a PENDING Inspection, attach evidence and complete the inspection. Completing an Inspection keeps the StorageUnit in INSPECTION.',
+    description: 'Claim a pending inspection, attach condition evidence, record any damage or extra fees, and complete the inspection.',
   },
   fees: {
     label: 'Fees & Finalize',
-    description: 'Record Damage/Extra Fee data during the claimed inspection, then finalize only after Inspection completion and all Damage decisions are resolved.',
+    description: 'Review recorded damage and extra fees, verify Manager damage decisions, and finalize the return settlement.',
   },
 }
 
 function isReturnTab(value: string | null): value is ReturnTab {
   return value === 'confirmation' || value === 'inspection' || value === 'fees'
 }
-
 
 function ReturnConfirmationPanel() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -141,7 +147,7 @@ function ReturnConfirmationPanel() {
           <CheckCircle2 size={18} />
           <div>
             <strong>{result.returnClassification} return confirmed.</strong>
-            <span>Inspection is {result.inspectionStatus}; StorageUnit is {result.storageUnitStatus}.</span>
+            <span>Inspection is {result.inspectionStatus}; storage unit status is {result.storageUnitStatus}.</span>
           </div>
           <button type="button" className="fwp-link-button" onClick={() => setSearchParams({ tab: 'inspection', inspectionId: result.inspectionId })}>Open Inspection</button>
         </div>
@@ -234,6 +240,8 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
   const [extraFeeReason, setExtraFeeReason] = useState('')
   const [finalStatus, setFinalStatus] = useState<FinalStorageUnitStatus>('AVAILABLE')
   const [finalResult, setFinalResult] = useState<FinalizeReturnResult | null>(null)
+  const [confirmCompleteOpen, setConfirmCompleteOpen] = useState(false)
+  const [previewEvidenceItem, setPreviewEvidenceItem] = useState<InspectionEvidenceDetail | null>(null)
 
   const loadList = useCallback(async () => {
     setLoadingList(true)
@@ -268,7 +276,6 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
   useEffect(() => { if (selectedId) void loadDetail(selectedId) }, [loadDetail, selectedId, retry])
 
   useEffect(() => {
-    if (mode !== 'fees') return
     let active = true
     Promise.all([inspectionApi.listDamageTypes(), businessApi.listExtraFeeTypes(1, 100)])
       .then(([damageResponse, feeResponse]) => {
@@ -278,7 +285,7 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
       })
       .catch((caughtError) => { if (active) setLoadError(presentApiError(caughtError)) })
     return () => { active = false }
-  }, [mode, retry])
+  }, [retry])
 
   const totalPages = Math.max(1, Math.ceil(inspections.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
@@ -291,6 +298,8 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
     setSelectedId(inspectionId)
     setError(null)
     setFinalResult(null)
+    setConfirmCompleteOpen(false)
+    setPreviewEvidenceItem(null)
     setSearchParams({ tab: mode, inspectionId })
   }
 
@@ -318,17 +327,29 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
       setError(presentValidationError('Choose an evidence file before uploading.'))
       return
     }
-    if (await runAction('evidence', () => inspectionApi.uploadEvidence(selectedId, evidenceFile, evidenceType)))
+    const fileToUpload = evidenceFile
+    if (await runAction('evidence', async () => {
+      const response = await inspectionApi.uploadEvidence(selectedId, fileToUpload, evidenceType)
+      await saveEvidencePreview(response.data, fileToUpload)
+    })) {
       setEvidenceFile(null)
+    }
   }
 
-  async function completeInspection(event: FormEvent<HTMLFormElement>) {
+  function requestCompleteInspection(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!selectedId || !conditionNote.trim()) {
       setError(presentValidationError('Condition note is required to complete the Inspection.'))
       return
     }
-    await runAction('complete', () => inspectionApi.complete(selectedId, { conditionNote: conditionNote.trim() }))
+    setError(null)
+    setConfirmCompleteOpen(true)
+  }
+
+  async function confirmCompleteInspection() {
+    if (!selectedId || !conditionNote.trim()) return
+    const ok = await runAction('complete', () => inspectionApi.complete(selectedId, { conditionNote: conditionNote.trim() }))
+    if (ok) setConfirmCompleteOpen(false)
   }
 
   async function recordDamage(event: FormEvent<HTMLFormElement>) {
@@ -396,6 +417,121 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
   const currentStaffOwnsInspection = Boolean(detail?.employeeId && user?.employeeId && detail.employeeId === user.employeeId)
   const canEditInspection = detail?.status === 'IN_PROGRESS' && currentStaffOwnsInspection
   const pendingDamageCount = detail?.damages.filter((item) => item.status === 'PENDING').length ?? 0
+  const previewRecord = previewEvidenceItem ? getEvidencePreview(previewEvidenceItem.inspectionEvidenceId) : null
+  const previewUrl = previewRecord?.objectUrl || previewRecord?.dataUrl || null
+
+  function renderChargeEntryCards() {
+    if (!canEditInspection) return null
+    return (
+      <div className="fwp-fee-grid">
+        <section className="fwp-action-card">
+          <h3>Record Damage</h3>
+          <p>Recorded damage starts as PENDING until a Facility Manager approves or rejects it.</p>
+          <form className="fwp-stack-form" onSubmit={recordDamage}>
+            <label><span>Damage type</span><select value={damageTypeId} onChange={(event) => {
+              const id = event.target.value
+              setDamageTypeId(id)
+              const found = damageTypes.find((item) => item.damageTypeId === id)
+              setDamageAmount(found?.defaultAmount == null ? '' : String(found.defaultAmount))
+            }}><option value="">Select damage type</option>{damageTypes.map((item) => <option value={item.damageTypeId} key={item.damageTypeId}>{item.name}</option>)}</select></label>
+            <label><span>Damage amount (VND)</span><input type="number" min="0" step="0.01" value={damageAmount} onChange={(event) => setDamageAmount(event.target.value)} /></label>
+            <label><span>Note (optional)</span><textarea rows={3} value={damageNote} onChange={(event) => setDamageNote(event.target.value)} /></label>
+            <button className="fwp-button fwp-button-secondary" type="submit" disabled={busy !== null}>{busy === 'damage' ? 'Recording…' : 'Record Damage'}</button>
+          </form>
+        </section>
+
+        <section className="fwp-action-card">
+          <h3>Record Extra Fee</h3>
+          <p>Select a fee from the active catalogue and enter the exact VND charge and reason.</p>
+          <form className="fwp-stack-form" onSubmit={recordExtraFee}>
+            <label><span>Extra fee type</span><select value={extraFeeTypeId} onChange={(event) => {
+              const id = event.target.value
+              setExtraFeeTypeId(id)
+              const found = extraFeeTypes.find((item) => item.extraFeeTypeId === id)
+              setExtraFeeAmount(found ? String(found.defaultAmount) : '')
+            }}><option value="">Select extra fee type</option>{extraFeeTypes.map((item) => <option value={item.extraFeeTypeId} key={item.extraFeeTypeId}>{item.name}</option>)}</select></label>
+            <label><span>Amount (VND)</span><input type="number" min="0" step="0.01" value={extraFeeAmount} onChange={(event) => setExtraFeeAmount(event.target.value)} /></label>
+            <label><span>Reason</span><textarea rows={3} value={extraFeeReason} onChange={(event) => setExtraFeeReason(event.target.value)} /></label>
+            <button className="fwp-button fwp-button-secondary" type="submit" disabled={busy !== null}>{busy === 'extra-fee' ? 'Recording…' : 'Record Extra Fee'}</button>
+          </form>
+        </section>
+      </div>
+    )
+  }
+
+  function renderRecordedChargesList() {
+    if (!detail || (detail.damages.length === 0 && detail.extraFees.length === 0)) return null
+    return (
+      <section className="fwp-action-card">
+        <h3>Recorded fees and Damage</h3>
+        <div className="fwp-record-list">
+          {detail.damages.map((item) => (
+            <div key={item.damageRecordId}>
+              <span>Damage · {item.damageTypeName || damageTypes.find(type => type.damageTypeId === item.damageTypeId)?.name || 'Damage type unavailable'}{item.note ? ` — ${item.note}` : ''}</span>
+              <strong>{formatMoney(item.damageAmount)}</strong>
+              <StatusBadge status={item.status} />
+            </div>
+          ))}
+          {detail.extraFees.map((item) => (
+            <div key={item.extraFeeId}>
+              <span>Extra Fee · {extraFeeTypes.find(type => type.extraFeeTypeId === item.extraFeeTypeId)?.name.replaceAll('_', ' ') || 'Fee type unavailable'}</span>
+              <strong>{formatMoney(item.amount)}</strong>
+              <span>{item.reason}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  function renderEvidenceItemsList() {
+    if (!detail || detail.evidence.length === 0) return null
+    return (
+      <div className="fwp-evidence-list" aria-label="Uploaded inspection evidence">
+        {detail.evidence.map((item, index) => {
+          const preview = getEvidencePreview(item.inspectionEvidenceId)
+          const thumbUrl = preview?.objectUrl || preview?.dataUrl || null
+          return (
+            <div key={item.inspectionEvidenceId} className="fwp-evidence-row">
+              <div className="fwp-evidence-meta">
+                {item.evidenceType === 'IMAGE' && thumbUrl && (
+                  <img className="fwp-evidence-thumb" src={thumbUrl} alt={preview?.fileName || `Evidence ${index + 1}`} />
+                )}
+                <div>
+                  <strong>{preview?.fileName || `${item.evidenceType} evidence #${index + 1}`}</strong>
+                  <span>
+                    {item.evidenceType} · Uploaded {formatUtcDateTime(item.createdAt)}
+                    {preview ? ` · ${formatEvidenceSize(preview.fileSize)}` : ''}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="fwp-button fwp-button-secondary"
+                onClick={() => setPreviewEvidenceItem(item)}
+              >
+                <Eye size={14} /> Preview
+              </button>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  function renderCompleteInspectionCard() {
+    if (!canEditInspection) return null
+    return (
+      <section className="fwp-action-card">
+        <h3>Complete Inspection</h3>
+        <p>Ensure all evidence, damage records, and extra fees are added above before completing. Completing locks the inspection against further charge entries; the unit stays under inspection until you finalize the return.</p>
+        <form className="fwp-stack-form" onSubmit={requestCompleteInspection}>
+          <label><span>Condition note</span><textarea rows={4} value={conditionNote} onChange={(event) => setConditionNote(event.target.value)} disabled={busy !== null} placeholder="Describe the physical condition of the unit upon return..." /></label>
+          <button className="fwp-button fwp-button-primary" type="submit" disabled={busy !== null}>{busy === 'complete' ? 'Completing…' : 'Complete Inspection'}</button>
+        </form>
+      </section>
+    )
+  }
 
   return (
     <div className="fwp-inspection-layout">
@@ -453,36 +589,38 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
                   <>
                     <div className="fwp-banner fwp-banner-warning">
                       <ShieldAlert size={18} />
-                      <div><strong>Record charges before completing inspection.</strong><span>If there is damage or an extra fee, record it now while the inspection is IN_PROGRESS. Once completed, charges can no longer be added.</span></div>
-                      <button className="fwp-link-button" type="button" onClick={() => setSearchParams({ tab: 'fees', inspectionId: detail.inspectionId })}>Record Damage / Extra Fee</button>
+                      <div><strong>Step 1: Evidence &amp; charges · Step 2: Complete inspection.</strong><span>Attach evidence and record any damage or extra fees below while the inspection is IN_PROGRESS. Once completed, charges can no longer be added.</span></div>
                     </div>
                     <section className="fwp-action-card">
-                      <h3><Camera size={17} /> Evidence</h3>
-                      <p>Upload IMAGE, VIDEO or DOCUMENT evidence. Binary content is sent as multipart/form-data.</p>
+                      <h3><Camera size={17} /> Evidence ({detail.evidence.length})</h3>
+                      <p>Attach photos, videos, or documents of the unit’s condition. Uploaded files are saved immediately to this inspection.</p>
                       <form className="fwp-inline-form" onSubmit={uploadEvidence}>
                         <select value={evidenceType} onChange={(event) => setEvidenceType(event.target.value as EvidenceType)} disabled={busy !== null}>
-                          <option value="IMAGE">IMAGE</option><option value="VIDEO">VIDEO</option><option value="DOCUMENT">DOCUMENT</option>
+                          <option value="IMAGE">Photo (IMAGE)</option><option value="VIDEO">Video (VIDEO)</option><option value="DOCUMENT">Document (DOCUMENT)</option>
                         </select>
                         <input type="file" onChange={(event) => setEvidenceFile(event.target.files?.[0] ?? null)} disabled={busy !== null} />
                         <button className="fwp-button fwp-button-secondary" type="submit" disabled={busy !== null}>{busy === 'evidence' ? 'Uploading…' : 'Upload'}</button>
                       </form>
+                      {renderEvidenceItemsList()}
                     </section>
-                    <section className="fwp-action-card">
-                      <h3>Complete Inspection</h3>
-                      <p>Before completing, record all evidence, damage and extra fees. Completion locks those entries; the StorageUnit remains INSPECTION until Finalize Return.</p>
-                      <form className="fwp-stack-form" onSubmit={completeInspection}>
-                        <label><span>Condition note</span><textarea rows={4} value={conditionNote} onChange={(event) => setConditionNote(event.target.value)} disabled={busy !== null} /></label>
-                        <button className="fwp-button fwp-button-primary" type="submit" disabled={busy !== null}>{busy === 'complete' ? 'Completing…' : 'Complete Inspection'}</button>
-                      </form>
-                    </section>
+                    {renderChargeEntryCards()}
+                    {renderRecordedChargesList()}
+                    {renderCompleteInspectionCard()}
                   </>
                 )}
 
-                {detail.status === 'COMPLETED' && <div className="fwp-banner fwp-banner-success"><CheckCircle2 size={18} /><div><strong>Inspection completed.</strong><span>The unit remains under inspection. Review existing charges and Manager decisions before finalizing; no new fees can be recorded.</span></div><button className="fwp-link-button" type="button" onClick={() => setSearchParams({ tab: 'fees', inspectionId: detail.inspectionId })}>Open Fees & Finalize</button></div>}
+                {!canEditInspection && detail.evidence.length > 0 && (
+                  <section className="fwp-action-card">
+                    <h3><Camera size={17} /> Evidence ({detail.evidence.length})</h3>
+                    {renderEvidenceItemsList()}
+                  </section>
+                )}
+
+                {detail.status === 'COMPLETED' && <div className="fwp-banner fwp-banner-success"><CheckCircle2 size={18} /><div><strong>Inspection completed.</strong><span>The unit remains under inspection. Review existing charges and Manager decisions before finalizing; no new fees can be recorded.</span></div><button className="fwp-link-button" type="button" onClick={() => setSearchParams({ tab: 'fees', inspectionId: detail.inspectionId })}>Open Fees &amp; Finalize</button></div>}
               </div>
             ) : (
               <div className="fwp-workspace-stack">
-                {canEditInspection && <div className="fwp-banner fwp-banner-warning"><ShieldAlert size={18} /><div><strong>Inspection is still IN_PROGRESS.</strong><span>Record damage and extra fees on this tab, then return to Inspection to complete it before finalizing.</span></div><button type="button" className="fwp-link-button" onClick={() => setSearchParams({ tab: 'inspection', inspectionId: detail.inspectionId })}>Return to Inspection</button></div>}
+                {canEditInspection && <div className="fwp-banner fwp-banner-warning"><ShieldAlert size={18} /><div><strong>Inspection is still IN_PROGRESS.</strong><span>Record damage and extra fees below, then complete the inspection before finalizing the return.</span></div><button type="button" className="fwp-link-button" onClick={() => setSearchParams({ tab: 'inspection', inspectionId: detail.inspectionId })}>Open Return Inspection</button></div>}
                 <section className="fwp-record-summary">
                   <div><span>Damage records</span><strong>{detail.damages.length}</strong></div>
                   <div><span>Pending decisions</span><strong>{pendingDamageCount}</strong></div>
@@ -490,57 +628,21 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
                   <div><span>Evidence items</span><strong>{detail.evidence.length}</strong></div>
                 </section>
 
-                {canEditInspection && (
-                  <div className="fwp-fee-grid">
-                    <section className="fwp-action-card">
-                      <h3>Record Damage</h3>
-                      <p>Staff records Damage as PENDING. Same-Facility Manager decides APPROVED or REJECTED.</p>
-                      <form className="fwp-stack-form" onSubmit={recordDamage}>
-                        <label><span>Damage type</span><select value={damageTypeId} onChange={(event) => {
-                          const id = event.target.value
-                          setDamageTypeId(id)
-                          const found = damageTypes.find((item) => item.damageTypeId === id)
-                          setDamageAmount(found?.defaultAmount == null ? '' : String(found.defaultAmount))
-                        }}><option value="">Select active DamageType</option>{damageTypes.map((item) => <option value={item.damageTypeId} key={item.damageTypeId}>{item.name}</option>)}</select></label>
-                        <label><span>Damage amount (VND)</span><input type="number" min="0" step="0.01" value={damageAmount} onChange={(event) => setDamageAmount(event.target.value)} /></label>
-                        <label><span>Note (optional)</span><textarea rows={3} value={damageNote} onChange={(event) => setDamageNote(event.target.value)} /></label>
-                        <button className="fwp-button fwp-button-secondary" type="submit" disabled={busy !== null}>{busy === 'damage' ? 'Recording…' : 'Record Damage'}</button>
-                      </form>
-                    </section>
-
-                    <section className="fwp-action-card">
-                      <h3>Record Extra Fee</h3>
-                      <p>Use the active server catalogue. The amount remains explicit and is not recalculated by the frontend.</p>
-                      <form className="fwp-stack-form" onSubmit={recordExtraFee}>
-                        <label><span>Extra fee type</span><select value={extraFeeTypeId} onChange={(event) => {
-                          const id = event.target.value
-                          setExtraFeeTypeId(id)
-                          const found = extraFeeTypes.find((item) => item.extraFeeTypeId === id)
-                          setExtraFeeAmount(found ? String(found.defaultAmount) : '')
-                        }}><option value="">Select active ExtraFeeType</option>{extraFeeTypes.map((item) => <option value={item.extraFeeTypeId} key={item.extraFeeTypeId}>{item.name}</option>)}</select></label>
-                        <label><span>Amount (VND)</span><input type="number" min="0" step="0.01" value={extraFeeAmount} onChange={(event) => setExtraFeeAmount(event.target.value)} /></label>
-                        <label><span>Reason</span><textarea rows={3} value={extraFeeReason} onChange={(event) => setExtraFeeReason(event.target.value)} /></label>
-                        <button className="fwp-button fwp-button-secondary" type="submit" disabled={busy !== null}>{busy === 'extra-fee' ? 'Recording…' : 'Record Extra Fee'}</button>
-                      </form>
-                    </section>
-                  </div>
-                )}
-
-                {(detail.damages.length > 0 || detail.extraFees.length > 0) && (
+                {renderChargeEntryCards()}
+                {renderRecordedChargesList()}
+                {detail.evidence.length > 0 && (
                   <section className="fwp-action-card">
-                    <h3>Recorded fees and Damage</h3>
-                    <div className="fwp-record-list">
-                      {detail.damages.map((item) => <div key={item.damageRecordId}><span>Damage · {item.damageTypeName || damageTypes.find(type => type.damageTypeId === item.damageTypeId)?.name || 'Damage type unavailable'}</span><strong>{formatMoney(item.damageAmount)}</strong><StatusBadge status={item.status} /></div>)}
-                      {detail.extraFees.map((item) => <div key={item.extraFeeId}><span>Extra Fee · {extraFeeTypes.find(type => type.extraFeeTypeId === item.extraFeeTypeId)?.name.replaceAll('_', ' ') || 'Fee type unavailable'}</span><strong>{formatMoney(item.amount)}</strong><span>{item.reason}</span></div>)}
-                    </div>
+                    <h3><Camera size={17} /> Evidence ({detail.evidence.length})</h3>
+                    {renderEvidenceItemsList()}
                   </section>
                 )}
+                {renderCompleteInspectionCard()}
 
                 <section className="fwp-action-card fwp-finalize-card">
                   <div><h3><WalletCards size={17} /> Finalize Return</h3><p>Review recorded charges and choose the unit’s next status. Finalizing records the settlement and closes the return together.</p></div>
                   {detail.status !== 'COMPLETED' && <div className="fwp-banner fwp-banner-warning"><ShieldAlert size={18} /><span>Inspection must be COMPLETED before Finalize Return.</span></div>}
                   {pendingDamageCount > 0 && <div className="fwp-banner fwp-banner-warning"><ShieldAlert size={18} /><span>{pendingDamageCount} Damage decision(s) are still PENDING. Manager resolution is required.</span></div>}
-                  <label className="fwp-final-status"><span>Final StorageUnit status</span><select value={finalStatus} onChange={(event) => setFinalStatus(event.target.value as FinalStorageUnitStatus)} disabled={busy !== null}><option value="AVAILABLE">AVAILABLE</option><option value="MAINTENANCE">MAINTENANCE</option></select></label>
+                  <label className="fwp-final-status"><span>Next storage unit status</span><select value={finalStatus} onChange={(event) => setFinalStatus(event.target.value as FinalStorageUnitStatus)} disabled={busy !== null}><option value="AVAILABLE">AVAILABLE</option><option value="MAINTENANCE">MAINTENANCE</option></select></label>
                   <button className="fwp-button fwp-button-primary" type="button" disabled={busy !== null || detail.status !== 'COMPLETED' || pendingDamageCount > 0} onClick={() => void finalizeReturn()}>{busy === 'finalize' ? 'Finalizing…' : 'Finalize Return'}</button>
                 </section>
 
@@ -548,7 +650,7 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
                   <section className="fwp-settlement-card" aria-label="Authoritative settlement result">
                     <div className="fwp-card-header"><div><span className="fwp-eyebrow">Authoritative result</span><h3>Return Finalized</h3></div><StatusBadge status={finalResult.contractStatus} /></div>
                     <dl className="fwp-detail-grid">
-                      <div><dt>StorageUnit status</dt><dd>{finalResult.storageUnitStatus}</dd></div>
+                      <div><dt>Storage unit status</dt><dd>{finalResult.storageUnitStatus}</dd></div>
                       <div><dt>Settlement status</dt><dd>{finalResult.settlement.status}</dd></div>
                       <div><dt>Total deduction</dt><dd>{formatMoney(finalResult.settlement.totalDeduction)}</dd></div>
                       <div><dt>Refund amount</dt><dd>{formatMoney(finalResult.settlement.refundAmount)}</dd></div>
@@ -562,6 +664,117 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
           </>
         )}
       </section>
+
+      {confirmCompleteOpen && detail && (
+        <EmployeeModal
+          role="alertdialog"
+          labelledBy="fwp-confirm-complete-title"
+          busy={busy === 'complete'}
+          onClose={() => setConfirmCompleteOpen(false)}
+        >
+          <div
+            className="fwp-modal-backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget && busy !== 'complete') setConfirmCompleteOpen(false)
+            }}
+          >
+            <div className="fwp-modal-card">
+              <h2 id="fwp-confirm-complete-title">Complete this inspection and lock charge entries?</h2>
+              <p>
+                Once you complete the inspection, no additional evidence, damage records, or extra fees can be added.
+              </p>
+              <div className="fwp-modal-summary">
+                <div><span>Evidence files</span><strong>{detail.evidence.length}</strong></div>
+                <div><span>Damage records</span><strong>{detail.damages.length}</strong></div>
+                <div><span>Extra fees</span><strong>{detail.extraFees.length}</strong></div>
+              </div>
+              {detail.damages.length === 0 && detail.extraFees.length === 0 && (
+                <div className="fwp-banner fwp-banner-warning">
+                  <ShieldAlert size={18} />
+                  <div>
+                    <strong>No damage or extra fees recorded yet.</strong>
+                    <span>If the unit has any damage or extra charges, cancel and record them before completing.</span>
+                  </div>
+                </div>
+              )}
+              <dl className="fwp-detail-grid">
+                <div><dt>Contract</dt><dd><EmployeeEntityLabel kind="contract" id={detail.contractId} /></dd></div>
+                <div><dt>Condition note</dt><dd>{conditionNote.trim()}</dd></div>
+              </dl>
+              <div className="fwp-modal-actions">
+                <button
+                  type="button"
+                  className="fwp-button fwp-button-secondary"
+                  disabled={busy === 'complete'}
+                  onClick={() => setConfirmCompleteOpen(false)}
+                >
+                  Go back to edit
+                </button>
+                <button
+                  type="button"
+                  className="fwp-button fwp-button-primary"
+                  disabled={busy === 'complete'}
+                  onClick={() => void confirmCompleteInspection()}
+                >
+                  {busy === 'complete' ? 'Completing…' : 'Confirm & Complete Inspection'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </EmployeeModal>
+      )}
+
+      {previewEvidenceItem && detail && (
+        <EmployeeModal
+          labelledBy="fwp-evidence-preview-title"
+          onClose={() => setPreviewEvidenceItem(null)}
+        >
+          <div
+            className="fwp-modal-backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setPreviewEvidenceItem(null)
+            }}
+          >
+            <div className="fwp-modal-card">
+              <h2 id="fwp-evidence-preview-title">
+                {previewRecord?.fileName || `${previewEvidenceItem.evidenceType} Evidence Preview`}
+              </h2>
+              <p>
+                Uploaded {formatUtcDateTime(previewEvidenceItem.createdAt)} · Type: {previewEvidenceItem.evidenceType}
+                {previewRecord ? ` · ${formatEvidenceSize(previewRecord.fileSize)}` : ''}
+              </p>
+              <div className="fwp-evidence-preview-frame">
+                {previewEvidenceItem.evidenceType === 'IMAGE' && previewUrl ? (
+                  <img src={previewUrl} alt={previewRecord?.fileName || 'Inspection evidence preview'} />
+                ) : previewEvidenceItem.evidenceType === 'VIDEO' && previewUrl ? (
+                  <video src={previewUrl} controls />
+                ) : previewUrl ? (
+                  <a className="fwp-button fwp-button-secondary" href={previewUrl} download={previewRecord?.fileName || 'evidence'}>
+                    Download / Open Document
+                  </a>
+                ) : (
+                  <p className="fwp-muted">
+                    Visual file preview is available in the uploading browser session. Server detail responses protect raw binary files and provide verified metadata below.
+                  </p>
+                )}
+              </div>
+              <dl className="fwp-detail-grid">
+                <div><dt>Contract</dt><dd><EmployeeEntityLabel kind="contract" id={detail.contractId} /></dd></div>
+                <div><dt>Storage Unit</dt><dd><EmployeeEntityLabel kind="contractUnit" id={detail.contractId} /></dd></div>
+                <div><dt>Condition note</dt><dd>{detail.conditionNote || conditionNote || '—'}</dd></div>
+                <div><dt>Claimed by</dt><dd><EmployeeEntityLabel kind="employee" id={detail.employeeId} empty={'Unclaimed'} /></dd></div>
+              </dl>
+              <div className="fwp-modal-actions">
+                <button type="button" className="fwp-button fwp-button-secondary" onClick={() => setPreviewEvidenceItem(null)}>
+                  Close preview
+                </button>
+              </div>
+            </div>
+          </div>
+        </EmployeeModal>
+      )}
     </div>
   )
 }
