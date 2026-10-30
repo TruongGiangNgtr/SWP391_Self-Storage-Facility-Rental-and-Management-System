@@ -11,8 +11,26 @@
   --frms-muted: #64748b;
   --frms-border: #e2e8f0;
   --frms-control-border: #64748b;
+  --frms-success: #166534;
+  --frms-success-soft: #f0fdf4;
+  --frms-warning: #92400e;
+  --frms-warning-soft: #fffbeb;
+  --frms-danger: #b91c1c;
+  --frms-danger-soft: #fef2f2;
+  --frms-radius-small: 8px;
   --frms-radius-control: 12px;
   --frms-radius-panel: 16px;
+  --frms-radius-pill: 999px;
+  --frms-space-xs: 4px;
+  --frms-space-sm: 8px;
+  --frms-space-md: 12px;
+  --frms-space-lg: 16px;
+  --frms-space-xl: 24px;
+  --frms-space-section: 32px;
+  --frms-font-size-headline: 30px;
+  --frms-font-size-title: 20px;
+  --frms-font-size-body: 14px;
+  --frms-shadow-panel: 0 1px 3px rgb(15 23 42 / 4%);
   --frms-font-body: Inter, sans-serif;
   --frms-font-heading: 'Plus Jakarta Sans', Inter, sans-serif;
 }
@@ -29,7 +47,7 @@
 :is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .button:hover:not(:disabled) { background: var(--frms-primary-hover); }
 :is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .button-secondary { color: var(--frms-primary); background: #fff; }
 :is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .button-secondary:hover:not(:disabled) { color: var(--frms-primary-hover); border-color: var(--frms-primary); background: var(--frms-primary-soft); }
-:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .button-danger { border-color: #b42318; background: #b42318; color: #fff; }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .button-danger { border-color: var(--frms-danger); background: var(--frms-danger); color: #fff; }
 :is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .button-danger:hover:not(:disabled) { background: #8f1c13; }
 :is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .brand-logo__mark { background: var(--frms-primary); }
 :is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) .brand-logo__suffix { color: var(--frms-primary); }
@@ -55,14 +73,14 @@
 }
 :where(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :where(main, section, form, .panel) { min-width: 0; }
 
-:is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(button, .button) { min-height: 44px; font-size: 14px; }
+:is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(button, .button) { min-height: 44px; font-size: var(--frms-font-size-body); }
 :is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
   min-height: 44px;
-  font-size: 14px;
+  font-size: var(--frms-font-size-body);
   border-radius: var(--frms-radius-control);
   border-color: var(--frms-control-border);
 }
-:is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(label, td, p) { font-size: 14px; line-height: 1.5; }
+:is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(label, td, p) { font-size: var(--frms-font-size-body); line-height: 1.5; }
 :is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(th, dt, .muted) { font-size: 13px; }
 :is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(h1, h2, h3) { letter-spacing: -.025em; }
 :is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(button, a, input, select, textarea):focus-visible { outline: 3px solid var(--frms-primary); outline-offset: 3px; }

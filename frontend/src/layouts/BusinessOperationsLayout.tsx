@@ -1,5 +1,5 @@
 import { EmployeePageTransition } from '../components/EmployeePageTransition'
-import { NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import {
   AtSign,
   Building2,
@@ -163,29 +163,24 @@ export function BusinessOperationsLayout({
           <BrandLogo inverse />
 
           <p>
-            Enterprise-grade self-storage facility management,
-            real-time access, inventory, and operational
-            intelligence.
+            Manage facilities, unit types and pricing, policies,
+            discounts, extra fees, and business reports.
           </p>
-
-          <span className="bo-footer__trust">
-            Secure · Reliable · Role-based access
-          </span>
         </div>
 
-        <div className="bo-footer__column">
-          <strong>STORAGE</strong>
-          <span>Facilities Overview</span>
-          <span>Capacity Planning</span>
-          <span>Unit Notes</span>
-        </div>
+        <nav className="bo-footer__column" aria-label="Business operations shortcuts">
+          <strong>OPERATIONS</strong>
+          <Link to={`${basePath}/facilities`}>Facilities</Link>
+          <Link to={`${basePath}/monitoring`}>Multi-Facility Monitoring</Link>
+          <Link to={`${basePath}/reports`}>Reports</Link>
+        </nav>
 
-        <div className="bo-footer__column">
-          <strong>SUPPORT</strong>
-          <span>Help Center</span>
-          <span>Operations Guide</span>
-          <span>Contact Support</span>
-        </div>
+        <nav className="bo-footer__column" aria-label="Business configuration shortcuts">
+          <strong>CONFIGURATION</strong>
+          <Link to={`${basePath}/unit-types`}>Unit Types &amp; Pricing</Link>
+          <Link to={`${basePath}/policies`}>Policies</Link>
+          <Link to={`${basePath}/discounts`}>Discount &amp; Extra Fee</Link>
+        </nav>
 
         <div className="bo-footer__column">
           <strong>ACCOUNT</strong>
@@ -207,15 +202,10 @@ export function BusinessOperationsLayout({
 
       <div className="bo-footer__bottom">
         <span>
-          © 2026 FStoRent. All rights reserved. Built with
-          institutional-grade security.
+          © 2026 FStoRent. All rights reserved.
         </span>
 
-        <div>
-          <span>Privacy Policy</span>
-          <span>Terms of Service</span>
-          <span>Build 2026.04.12</span>
-        </div>
+        <span>Business Operations Manager workspace</span>
       </div>
     </footer>
   </div>

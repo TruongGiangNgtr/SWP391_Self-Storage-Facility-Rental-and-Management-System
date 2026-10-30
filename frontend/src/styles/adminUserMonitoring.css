@@ -2,13 +2,13 @@
    keeping System Administrator feature styles isolated from Manager CSS. */
 
 .awp01-page {
-  --awp01-bg: #ffffff;
-  --awp01-soft: #f8fafc;
-  --awp01-border: #e2e8f0;
-  --awp01-text: #0f172a;
-  --awp01-muted: #64748b;
+  --awp01-bg: var(--frms-surface);
+  --awp01-soft: var(--frms-canvas);
+  --awp01-border: var(--frms-border);
+  --awp01-text: var(--frms-text);
+  --awp01-muted: var(--frms-secondary);
   --awp01-primary: var(--frms-primary);
-  --awp01-danger: #b91c1c;
+  --awp01-danger: var(--frms-danger);
 
   min-width: 0;
   display: grid;

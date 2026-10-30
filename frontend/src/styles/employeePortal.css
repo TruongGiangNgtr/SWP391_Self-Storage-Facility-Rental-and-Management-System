@@ -4,22 +4,22 @@
    Repeated shell specificity keeps feature styles from overriding these tokens. */
 :is(.staff-shell, .manager-shell) {
   --employee-text: var(--frms-text);
-  --employee-muted: #475569;
+  --employee-muted: var(--frms-secondary);
   --employee-border: #dce3ed;
   --employee-primary: var(--frms-primary);
-  --employee-radius: 12px;
-  --employee-padding: 20px;
-  --employee-shadow: 0 1px 3px rgb(15 23 42 / 6%);
+  --employee-radius: var(--frms-radius-panel);
+  --employee-padding: var(--frms-space-xl);
+  --employee-shadow: var(--frms-shadow-panel);
   --employee-status-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3C/svg%3E");
   --manager-muted: var(--employee-muted);
   --manager-primary: var(--employee-primary);
   color: var(--employee-text);
-  font-size: 14px;
+  font-size: var(--frms-font-size-body);
   line-height: 1.5;
 }
 
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :where(p, span, small, dt, dd, label, td, th, strong, input, select, textarea, button, a) {
-  font-size: 14px;
+  font-size: var(--frms-font-size-body);
 }
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :where(p, span, small, dt, dd, label, td, th, strong) {
   color: inherit;
@@ -33,8 +33,8 @@
   color: var(--employee-muted);
   font-size: 13px;
 }
-:is(.staff-shell.staff-shell, .manager-shell.manager-shell) h1 { font-size: clamp(26px, 2.2vw, 32px); line-height: 1.2; }
-:is(.staff-shell.staff-shell, .manager-shell.manager-shell) h2 { font-size: 20px; line-height: 1.3; }
+:is(.staff-shell.staff-shell, .manager-shell.manager-shell) h1 { font-size: var(--frms-font-size-headline); line-height: 1.25; }
+:is(.staff-shell.staff-shell, .manager-shell.manager-shell) h2 { font-size: var(--frms-font-size-title); line-height: 1.3; }
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) h3 { font-size: 17px; line-height: 1.4; }
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) .brand-logo__wordmark { font-size: 18px; }
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) .brand-logo__wordmark > span { font-size: inherit; }
@@ -62,8 +62,8 @@
   gap: 6px;
   min-height: 28px;
   max-width: 100%;
-  padding: 4px 9px;
-  border-radius: 999px;
+  padding: var(--frms-space-xs) 9px;
+  border-radius: var(--frms-radius-pill);
   color: var(--employee-status-text, #334155);
   background: var(--employee-status-bg, #f1f5f9);
   font-size: 13px;
@@ -83,32 +83,32 @@
 :is(.staff-shell, .manager-shell) .status-badge .flow-icon { display: none; }
 
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-active, .mop-status-active, .physical-status-active, .mwp05-status--active, .status-available, .mop-status-available, .physical-status-available, .mwp05-status--available, .status-paid, .mop-status-paid, .physical-status-paid, .mwp05-status--paid, .status-success, .mop-status-success, .physical-status-success, .mwp05-status--success, .status-approved, .mop-status-approved, .physical-status-approved, .mwp05-status--approved, .status-completed, .mop-status-completed, .physical-status-completed, .mwp05-status--completed, .status-checked-out, .mop-status-checked-out, .physical-status-checked-out, .mwp05-status--checked-out, .status-finalized, .mop-status-finalized, .physical-status-finalized, .mwp05-status--finalized, .handover-unit-title-row > span) {
-  --employee-status-text: #166534;
-  --employee-status-bg: #ecfdf3;
+  --employee-status-text: var(--frms-success);
+  --employee-status-bg: var(--frms-success-soft);
   --employee-status-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%206%209%2017l-5-5%22%2F%3E%3C%2Fsvg%3E");
 }
 
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-checked-in, .mop-status-checked-in, .physical-status-checked-in, .mwp05-status--checked-in, .status-confirmed, .mop-status-confirmed, .physical-status-confirmed, .mwp05-status--confirmed, .status-scheduled, .mop-status-scheduled, .physical-status-scheduled, .mwp05-status--scheduled, .status-pending, .mop-status-pending, .physical-status-pending, .mwp05-status--pending, .status-pending-deposit, .mop-status-pending-deposit, .physical-status-pending-deposit, .mwp05-status--pending-deposit, .status-inspection, .mop-status-inspection, .physical-status-inspection, .mwp05-status--inspection, .status-in-progress, .mop-status-in-progress, .physical-status-in-progress, .mwp05-status--in-progress, .status-open, .mop-status-open, .physical-status-open, .mwp05-status--open, .handover-ready-badge) {
-  --employee-status-text: #854d0e;
-  --employee-status-bg: #fffbeb;
+  --employee-status-text: var(--frms-warning);
+  --employee-status-bg: var(--frms-warning-soft);
   --employee-status-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%208v4l3%202M22%2012a10%2010%200%201%201-20%200%2010%2010%200%200%201%2020%200%22%2F%3E%3C%2Fsvg%3E");
 }
 
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-in-use, .mop-status-in-use, .physical-status-in-use, .mwp05-status--in-use) {
-  --employee-status-text: #1e40af;
+  --employee-status-text: var(--frms-primary-hover);
   --employee-status-bg: var(--frms-primary-soft);
   --employee-status-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2021V3h13v18M9%2012h1M2%2021h20%22%2F%3E%3C%2Fsvg%3E");
 }
 
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-maintenance, .mop-status-maintenance, .physical-status-maintenance, .mwp05-status--maintenance, .status-inactive, .mop-status-inactive, .physical-status-inactive, .mwp05-status--inactive, .status-locked, .mop-status-locked, .physical-status-locked, .mwp05-status--locked, .status-released, .mop-status-released, .physical-status-released, .mwp05-status--released, .status-replaced, .mop-status-replaced, .physical-status-replaced, .mwp05-status--replaced, .status-consumed, .mop-status-consumed, .physical-status-consumed, .mwp05-status--consumed) {
-  --employee-status-text: #334155;
-  --employee-status-bg: #f1f5f9;
+  --employee-status-text: var(--frms-secondary);
+  --employee-status-bg: var(--frms-canvas);
   --employee-status-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M5%205l14%2014M19%205%205%2019%22%2F%3E%3C%2Fsvg%3E");
 }
 
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-failed, .mop-status-failed, .physical-status-failed, .mwp05-status--failed, .status-overdue, .mop-status-overdue, .physical-status-overdue, .mwp05-status--overdue, .status-cancelled, .mop-status-cancelled, .physical-status-cancelled, .mwp05-status--cancelled, .status-rejected, .mop-status-rejected, .physical-status-rejected, .mwp05-status--rejected, .status-terminated, .mop-status-terminated, .physical-status-terminated, .mwp05-status--terminated, .status-unpaid, .mop-status-unpaid, .physical-status-unpaid, .mwp05-status--unpaid) {
-  --employee-status-text: #991b1b;
-  --employee-status-bg: #fef2f2;
+  --employee-status-text: var(--frms-danger);
+  --employee-status-bg: var(--frms-danger-soft);
   --employee-status-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%208v5m0%203h.01M12%203%202%2021h20L12%203%22%2F%3E%3C%2Fsvg%3E");
 }
 
@@ -125,7 +125,7 @@
 .manager-shell.manager-shell .physical-row-actions { flex-wrap: wrap; justify-content: flex-start; }
 .manager-shell.manager-shell .physical-row-actions button span { display: inline; }
 .manager-shell.manager-shell .physical-facility-id { color: var(--frms-primary) !important; }
-.manager-shell.manager-shell .handover-reservation-card > div:first-child :is(strong, span) { color: var(--employee-text); font-size: 14px; }
+.manager-shell.manager-shell .handover-reservation-card > div:first-child :is(strong, span) { color: var(--employee-text); font-size: var(--frms-font-size-body); }
 .manager-shell.manager-shell .handover-reservation-card > div:first-child > span { color: var(--employee-muted); font-size: 13px; }
 .manager-shell.manager-shell .handover-selection-summary > div:first-child > span { color: var(--frms-primary); font-size: 13px; }
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.handover-empty, .mop-empty, .physical-dialog-loading, .fwp-pagination, .fwp-toolbar-note) { color: var(--employee-muted); }
@@ -139,9 +139,9 @@
 .staff-flow .handover-operation { display: grid; gap: 20px; }
 .staff-flow .handover-operation > .panel { padding: 0; border: 0; box-shadow: none; }
 .staff-flow .handover-operation .form-grid { gap: 20px; }
-.staff-flow .handover-operation .receipt-confirmation { padding: 16px; border: 1px solid #b8c8f3; border-radius: 10px; background: #f3f6ff; }
+.staff-flow .handover-operation .receipt-confirmation { padding: var(--frms-space-lg); border: 1px solid #b8c8f3; border-radius: var(--frms-radius-control); background: #f3f6ff; }
 .staff-flow .handover-operation .receipt-confirmation input { width: 24px; height: 24px; flex-basis: 24px; }
-.staff-flow .employee-discount { border-top: 1px solid var(--employee-border); padding-top: 16px; }
+.staff-flow .employee-discount { border-top: 1px solid var(--employee-border); padding-top: var(--frms-space-lg); }
 .staff-flow .employee-discount summary { cursor: pointer; color: var(--frms-primary); font-weight: 650; padding-block: 10px; }
 .staff-flow .employee-discount footer { margin-top: 12px; }
 .staff-shell.staff-shell .fwp-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -152,7 +152,7 @@
     position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
   }
   .manager-shell.manager-shell .physical-table :is(tbody, tr, td) { display: block; width: 100%; }
-  .manager-shell.manager-shell .physical-table tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 16px; gap: 12px; border-bottom: 1px solid var(--employee-border); }
+  .manager-shell.manager-shell .physical-table tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: var(--frms-space-lg); gap: var(--frms-space-md); border-bottom: 1px solid var(--employee-border); }
   .manager-shell.manager-shell .physical-table td { border: 0; padding: 0; min-width: 0; }
   .manager-shell.manager-shell .physical-table td:last-child { grid-column: 1 / -1; }
   .manager-shell.manager-shell .handover-unit-card { grid-template-columns: auto minmax(0, 1fr); }
@@ -165,14 +165,14 @@
 @media (max-width: 1020px) {
   :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.staff-body, .manager-body) { display: block; padding: 0; }
   :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.staff-profile, .manager-profile) { display: none; }
-  :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.staff-nav, .manager-nav) { display: flex; flex-direction: row; overflow-x: auto; margin: 0; padding-bottom: 4px; }
+  :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.staff-nav, .manager-nav) { display: flex; flex-direction: row; overflow-x: auto; margin: 0; padding-bottom: var(--frms-space-xs); }
   :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.staff-nav-link, .manager-nav-link) { flex: 0 0 auto; white-space: nowrap; }
   :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.staff-sidebar, .manager-sidebar) { padding: 10px 14px; margin: 0; border-width: 0 0 1px; border-radius: 0; box-shadow: none; }
   :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.staff-main, .manager-main) { padding: 20px; }
-  .manager-shell.manager-shell .handover-heading-row { flex-direction: column; gap: 16px; }
+  .manager-shell.manager-shell .handover-heading-row { flex-direction: column; gap: var(--frms-space-lg); }
 }
 @media (max-width: 760px) {
-  :is(.staff-shell.staff-shell, .manager-shell.manager-shell) { --employee-padding: 16px; }
+  :is(.staff-shell.staff-shell, .manager-shell.manager-shell) { --employee-padding: var(--frms-space-lg); }
   .staff-shell.staff-shell .fwp-inspection-list { max-height: 240px; }
 }
 @media (max-width: 480px) {
