@@ -1,0 +1,172 @@
+
+/* My Contracts uses the approved Overview shell; all financial values stay read-only. */
+:is(.frms-customer.customer-shell.contracts-editorial-shell, .frms-customer.flow-dialog.contracts-editorial-dialog) {
+  --flow-text: #102f50; --flow-muted: #526880; --flow-brand: #245ce0; --flow-border: #dce5ee;
+  & .flow-page { gap: 28px; }
+  & .narrow-page { max-width: none; }
+  & :is(.page-heading, .contract-detail-heading, .tracking-page-heading) { padding: 0 0 8px; margin: 0; border: 0; gap: 24px; }
+  & :is(.page-heading, .contract-detail-heading, .tracking-page-heading) h1 { margin: 0; color: #102f50; font-size: clamp(30px, 2.8vw, 40px); font-weight: 700; line-height: 1.2; letter-spacing: -.035em; text-shadow: none; overflow-wrap: anywhere; }
+  & :is(.page-heading, .contract-detail-heading, .tracking-page-heading) p.muted { margin: 12px 0 0; max-width: 68ch; color: #526880; font-size: 14px; line-height: 1.75; }
+  & :is(.page-heading, .contract-detail-heading, .tracking-page-heading) .contracts-area-label { margin: 0 0 12px; color: #526880; font-size: 12px; font-weight: 600; letter-spacing: .035em; }
+  & :is(.button, .contracts-text-link, .contracts-text-button, .contracts-card-meta > a, .contract-detail-text-link, .contract-detail-text-button, .tracking-text-link, .renewal-refresh) { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; height: auto; width: auto; max-width: 100%; padding: 8px 14px; border: 1px solid #b7c8d9; border-radius: 5px; background: #fff; color: #173e69; font-size: 12px; font-weight: 600; line-height: 20px; text-decoration: none; box-shadow: 0 2px 3px #102f5005; }
+  & :is(.button, .contracts-text-link, .contracts-text-button, .contracts-card-meta > a, .contract-detail-text-link, .contract-detail-text-button, .tracking-text-link, .renewal-refresh):hover:not(:disabled) { background: #f4f8fd; border-color: #6486ac; text-decoration: none; }
+  & .button:not(.button-secondary):not(.button-danger) { background: #245ce0; color: #fff; border-color: #245ce0; box-shadow: 0 4px 8px #245ce01a; }
+  & .button:not(.button-secondary):not(.button-danger):hover:not(:disabled) { background: #194bc5; border-color: #194bc5; }
+  & :is(button, .button):disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+  & :is(input, select, textarea) { border: 1px solid #bacbdb; border-radius: 5px; background: #fff; color: #24415f; font-size: 13px; caret-color: #245ce0; }
+  & :is(input, select) { min-height: 44px; padding: 10px 12px; }
+  & :is(input, textarea)::placeholder { color: #73869a; opacity: 1; }
+  & :is(input, select, textarea)[aria-invalid='true'] { border-color: #b91c1c; }
+  & .form-field label { font-size: 12px; color: #24415f; font-weight: 600; }
+  & :is(a, button, input, select, textarea, summary):focus-visible { outline: 3px solid #245ce0; outline-offset: 4px; }
+  & .customer-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 0 18px; margin: 0; border-color: #dce5ee; }
+  & .customer-tabs button { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; margin: 0; padding: 8px 12px; border: 0; border-radius: 5px; background: #f3f6fa; color: #526880; font-size: 12px; }
+  & .customer-tabs button[aria-selected='true'] { background: #102f50; color: #fff; }
+  & .customer-tabs button[aria-selected='true'] .customer-tab-count { color: #fff; background: #36536f; }
+  & [id] { scroll-margin-top: 96px; }
+}
+.frms-customer.customer-shell.contracts-editorial-shell {
+  background: #fff;
+  & .contracts-heading { align-items: center; }
+  & .rental-list-filters { margin: 0; }
+  & .contracts-filter-form { margin: 0; padding: 22px; gap: 16px; border: 1px solid #dce5ee; border-radius: 10px; background: #f6f9fc; box-shadow: none; }
+  & .contracts-search input { padding-left: 38px; }
+  & .contracts-list-summary { margin: 0; gap: 16px; }
+  & .contracts-list-summary p { color: #62768b; font-size: 12px; line-height: 1.8; }
+  & .contracts-list-summary > div { gap: 8px; }
+  & :is(.contracts-card-list, .contracts-sections) { gap: 24px; }
+  & .contracts-card { padding: 26px; gap: 24px; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; box-shadow: 0 12px 24px -22px #15365a80; }
+  & .contracts-card-heading { gap: 18px; padding-bottom: 22px; border-color: #e2e9f1; }
+  & .contracts-card-heading > .contracts-icon { display: none; }
+  & .contracts-card-heading h2 { position: relative; padding-left: 14px; color: #102f50; font-size: 22px; line-height: 1.4; }
+  & .contracts-card-heading h2::before { content: ''; position: absolute; inset: 3px auto 3px 0; width: 3px; border-radius: 2px; background: #245ce0; }
+  & .contracts-card-meta { gap: 8px 16px; margin-top: 10px; }
+  & .contracts-card-meta > a { min-height: 32px; padding: 4px 10px; font-size: 11px; }
+  & .contracts-card-links { gap: 8px; }
+  & .contracts-facts { gap: 20px; padding-block: 0; border: 0; }
+  & .contracts-facts > div { padding: 4px 0; border: 0; border-radius: 0; background: transparent; }
+  & .contracts-facts > div:nth-child(2) { padding: 12px 16px; border-left: 3px solid #245ce0; border-radius: 0 6px 6px 0; background: #f3f7fc; }
+  & .contracts-facts dt { margin-bottom: 12px; font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; color: #62768b; }
+  & .contracts-facts dt svg { display: none; }
+  & .contracts-facts dd { font-size: 19px; line-height: 1.5; color: #102f50; }
+  & .contracts-facts > div:nth-child(2) dd { font-size: 16px; }
+  & .contracts-fact-footer { padding-top: 0; margin-top: 10px; color: #62768b; font-size: 11px; line-height: 1.8; }
+  & .contracts-callout { padding: 16px; border: 0; border-radius: 6px; background: #f6f9fc; color: #526880; }
+  & .contracts-callout p { font-size: 12px; line-height: 1.8; }
+  & :is(.contracts-actions, .contracts-history-footer) { padding-top: 20px; border-color: #e2e9f1; gap: 14px; }
+  & :is(.contracts-secondary-actions, .contracts-primary-actions) { gap: 8px; }
+  & .contracts-history .contracts-section-heading h2 { position: relative; padding-left: 14px; color: #102f50; font-size: 23px; }
+  & .contracts-history .contracts-section-heading h2::before { content: ''; position: absolute; inset: 3px auto 3px 0; width: 3px; border-radius: 2px; background: #b7c8d9; }
+  & .contracts-history .contracts-section-heading p { color: #62768b; font-size: 13px; }
+  & .contracts-charges { padding: 26px; gap: 24px; border: 1px solid #dce5ee; border-radius: 12px; background: #f6f9fc; box-shadow: none; }
+  & .contracts-charges h2 { color: #102f50; font-size: 21px; }
+  & .contracts-charges select { max-width: 100%; }
+  & .contract-detail-navigation { margin: 0; gap: 12px; }
+  & .contract-detail-heading > div { gap: 16px; }
+  & .rental-contract-summary { padding: 28px; border: 1px solid #102f50; border-radius: 12px; background: #102f50; color: #fff; box-shadow: 0 16px 28px -24px #15365a80; }
+  & .rental-contract-summary dl { gap: 24px; padding: 0; margin: 0; border: 0; background: transparent; }
+  & .rental-contract-summary dt { color: #c1d2e4; font-size: 11px; }
+  & .rental-contract-summary dd { margin-top: 12px; color: #fff; font-size: 21px; line-height: 1.5; }
+  & .contract-detail-access { padding-top: 22px; margin-top: 24px; border-color: #36536f; gap: 20px; }
+  & .contract-detail-access .muted { color: #c1d2e4; font-size: 12px; }
+  & .contract-detail-banner { padding: 18px; border: 0; border-left: 3px solid #245ce0; border-radius: 0 6px 6px 0; background: #f3f7fc; }
+  & .contract-detail-banner h2 { color: #173e69; font-size: 16px; }
+  & .contract-detail-banner p { color: #526880; font-size: 12px; line-height: 1.8; }
+  & .contract-detail-columns { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 28px; }
+  & .contract-detail-stack { gap: 24px; }
+  & .contract-detail-card { padding: 26px; gap: 22px; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; box-shadow: 0 12px 24px -22px #15365a80; }
+  & .contract-detail-card-heading { padding-bottom: 18px; border-color: #e2e9f1; gap: 10px; }
+  & .contract-detail-card-heading h2 { position: relative; padding-left: 12px; color: #102f50; font-size: 20px; }
+  & .contract-detail-card-heading h2::before { content: ''; position: absolute; inset: 3px auto 3px 0; width: 3px; border-radius: 2px; background: #245ce0; }
+  & .contract-detail-card-heading > svg { display: none; }
+  & .contract-detail-facts { gap: 24px; }
+  & .contract-detail-facts > div { padding: 0; border: 0; border-radius: 0; background: transparent; }
+  & .contract-detail-facts dt { color: #62768b; font-size: 11px; }
+  & .contract-detail-facts dd { color: #102f50; font-size: 14px; line-height: 1.7; }
+  & .contract-detail-facts dd.contract-detail-rent { color: #102f50; font-size: 24px; }
+  & :is(.contract-detail-info, .contract-detail-unit) { padding: 18px; border: 0; border-radius: 6px; background: #f3f7fc; color: #526880; }
+  & .contract-detail-unit strong { color: #102f50; font-size: 26px; }
+  & .contract-detail-deposit > strong { color: #102f50; font-size: 26px; }
+  & .contract-detail-actions { gap: 10px; }
+  & .contract-detail-help { background: #f6f9fc; box-shadow: none; }
+  & .tracking-navigation { justify-content: flex-start; margin: 0; gap: 10px; }
+  & .tracking-contract { padding: 24px; border: 1px solid #dce5ee; border-radius: 12px; background: #f6f9fc; box-shadow: none; }
+  & .tracking-contract h2 { color: #62768b; font-size: 12px; }
+  & .tracking-contract-heading p { color: #102f50; font-size: 17px; }
+  & .tracking-contract .tracking-notice { background: #fff; }
+  & .tracking-columns { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 28px; }
+  & .tracking-stack { gap: 24px; }
+  & :is(.tracking-card, .tracking-summary-status) { padding: 26px; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; box-shadow: 0 12px 24px -22px #15365a80; }
+  & .tracking-card-heading { padding-bottom: 18px; gap: 10px; border-color: #e2e9f1; }
+  & .tracking-card-heading h3 { position: relative; padding-left: 12px; color: #102f50; font-size: 20px; }
+  & .tracking-card-heading h3::before { content: ''; position: absolute; inset: 3px auto 3px 0; width: 3px; border-radius: 2px; background: #245ce0; }
+  & .tracking-card-heading > svg { display: none; }
+  & .tracking-record { padding: 20px; margin: 0; border: 1px solid #e2e9f1; border-radius: 8px; background: #f7f9fc; gap: 18px; }
+  & .tracking-record:is(:first-of-type, :last-child) { padding: 20px; border: 1px solid #e2e9f1; }
+  & :is(.tracking-settlement, .tracking-late-fees) { top: 96px; }
+  & .tracking-record h4 { color: #102f50; font-size: 15px; }
+  & .tracking-facts { gap: 22px; }
+  & .tracking-facts dt { color: #62768b; font-size: 11px; }
+  & .tracking-facts dd { color: #102f50; font-size: 15px; line-height: 1.7; }
+  & .tracking-facts dd .tracking-text-link { margin: 0; }
+  & :is(.tracking-note, .tracking-completed) { color: #62768b; font-size: 12px; line-height: 1.8; }
+  & :is(.tracking-notice, .tracking-condition-note) { padding: 16px; border: 0; border-radius: 6px; background: #f3f7fc; color: #526880; font-size: 12px; line-height: 1.8; }
+  & .tracking-warning { background: #fff8e9; color: #805417; }
+  & .tracking-settlement-metrics { gap: 16px; }
+  & .tracking-settlement-metrics > div { padding: 20px; border: 1px solid #e2e9f1; border-radius: 8px; background: #f6f9fc; }
+  & .tracking-settlement-metrics dd { color: #102f50; font-size: 26px; font-variant-numeric: tabular-nums; }
+  & .tracking-refund dd { color: #047857; }
+}
+:is(.frms-customer.customer-shell.contracts-editorial-shell, .frms-customer.flow-dialog.contracts-editorial-dialog) {
+  & .renewal-context { padding: 26px; border: 1px solid #102f50; border-radius: 12px; background: #102f50; box-shadow: 0 12px 24px -22px #15365a80; }
+  & .renewal-context :is(h2, dd) { color: #fff; }
+  & .renewal-context :is(dt, .renewal-label) { color: #c1d2e4; }
+  & .renewal-context-heading { border-color: #36536f; margin-bottom: 22px; gap: 16px; }
+  & .renewal-context-heading h2 { font-size: 23px; line-height: 1.4; }
+  & .renewal-facts { gap: 24px; }
+  & .renewal-facts dt { font-size: 11px; }
+  & .renewal-facts dd { font-size: 17px; line-height: 1.7; }
+  & .renewal-form { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+  & :is(.renewal-selection, .renewal-summary) { padding: 26px; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; box-shadow: 0 12px 24px -22px #15365a80; }
+  & .renewal-selection .renewal-facts { padding: 20px; border: 0; border-left: 3px solid #245ce0; border-radius: 0 6px 6px 0; background: #f3f7fc; }
+  & .renewal-summary { background: #f6f9fc; }
+  & .renewal-summary h2 { position: relative; padding-left: 14px; color: #102f50; font-size: 21px; }
+  & .renewal-summary h2::before { content: ''; position: absolute; inset: 3px auto 3px 0; width: 3px; border-radius: 2px; background: #245ce0; }
+  & .renewal-summary dl { gap: 18px; }
+  & .renewal-summary dt { color: #62768b; font-size: 11px; }
+  & .renewal-summary dd { color: #102f50; font-size: 14px; line-height: 1.7; }
+  & .renewal-summary p { color: #526880; font-size: 12px; line-height: 1.8; }
+  & :is(.renewal-helper, .renewal-continuity) { color: #526880; font-size: 12px; line-height: 1.8; }
+  & .renewal-continuity { padding: 18px; border: 0; border-left: 3px solid #245ce0; border-radius: 0 6px 6px 0; background: #f3f7fc; }
+  & .renewal-confirmation { padding: 26px; border: 1px solid #b9ddcf; border-left: 3px solid #18805c; border-radius: 8px; background: #f2faf6; box-shadow: none; }
+  & .renewal-confirmation h2 { color: #145a43; font-size: 22px; }
+  & .renewal-confirmation dd { color: #102f50; font-size: 20px; }
+  & .renewal-actions { padding-top: 22px; gap: 10px; border-color: #dce5ee; background: transparent; }
+}
+.frms-customer.flow-dialog.customer-renewal.contracts-editorial-dialog {
+  padding: 30px; background: #fff; border: 1px solid #dce5ee; border-radius: 14px; color: #102f50; box-shadow: 0 28px 70px -24px #102b4e80;
+  &::backdrop { background: #102f5066; backdrop-filter: blur(2px); }
+  & .flow-dialog-heading { padding-bottom: 20px; gap: 14px; border-color: #e2e9f1; }
+  & .flow-dialog-heading h1 { color: #102f50; font-size: 28px; line-height: 1.3; }
+  & .dialog-subtitle { margin: 0; color: #526880; font-size: 14px; line-height: 1.75; }
+  & .flow-dialog-heading-icon { width: 44px; height: 44px; border-radius: 8px; background: #eef4fc; color: #245ce0; }
+  & .customer-action-content { gap: 24px; }
+  & .renewal-actions { background: transparent; }
+  & .renewal-context { background: #102f50; }
+  & .renewal-summary { background: #f6f9fc; }
+  & .renewal-selection { background: #fff; }
+  & .renewal-confirmation { background: #f2faf6; }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .frms-customer.customer-shell.contracts-editorial-shell {
+    & .contracts-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    & .contracts-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    & :is(.contract-detail-columns, .tracking-columns) { grid-template-columns: minmax(0, 1fr); }
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .frms-customer.customer-shell.contracts-editorial-shell .contracts-card { transition: box-shadow .2s ease; }
+  .frms-customer.customer-shell.contracts-editorial-shell .contracts-card:hover { box-shadow: 0 18px 30px -22px #15365a80; }
+  :is(.frms-customer.customer-shell.contracts-editorial-shell, .frms-customer.flow-dialog.contracts-editorial-dialog) :is(.button, .contracts-text-link, .contracts-text-button, .contract-detail-text-link, .contract-detail-text-button, .tracking-text-link, .renewal-refresh) { transition: transform .18s ease, background-color .18s ease; }
+  :is(.frms-customer.customer-shell.contracts-editorial-shell, .frms-customer.flow-dialog.contracts-editorial-dialog) :is(.button, .contracts-text-link, .contracts-text-button, .contract-detail-text-link, .contract-detail-text-button, .tracking-text-link, .renewal-refresh):hover:not(:disabled) { transform: translateY(-2px); }
+}
