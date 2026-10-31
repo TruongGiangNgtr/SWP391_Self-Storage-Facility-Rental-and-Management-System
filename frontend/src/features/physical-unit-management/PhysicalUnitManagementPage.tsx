@@ -211,7 +211,7 @@ export function PhysicalUnitManagementPage() {
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(12)
+  const PAGE_SIZE = 12
   const [statusFilter, setStatusFilter] = useState<'ALL' | StorageUnitStatus>('ALL')
   const [unitTypeFilter, setUnitTypeFilter] = useState('ALL')
   const [isLoading, setIsLoading] = useState(true)
@@ -363,12 +363,12 @@ export function PhysicalUnitManagementPage() {
     return counts
   }, [units])
 
-  const totalPages = Math.max(1, Math.ceil(filteredUnits.length / pageSize))
+  const totalPages = Math.max(1, Math.ceil(filteredUnits.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
   const visibleUnits = useMemo(() => {
-    const start = (safePage - 1) * pageSize
-    return filteredUnits.slice(start, start + pageSize)
-  }, [filteredUnits, safePage, pageSize])
+    const start = (safePage - 1) * PAGE_SIZE
+    return filteredUnits.slice(start, start + PAGE_SIZE)
+  }, [filteredUnits, safePage])
 
   function closeDialog() {
     if (isSubmitting) {
@@ -829,12 +829,8 @@ export function PhysicalUnitManagementPage() {
               visibleUnits={visibleUnits}
               page={safePage}
               totalPages={totalPages}
-              pageSize={pageSize}
+              pageSize={PAGE_SIZE}
               onPageChange={setPage}
-              onPageSizeChange={(newSize) => {
-                setPageSize(newSize)
-                setPage(1)
-              }}
               unitTypeCache={unitTypeCache}
               onOpenDetail={openDetail}
               onOpenEdit={openEdit}

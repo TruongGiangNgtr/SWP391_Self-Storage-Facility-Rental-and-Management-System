@@ -31,9 +31,8 @@ export interface NeonUnitGridProps {
   visibleUnits: StorageUnit[]
   page: number
   totalPages: number
-  pageSize: number
+  pageSize?: number
   onPageChange: (page: number) => void
-  onPageSizeChange: (pageSize: number) => void
   unitTypeCache: Record<string, UnitTypeInfo>
   onOpenDetail: (unit: StorageUnit) => void
   onOpenEdit: (unit: StorageUnit) => void
@@ -61,9 +60,8 @@ export function NeonUnitGrid({
   visibleUnits,
   page,
   totalPages,
-  pageSize,
+  pageSize = 12,
   onPageChange,
-  onPageSizeChange,
   unitTypeCache,
   onOpenDetail,
   onOpenEdit,
@@ -289,64 +287,48 @@ export function NeonUnitGrid({
             </span>
           </div>
 
-          <div className="neon-pagination-actions">
-            <div className="neon-page-size-selector">
-              <label htmlFor="neon-page-size">Mỗi trang:</label>
-              <select
-                id="neon-page-size"
-                value={pageSize}
-                onChange={(e) => onPageSizeChange(Number(e.target.value))}
+          {totalPages > 1 && (
+            <nav className="neon-page-nav" aria-label="Điều hướng phân trang ô kho">
+              <button
+                type="button"
+                className="neon-nav-btn"
+                disabled={page <= 1}
+                onClick={() => onPageChange(page - 1)}
+                title="Trang trước"
               >
-                <option value={12}>12 ô</option>
-                <option value={24}>24 ô</option>
-                <option value={48}>48 ô</option>
-                <option value={96}>96 ô</option>
-              </select>
-            </div>
+                <ChevronLeft size={16} />
+                <span>Trước</span>
+              </button>
 
-            {totalPages > 1 && (
-              <div className="neon-page-nav">
-                <button
-                  type="button"
-                  className="neon-nav-btn"
-                  disabled={page <= 1}
-                  onClick={() => onPageChange(page - 1)}
-                  title="Trang trước"
-                >
-                  <ChevronLeft size={16} />
-                  <span>Trước</span>
-                </button>
-
-                <div className="neon-page-numbers">
-                  {getPageNumbers(page, totalPages).map((p, idx) =>
-                    p === '...' ? (
-                      <span key={`dots-${idx}`} className="neon-page-dots">…</span>
-                    ) : (
-                      <button
-                        key={`page-${p}`}
-                        type="button"
-                        className={`neon-page-btn ${page === p ? 'active' : ''}`}
-                        onClick={() => onPageChange(Number(p))}
-                      >
-                        {p}
-                      </button>
-                    )
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  className="neon-nav-btn"
-                  disabled={page >= totalPages}
-                  onClick={() => onPageChange(page + 1)}
-                  title="Trang kế tiếp"
-                >
-                  <span>Sau</span>
-                  <ChevronRight size={16} />
-                </button>
+              <div className="neon-page-numbers">
+                {getPageNumbers(page, totalPages).map((p, idx) =>
+                  p === '...' ? (
+                    <span key={`dots-${idx}`} className="neon-page-dots">…</span>
+                  ) : (
+                    <button
+                      key={`page-${p}`}
+                      type="button"
+                      className={`neon-page-btn ${page === p ? 'active' : ''}`}
+                      onClick={() => onPageChange(Number(p))}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
               </div>
-            )}
-          </div>
+
+              <button
+                type="button"
+                className="neon-nav-btn"
+                disabled={page >= totalPages}
+                onClick={() => onPageChange(page + 1)}
+                title="Trang kế tiếp"
+              >
+                <span>Sau</span>
+                <ChevronRight size={16} />
+              </button>
+            </nav>
+          )}
         </footer>
       )}
     </div>
