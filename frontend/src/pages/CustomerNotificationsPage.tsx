@@ -9,6 +9,7 @@ import { useNotifications } from '../features/customer-notifications/useNotifica
 import { useTransactions } from '../features/customer-transactions/useTransactions'
 import { presentValidationError } from '../api/apiErrorPresentation'
 import '../styles/customer-notifications.css'
+import '../styles/customer-overview-supporting.css'
 
 export function CustomerNotificationsPage() {
   const [params, setParams] = useSearchParams()
@@ -26,8 +27,8 @@ export function CustomerNotificationsPage() {
   }
 
   return <main className="page-container flow-page customer-notifications-page">
-    <section className="page-heading notification-page-heading"><div><h1>Notifications & History</h1><p className="muted">Review your notifications and payment history in one place.</p></div>
-      <button className="customer-icon-button" type="button" aria-label={refreshLabel} title={refreshLabel} disabled={active.loading || !validPage} onClick={active.refresh}><RefreshCw size={18} aria-hidden="true" /></button>
+    <section className="page-heading notification-page-heading"><div><p className="account-area-label">Your account activity</p><h1>Notifications & History</h1><p className="muted">Review your notifications and payment history in one place.</p></div>
+      <button className="customer-icon-button" type="button" aria-label={refreshLabel} title={refreshLabel} disabled={active.loading || !validPage} onClick={active.refresh}><RefreshCw size={18} aria-hidden="true" /><span>Refresh</span></button>
     </section>
     <CustomerTabs labels={labels} ariaLabel="Notifications and transaction history" selected={history ? 1 : 0} onChange={index => { if ((index === 1) === history) return; setParams(current => { const next = new URLSearchParams(current); next.delete('page'); if (index === 1) next.set('tab', 'history'); else next.delete('tab'); return next }) }}>{({ tabId, panelId }) => <>
       <section role="tabpanel" id={panelId(0)} aria-labelledby={tabId(0)} hidden={history} tabIndex={0}>

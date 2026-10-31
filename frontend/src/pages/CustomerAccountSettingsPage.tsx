@@ -9,6 +9,7 @@ import { CustomerFieldError } from '../components/CustomerFieldError'
 import { LoadingState } from '../components/PageStates'
 import { buildCustomerProfilePatch, readCustomerProfile, CCCD_INPUT_PATTERN, cccdValidationMessage, isValidCccd, type CustomerProfileSnapshot } from '../features/customer-profile/customerProfile'
 import '../styles/customer-account-settings.css'
+import '../styles/customer-overview-supporting.css'
 
 export function CustomerAccountSettingsPage() {
   const { user, updateCustomerProfile } = useAuth()
@@ -89,7 +90,7 @@ export function CustomerAccountSettingsPage() {
   }
 
   return <main className="page-container flow-page customer-account-settings">
-    <header className="account-page-heading"><h1>Account Settings</h1><p className="muted">Manage your personal information and account security.</p></header>
+    <header className="account-page-heading"><p className="account-area-label">Your personal space</p><h1>Account Settings</h1><p className="muted">Manage your personal information and account security.</p></header>
     <section className="panel account-profile-panel" aria-labelledby="profile-heading" aria-busy={loading || saving}>
       <div className="account-section-heading"><h2 id="profile-heading">Profile Information</h2><p className="muted">Keep your name and optional National ID up to date.</p></div>
       {loading && <LoadingState label="Loading your profile…" />}

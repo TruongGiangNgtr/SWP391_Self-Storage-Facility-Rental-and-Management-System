@@ -18,6 +18,7 @@ import '../styles/customer-overview-depth.css'
 import '../styles/customer-visits-depth.css'
 import '../styles/customer-reservations-depth.css'
 import '../styles/customer-contracts-depth.css'
+import '../styles/customer-overview-editorial.css'
 
 function Brand({ footer = false }: { footer?: boolean }) {
   return <Link className={`flow-brand ${footer ? 'flow-brand-footer' : ''}`} to="/" aria-label="FStoRent Home">
@@ -39,7 +40,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
     navigate('/auth/customer/login', { replace: true, state: null })
   }
   const { pathname } = useLocation()
-  const overviewDepthSurface = pathname === '/customer'
+  const overviewDepthSurface = ['/customer', '/customer/notifications', '/customer/account-settings'].includes(pathname)
   const contractsDepthSurface = pathname === '/customer/contracts' || /^\/customer\/contracts\/[^/]+(?:\/(renew|fees-return))?$/.test(pathname)
   const reservationsDepthSurface = pathname === '/customer/reservations' || /^\/customer\/reservations\/[^/]+(?:\/confirm)?$/.test(pathname) || pathname === '/customer/payments/result' || /^\/customer\/invoices\/[^/]+$/.test(pathname)
   const visitsDepthSurface = pathname === '/customer/visits' || /^\/customer\/visits\/[^/]+$/.test(pathname) || /^\/customer\/contracts\/[^/]+\/(access-visits|return-visits)\/new$/.test(pathname)
@@ -66,7 +67,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
     </nav>
   }
 
-  return <div className={`frms-customer customer-shell ${pathname === '/' || guestDepthSurface || overviewDepthSurface || visitsDepthSurface || reservationsDepthSurface || contractsDepthSurface ? 'home-shell' : ''} ${guestDepthSurface ? 'guest-editorial-shell' : ''} ${pathname === '/' || guestDepthSurface ? 'editorial-shell' : ''} ${overviewDepthSurface ? 'overview-depth-shell' : ''} ${visitsDepthSurface ? 'visits-depth-shell' : ''} ${reservationsDepthSurface ? 'reservations-depth-shell' : ''} ${contractsDepthSurface ? 'contracts-depth-shell' : ''} ${supportSurface || rentalSurface || financeSurface ? 'support-surface' : ''} ${rentalSurface ? 'rental-surface' : ''} ${financeSurface ? 'finance-surface' : ''} ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
+  return <div className={`frms-customer customer-shell ${pathname === '/' || guestDepthSurface || overviewDepthSurface || visitsDepthSurface || reservationsDepthSurface || contractsDepthSurface ? 'home-shell' : ''} ${guestDepthSurface ? 'guest-editorial-shell' : ''} ${pathname === '/' || guestDepthSurface || overviewDepthSurface ? 'editorial-shell' : ''} ${overviewDepthSurface ? 'overview-editorial-shell' : ''} ${visitsDepthSurface ? 'visits-depth-shell' : ''} ${reservationsDepthSurface ? 'reservations-depth-shell' : ''} ${contractsDepthSurface ? 'contracts-depth-shell' : ''} ${supportSurface || rentalSurface || financeSurface ? 'support-surface' : ''} ${rentalSurface ? 'rental-surface' : ''} ${financeSurface ? 'finance-surface' : ''} ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
     <a className="customer-skip-link" href="#customer-main">Skip to content</a>
     <header className="flow-header">
       <div className="flow-header-inner">
