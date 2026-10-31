@@ -138,7 +138,7 @@ export function VisitDetailPage() {
       <div className="visit-detail-navigation"><Link className="visit-detail-text-link" to="/customer/visits"><ArrowLeft size={16} aria-hidden="true" />Back to My Visits</Link><button className="visit-detail-text-button" type="button" disabled={loading || working} onClick={() => {
         setLoading(true); setError(null); setMode(null); void loadVisit()
       }}><RefreshCw size={14} aria-hidden="true" />{loading ? 'Refreshing…' : 'Refresh Visit'}</button></div>
-      <header className="page-heading visit-detail-heading"><h1>Visit Details</h1><p className="muted">Review your facility visit and manage its scheduled date or cancellation.</p></header>
+      <header className="page-heading visit-detail-heading"><p className="visits-area-label">Your facility appointment</p><h1>Visit Details</h1><p className="muted">Review your facility visit and manage its scheduled date or cancellation.</p></header>
       <ApiErrorAlert error={error} />
       {loading && !visit ? <LoadingState label="Loading visit..." /> : visit && <>
         {(visit.visitType === 'ACCESS' || visit.visitType === 'RESERVATION') && <VisitJourney status={visit.status} visitType={visit.visitType} />}
@@ -174,7 +174,7 @@ export function VisitDetailPage() {
         </section>
 
           {visit.status === 'SCHEDULED' && mode === 'reschedule' && (
-            <FlowDialog className="visit-reschedule-dialog" title="Reschedule Visit" subtitle="Choose a new date for this visit." category="" busy={working} trapFocus onClose={() => setMode(null)}><ApiErrorAlert error={error} /><form className="form-grid" onSubmit={handleReschedule}>
+            <FlowDialog className="visit-reschedule-dialog visits-editorial-dialog" title="Reschedule Visit" subtitle="Choose a new date for this visit." category="" busy={working} trapFocus onClose={() => setMode(null)}><ApiErrorAlert error={error} /><form className="form-grid" onSubmit={handleReschedule}>
               <CalendarDateField id="newVisitDate" label="New Visit Date" value={newVisitDate} disabled={loading || working} error={fieldErrors.date} onChange={value => { setNewVisitDate(value); setFieldErrors({}) }} />
               <p className="visit-detail-edit-hint"><Info size={16} aria-hidden="true" />The new date must follow the policy for this visit.</p>
               <div className="action-row">
@@ -189,7 +189,7 @@ export function VisitDetailPage() {
           )}
 
           {visit.status === 'SCHEDULED' && mode === 'cancel' && (
-            <section className="panel visit-detail-edit visit-detail-cancel" aria-labelledby="visit-cancel-heading"><div className="visit-detail-edit-heading"><span className="visit-detail-icon"><CircleX size={23} aria-hidden="true" /></span><h2 id="visit-cancel-heading">Cancel Visit</h2></div><form className="form-grid" onSubmit={handleCancel}>
+            <FlowDialog className="visits-editorial-dialog visit-cancel-dialog" title="Cancel Visit" subtitle="Tell us why you need to cancel this scheduled visit." category="" busy={working} trapFocus onClose={() => setMode(null)}><ApiErrorAlert error={error} /><form className="form-grid" onSubmit={handleCancel}>
               <div className="form-field">
                 <label htmlFor="visitCancelReason">Cancellation Reason</label>
                 <textarea
@@ -211,7 +211,7 @@ export function VisitDetailPage() {
                   {working ? 'Cancelling...' : 'Confirm Visit Cancellation'}
                 </button>
               </div>
-            </form></section>
+            </form></FlowDialog>
           )}
       </>}
     </main>

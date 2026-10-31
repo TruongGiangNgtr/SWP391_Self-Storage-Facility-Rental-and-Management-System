@@ -141,7 +141,7 @@ export function VisitListPage() {
     })}</div>
   }
   return <main className="page-container flow-page customer-visits">
-    <section className="page-heading visits-heading"><div><h1>My Visits</h1><p className="muted">Schedule, manage and track your facility visits for handover, storage access and return.</p></div><div className="visits-heading-actions"><Link className="button" to="/customer/contracts"><CirclePlus size={18} aria-hidden="true" />Schedule Access Visit</Link></div></section>
+    <section className="page-heading visits-heading"><div><p className="visits-area-label">Your facility appointments</p><h1>My Visits</h1><p className="muted">Schedule, manage and track your facility visits for handover, storage access and return.</p></div><div className="visits-heading-actions"><Link className="button" to="/customer/contracts"><CirclePlus size={18} aria-hidden="true" />Schedule Access Visit</Link></div></section>
     <ApiErrorAlert error={error} />
     {relatedError && <div className="panel stack"><p className="muted">Some related storage details could not be loaded. Visit dates and statuses still come from the visit service. Search and facility filters may be incomplete until you retry.</p><ApiErrorAlert error={relatedError} /><button className="button button-secondary" type="button" disabled={relatedLoading} onClick={retryContext}>Retry Storage Details</button></div>}
     <RentalListFilters><VisitFilterForm key={JSON.stringify(filters)} initial={filters} facilities={facilityOptions} onApply={applyFilters} /></RentalListFilters>
