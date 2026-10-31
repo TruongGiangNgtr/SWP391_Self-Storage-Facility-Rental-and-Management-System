@@ -1,4 +1,6 @@
 import {
+  ChevronLeft,
+  ChevronRight,
   CircleOff,
   Eye,
   MapPin,
@@ -13,7 +15,6 @@ import type { StorageUnit, StorageUnitStatus } from '../../api/storageUnitApi'
 import { Squares } from '../../components/react-bits/Squares'
 import { StatusBadge } from '../../components/StatusBadge'
 import { StorageUnitCode } from '../../components/StorageUnitCode'
-import { formatMoney } from '../../utils/formatters'
 import './NeonUnitGrid.css'
 
 export interface UnitTypeInfo {
@@ -27,6 +28,11 @@ export interface UnitTypeInfo {
 export interface NeonUnitGridProps {
   units: StorageUnit[]
   filteredUnits: StorageUnit[]
+  visibleUnits: StorageUnit[]
+  page: number
+  totalPages: number
+  pageSize?: number
+  onPageChange: (page: number) => void
   unitTypeCache: Record<string, UnitTypeInfo>
   onOpenDetail: (unit: StorageUnit) => void
   onOpenEdit: (unit: StorageUnit) => void
@@ -35,9 +41,27 @@ export interface NeonUnitGridProps {
   statusLabel: (status: StorageUnitStatus) => string
 }
 
+function getPageNumbers(current: number, total: number): (number | '...')[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1)
+  }
+  if (current <= 4) {
+    return [1, 2, 3, 4, 5, '...', total]
+  }
+  if (current >= total - 3) {
+    return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
+  }
+  return [1, '...', current - 1, current, current + 1, '...', total]
+}
+
 export function NeonUnitGrid({
   units,
   filteredUnits,
+  visibleUnits,
+  page,
+  totalPages,
+  pageSize = 12,
+  onPageChange,
   unitTypeCache,
   onOpenDetail,
   onOpenEdit,
@@ -69,6 +93,9 @@ export function NeonUnitGrid({
         return 'neon-locker-unavailable'
     }
   }
+
+  const startIdx = Math.min((page - 1) * pageSize + 1, filteredUnits.length)
+  const endIdx = Math.min(page * pageSize, filteredUnits.length)
 
   return (
     <div className="neon-grid-wrapper">
@@ -155,7 +182,7 @@ export function NeonUnitGrid({
         />
 
         <div className="neon-lockers-grid">
-          {filteredUnits.map((unit) => {
+          {visibleUnits.map((unit) => {
             const unitType = unitTypeCache[unit.unitTypeId]
             const target = managerStatusTarget(unit.status)
             const themeClass = getLockerThemeClass(unit.status)
@@ -194,13 +221,6 @@ export function NeonUnitGrid({
                     <MapPin size={13} className="location-icon" aria-hidden="true" />
                     <span>{unit.locationInfo || 'Vị trí chưa thiết lập'}</span>
                   </div>
-
-                  {unitType && (
-                    <div className="locker-price-tag">
-                      <strong>{formatMoney(unitType.rentalPrice)}</strong>
-                      <small>/tháng</small>
-                    </div>
-                  )}
                 </div>
 
                 <div className="locker-card-actions" onClick={(e) => e.stopPropagation()}>
@@ -256,6 +276,61 @@ export function NeonUnitGrid({
           })}
         </div>
       </div>
+
+      {/* Neon Holographic Pagination Bar */}
+      {filteredUnits.length > 0 && (
+        <footer className="neon-pagination-bar" aria-label="Locker grid pagination">
+          <div className="neon-pagination-info">
+            <span>
+              Hiển thị <strong>{startIdx}</strong>–<strong>{endIdx}</strong> trong{' '}
+              <strong>{filteredUnits.length}</strong> ô kho (Trang {page}/{totalPages})
+            </span>
+          </div>
+
+          {totalPages > 1 && (
+            <nav className="neon-page-nav" aria-label="Điều hướng phân trang ô kho">
+              <button
+                type="button"
+                className="neon-nav-btn"
+                disabled={page <= 1}
+                onClick={() => onPageChange(page - 1)}
+                title="Trang trước"
+              >
+                <ChevronLeft size={16} />
+                <span>Trước</span>
+              </button>
+
+              <div className="neon-page-numbers">
+                {getPageNumbers(page, totalPages).map((p, idx) =>
+                  p === '...' ? (
+                    <span key={`dots-${idx}`} className="neon-page-dots">…</span>
+                  ) : (
+                    <button
+                      key={`page-${p}`}
+                      type="button"
+                      className={`neon-page-btn ${page === p ? 'active' : ''}`}
+                      onClick={() => onPageChange(Number(p))}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
+              </div>
+
+              <button
+                type="button"
+                className="neon-nav-btn"
+                disabled={page >= totalPages}
+                onClick={() => onPageChange(page + 1)}
+                title="Trang kế tiếp"
+              >
+                <span>Sau</span>
+                <ChevronRight size={16} />
+              </button>
+            </nav>
+          )}
+        </footer>
+      )}
     </div>
   )
 }
