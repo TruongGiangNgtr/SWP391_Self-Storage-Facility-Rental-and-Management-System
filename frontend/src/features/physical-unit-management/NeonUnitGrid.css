@@ -331,53 +331,39 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin: 12px 0;
+  margin: 14px 0 10px;
 }
 
-.locker-type-name {
+.neon-locker-card .locker-type-name,
+.neon-locker-card strong.locker-type-name {
   display: block;
-  font-size: 13px;
-  font-weight: 700;
-  color: #f1f5f9;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #f8fafc !important;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-.locker-type-mode {
+.neon-locker-card .locker-type-mode {
   display: block;
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: 12px !important;
+  color: #38bdf8 !important;
+  font-weight: 600 !important;
   margin-top: 1px;
 }
 
-.locker-location-tag {
+.neon-locker-card .locker-location-tag {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  color: #cbd5e1;
+  gap: 6px;
+  font-size: 12px !important;
+  color: #e2e8f0 !important;
+  margin-top: 6px;
 }
 
-.location-icon {
-  color: #38bdf8;
+.neon-locker-card .location-icon {
+  color: #06b6d4;
   flex-shrink: 0;
-}
-
-.locker-price-tag {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  margin-top: 4px;
-}
-
-.locker-price-tag strong {
-  font-size: 13px;
-  color: #38bdf8;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.locker-price-tag small {
-  font-size: 10px;
-  color: #64748b;
 }
 
 /* Quick Action Buttons on Card Bottom */

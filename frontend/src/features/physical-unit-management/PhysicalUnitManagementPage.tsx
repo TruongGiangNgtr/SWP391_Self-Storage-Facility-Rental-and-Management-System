@@ -210,6 +210,8 @@ export function PhysicalUnitManagementPage() {
   const [unitTypeCache, setUnitTypeCache] = useState<Record<string, UnitTypeAvailability>>({})
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(12)
   const [statusFilter, setStatusFilter] = useState<'ALL' | StorageUnitStatus>('ALL')
   const [unitTypeFilter, setUnitTypeFilter] = useState('ALL')
   const [isLoading, setIsLoading] = useState(true)
@@ -360,6 +362,13 @@ export function PhysicalUnitManagementPage() {
 
     return counts
   }, [units])
+
+  const totalPages = Math.max(1, Math.ceil(filteredUnits.length / pageSize))
+  const safePage = Math.min(page, totalPages)
+  const visibleUnits = useMemo(() => {
+    const start = (safePage - 1) * pageSize
+    return filteredUnits.slice(start, start + pageSize)
+  }, [filteredUnits, safePage, pageSize])
 
   function closeDialog() {
     if (isSubmitting) {
@@ -727,7 +736,10 @@ export function PhysicalUnitManagementPage() {
             <Search size={17} />
             <input
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value)
+                setPage(1)
+              }}
               placeholder="Search unit code, location or unit type"
             />
           </label>
@@ -736,7 +748,10 @@ export function PhysicalUnitManagementPage() {
             <span>Status</span>
             <select
               value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value as 'ALL' | StorageUnitStatus)}
+              onChange={(event) => {
+                setStatusFilter(event.target.value as 'ALL' | StorageUnitStatus)
+                setPage(1)
+              }}
             >
               {STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -746,7 +761,13 @@ export function PhysicalUnitManagementPage() {
 
           <label className="physical-filter">
             <span>Unit Type</span>
-            <select value={unitTypeFilter} onChange={(event) => setUnitTypeFilter(event.target.value)}>
+            <select
+              value={unitTypeFilter}
+              onChange={(event) => {
+                setUnitTypeFilter(event.target.value)
+                setPage(1)
+              }}
+            >
               <option value="ALL">All Unit Types</option>
               {unitTypeFilterOptions.map((unitType) => (
                 <option key={unitType.unitTypeId} value={unitType.unitTypeId}>
@@ -805,6 +826,15 @@ export function PhysicalUnitManagementPage() {
             <NeonUnitGrid
               units={units}
               filteredUnits={filteredUnits}
+              visibleUnits={visibleUnits}
+              page={safePage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSizeChange={(newSize) => {
+                setPageSize(newSize)
+                setPage(1)
+              }}
               unitTypeCache={unitTypeCache}
               onOpenDetail={openDetail}
               onOpenEdit={openEdit}
@@ -825,7 +855,7 @@ export function PhysicalUnitManagementPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredUnits.map((unit) => {
+                {visibleUnits.map((unit) => {
                   const unitType = unitTypeCache[unit.unitTypeId]
                   const target = managerStatusTarget(unit.status)
 
@@ -880,6 +910,29 @@ export function PhysicalUnitManagementPage() {
                 })}
               </tbody>
             </table>
+            {totalPages > 1 && (
+              <div className="fwp-pagination" style={{ padding: '12px 16px' }}>
+                <span>Trang {safePage} / {totalPages} · {filteredUnits.length} ô kho</span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="fwp-button fwp-button-secondary"
+                    disabled={safePage <= 1}
+                    onClick={() => setPage(safePage - 1)}
+                  >
+                    Trang trước
+                  </button>
+                  <button
+                    type="button"
+                    className="fwp-button fwp-button-secondary"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setPage(safePage + 1)}
+                  >
+                    Trang sau
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) ) : null}
       </section>
