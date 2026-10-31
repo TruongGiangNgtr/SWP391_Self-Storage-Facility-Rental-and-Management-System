@@ -1,0 +1,111 @@
+/* Customer Support Tickets uses the shared editorial shell; Employee views are excluded. */
+.frms-customer.customer-shell.support-editorial-shell {
+  --flow-text: #102f50; --flow-muted: #526880; --flow-brand: #245ce0; --flow-border: #dce5ee;
+  background: #fff;
+  & .customer-support { gap: 28px; color: #102f50; }
+  & .support-page-heading { margin: 0; padding: 0 0 8px; border: 0; align-items: flex-end; gap: 24px; }
+  & .support-page-heading h1 { margin: 0; color: #102f50; font-size: clamp(30px, 2.8vw, 40px); font-weight: 700; line-height: 1.2; letter-spacing: -.035em; text-shadow: none; }
+  & .support-page-heading p.muted { margin: 12px 0 0; max-width: 68ch; color: #526880; font-size: 14px; line-height: 1.75; }
+  & .support-page-heading .support-area-label { margin: 0 0 12px; color: #526880; font-size: 12px; font-weight: 600; letter-spacing: .035em; }
+  & .support-heading-actions { gap: 12px; }
+  & .support-total { color: #62768b; font-size: 12px; }
+  & :is(.button, .support-text-link, .support-text-button, .remaining-page-navigation > a, .remaining-page-navigation > button) { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; height: auto; width: auto; max-width: 100%; padding: 8px 14px; border: 1px solid #b7c8d9; border-radius: 5px; background: #fff; color: #173e69; font-size: 12px; font-weight: 600; line-height: 20px; text-decoration: none; box-shadow: 0 2px 3px #102f5005; }
+  & :is(.button, .support-text-link, .support-text-button, .remaining-page-navigation > a, .remaining-page-navigation > button):hover:not(:disabled) { background: #f4f8fd; border-color: #6486ac; text-decoration: none; }
+  & .button:not(.button-secondary):not(.button-danger) { background: #245ce0; color: #fff; border-color: #245ce0; box-shadow: 0 4px 8px #245ce01a; }
+  & .button:not(.button-secondary):not(.button-danger):hover:not(:disabled) { background: #194bc5; border-color: #194bc5; }
+  & .button-danger { background: #fff; color: #b42335; border-color: #dfb8c0; box-shadow: none; }
+  & .button-danger:hover:not(:disabled) { background: #fff4f6; border-color: #b95769; }
+  & :is(button, .button):disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+  & :is(input, select, textarea) { border: 1px solid #bacbdb; border-radius: 5px; background: #fff; color: #24415f; font-size: 13px; caret-color: #245ce0; }
+  & :is(input, select) { min-height: 44px; padding: 10px 12px; }
+  & textarea { width: 100%; resize: vertical; padding: 14px 16px; line-height: 1.8; }
+  & :is(input, textarea)::placeholder { color: #73869a; opacity: 1; }
+  & .form-field label { font-size: 12px; color: #24415f; font-weight: 600; }
+  & :is(input, select, textarea)[aria-invalid='true'] { border-color: #b42335; }
+  & :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid #245ce0; outline-offset: 4px; }
+  & .support-info-banner { margin: 0; padding: 26px; gap: 18px; border: 1px solid #102f50; border-radius: 12px; background: #102f50; box-shadow: 0 12px 24px -22px #15365a80; }
+  & .support-banner-icon { width: 42px; height: 42px; flex-basis: 42px; margin: 0; border-radius: 8px; background: #284867; color: #d2e2f4; }
+  & .support-info-banner h2 { margin: 0 0 8px; color: #fff; font-size: 19px; font-weight: 600; }
+  & .support-info-banner p { max-width: 85ch; color: #c1d2e4; font-size: 12px; line-height: 1.8; }
+  & .rental-list-filters { margin: 0; }
+  & .customer-support .support-filter { padding: 22px; gap: 22px; border: 1px solid #dce5ee; border-radius: 10px; background: #f6f9fc; box-shadow: none; }
+  & .support-search input { min-height: 44px; padding-left: 38px; font-size: 13px; }
+  & .support-status-filters { gap: 6px; }
+  & .support-status-filter { min-height: 38px; padding: 8px 11px; border: 1px solid transparent; border-radius: 5px; background: #eaf0f6; color: #526880; font-size: 12px; }
+  & .support-status-filter:hover { background: #dfe8f3; color: #173e69; }
+  & .support-status-filter[aria-pressed='true'] { background: #102f50; color: #fff; border-color: #102f50; }
+  & .support-list-tools { margin: -4px 0 0; gap: 12px 24px; }
+  & .support-list-tools > p { color: #62768b; font-size: 11px; line-height: 1.8; }
+  & .support-list-tools > div { gap: 8px; }
+  & .support-list-tools .support-text-button { min-height: 34px; padding: 5px 10px; font-size: 11px; }
+  & .support-ticket-list { gap: 22px; }
+  & .customer-support .support-ticket-card { padding: 26px; gap: 22px 28px; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; box-shadow: 0 12px 24px -22px #15365a80; }
+  & .support-ticket-heading { align-items: center; }
+  & .support-ticket-heading h2 { display: flex; align-items: center; gap: 12px; margin: 0; color: #102f50; font-size: 20px; line-height: 1.5; }
+  & .support-ticket-heading h2::before { content: ''; width: 3px; height: 23px; flex: 0 0 3px; border-radius: 2px; background: #245ce0; }
+  & .support-ticket-description { color: #24415f; font-size: 13px; line-height: 1.85; }
+  & .support-ticket-result { padding: 18px; gap: 10px; border: 0; border-radius: 8px; background: #f6f9fc; }
+  & .support-ticket-result strong { color: #102f50; font-size: 12px; }
+  & .support-ticket-result p { color: #526880; font-size: 12px; line-height: 1.85; }
+  & .support-ticket-footer { padding-top: 20px; gap: 16px; border-color: #e2e9f1; }
+  & .support-ticket-footer p { color: #62768b; font-size: 11px; line-height: 1.8; }
+  & .support-ticket-footer .support-text-link { min-height: 32px; margin-top: 6px; padding: 4px 10px; font-size: 11px; }
+  & .support-page-navigation { margin: 0; gap: 12px; }
+  & .customer-support .support-page-card { padding: 28px; gap: 26px; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; box-shadow: 0 16px 28px -24px #15365a80; }
+  & .support-page-card-heading { padding-bottom: 20px; gap: 12px; border-color: #e2e9f1; }
+  & .support-page-card-heading h2 { color: #102f50; font-size: 22px; line-height: 1.5; }
+  & .support-page-icon { width: 40px; height: 40px; flex-basis: 40px; border: 0; border-radius: 8px; background: #eef4fc; color: #245ce0; }
+  & .support-create-form { gap: 24px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  & .support-contract-loader { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  & .support-contract-loader small { color: #62768b; font-size: 11px; }
+  & .support-contract-loader .support-text-button { min-height: 30px; padding: 3px 8px; font-size: 11px; }
+  & .support-create-form > .form-field { align-content: start; }
+  & .support-create-form select { min-height: 44px; font-size: 13px; }
+  & .support-create-form label { font-size: 12px; }
+  & .support-create-form textarea { min-height: 210px; padding: 14px 16px; font-size: 13px; line-height: 1.8; }
+  & .support-page-notice { padding: 16px; border: 0; border-left: 3px solid #b7c8d9; border-radius: 0 6px 6px 0; background: #f3f7fc; color: #526880; font-size: 12px; line-height: 1.8; }
+  & .support-page-notice > svg { color: #245ce0; }
+  & .support-create-form > :is(.support-description-field, .support-page-notice, .support-form-actions) { grid-column: 1 / -1; }
+  & .support-page-note { color: #526880; font-size: 12px; line-height: 1.8; }
+  & .support-form-actions { justify-content: flex-end; padding-top: 22px; border-color: #e2e9f1; }
+  & .support-form-actions .button { min-height: 44px; }
+  & .support-detail-columns { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 28px; }
+  & .support-detail-messages { gap: 24px; }
+  & .support-detail-messages > div { padding: 24px; border-radius: 8px; background: #102f50; }
+  & .support-detail-messages dt { color: #fff; font-size: 13px; font-weight: 600; }
+  & .support-detail-messages dt svg { color: #c1d2e4; }
+  & .support-detail-messages dd { margin-top: 16px; color: #fff; font-size: 13px; line-height: 1.9; }
+  & .support-detail-messages > .support-detail-result { padding: 24px; border: 1px solid #dce5ee; border-left: 3px solid #245ce0; border-radius: 0 8px 8px 0; background: #f6f9fc; }
+  & .support-detail-result dt { color: #102f50; }
+  & .support-detail-result dt svg { color: #245ce0; }
+  & .support-detail-result dd { color: #526880; }
+  & .support-detail-facts { padding: 24px; gap: 24px; border: 1px solid #dce5ee; border-radius: 8px; background: #f6f9fc; align-content: start; }
+  & .support-detail-facts dt { color: #62768b; font-size: 11px; }
+  & .support-detail-facts dd { color: #102f50; font-size: 13px; line-height: 1.8; }
+  & .support-detail-facts .support-text-link { min-height: 34px; padding: 5px 10px; font-size: 11px; }
+  & .support-detail-footer { padding-top: 22px; border-color: #e2e9f1; }
+  & .customer-support .support-cancel-card { padding: 24px 28px; border-color: #e4d9dd; background: #fff; box-shadow: none; }
+  & .support-cancel-card .support-page-card-heading h2 { font-size: 19px; }
+  & .support-cancel-form { gap: 18px; }
+  & .support-cancel-form label { font-size: 12px; }
+  & .support-cancel-form textarea { min-height: 110px; padding: 14px 16px; font-size: 13px; }
+  & .support-page-warning { border-color: #d5a853; background: #fff9ed; color: #805417; }
+  & .support-page-warning > svg { color: #805417; }
+  & .customer-support .support-empty { padding: 32px; border: 1px dashed #c5d4e4; border-radius: 12px; background: #f6f9fc; box-shadow: none; }
+  & .support-empty .page-state { min-height: 0; background: transparent; box-shadow: none; }
+  & [id] { scroll-margin-top: 96px; }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .frms-customer.customer-shell.support-editorial-shell {
+    & :is(.support-detail-columns, .support-create-form) { grid-template-columns: minmax(0, 1fr); }
+    & .support-detail-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    & .support-filter { flex-wrap: wrap; }
+    & .support-status-filters { width: 100%; }
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .frms-customer.customer-shell.support-editorial-shell {
+    & :is(.button, .support-text-link, .support-text-button) { transition: transform .18s ease, background-color .18s ease; }
+    & :is(.button, .support-text-link, .support-text-button):hover:not(:disabled) { transform: translateY(-2px); }
+  }
+}

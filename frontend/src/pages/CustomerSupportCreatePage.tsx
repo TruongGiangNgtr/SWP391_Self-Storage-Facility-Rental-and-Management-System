@@ -6,7 +6,7 @@ import { presentApiError, presentValidationError, type ApiErrorPresentation } fr
 import { contractApi } from '../api/contractApi'
 import { createSupportTicket } from '../api/supportTicketApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
-import { EmptyState, LoadingState, PaginationControls } from '../components/PageStates'
+import { EmptyState, LoadingState } from '../components/PageStates'
 import { isSupportPagination, isSupportTicket } from '../features/customer-support/supportValidation'
 import { isUuid } from '../features/handover/handoverValidation'
 import type { HandoverContractDetail } from '../features/handover/contract.types'
@@ -34,7 +34,7 @@ export function CustomerSupportCreatePage() {
   const key = `${page}:${retry}`
   const [snapshot, setSnapshot] = useState<{ key: string; response: ApiCollectionResponse<HandoverContractDetail> | null; error: ApiErrorPresentation | null } | null>(null)
   const loading = snapshot?.key !== key
-  const response = loading ? null : snapshot.response
+  const response = loading && page === 1 ? null : snapshot?.response ?? null
   const readError = loading ? null : snapshot.error
   const busy = useRef(false)
   const mounted = useRef(false)
@@ -44,11 +44,18 @@ export function CustomerSupportCreatePage() {
     let active = true
     contractApi.list(page).then(response => {
       if (!active) return
-      if (!Array.isArray(response.data) || !response.data.every(contract => isUuid(contract.contractId)) || !isSupportPagination(response.pagination)) {
-        setSnapshot({ key, response: null, error: presentValidationError('We could not load the contracts for your support request. Refresh the contract list before continuing.') })
-      } else setSnapshot({ key, response, error: null })
+      if (!Array.isArray(response.data) || !response.data.every(contract => isUuid(contract.contractId)) || !isSupportPagination(response.pagination) || response.pagination.page !== page || response.pagination.pageSize !== 20) {
+        setSnapshot(current => ({ key, response: page === 1 ? null : current?.response ?? null, error: presentValidationError('We could not load the contracts for your support request. Refresh the contract list before continuing.') }))
+      } else setSnapshot(current => ({
+        key,
+        response: page === 1 ? response : {
+          ...response,
+          data: [...new Map([...(current?.response?.data ?? []), ...response.data].map(contract => [contract.contractId, contract])).values()],
+        },
+        error: null,
+      }))
     })
-      .catch((error: unknown) => { if (active) setSnapshot({ key, response: null, error: presentApiError(error) }) })
+      .catch((error: unknown) => { if (active) setSnapshot(current => ({ key, response: page === 1 ? null : current?.response ?? null, error: presentApiError(error) })) })
     return () => { active = false }
   }, [page, key])
 
@@ -92,22 +99,21 @@ export function CustomerSupportCreatePage() {
   return <main className="page-container flow-page customer-support customer-support-pages support-create-page support-flow">
     <div className="support-page-navigation">
       <Link className="support-text-link" to="/customer/support-tickets"><ArrowLeft size={16} aria-hidden="true" />My Support Tickets</Link>
-      <button className="support-text-button" type="button" disabled={loading || working} onClick={() => { setContractId(''); setRetry(value => value + 1) }}><RefreshCw size={14} aria-hidden="true" />Refresh Contracts</button>
+      <button className="support-text-button" type="button" disabled={loading || working} onClick={() => { setContractId(''); setPage(1); setSnapshot(null); setRetry(value => value + 1) }}><RefreshCw size={14} aria-hidden="true" />Refresh Contracts</button>
     </div>
-    <header className="support-page-heading"><div><h1>Create Support Ticket</h1><p className="muted">Request help with one of your contracts.</p></div></header>
+    <header className="support-page-heading"><div><p className="support-area-label">A new request</p><h1>Create Support Ticket</h1><p className="muted">Request help with one of your contracts.</p></div></header>
     <ApiErrorAlert error={actionError ?? readError} /><ApiErrorAlert error={prefillError} />
-    {loading || prefillLoading ? <LoadingState label="Loading your contracts..." /> : response && (choices.length === 0 ? <EmptyState message="A support ticket must reference one of your contracts. You do not have any contracts on this page." /> : <section className="panel support-page-card">
+    {(loading && page === 1) || prefillLoading ? <LoadingState label="Loading your contracts..." /> : response && (choices.length === 0 ? <EmptyState message="A support ticket must reference one of your contracts. You do not have any contracts on this page." /> : <section className="panel support-page-card">
       <div className="support-page-card-heading"><span className="support-page-icon"><TicketPlus size={24} aria-hidden="true" /></span><h2>Ticket Information</h2></div>
       <form className="form-grid support-create-form" onSubmit={submit} noValidate>
-        <div className="form-field"><label htmlFor="supportContract">Contract</label><select id="supportContract" value={contractId} disabled={working} aria-invalid={Boolean(fieldErrors.contract)} aria-describedby={fieldErrors.contract ? 'supportContract-error' : undefined} onChange={event => { setContractId(event.target.value); setFieldErrors(current => ({ ...current, contract: '' })) }}><option value="">Choose a contract</option>{choices.map(contract => <option key={contract.contractId} value={contract.contractId}>{contractOption(contract)}</option>)}</select><CustomerFieldError id="supportContract-error" message={fieldErrors.contract} /></div>
+        <div className="form-field"><label htmlFor="supportContract">Contract</label><select id="supportContract" value={contractId} disabled={working} aria-invalid={Boolean(fieldErrors.contract)} aria-describedby={fieldErrors.contract ? 'supportContract-error' : undefined} onChange={event => { setContractId(event.target.value); setFieldErrors(current => ({ ...current, contract: '' })) }}><option value="">Choose a contract</option>{choices.map(contract => <option key={contract.contractId} value={contract.contractId}>{contractOption(contract)}</option>)}</select><CustomerFieldError id="supportContract-error" message={fieldErrors.contract} />{response.pagination.page < response.pagination.totalPages && <div className="support-contract-loader"><small>{choices.length} contracts loaded</small><button className="support-text-button" type="button" disabled={loading || working} onClick={() => { if (readError) setRetry(value => value + 1); else setPage(response.pagination.page + 1) }}>{loading ? 'Loading Contracts…' : readError ? 'Retry Loading Contracts' : 'Load More Contracts'}</button></div>}</div>
         <div className="form-field"><label htmlFor="supportCategory">Category</label><select id="supportCategory" value={category} disabled={working} aria-invalid={Boolean(fieldErrors.category)} aria-describedby={fieldErrors.category ? 'supportCategory-error' : undefined} onChange={event => { setCategory(event.target.value as SupportTicketCategory | ''); setFieldErrors(current => ({ ...current, category: '' })) }}><option value="">Choose a category</option>{SUPPORT_TICKET_CATEGORIES.map(value => <option key={value} value={value}>{customerLabel(value)}</option>)}</select><CustomerFieldError id="supportCategory-error" message={fieldErrors.category} /></div>
         <div className="form-field support-description-field"><label htmlFor="supportDescription">Description</label><textarea id="supportDescription" rows={7} value={description} disabled={working} aria-invalid={Boolean(fieldErrors.description)} aria-describedby={fieldErrors.description ? 'supportDescription-error' : undefined} onChange={event => { setDescription(event.target.value); setFieldErrors(current => ({ ...current, description: '' })) }} /><CustomerFieldError id="supportDescription-error" message={fieldErrors.description} /></div>
         {category === 'OTHER' && <p className="support-page-notice"><Info size={17} aria-hidden="true" /><span>Describe the issue clearly so the Facility team can understand what needs help.</span></p>}
         <p className="support-page-notice support-page-note"><Info size={17} aria-hidden="true" /><span>The Manager assigns Staff. Creating a ticket does not change your Contract, Payment or Storage Unit, and does not schedule a return.</span></p>
-        <div className="support-form-actions"><button className="button" type="submit" disabled={working}><Send size={16} aria-hidden="true" />{working ? 'Creating...' : 'Submit Support Ticket'}</button></div>
+        <div className="support-form-actions"><button className="button" type="submit" disabled={working || loading}><Send size={16} aria-hidden="true" />{working ? 'Creating...' : 'Submit Support Ticket'}</button></div>
       </form>
     </section>)}
-    {response && <PaginationControls pagination={response.pagination} disabled={working || loading} onPageChange={next => { setContractId(''); setPage(next) }} />}
     {actionError && <p className="support-page-notice support-page-warning"><Info size={17} aria-hidden="true" /><span>If the response was interrupted, check My Support Tickets before retrying. This page never automatically repeats the create request.</span></p>}
   </main>
 }

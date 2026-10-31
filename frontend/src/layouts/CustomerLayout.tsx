@@ -22,6 +22,7 @@ import '../styles/customer-visits-editorial.css'
 import '../styles/customer-reservations-editorial.css'
 import '../styles/customer-contracts-editorial.css'
 import '../styles/customer-billing-editorial.css'
+import '../styles/customer-support-editorial.css'
 
 function Brand({ footer = false }: { footer?: boolean }) {
   return <Link className={`flow-brand ${footer ? 'flow-brand-footer' : ''}`} to="/" aria-label="FStoRent Home">
@@ -45,6 +46,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
   const { pathname, search } = useLocation()
   const overviewDepthSurface = ['/customer', '/customer/notifications', '/customer/account-settings'].includes(pathname)
   const billingEditorialSurface = pathname === '/customer/invoices' || /^\/customer\/invoices\/[^/]+$/.test(pathname) || pathname === '/customer/payments/result' || (pathname === '/customer/notifications' && new URLSearchParams(search).get('tab') === 'history')
+  const supportEditorialSurface = /^\/customer\/support-tickets(?:\/[^/]+)?$/.test(pathname)
   const contractsDepthSurface = pathname === '/customer/contracts' || /^\/customer\/contracts\/[^/]+(?:\/(renew|fees-return))?$/.test(pathname)
   const reservationsEditorialSurface = /^\/customer\/reservations(?:\/[^/]+(?:\/confirm)?)?$/.test(pathname)
   const reservationsDepthSurface = pathname === '/customer/reservations' || /^\/customer\/reservations\/[^/]+(?:\/confirm)?$/.test(pathname) || pathname === '/customer/payments/result' || /^\/customer\/invoices\/[^/]+$/.test(pathname)
@@ -72,7 +74,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
     </nav>
   }
 
-  return <div className={`frms-customer customer-shell ${pathname === '/' || guestDepthSurface || overviewDepthSurface || visitsDepthSurface || reservationsDepthSurface || contractsDepthSurface || billingEditorialSurface ? 'home-shell' : ''} ${guestDepthSurface ? 'guest-editorial-shell' : ''} ${pathname === '/' || guestDepthSurface || overviewDepthSurface || visitsDepthSurface || reservationsEditorialSurface || contractsDepthSurface || billingEditorialSurface ? 'editorial-shell' : ''} ${overviewDepthSurface || visitsDepthSurface || reservationsEditorialSurface || contractsDepthSurface || billingEditorialSurface ? 'overview-editorial-shell' : ''} ${visitsDepthSurface ? 'visits-editorial-shell' : ''} ${reservationsEditorialSurface ? 'reservations-editorial-shell' : ''} ${reservationsDepthSurface && !reservationsEditorialSurface && !billingEditorialSurface ? 'reservations-depth-shell' : ''} ${contractsDepthSurface ? 'contracts-editorial-shell' : ''} ${billingEditorialSurface ? 'billing-editorial-shell' : ''} ${supportSurface || rentalSurface || financeSurface ? 'support-surface' : ''} ${rentalSurface ? 'rental-surface' : ''} ${financeSurface ? 'finance-surface' : ''} ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
+  return <div className={`frms-customer customer-shell ${pathname === '/' || guestDepthSurface || overviewDepthSurface || visitsDepthSurface || reservationsDepthSurface || contractsDepthSurface || billingEditorialSurface || supportEditorialSurface ? 'home-shell' : ''} ${guestDepthSurface ? 'guest-editorial-shell' : ''} ${pathname === '/' || guestDepthSurface || overviewDepthSurface || visitsDepthSurface || reservationsEditorialSurface || contractsDepthSurface || billingEditorialSurface || supportEditorialSurface ? 'editorial-shell' : ''} ${overviewDepthSurface || visitsDepthSurface || reservationsEditorialSurface || contractsDepthSurface || billingEditorialSurface || supportEditorialSurface ? 'overview-editorial-shell' : ''} ${visitsDepthSurface ? 'visits-editorial-shell' : ''} ${reservationsEditorialSurface ? 'reservations-editorial-shell' : ''} ${reservationsDepthSurface && !reservationsEditorialSurface && !billingEditorialSurface ? 'reservations-depth-shell' : ''} ${contractsDepthSurface ? 'contracts-editorial-shell' : ''} ${billingEditorialSurface ? 'billing-editorial-shell' : ''} ${supportEditorialSurface ? 'support-editorial-shell' : ''} ${supportSurface || rentalSurface || financeSurface ? 'support-surface' : ''} ${rentalSurface ? 'rental-surface' : ''} ${financeSurface ? 'finance-surface' : ''} ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
     <a className="customer-skip-link" href="#customer-main">Skip to content</a>
     <header className="flow-header">
       <div className="flow-header-inner">
