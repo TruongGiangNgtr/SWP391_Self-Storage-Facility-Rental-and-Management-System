@@ -69,7 +69,7 @@ export function AccessVisitCreatePage() {
         <button type="button" disabled={loading || working} onClick={() => { setActionError(null); refresh() }}><RefreshCw size={15} aria-hidden="true" />Refresh Contract</button>
       </nav>
       <section className="page-heading page-heading-actions">
-        <div><h1>Schedule Access Visit</h1><p className="muted">Choose a date to visit your rented storage unit.</p></div>
+        <div><p className="visits-area-label">Visit your storage</p><h1>Schedule Access Visit</h1><p className="muted">Choose a date to visit your rented storage unit.</p></div>
       </section>
       <ApiErrorAlert error={actionError ?? error} />
       {loading ? <LoadingState label="Loading your contract..." /> : contract && <>
