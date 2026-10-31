@@ -17,7 +17,6 @@ export interface AiStoragePolicyView {
   title: string
   summary: string
   prohibitedWarning: string
-  needsReviewWarning: string
   prohibited: AiStoragePolicyItem[]
   allowed: AiStoragePolicyItem[]
   legalReferences: AiStoragePolicyReference[]

@@ -77,8 +77,7 @@ export function presentAiError(error: unknown): ApiErrorPresentation {
     RATE_LIMIT_EXCEEDED: 'You have asked for several suggestions in a short time. Please wait a moment before trying again, or choose a storage type manually.',
     EXTERNAL_PROVIDER_UNAVAILABLE: 'AI recommendations are temporarily unavailable. Please try again later or choose a storage type manually.',
     ENDPOINT_NOT_IMPLEMENTED: 'AI recommendations are not available from the server yet. You can still choose a storage type manually.',
-    PROHIBITED_STORAGE_ITEM: 'This item may be prohibited by FRMS storage acceptance rules. Review the policy notice above; AI will not recommend a unit.',
-    STORAGE_ITEM_REVIEW_REQUIRED: 'We cannot classify all items confidently. Please clarify the description or contact the facility before requesting a suggestion.',
+    PROHIBITED_STORAGE_ITEM: 'AI suggestions are only available for recognized allowed items. Prohibited or unrecognized descriptions are blocked; check the storage rules or contact the facility.',
   }
   const message = Object.hasOwn(messages, error.code) ? messages[error.code] : undefined
   return { ...presentation, message: message ?? presentation.message, customerMessage: message }

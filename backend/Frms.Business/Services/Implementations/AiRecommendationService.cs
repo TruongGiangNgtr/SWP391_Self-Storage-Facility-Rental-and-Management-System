@@ -25,13 +25,11 @@ internal sealed class AiRecommendationService(
 
         // Server-side rule screen precedes catalogue and external AI calls.
         // The JSON remains a draft; errors are FRMS intake warnings, not legal judgments.
+        // The intake decision is binary; unmatched or ambiguous items are blocked.
         var screening = storageRules.Assess(description);
         if (screening == AiStorageDecision.Prohibited)
             throw new BusinessException("PROHIBITED_STORAGE_ITEM",
                 storageRules.PublicView.ProhibitedWarning, 422);
-        if (screening == AiStorageDecision.NeedsReview)
-            throw new BusinessException("STORAGE_ITEM_REVIEW_REQUIRED",
-                storageRules.PublicView.NeedsReviewWarning, 422);
 
         try
         {

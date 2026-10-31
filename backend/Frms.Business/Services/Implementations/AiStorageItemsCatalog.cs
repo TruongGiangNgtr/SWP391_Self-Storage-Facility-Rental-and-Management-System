@@ -7,12 +7,12 @@ public sealed record AiStoragePolicyItem(string Id, string Title, IReadOnlyList<
 public sealed record AiStorageLegalReference(string DocumentNumber, string Title, string OfficialUrl);
 public sealed record AiStoragePolicyView(
     string PolicyKey, string ApprovalStatus, string Version,
-    string Title, string Summary, string ProhibitedWarning, string NeedsReviewWarning,
+    string Title, string Summary, string ProhibitedWarning,
     IReadOnlyList<AiStoragePolicyItem> Prohibited,
     IReadOnlyList<AiStoragePolicyItem> Allowed,
     IReadOnlyList<AiStorageLegalReference> LegalReferences);
 
-public enum AiStorageDecision { Prohibited, Allowed, NeedsReview }
+public enum AiStorageDecision { Prohibited, Allowed }
 
 /// <summary>
 /// Version-controlled, preliminary FRMS item acceptance rules. This is an
@@ -72,60 +72,30 @@ public sealed class AiStorageItemsCatalog
         return new AiStorageItemsCatalog(new AiStoragePolicyView(
             Text(root, "policyKey"), approval, Text(root, "version"),
             Text(notice, "title"), Text(notice, "summary"),
-            Text(notice, "prohibitedWarning"), Text(notice, "needsReviewWarning"),
+            Text(notice, "prohibitedWarning"),
             prohibited, allowed, refs.Select(x => x.Value).ToArray()));
     }
 
     public AiStorageDecision Assess(string description)
     {
         var input = Normalize(description);
-        var positiveProhibited = false;
-        var ambiguous = false;
-        foreach (var rule in PublicView.Prohibited)
-        {
-            foreach (var example in rule.Examples)
-            {
-                var term = Normalize(example);
-                foreach (Match match in Regex.Matches(input,
-                    $@"(?<![\p{{L}}\p{{N}}]){Regex.Escape(term).Replace("\\ ", @"\s+")}(?![\p{{L}}\p{{N}}])",
-                    RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100)))
-                {
-                    var before = input[..match.Index];
-                    var recent = before.Length > 55 ? before[^55..] : before;
-                    var after = input[(match.Index + match.Length)..];
-                    var following = after.Length > 32 ? after[..32] : after;
-                    // Treat an immediately adjacent toy/replica qualifier as ambiguous,
-                    // but NOT "đồ chơi và thuốc nổ" or "đồ chơi có thuốc nổ".
-                    // Otherwise harmless ALLOWED items could hide a prohibited item.
-                    if (Regex.IsMatch(recent,
-                            @"(?:không|ko|chẳng|chua|chưa|not|without|khong|ví dụ|vi du)\s+(?:\S+\s+){0,3}$",
-                            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) ||
-                        Regex.IsMatch(recent,
-                            @"(?:mô hình|đồ chơi|mo hinh|do choi|toy|water|plastic)\s+$",
-                            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) ||
-                        Regex.IsMatch(following,
-                            @"^\s*(?:giả|đồ chơi|mô hình|rỗng|nước|nhựa|không có|không chứa|toy|replica|empty)\b",
-                            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
-                        ambiguous = true;
-                    else
-                        positiveProhibited = true;
-                }
-            }
-        }
-        // Any unambiguous prohibited match blocks, even if ordinary allowed
-        // items are mentioned in the same description.
-        if (positiveProhibited) return AiStorageDecision.Prohibited;
-        if (ambiguous) return AiStorageDecision.NeedsReview;
-        // Each separately declared item group must match an ALLOWED example;
-        // a single harmless item cannot whitelist other unknown declared items.
+        // Binary intake decision: a prohibited keyword anywhere blocks the whole request.
+        // Unknown items, negations and replicas are not silently accepted as harmless.
+        static bool Matches(string text, string example) => Regex.IsMatch(text,
+            $@"(?<![\p{{L}}\p{{N}}]){Regex.Escape(Normalize(example)).Replace("\\ ", @"\s+")}(?![\p{{L}}\p{{N}}])",
+            RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+
+        if (PublicView.Prohibited.Any(rule => rule.Examples.Any(example => Matches(input, example))))
+            return AiStorageDecision.Prohibited;
+
+        // Every comma/semicolon/conjunction-separated item must match ALLOWED.
+        // A known allowed item cannot whitelist an unknown item in the same request.
         var portions = Regex.Split(input, @"[,;+\n]|\s+(?:và|and)\s+")
             .Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
-        if (portions.Length == 0) return AiStorageDecision.NeedsReview;
-        var allAllowed = portions.All(portion => PublicView.Allowed.Any(item =>
-            item.Examples.Any(example => Regex.IsMatch(portion,
-                $@"(?<![\p{{L}}\p{{N}}]){Regex.Escape(Normalize(example)).Replace("\\ ", @"\s+")}(?![\p{{L}}\p{{N}}])",
-                RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100)))));
-        return allAllowed ? AiStorageDecision.Allowed : AiStorageDecision.NeedsReview;
+        if (portions.Length == 0) return AiStorageDecision.Prohibited;
+        return portions.All(portion => PublicView.Allowed.Any(item =>
+            item.Examples.Any(example => Matches(portion, example))))
+            ? AiStorageDecision.Allowed : AiStorageDecision.Prohibited;
     }
 
     private static string Normalize(string value) =>

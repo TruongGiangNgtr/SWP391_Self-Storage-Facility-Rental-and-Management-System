@@ -3,7 +3,7 @@
   "policyKey": "facility-rules-prohibited-items",
   "language": "vi-VN",
   "jurisdiction": "VN",
-  "version": "0.1.0-draft",
+  "version": "0.1.1-draft",
   "lastReviewedDate": "2026-10-25",
   "approvalStatus": "DRAFT_REQUIRES_LEGAL_AND_BUSINESS_APPROVAL",
   "effectiveDate": null,
@@ -12,17 +12,16 @@
       "PROHIBITED",
       "ALLOWED"
     ],
-    "unlistedResult": "NEEDS_REVIEW",
-    "conflictingMatchesResult": "PROHIBITED_WHEN_UNAMBIGUOUS",
-    "negatedOrQuotedItemResult": "NEEDS_REVIEW",
-    "notice": "Không tự động xem một vật phẩm là hợp lệ chỉ vì mô tả có từ khóa ALLOWED. Danh mục là chính sách tiếp nhận của FRMS cần phê duyệt, không đại diện một kết luận pháp lý về quyền sở hữu vật phẩm.",
-    "automaticDetection": "REQUIRE_CONTEXT_AWARE_CHECK_NO_NAIVE_SUBSTRING_MATCH"
+    "unlistedResult": "PROHIBITED",
+    "conflictingMatchesResult": "PROHIBITED",
+    "negatedOrQuotedItemResult": "PROHIBITED",
+    "notice": "Chỉ phân loại ALLOWED khi tất cả vật phẩm được nhận diện theo danh sách cho phép và không khớp danh sách cấm; mô tả không rõ được chặn theo mặc định. Đây là quy tắc tiếp nhận dự thảo của FRMS, không phải kết luận pháp lý.",
+    "automaticDetection": "TOKEN_BOUNDARY_MATCH_WITH_PROHIBITED_PRIORITY"
   },
   "publicNotice": {
     "title": "Quy định vật phẩm lưu trữ",
-    "summary": "FRMS không tiếp nhận vật phẩm thuộc danh mục cấm tiếp nhận; vật phẩm thông thường chỉ được tiếp nhận khi sạch, khô và không kèm vật phẩm nguy hiểm. Mô tả không rõ cần được kiểm tra thêm.",
-    "prohibitedWarning": "Vật phẩm bạn mô tả thuộc hoặc có thể thuộc nhóm FRMS không tiếp nhận. Vui lòng kiểm tra chính sách và liên hệ nhân viên. AI không đề xuất kho cho yêu cầu này.",
-    "needsReviewWarning": "Chưa thể xác định chính xác vật phẩm từ mô tả. Vui lòng nêu rõ chủng loại, tình trạng và thành phần trước khi được tư vấn.",
+    "summary": "FRMS chỉ đề xuất kho cho vật phẩm thông thường được nhận diện trong danh sách ALLOWED và không khớp nhóm PROHIBITED. Mô tả chưa rõ bị chặn theo mặc định.",
+    "prohibitedWarning": "Không thể xác nhận mô tả của bạn thuộc danh sách vật phẩm được FRMS tiếp nhận, hoặc có dấu hiệu thuộc nhóm không tiếp nhận. Vui lòng kiểm tra quy định và liên hệ nhân viên; AI không đề xuất kho cho yêu cầu này.",
     "policyLink": "/help/policies/facility-rules-prohibited-items"
   },
   "legalReferences": [
@@ -247,6 +246,10 @@
       "title": "Bàn ghế và nội thất gia đình thông thường",
       "examples": [
         "bàn gỗ",
+        "cái bàn",
+        "bàn ăn",
+        "table",
+        "dining table",
         "ghế",
         "tủ quần áo",
         "kệ sách",
@@ -306,6 +309,8 @@
       "title": "Đồ chơi thông thường không nguy hiểm",
       "examples": [
         "đồ chơi",
+        "toy",
+        "toys",
         "thú bông",
         "đồ chơi xếp hình",
         "sách tô màu"

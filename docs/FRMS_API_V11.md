@@ -872,6 +872,8 @@ EXTERNAL_PROVIDER_UNAVAILABLE -> 503
 
 Anonymous/Customer can continue manual selection. AI-001 remains a stateless recommendation capability; this revision requires neither a specific conversation interface nor persisted ChatSession/message history or a new AI workflow. No provider/model/session identifier or secret is accepted as a domain field. Existing provider isolation remains in force; public abuse controls and their environment limits must be documented during implementation, without inventing a business payment obligation or numeric SLA.
 
+AI-001 storage-item screening has only two decisions: `ALLOWED` permits the optional provider step, while `PROHIBITED` rejects the request with `PROHIBITED_STORAGE_ITEM` (422). Prohibited-keyword matches take precedence; unmatched, ambiguous or negated item descriptions are conservatively blocked rather than granted acceptance. This screening remains a draft operational intake rule, not legal approval or a definitive classification of property. The public `/api/v1/ai/storage-policy` projection lists the PROHIBITED/ALLOWED groups and no separate review-warning field.
+
 ## 13.14 Reservation API Contracts
 
 ### RES-001 — Create Reservation
