@@ -64,7 +64,7 @@ export function CustomerSupportDetailPage() {
       <Link className="support-text-link" to="/customer/support-tickets"><ArrowLeft size={16} aria-hidden="true" />My Support Tickets</Link>
       <button className="support-text-button" type="button" disabled={loading || working} onClick={() => { setActionError(null); setRetry(value => value + 1) }}><RefreshCw size={14} aria-hidden="true" />Refresh Ticket</button>
     </div>
-    <header className="support-page-heading"><div><h1>Support Ticket Details</h1><p className="muted">Review your request and the recorded Staff result.</p></div></header>
+    <header className="support-page-heading"><div><p className="support-area-label">Your request and updates</p><h1>Support Ticket Details</h1><p className="muted">Review your request and the recorded Staff result.</p></div></header>
     <ApiErrorAlert error={actionError} /><ApiErrorAlert error={readError} />
     {loading ? <LoadingState label="Loading your support ticket..." /> : ticket && <>
       <section className={`panel support-page-card support-detail-${ticket.status.toLowerCase().replaceAll('_', '-')}`} aria-label="Support ticket information">

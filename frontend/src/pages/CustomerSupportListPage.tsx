@@ -61,7 +61,7 @@ export function CustomerSupportListPage() {
   function clearFilters() { setQuery(''); change({ status: '' }) }
   return <main className="page-container flow-page customer-support support-flow">
     <header className="support-page-heading">
-      <div><h1>Support Tickets</h1><p className="muted">Track your submitted support requests and recorded Staff responses.</p></div>
+      <div><p className="support-area-label">Help with your rental</p><h1>Support Tickets</h1><p className="muted">Track your submitted support requests and recorded Staff responses.</p></div>
       <div className="support-heading-actions">{response && <span className="support-total">{response.pagination.totalItems} {response.pagination.totalItems === 1 ? 'ticket' : 'tickets'} total</span>}<Link className="button" to="/customer/support-tickets/new"><Plus size={17} aria-hidden="true" />Create Ticket</Link></div>
     </header>
     <section className="support-info-banner" aria-label="About ticket updates"><span className="support-banner-icon"><MessageSquareText size={21} aria-hidden="true" /></span><div><h2>Your ticket updates, in one place</h2><p>Open a ticket to review its status and Staff result. Support requests relate to your contracts and do not automatically change a rental or payment.</p></div></section>
