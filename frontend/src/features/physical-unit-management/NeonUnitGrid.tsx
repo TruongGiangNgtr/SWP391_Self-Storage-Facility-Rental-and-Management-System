@@ -106,39 +106,39 @@ export function NeonUnitGrid({
           <div className="neon-telemetry-title">
             <span className="neon-title-icon"><Warehouse size={18} /></span>
             <div>
-              <h3>Sơ Đồ Ô Kho Holographic</h3>
-              <p>Mạng lưới ô kho vật lý thời gian thực theo cấu trúc tầng &amp; phân khu</p>
+              <h3>Holographic StorageUnit Grid</h3>
+              <p>Real-time physical unit map by zone and floor structure</p>
             </div>
           </div>
           <div className="neon-occupancy-badge">
             <Sparkles size={14} className="neon-sparkle" />
-            <span>Tỷ lệ lấp đầy: <strong>{stats.occupancyRate}%</strong></span>
+            <span>Occupancy rate: <strong>{stats.occupancyRate}%</strong></span>
           </div>
         </div>
 
         <div className="neon-telemetry-metrics">
           <div className="neon-metric-pill metric-total">
-            <span>Tổng số ô kho</span>
+            <span>Total units</span>
             <strong>{stats.total}</strong>
           </div>
           <div className="neon-metric-pill metric-available">
             <span className="neon-pill-dot dot-emerald" />
-            <span>Khả dụng</span>
+            <span>Available</span>
             <strong>{stats.available}</strong>
           </div>
           <div className="neon-metric-pill metric-occupied">
             <span className="neon-pill-dot dot-blue" />
-            <span>Đang sử dụng</span>
+            <span>In use</span>
             <strong>{stats.inUse}</strong>
           </div>
           <div className="neon-metric-pill metric-inspection">
             <span className="neon-pill-dot dot-cyan" />
-            <span>Đang kiểm tra</span>
+            <span>Inspection</span>
             <strong>{stats.inspection}</strong>
           </div>
           <div className="neon-metric-pill metric-maintenance">
             <span className="neon-pill-dot dot-amber" />
-            <span>Bảo trì</span>
+            <span>Maintenance</span>
             <strong>{stats.maintenance}</strong>
           </div>
         </div>
@@ -150,22 +150,22 @@ export function NeonUnitGrid({
               <div
                 className="capacity-segment seg-occupied"
                 style={{ width: `${(stats.inUse / stats.total) * 100}%` }}
-                title={`Đang sử dụng: ${stats.inUse}`}
+                title={`In use: ${stats.inUse}`}
               />
               <div
                 className="capacity-segment seg-available"
                 style={{ width: `${(stats.available / stats.total) * 100}%` }}
-                title={`Khả dụng: ${stats.available}`}
+                title={`Available: ${stats.available}`}
               />
               <div
                 className="capacity-segment seg-inspection"
                 style={{ width: `${(stats.inspection / stats.total) * 100}%` }}
-                title={`Đang kiểm tra: ${stats.inspection}`}
+                title={`Inspection: ${stats.inspection}`}
               />
               <div
                 className="capacity-segment seg-maintenance"
                 style={{ width: `${(stats.maintenance / stats.total) * 100}%` }}
-                title={`Bảo trì: ${stats.maintenance}`}
+                title={`Maintenance: ${stats.maintenance}`}
               />
             </>
           )}
@@ -220,7 +220,7 @@ export function NeonUnitGrid({
 
                   <div className="locker-location-tag">
                     <MapPin size={13} className="location-icon" aria-hidden="true" />
-                    <span>{unit.locationInfo || 'Vị trí chưa thiết lập'}</span>
+                    <span>{unit.locationInfo || 'Location not specified'}</span>
                   </div>
                 </div>
 
@@ -236,10 +236,10 @@ export function NeonUnitGrid({
                       type="button"
                       className="locker-action-btn btn-view"
                       onClick={() => void onOpenDetail(unit)}
-                      title="Xem chi tiết ô kho"
+                      title="View StorageUnit details"
                     >
                       <Eye size={14} />
-                      <span>Xem</span>
+                      <span>View</span>
                     </button>
                   </ClickSpark>
 
@@ -254,10 +254,10 @@ export function NeonUnitGrid({
                       type="button"
                       className="locker-action-btn btn-edit"
                       onClick={() => void onOpenEdit(unit)}
-                      title="Chỉnh sửa ô kho"
+                      title="Edit StorageUnit"
                     >
                       <Pencil size={14} />
-                      <span>Sửa</span>
+                      <span>Edit</span>
                     </button>
                   </ClickSpark>
 
@@ -275,8 +275,8 @@ export function NeonUnitGrid({
                       disabled={!target}
                       title={
                         target
-                          ? `Chuyển trạng thái sang ${statusLabel(target)}`
-                          : 'Trạng thái được điều khiển theo chu kỳ bàn giao/trả kho'
+                          ? `Change status to ${statusLabel(target)}`
+                          : 'Status is controlled by handover/return lifecycle'
                       }
                     >
                       {target === 'MAINTENANCE' ? (
@@ -288,10 +288,10 @@ export function NeonUnitGrid({
                       )}
                       <span>
                         {target === 'MAINTENANCE'
-                          ? 'Bảo trì'
+                          ? 'Maintain'
                           : target === 'AVAILABLE'
-                          ? 'Mở lại'
-                          : 'Khóa'}
+                          ? 'Restore'
+                          : 'Locked'}
                       </span>
                     </button>
                   </ClickSpark>
@@ -307,23 +307,23 @@ export function NeonUnitGrid({
         <footer className="neon-pagination-bar" aria-label="Locker grid pagination">
           <div className="neon-pagination-info">
             <span>
-              Hiển thị <strong>{startIdx}</strong>–<strong>{endIdx}</strong> trong{' '}
-              <strong>{filteredUnits.length}</strong> ô kho (Trang {page}/{totalPages})
+              Showing <strong>{startIdx}</strong>–<strong>{endIdx}</strong> of{' '}
+              <strong>{filteredUnits.length}</strong> units (Page {page}/{totalPages})
             </span>
           </div>
 
           {totalPages > 1 && (
-            <nav className="neon-page-nav" aria-label="Điều hướng phân trang ô kho">
+            <nav className="neon-page-nav" aria-label="StorageUnit pagination navigation">
               <ClickSpark sparkColor="#38bdf8" sparkCount={6} sparkRadius={16} duration={300} className="neon-nav-spark">
                 <button
                   type="button"
                   className="neon-nav-btn"
                   disabled={page <= 1}
                   onClick={() => onPageChange(page - 1)}
-                  title="Trang trước"
+                  title="Previous page"
                 >
                   <ChevronLeft size={16} />
-                  <span>Trước</span>
+                  <span>Previous</span>
                 </button>
               </ClickSpark>
 
@@ -358,9 +358,9 @@ export function NeonUnitGrid({
                   className="neon-nav-btn"
                   disabled={page >= totalPages}
                   onClick={() => onPageChange(page + 1)}
-                  title="Trang kế tiếp"
+                  title="Next page"
                 >
-                  <span>Sau</span>
+                  <span>Next</span>
                   <ChevronRight size={16} />
                 </button>
               </ClickSpark>

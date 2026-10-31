@@ -795,10 +795,10 @@ export function PhysicalUnitManagementPage() {
                 type="button"
                 className={`physical-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
                 onClick={() => setViewMode('grid')}
-                title="Sơ đồ Holographic Grid"
+                title="Holographic Grid view"
               >
                 <LayoutGrid size={15} />
-                <span>Sơ đồ</span>
+                <span>Grid</span>
               </button>
             </ClickSpark>
             <ClickSpark sparkColor="#38bdf8" sparkCount={8} sparkRadius={16} duration={300}>
@@ -806,10 +806,10 @@ export function PhysicalUnitManagementPage() {
                 type="button"
                 className={`physical-view-btn ${viewMode === 'table' ? 'active' : ''}`}
                 onClick={() => setViewMode('table')}
-                title="Danh sách bảng"
+                title="Table view"
               >
                 <List size={15} />
-                <span>Bảng</span>
+                <span>Table</span>
               </button>
             </ClickSpark>
           </div>
@@ -935,7 +935,7 @@ export function PhysicalUnitManagementPage() {
             </table>
             {totalPages > 1 && (
               <div className="fwp-pagination" style={{ padding: '12px 16px' }}>
-                <span>Trang {safePage} / {totalPages} · {filteredUnits.length} ô kho</span>
+                <span>Page {safePage} of {totalPages} · {filteredUnits.length} total</span>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     type="button"
@@ -943,7 +943,7 @@ export function PhysicalUnitManagementPage() {
                     disabled={safePage <= 1}
                     onClick={() => setPage(safePage - 1)}
                   >
-                    Trang trước
+                    Previous
                   </button>
                   <button
                     type="button"
@@ -951,7 +951,7 @@ export function PhysicalUnitManagementPage() {
                     disabled={safePage >= totalPages}
                     onClick={() => setPage(safePage + 1)}
                   >
-                    Trang sau
+                    Next
                   </button>
                 </div>
               </div>
