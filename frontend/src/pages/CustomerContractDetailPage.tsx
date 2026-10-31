@@ -19,7 +19,7 @@ export function CustomerContractDetailPage() {
   return (
     <main className="page-container flow-page customer-contract-details">
       <div className="contract-detail-navigation"><Link className="contract-detail-text-link" to="/customer/contracts"><ArrowLeft size={16} aria-hidden="true" />Back to My Contracts</Link><button className="contract-detail-text-button" type="button" disabled={loading} onClick={refresh}><RefreshCw size={14} aria-hidden="true" />{loading ? 'Refreshing…' : 'Refresh Contract'}</button></div>
-      <header className="contract-detail-heading"><div><h1>{contract ? contractTitle(contract) : 'Contract Details'}</h1>{contract && <StatusBadge status={contract.status} />}</div><p className="muted">Review your storage details, rental terms and contract management options.</p></header>
+      <header className="contract-detail-heading"><p className="contracts-area-label">Your rented storage</p><div><h1>{contract ? contractTitle(contract) : 'Contract Details'}</h1>{contract && <StatusBadge status={contract.status} />}</div><p className="muted">Review your storage details, rental terms and contract management options.</p></header>
       <ApiErrorAlert error={error} />
       {loading ? <LoadingState label="Loading your contract..." /> : contract && <>
         <section className="rental-contract-summary" aria-label="Rental at a glance">

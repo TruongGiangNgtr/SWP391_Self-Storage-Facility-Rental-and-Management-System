@@ -51,7 +51,7 @@ export function CustomerFeeReturnPage() {
 
   return <main className="page-container flow-page customer-tracking-page completion-flow">
     <header className="tracking-page-heading">
-      <div><h1>Fees &amp; Return Tracking</h1><p className="muted">Review billing, inspection and recorded settlement amounts for this contract.</p></div>
+      <div><p className="contracts-area-label">Your recorded rental activity</p><h1>Fees &amp; Return Tracking</h1><p className="muted">Review billing, inspection and recorded settlement amounts for this contract.</p></div>
       <button className="button button-secondary" disabled={busy} type="button" onClick={() => { contractReader.refresh(); setRetry(value => value + 1) }}><RefreshCw size={16} aria-hidden="true" />Refresh Tracking</button>
     </header>
     <div className="tracking-navigation">

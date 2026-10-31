@@ -20,6 +20,7 @@ import '../styles/customer-contracts-depth.css'
 import '../styles/customer-overview-editorial.css'
 import '../styles/customer-visits-editorial.css'
 import '../styles/customer-reservations-editorial.css'
+import '../styles/customer-contracts-editorial.css'
 
 function Brand({ footer = false }: { footer?: boolean }) {
   return <Link className={`flow-brand ${footer ? 'flow-brand-footer' : ''}`} to="/" aria-label="FStoRent Home">
@@ -69,7 +70,7 @@ export function CustomerLayout({ children, publicPage = false }: { children: Rea
     </nav>
   }
 
-  return <div className={`frms-customer customer-shell ${pathname === '/' || guestDepthSurface || overviewDepthSurface || visitsDepthSurface || reservationsDepthSurface || contractsDepthSurface ? 'home-shell' : ''} ${guestDepthSurface ? 'guest-editorial-shell' : ''} ${pathname === '/' || guestDepthSurface || overviewDepthSurface || visitsDepthSurface || reservationsEditorialSurface ? 'editorial-shell' : ''} ${overviewDepthSurface || visitsDepthSurface || reservationsEditorialSurface ? 'overview-editorial-shell' : ''} ${visitsDepthSurface ? 'visits-editorial-shell' : ''} ${reservationsEditorialSurface ? 'reservations-editorial-shell' : ''} ${reservationsDepthSurface && !reservationsEditorialSurface ? 'reservations-depth-shell' : ''} ${contractsDepthSurface ? 'contracts-depth-shell' : ''} ${supportSurface || rentalSurface || financeSurface ? 'support-surface' : ''} ${rentalSurface ? 'rental-surface' : ''} ${financeSurface ? 'finance-surface' : ''} ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
+  return <div className={`frms-customer customer-shell ${pathname === '/' || guestDepthSurface || overviewDepthSurface || visitsDepthSurface || reservationsDepthSurface || contractsDepthSurface ? 'home-shell' : ''} ${guestDepthSurface ? 'guest-editorial-shell' : ''} ${pathname === '/' || guestDepthSurface || overviewDepthSurface || visitsDepthSurface || reservationsEditorialSurface || contractsDepthSurface ? 'editorial-shell' : ''} ${overviewDepthSurface || visitsDepthSurface || reservationsEditorialSurface || contractsDepthSurface ? 'overview-editorial-shell' : ''} ${visitsDepthSurface ? 'visits-editorial-shell' : ''} ${reservationsEditorialSurface ? 'reservations-editorial-shell' : ''} ${reservationsDepthSurface && !reservationsEditorialSurface ? 'reservations-depth-shell' : ''} ${contractsDepthSurface ? 'contracts-editorial-shell' : ''} ${supportSurface || rentalSurface || financeSurface ? 'support-surface' : ''} ${rentalSurface ? 'rental-surface' : ''} ${financeSurface ? 'finance-surface' : ''} ${withSidebar ? 'customer-portal' : 'customer-catalog'} ${publicPage ? pathname.startsWith('/auth/customer/') ? 'customer-auth' : 'customer-public' : ''}`}>
     <a className="customer-skip-link" href="#customer-main">Skip to content</a>
     <header className="flow-header">
       <div className="flow-header-inner">
