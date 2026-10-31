@@ -1,5 +1,7 @@
 import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
 import { StorageUnitCode } from '../../components/StorageUnitCode'
+import { NeonUnitGrid } from './NeonUnitGrid'
+import { LayoutGrid, List } from 'lucide-react'
 import { EmployeeModal } from '../../components/EmployeeModal'
 import {
   AlertTriangle,
@@ -207,6 +209,7 @@ export function PhysicalUnitManagementPage() {
   const [facilityUnitTypes, setFacilityUnitTypes] = useState<UnitTypeAvailability[]>([])
   const [unitTypeCache, setUnitTypeCache] = useState<Record<string, UnitTypeAvailability>>({})
   const [search, setSearch] = useState('')
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [statusFilter, setStatusFilter] = useState<'ALL' | StorageUnitStatus>('ALL')
   const [unitTypeFilter, setUnitTypeFilter] = useState('ALL')
   const [isLoading, setIsLoading] = useState(true)
@@ -752,6 +755,27 @@ export function PhysicalUnitManagementPage() {
               ))}
             </select>
           </label>
+
+          <div className="physical-view-toggle">
+            <button
+              type="button"
+              className={`physical-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setViewMode('grid')}
+              title="Sơ đồ Holographic Grid"
+            >
+              <LayoutGrid size={15} />
+              <span>Sơ đồ</span>
+            </button>
+            <button
+              type="button"
+              className={`physical-view-btn ${viewMode === 'table' ? 'active' : ''}`}
+              onClick={() => setViewMode('table')}
+              title="Danh sách bảng"
+            >
+              <List size={15} />
+              <span>Bảng</span>
+            </button>
+          </div>
         </div>
 
         <div className="physical-panel-meta">
@@ -777,8 +801,20 @@ export function PhysicalUnitManagementPage() {
             </span>
           </div>
         ) : filteredUnits.length > 0 ? (
-          <div className="physical-table-wrap">
-            <table className="physical-table">
+          viewMode === 'grid' ? (
+            <NeonUnitGrid
+              units={units}
+              filteredUnits={filteredUnits}
+              unitTypeCache={unitTypeCache}
+              onOpenDetail={openDetail}
+              onOpenEdit={openEdit}
+              onOpenStatus={openStatus}
+              managerStatusTarget={managerStatusTarget}
+              statusLabel={statusLabel}
+            />
+          ) : (
+            <div className="physical-table-wrap">
+              <table className="physical-table">
               <thead>
                 <tr>
                   <th>Unit</th>
@@ -845,7 +881,7 @@ export function PhysicalUnitManagementPage() {
               </tbody>
             </table>
           </div>
-        ) : null}
+        ) ) : null}
       </section>
 
       <p className="physical-boundary-note">
