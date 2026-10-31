@@ -114,7 +114,7 @@ function ReservationReview() {
   }
 
   const completionForm = <ReservationCccdForm profile={profile} onSaveStart={() => setCompletionRequested(true)} onContinue={resumeReview} onLater={deferCompletion} />
-  return <><CustomerActionFrame className="reservation-create-design booking-review" headingIcon={<PackageCheck size={24} />} title={inDialog && completing ? 'Complete Your Profile' : 'Confirm Your Reservation'} category="Reservation" subtitle={inDialog && completing ? 'Add your National ID, then return to review your reservation.' : 'A final look at your space, rental months and current availability.'} busy={working} returnTo={backUrl} backLabel="Back to Find Storage" onClose={inDialog && completing ? deferCompletion : undefined}>
+  return <><CustomerActionFrame className="reservation-create-design booking-review reservations-editorial-dialog" headingIcon={<PackageCheck size={24} />} title={inDialog && completing ? 'Complete Your Profile' : 'Confirm Your Reservation'} category="Reservation" subtitle={inDialog && completing ? 'Add your National ID, then return to review your reservation.' : 'A final look at your space, rental months and current availability.'} busy={working} returnTo={backUrl} backLabel="Back to Find Storage" onClose={inDialog && completing ? deferCompletion : undefined}>
     <BookingJourney step={1} />
     {inDialog && completing ? completionForm : <section ref={reviewRoot} tabIndex={-1} className="panel stack reservation-create-content">
       <div className="booking-review-layout"><div className="booking-review-main">
@@ -143,6 +143,6 @@ function ReservationReview() {
       </aside></div>
     </section>}
   </CustomerActionFrame>
-  {!inDialog && completing && createPortal(<FlowDialog className="reservation-cccd-dialog" trapFocus title="Complete Your Profile" category="Reservation" subtitle="Add your National ID, then return to review your reservation." busy={profile.saving} onClose={deferCompletion}>{completionForm}</FlowDialog>, document.body)}
+  {!inDialog && completing && createPortal(<FlowDialog className="reservation-cccd-dialog reservations-editorial-dialog" trapFocus title="Complete Your Profile" category="Reservation" subtitle="Add your National ID, then return to review your reservation." busy={profile.saving} onClose={deferCompletion}>{completionForm}</FlowDialog>, document.body)}
   </>
 }
