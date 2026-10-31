@@ -1,0 +1,51 @@
+/* React Bits ShinyText styling */
+.shiny-text {
+  display: inline-block;
+  position: relative;
+  background-image: linear-gradient(
+    115deg,
+    currentColor 0%,
+    currentColor 36%,
+    #ffffff 50%,
+    currentColor 64%,
+    currentColor 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shiny-sweep 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 1px currentColor);
+}
+
+.status-badge-shiny {
+  display: inline-flex;
+  align-items: center;
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+@keyframes shiny-sweep {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+.shiny-text.disabled {
+  animation: none !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  filter: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shiny-text {
+    animation: none !important;
+    background: none !important;
+    -webkit-text-fill-color: currentColor !important;
+    filter: none !important;
+  }
+}

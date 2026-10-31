@@ -7,6 +7,7 @@ import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { FirstMonthHandoverInfo } from '../components/FirstMonthHandoverInfo'
 import { LoadingState, PaginationControls } from '../components/PageStates'
 import { StatusBadge } from '../components/StatusBadge'
+import { StorageUnitCode } from '../components/StorageUnitCode'
 import { getHandoverInputError, isActiveHandoverAssignment } from '../features/handover/handoverValidation'
 import { useCustomerDiscounts } from '../features/handover/useCustomerDiscounts'
 import { useReservationHandover } from '../features/handover/useReservationHandover'
@@ -109,7 +110,7 @@ export function StaffHandoverPage() {
                   <h3>Manager-assigned Unit</h3>
                   {validAssignment ? (
                     <dl className="detail-list">
-                      <div><dt>Unit Code</dt><dd>{employeeText(assignment.unitCode)}</dd></div>
+                      <div><dt>Unit Code</dt><dd><StorageUnitCode code={assignment.unitCode} /></dd></div>
                       <div><dt>Location</dt><dd>{employeeText(assignment.locationInfo)}</dd></div>
                       <div><dt>Status</dt><dd><StatusBadge status={assignment.status} /></dd></div>
                       <div><dt>Assigned At</dt><dd>{new Date(assignment.assignedAt).toLocaleString('en-GB', { timeZone: 'Asia/Ho_Chi_Minh' })} (GMT+7)</dd></div>

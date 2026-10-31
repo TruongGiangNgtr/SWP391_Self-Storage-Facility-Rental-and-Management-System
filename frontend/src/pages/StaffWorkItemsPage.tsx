@@ -14,6 +14,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { presentApiError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { visitApi } from '../api/visitApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
+import { DecryptedText } from '../components/react-bits/DecryptedText'
 import { SpotlightCard } from '../components/react-bits/SpotlightCard'
 import { StatusBadge } from '../components/StatusBadge'
 import { isReservationWorkItem, type StaffWorkItem } from '../features/handover/handover.types'
@@ -387,7 +388,14 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
                           />
                           <div>
                             <strong>{readableWorkType(item.workType)}</strong>
-                            <span className="fwp-ref-code">{item.referenceId}</span>
+                            <DecryptedText
+                              text={item.referenceId}
+                              speed={25}
+                              maxIterations={6}
+                              sequential
+                              animateOn="view"
+                              parentClassName="fwp-ref-code"
+                            />
                           </div>
                         </div>
                       </td>
