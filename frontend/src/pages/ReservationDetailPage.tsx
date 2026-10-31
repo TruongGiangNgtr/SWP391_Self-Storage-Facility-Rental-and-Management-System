@@ -10,6 +10,7 @@ import { LoadingState } from '../components/PageStates'
 import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
 import { FirstMonthHandoverInfo } from '../components/FirstMonthHandoverInfo'
 import { BookingJourney } from '../components/BookingJourney'
+import { FlowDialog } from '../components/FlowDialog'
 import { paymentReturnState } from '../features/billing/paymentReturnState'
 import type { ReservationDetail } from '../features/reservations/reservation.types'
 import { getReservationStatusLabel } from '../features/reservations/reservationPresentation'
@@ -135,7 +136,7 @@ export function ReservationDetailPage() {
     <main className="page-container flow-page customer-reservation-details booking-detail">
       <Link className="reservation-detail-text-link reservation-detail-back" to="/customer/reservations"><ArrowLeft size={16} aria-hidden="true" />My Reservations</Link>
       <header className="page-heading reservation-detail-heading">
-        <p className="eyebrow">Reservation Management</p>
+        <p className="reservations-area-label">Your storage reservation</p>
         <h1>Reservation Details</h1>
         <p className="muted">Review your rental period, deposit invoice and handover visit.</p>
       </header>
@@ -263,7 +264,7 @@ export function ReservationDetailPage() {
                   Cancel Reservation
                 </button>
               ) : (
-                <form className="form-grid reservation-detail-cancel-form" onSubmit={handleCancel}>
+                <FlowDialog className="reservations-editorial-dialog reservation-cancel-dialog" trapFocus title="Cancel Reservation" subtitle="Tell us why you need to cancel this reservation." category="" busy={working} onClose={() => setShowCancelForm(false)}><ApiErrorAlert error={error} /><form className="form-grid reservation-detail-cancel-form" onSubmit={handleCancel}>
                   <div className="form-field">
                     <label htmlFor="cancelReason">Cancellation Reason</label>
                     <textarea
@@ -286,7 +287,7 @@ export function ReservationDetailPage() {
                       {working ? 'Cancelling...' : 'Confirm Cancellation'}
                     </button>
                   </div>
-                </form>
+                </form></FlowDialog>
               )}
             </section>
           )}

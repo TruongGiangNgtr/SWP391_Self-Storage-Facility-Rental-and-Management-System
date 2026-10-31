@@ -76,7 +76,7 @@ export function ReservationConfirmPage() {
 
   return (
     <CustomerActionFrame
-      className="customer-handover-schedule booking-handover"
+      className="customer-handover-schedule booking-handover reservations-editorial-dialog"
       headingIcon={<CalendarDays size={24} />}
       category="Handover Visit"
       title="Confirm Reservation and Schedule Handover"
