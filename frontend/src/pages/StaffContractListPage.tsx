@@ -55,7 +55,7 @@ export function StaffContractListPage() {
     let active = true
     fetchAllEmployeePages(async (nextPage, pageSize) => {
       const result = await contractApi.list(nextPage, pageSize)
-      if (!isContractListResponse(result, nextPage)) {
+      if (!isContractListResponse(result, nextPage, pageSize)) {
         throw new Error('INVALID_CONTRACT_LIST_RESPONSE')
       }
       return result

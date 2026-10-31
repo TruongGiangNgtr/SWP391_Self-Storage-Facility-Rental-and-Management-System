@@ -77,12 +77,37 @@ export function ReservationListPage() {
   const types = [...new Set(reservations.map(item => item.unitTypeId))].map(id => ({ id, name: unitTypes.reads[id]?.data?.name ?? 'Unit type unavailable' }))
   const refresh = () => { setRevision(value => value + 1); unitTypes.retry(); facilities.retry() }
 
+  const totalInScope = response?.pagination.totalItems ?? 0
+  const onPage = reservations.length
+  const matchingOnPage = visible.length
+  const hasClientFilters = Boolean(filters.query || filters.status || filters.unitType)
+
+  let summaryText = 'Loading this page…'
+  if (error) {
+    summaryText = 'Reservation list unavailable.'
+  } else if (catalogPending) {
+    summaryText = 'Loading storage details for your search…'
+  } else if (response) {
+    if (totalInScope === 0) {
+      summaryText = '0 reservations in your account.'
+    } else if (hasClientFilters) {
+      summaryText = `${matchingOnPage} matching of ${onPage} reservations on this page · ${totalInScope} total in account. Filters and tab counts cover this page only.`
+    } else {
+      summaryText = `Showing ${onPage} reservations on this page · ${totalInScope} total in account. Tab counts cover this page only.`
+    }
+  }
+
   function cards() {
     if (loading) return <LoadingState label="Loading your reservations…" />
     if (error) return <button className="button button-secondary" type="button" onClick={refresh}>Retry Reservations</button>
     if (catalogPending) return <LoadingState label="Loading storage details for your search…" />
     if (!reservations.length) return <EmptyState message="You do not have any reservations on this page. Find storage to start a new reservation." />
-    if (!visible.length) return <div className="panel stack"><EmptyState message="No reservations on this page match your filters." /><button className="button button-secondary" type="button" onClick={() => applyFilters({ query: '', status: '', unitType: '' })}>Clear Filters</button></div>
+    if (!visible.length) {
+      const otherPagesHint = response && response.pagination.totalPages > 1
+        ? ` Other pages may contain ${status ? `matching ${RESERVATION_FILTER_LABELS[status as ReservationStatus] ?? status} reservations` : 'matching reservations'}.`
+        : ''
+      return <div className="panel stack"><EmptyState message={`No reservations on this page match your filters.${otherPagesHint}`} /><button className="button button-secondary" type="button" onClick={() => applyFilters({ query: '', status: '', unitType: '' })}>Clear Filters</button></div>
+    }
     return <div className="reservations-card-list">{visible.map(item => {
       const type = unitTypes.reads[item.unitTypeId]?.data
       const facility = facilities.reads[item.facilityId]?.data
@@ -114,9 +139,9 @@ export function ReservationListPage() {
     <section className="page-heading reservations-heading"><div><h1>My Reservations</h1><p className="muted">Track your reservations, settle deposit invoices and manage your handover visits.</p></div><div className="reservations-heading-actions"><button className="button button-secondary" type="button" disabled={loading} onClick={refresh} aria-label="Refresh Reservations" title="Refresh Reservations"><RefreshCw size={16} aria-hidden="true" /><span>Refresh</span></button><Link className="button reservations-new-button" to="/customer/storage-search"><Plus size={16} aria-hidden="true" />New Storage Reservation</Link></div></section>
     <ApiErrorAlert error={error} />
     {(unitTypes.error || facilities.error) && <div className="panel stack"><p className="muted">Some storage names could not be loaded. Your reservation amounts and statuses still come from the reservation service.</p><ApiErrorAlert error={unitTypes.error} /><ApiErrorAlert error={facilities.error} /><button className="button button-secondary" type="button" onClick={() => { unitTypes.retry(); facilities.retry() }} disabled={unitTypes.loading || facilities.loading}>Retry Storage Details</button></div>}
-    <div className="reservations-tabs"><CustomerTabs labels={RESERVATION_LIST_TABS} counts={loading || error || catalogPending ? undefined : counts} ariaLabel="Reservation status" selected={selectedTab} onChange={index => applyFilters({ ...filters, status: RESERVATION_LIST_STATUSES[index] })}>{({ tabId, panelId }) => <>
+    <div className="reservations-tabs"><CustomerTabs labels={RESERVATION_LIST_TABS} counts={loading || error || catalogPending ? undefined : counts} ariaLabel="Reservation status (counts on this page only)" selected={selectedTab} onChange={index => applyFilters({ ...filters, status: RESERVATION_LIST_STATUSES[index] })}>{({ tabId, panelId }) => <>
       <RentalListFilters><ReservationFilterForm key={JSON.stringify(filters)} initial={filters} types={types} onApply={applyFilters} /></RentalListFilters>
-      <div className="reservations-filter-summary"><p className="muted" role="status">{loading ? 'Loading this page…' : error ? 'Reservation list unavailable.' : catalogPending ? 'Loading storage details for your search…' : `${visible.length} matching reservations on this page. Counts and filters cover this page only.`}</p>{(filters.query || filters.status || filters.unitType) && <button className="reservations-text-button" type="button" onClick={() => applyFilters({ query: '', status: '', unitType: '' })}>Clear Filters</button>}</div>
+      <div className="reservations-filter-summary"><p className="muted" role="status">{summaryText}</p>{(filters.query || filters.status || filters.unitType) && <button className="reservations-text-button" type="button" onClick={() => applyFilters({ query: '', status: '', unitType: '' })}>Clear Filters</button>}</div>
       {RESERVATION_LIST_TABS.map((label, index) => <div key={label} role="tabpanel" id={panelId(index)} aria-labelledby={tabId(index)} hidden={selectedTab !== index} tabIndex={0}>{selectedTab === index && cards()}</div>)}
     </>}</CustomerTabs></div>
     {response && <PaginationControls pagination={response.pagination} disabled={loading} onPageChange={next => setParams(current => { const query = new URLSearchParams(current); if (next === 1) query.delete('page'); else query.set('page', String(next)); return query })} />}
