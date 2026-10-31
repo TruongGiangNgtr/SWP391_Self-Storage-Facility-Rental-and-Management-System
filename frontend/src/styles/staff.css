@@ -216,6 +216,24 @@
   margin-bottom: 14px;
 }
 
+.fwp-summary-command {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1024px) {
+  .fwp-summary-command {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .fwp-summary-command {
+    grid-template-columns: 1fr;
+  }
+}
+
 .fwp-summary-card,
 .fwp-record-summary > div {
   min-width: 0;
@@ -230,6 +248,131 @@
 .fwp-record-summary span { display: block; color: #748198; font-size: 10px; font-weight: 650; text-transform: uppercase; letter-spacing: .04em; }
 .fwp-summary-card strong,
 .fwp-record-summary strong { display: block; margin-top: 6px; color: #162037; font-size: 22px; }
+
+/* Cyber-Command Metric Card Components */
+.fwp-metric-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fwp-metric-label {
+  color: #64748b !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase;
+}
+
+.fwp-metric-icon-badge {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.fwp-badge-cyan {
+  color: #0891b2;
+  background: #ecfeff;
+  border: 1px solid #cffafe;
+}
+
+.fwp-badge-amber {
+  color: #d97706;
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+}
+
+.fwp-badge-emerald {
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+}
+
+.fwp-badge-blue {
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+}
+
+.fwp-metric-value {
+  display: block;
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  font-variant-numeric: tabular-nums;
+  margin: 10px 0 6px !important;
+  line-height: 1.1;
+  font-family: var(--frms-font-heading);
+}
+
+.fwp-metric-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.fwp-metric-subtext {
+  font-size: 11px !important;
+  color: #64748b !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+.fwp-metric-total:hover { border-color: rgba(6, 182, 212, 0.45); }
+.fwp-metric-scheduled:hover { border-color: rgba(245, 158, 11, 0.45); }
+.fwp-metric-handover:hover { border-color: rgba(16, 185, 129, 0.45); }
+.fwp-metric-matching:hover { border-color: rgba(37, 99, 235, 0.45); }
+
+/* Living Status Pulse Animations */
+@keyframes fwp-pulse-emerald-glow {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes fwp-pulse-amber-glow {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+@keyframes fwp-pulse-cyan-glow {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(6, 182, 212, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
+}
+
+.fwp-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fwp-pulse-emerald {
+  background-color: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  animation: fwp-pulse-emerald-glow 2s infinite;
+}
+
+.fwp-pulse-amber {
+  background-color: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+  animation: fwp-pulse-amber-glow 2s infinite;
+}
+
+.fwp-pulse-cyan {
+  background-color: #06b6d4;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
+  animation: fwp-pulse-cyan-glow 2s infinite;
+}
 
 .fwp-toolbar {
   display: flex;
@@ -382,6 +525,175 @@
 .fwp-customer-cell strong { color: #1b2538; font-size: 11px; }
 .fwp-customer-cell span { color: #7b8799; font-size: 10px; }
 .fwp-muted { color: #7d899c; font-size: 10px; }
+
+/* Staff Queue Enhancements */
+.fwp-queue-container {
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.fwp-queue-container:hover {
+  border-color: rgba(6, 182, 212, 0.35);
+  box-shadow: 0 4px 20px -2px rgba(6, 182, 212, 0.08);
+}
+
+.fwp-queue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid #edf2f7;
+  background: #fafcff;
+}
+
+.fwp-queue-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fwp-queue-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #0284c7;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+}
+
+.fwp-queue-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.fwp-queue-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #0891b2;
+}
+
+.fwp-queue-row {
+  transition: background-color 0.15s ease;
+}
+
+.fwp-row-priority-handover td {
+  background-color: #f8fdf9;
+}
+
+.fwp-row-priority-handover:hover td {
+  background-color: #ecfdf5 !important;
+}
+
+.fwp-work-type-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fwp-row-indicator {
+  width: 4px;
+  height: 28px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.indicator-handover {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.indicator-scheduled {
+  background: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+}
+
+.indicator-default {
+  background: #cbd5e1;
+}
+
+.fwp-ref-code {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.fwp-phone-tag {
+  display: inline-block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: #475569;
+}
+
+.fwp-date-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+}
+
+.fwp-cell-icon {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.fwp-status-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fwp-rental-tag {
+  font-size: 11px;
+  color: #475569;
+}
+
+.fwp-action-priority {
+  background: #10b981 !important;
+  color: #ffffff !important;
+  border-color: #059669 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+}
+
+.fwp-action-priority:hover {
+  background: #059669 !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+.fwp-link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.fwp-link-button:hover svg {
+  transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fwp-pulse-emerald,
+  .fwp-pulse-amber,
+  .fwp-pulse-cyan {
+    animation: none !important;
+  }
+  .fwp-link-button:hover svg {
+    transform: none !important;
+  }
+}
 
 .fwp-pagination {
   min-height: 54px;

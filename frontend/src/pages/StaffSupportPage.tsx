@@ -6,6 +6,7 @@ import { presentApiError, presentValidationError, type ApiErrorPresentation } fr
 import { completeSupportTicket, getSupportTicket, listSupportTickets } from '../api/supportTicketApi'
 import { useAuth } from '../auth/auth.context'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
+import { SpotlightCard } from '../components/react-bits/SpotlightCard'
 import { StatusBadge } from '../components/StatusBadge'
 import {
   SUPPORT_TICKET_CATEGORIES,
@@ -155,9 +156,18 @@ export function StaffSupportPage() {
       </header>
 
       <section className="fwp-summary" aria-label="Support work summary">
-        <div className="fwp-summary-card"><span>Server total</span><strong>{tickets.length}</strong></div>
-        <div className="fwp-summary-card"><span>Matching tickets</span><strong>{filteredTickets.length}</strong></div>
-        <div className="fwp-summary-card"><span>Assigned to me</span><strong>{tickets.filter((ticket) => ticket.assignedEmployeeId === user?.employeeId).length}</strong></div>
+        <SpotlightCard className="fwp-summary-card" spotlightColor="rgba(6, 182, 212, 0.16)">
+          <span>Server total</span>
+          <strong>{tickets.length}</strong>
+        </SpotlightCard>
+        <SpotlightCard className="fwp-summary-card" spotlightColor="rgba(37, 99, 235, 0.16)">
+          <span>Matching tickets</span>
+          <strong>{filteredTickets.length}</strong>
+        </SpotlightCard>
+        <SpotlightCard className="fwp-summary-card" spotlightColor="rgba(16, 185, 129, 0.16)">
+          <span>Assigned to me</span>
+          <strong>{tickets.filter((ticket) => ticket.assignedEmployeeId === user?.employeeId).length}</strong>
+        </SpotlightCard>
       </section>
 
       <section className="fwp-toolbar fwp-support-toolbar" aria-label="Support ticket filters">
@@ -207,7 +217,7 @@ export function StaffSupportPage() {
       {success && <div className="fwp-banner fwp-banner-success"><CheckCircle2 size={18} /><span>{success}</span></div>}
 
       <div className="fwp-support-layout">
-        <section className="fwp-table-card fwp-support-table-card">
+        <SpotlightCard className="fwp-table-card fwp-support-table-card" spotlightColor="rgba(37, 99, 235, 0.08)">
           {loadingList ? (
             <div className="fwp-state-grid compact">{Array.from({ length: 5 }).map((_, index) => <div className="fwp-skeleton" key={index} />)}</div>
           ) : visibleTickets.length === 0 ? (
@@ -241,7 +251,7 @@ export function StaffSupportPage() {
               </div>
             </footer>
           )}
-        </section>
+        </SpotlightCard>
 
         <aside className="fwp-support-detail-card" aria-label="Support Ticket detail">
           {loadingDetail ? <div className="fwp-state-card">Loading Support Ticket detail…</div> : !detail ? (

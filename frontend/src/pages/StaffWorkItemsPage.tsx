@@ -1,10 +1,20 @@
 import { EmployeeEntityLabel, useEmployeeLabelLookup } from '../components/EmployeeEntityLabel'
-import { CalendarDays, RefreshCw, Search } from 'lucide-react'
+import {
+  ArrowRight,
+  CalendarDays,
+  Clock,
+  Filter,
+  KeyRound,
+  ListChecks,
+  RefreshCw,
+  Search,
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { presentApiError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { visitApi } from '../api/visitApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
+import { SpotlightCard } from '../components/react-bits/SpotlightCard'
 import { StatusBadge } from '../components/StatusBadge'
 import { isReservationWorkItem, type StaffWorkItem } from '../features/handover/handover.types'
 import { isAccessWorkItem } from '../features/visits/accessValidation'
@@ -157,6 +167,14 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
     })
   }, [allItems, lookupLabel, queueMode, search])
 
+  const scheduledCount = useMemo(() => {
+    return (allItems ?? []).filter((item) => item.status === 'SCHEDULED').length
+  }, [allItems])
+
+  const checkedInCount = useMemo(() => {
+    return (allItems ?? []).filter((item) => item.status === 'CHECKED_IN').length
+  }, [allItems])
+
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
   const visibleItems = useMemo(
@@ -191,15 +209,77 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
         <p className="fwp-toolbar-note">{PAGE_COPY[stage].description}</p>
       </>}
 
-      <section className="fwp-summary" aria-label="Work list summary">
-        <div className="fwp-summary-card">
-          <span>Total work items</span>
-          <strong>{loading || !allItems ? '—' : allItems.length}</strong>
-        </div>
-        <div className="fwp-summary-card">
-          <span>Matching items</span>
-          <strong>{loading ? '—' : filteredItems.length}</strong>
-        </div>
+      {/* Cyber-Command Operational Telemetry / Summary Cluster with React Bits SpotlightCard */}
+      <section className="fwp-summary fwp-summary-command" aria-label="Work list summary">
+        <SpotlightCard
+          className="fwp-summary-card fwp-metric-total"
+          spotlightColor="rgba(6, 182, 212, 0.18)"
+          spotlightRadius={280}
+        >
+          <div className="fwp-metric-header">
+            <span className="fwp-metric-label">Total work items</span>
+            <div className="fwp-metric-icon-badge fwp-badge-cyan">
+              <ListChecks size={16} aria-hidden="true" />
+            </div>
+          </div>
+          <strong className="fwp-metric-value">{loading || !allItems ? '—' : allItems.length}</strong>
+          <div className="fwp-metric-footer">
+            <span className="fwp-metric-subtext">All operations today</span>
+          </div>
+        </SpotlightCard>
+
+        <SpotlightCard
+          className="fwp-summary-card fwp-metric-scheduled"
+          spotlightColor="rgba(245, 158, 11, 0.18)"
+          spotlightRadius={280}
+        >
+          <div className="fwp-metric-header">
+            <span className="fwp-metric-label">Scheduled Visits</span>
+            <div className="fwp-metric-icon-badge fwp-badge-amber">
+              <Clock size={16} aria-hidden="true" />
+            </div>
+          </div>
+          <strong className="fwp-metric-value">{loading || !allItems ? '—' : scheduledCount}</strong>
+          <div className="fwp-metric-footer">
+            <span className="fwp-status-dot fwp-pulse-amber" aria-hidden="true" />
+            <span className="fwp-metric-subtext">Awaiting arrival</span>
+          </div>
+        </SpotlightCard>
+
+        <SpotlightCard
+          className="fwp-summary-card fwp-metric-handover"
+          spotlightColor="rgba(16, 185, 129, 0.18)"
+          spotlightRadius={280}
+        >
+          <div className="fwp-metric-header">
+            <span className="fwp-metric-label">In Facility / Ready</span>
+            <div className="fwp-metric-icon-badge fwp-badge-emerald">
+              <KeyRound size={16} aria-hidden="true" />
+            </div>
+          </div>
+          <strong className="fwp-metric-value">{loading || !allItems ? '—' : checkedInCount}</strong>
+          <div className="fwp-metric-footer">
+            <span className="fwp-status-dot fwp-pulse-emerald" aria-hidden="true" />
+            <span className="fwp-metric-subtext">Ready for handover</span>
+          </div>
+        </SpotlightCard>
+
+        <SpotlightCard
+          className="fwp-summary-card fwp-metric-matching"
+          spotlightColor="rgba(37, 99, 235, 0.18)"
+          spotlightRadius={280}
+        >
+          <div className="fwp-metric-header">
+            <span className="fwp-metric-label">Matching items</span>
+            <div className="fwp-metric-icon-badge fwp-badge-blue">
+              <Filter size={16} aria-hidden="true" />
+            </div>
+          </div>
+          <strong className="fwp-metric-value">{loading ? '—' : filteredItems.length}</strong>
+          <div className="fwp-metric-footer">
+            <span className="fwp-metric-subtext">Active filter results</span>
+          </div>
+        </SpotlightCard>
       </section>
 
       <section className="fwp-toolbar" aria-label="Work-list filters">
@@ -249,14 +329,33 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
       )}
 
       {!loading && !error && visibleItems.length === 0 && (
-        <div className="fwp-state-card">
+        <SpotlightCard
+          className="fwp-state-card"
+          spotlightColor="rgba(148, 163, 184, 0.15)"
+          spotlightRadius={350}
+        >
           <strong>No matching work items</strong>
           <p>No work items for the selected date match your filters.</p>
-        </div>
+        </SpotlightCard>
       )}
 
       {!loading && !error && visibleItems.length > 0 && (
-        <section className="fwp-table-card" aria-label={`${copy.title} table`}>
+        <SpotlightCard
+          className="fwp-table-card fwp-queue-container"
+          aria-label={`${copy.title} table`}
+          spotlightColor="rgba(6, 182, 212, 0.08)"
+          spotlightRadius={550}
+        >
+          <div className="fwp-queue-header">
+            <div className="fwp-queue-title">
+              <span className="fwp-queue-badge">LIVE QUEUE</span>
+              <span className="fwp-queue-count">{filteredItems.length} tasks scheduled</span>
+            </div>
+            <div className="fwp-queue-status">
+              <span className="fwp-status-dot fwp-pulse-cyan" aria-hidden="true" />
+              <span>Operational Feed (GMT+7)</span>
+            </div>
+          </div>
           <div className="fwp-table-wrap">
             <table className="fwp-table">
               <thead>
@@ -273,22 +372,62 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
                 {visibleItems.map((item) => {
                   const target = workItemLink(item, safePage)
                   const link = target && isHandover ? `${target}&workTab=${stage === 'handover' ? 'handover' : 'check-in'}&workDate=${encodeURIComponent(date)}` : target
+                  const isCheckedIn = item.status === 'CHECKED_IN'
+                  const isScheduled = item.status === 'SCHEDULED'
                   return (
-                    <tr key={`${item.workType}-${item.referenceId}`}>
-                      <td><strong>{readableWorkType(item.workType)}</strong></td>
+                    <tr
+                      key={`${item.workType}-${item.referenceId}`}
+                      className={`fwp-queue-row ${isCheckedIn ? 'fwp-row-priority-handover' : isScheduled ? 'fwp-row-scheduled' : ''}`}
+                    >
+                      <td>
+                        <div className="fwp-work-type-cell">
+                          <span
+                            className={`fwp-row-indicator ${isCheckedIn ? 'indicator-handover' : isScheduled ? 'indicator-scheduled' : 'indicator-default'}`}
+                            aria-hidden="true"
+                          />
+                          <div>
+                            <strong>{readableWorkType(item.workType)}</strong>
+                            <span className="fwp-ref-code">{item.referenceId}</span>
+                          </div>
+                        </div>
+                      </td>
                       <td>
                         {item.customer ? (
                           <div className="fwp-customer-cell">
                             <strong>{item.customer.fullName}</strong>
-                            <span>{item.customer.phoneNumber}</span>
+                            <span className="fwp-phone-tag">{item.customer.phoneNumber}</span>
                           </div>
                         ) : <span className="fwp-muted">Derived work item</span>}
                       </td>
-                      <td>{item.scheduledDate}</td>
-                      <td><StatusBadge status={item.status} /></td>
-                      <td>{item.entityId && item.workType !== 'RESERVATION_VISIT' ? <EmployeeEntityLabel kind="contract" id={item.entityId} /> : <span>{readableWorkType(item.workType)} · {item.scheduledDate}</span>}</td>
                       <td>
-                        {link ? <Link className="fwp-link-button" to={link}>{actionLabel(item)}</Link> : <span className="fwp-muted">Read only</span>}
+                        <div className="fwp-date-cell">
+                          <CalendarDays size={13} className="fwp-cell-icon" aria-hidden="true" />
+                          <span>{item.scheduledDate}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="fwp-status-cell">
+                          {isCheckedIn && <span className="fwp-status-dot fwp-pulse-emerald" title="Customer checked in - ready for handover" />}
+                          {isScheduled && <span className="fwp-status-dot fwp-pulse-amber" title="Visit scheduled" />}
+                          <StatusBadge status={item.status} />
+                        </div>
+                      </td>
+                      <td>
+                        {item.entityId && item.workType !== 'RESERVATION_VISIT' ? (
+                          <EmployeeEntityLabel kind="contract" id={item.entityId} />
+                        ) : (
+                          <span className="fwp-rental-tag">{readableWorkType(item.workType)} · {item.scheduledDate}</span>
+                        )}
+                      </td>
+                      <td>
+                        {link ? (
+                          <Link className={`fwp-link-button ${isCheckedIn ? 'fwp-action-priority' : ''}`} to={link}>
+                            <span>{actionLabel(item)}</span>
+                            <ArrowRight size={14} aria-hidden="true" />
+                          </Link>
+                        ) : (
+                          <span className="fwp-muted">Read only</span>
+                        )}
                       </td>
                     </tr>
                   )
@@ -296,7 +435,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
               </tbody>
             </table>
           </div>
-        </section>
+        </SpotlightCard>
       )}
       {!loading && !error && totalPages > 1 && (
         <footer className="fwp-pagination">
