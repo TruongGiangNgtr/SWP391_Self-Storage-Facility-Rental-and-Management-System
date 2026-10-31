@@ -1,0 +1,26 @@
+/* React Bits SpotlightCard styling */
+.react-bits-spotlight-card {
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.react-bits-spotlight-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.react-bits-spotlight-card > *:not(.react-bits-spotlight-overlay) {
+  position: relative;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .react-bits-spotlight-overlay {
+    display: none !important;
+  }
+}
