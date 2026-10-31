@@ -177,11 +177,11 @@
 }
 /* Home emphasis: static depth and deliberate hover feedback, without a moving backdrop. */
 @media (min-width: 1024px) {
-  .home-editorial .home-hero { align-items: center; }
-  .home-editorial .home-hero-copy { padding-block: 64px; }
+  .home-editorial .home-hero { align-items: center; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(28px, 3vw, 48px); padding-inline: max(32px, calc((100% - 1176px) / 2)); }
+  .home-editorial .home-hero-copy { padding: 64px 0; }
   .frms-customer.support-surface .home-editorial .home-hero h1 { font-size: clamp(48px, 4.6vw, 70px); line-height: 1.07; }
   .home-editorial .home-hero-photo {
-    position: relative; min-height: 0; margin: 34px 38px 34px 0;
+    position: relative; min-height: 0; margin: 34px 0;
     border: 3px solid rgb(255 255 255 / 88%); border-radius: 18px;
     background: #fff;
     box-shadow: 0 7px 10px -6px rgb(0 12 29 / 35%), 0 30px 48px -20px rgb(0 12 29 / 65%);

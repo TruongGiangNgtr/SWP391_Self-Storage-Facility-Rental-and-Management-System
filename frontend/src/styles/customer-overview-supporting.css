@@ -1,0 +1,92 @@
+
+/* Account pages reached from Overview. All business state stays in existing components. */
+.frms-customer.overview-editorial-shell :is(.customer-notifications-page, .customer-account-settings) { gap: 32px; }
+.frms-customer.overview-editorial-shell :is(.notification-page-heading, .account-page-heading) { padding: 0 0 8px; border: 0; }
+.frms-customer.overview-editorial-shell .notification-page-heading { align-items: center; gap: 24px; }
+.frms-customer.overview-editorial-shell :is(.notification-page-heading, .account-page-heading) .account-area-label { margin: 0 0 12px; color: #526880; font-size: 12px; font-weight: 600; letter-spacing: .035em; }
+.frms-customer.overview-editorial-shell :is(.notification-page-heading, .account-page-heading) h1 { margin: 0; color: #102f50; font-size: clamp(30px, 2.8vw, 40px); line-height: 1.2; letter-spacing: -.035em; }
+.frms-customer.overview-editorial-shell :is(.notification-page-heading, .account-page-heading) p.muted { margin: 12px 0 0; font-size: 14px; line-height: 1.75; color: #526880; }
+.frms-customer.overview-editorial-shell .flow-header .customer-notifications.active { color: #245ce0; background: #eef4fc; }
+.frms-customer.overview-editorial-shell :is(.customer-notifications-page, .customer-account-settings) :is(.button, .transaction-invoice-link, .notification-page-heading > .customer-icon-button) {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 38px; height: auto; width: auto; max-width: 100%; padding: 8px 14px;
+  border: 1px solid #b7c8d9; border-radius: 5px; background: #fff; color: #173e69;
+  font-size: 12px; font-weight: 600; line-height: 20px; text-decoration: none; box-shadow: 0 2px 3px #102f5005;
+}
+.frms-customer.overview-editorial-shell :is(.customer-notifications-page, .customer-account-settings) :is(.button, .transaction-invoice-link, .notification-page-heading > .customer-icon-button):hover:not(:disabled) { background: #f4f8fd; border-color: #6486ac; text-decoration: none; }
+.frms-customer.overview-editorial-shell :is(.customer-notifications-page, .customer-account-settings) .button:not(.button-secondary) { color: #fff; background: #245ce0; border-color: #245ce0; box-shadow: 0 4px 8px #245ce01a; }
+.frms-customer.overview-editorial-shell :is(.customer-notifications-page, .customer-account-settings) .button:not(.button-secondary):hover:not(:disabled) { background: #194bc5; border-color: #194bc5; }
+.frms-customer.overview-editorial-shell :is(.customer-notifications-page, .customer-account-settings) :is(.button, .notification-page-heading > .customer-icon-button):disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .customer-tabs { display: flex; gap: 4px; width: fit-content; max-width: 100%; padding: 5px; margin: 0; border: 1px solid #dce5ee; border-radius: 8px; background: #f6f9fc; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .customer-tabs button { position: relative; min-height: 40px; margin: 0; padding: 9px 20px; border: 0; border-radius: 5px; background: transparent; color: #526880; font-size: 13px; font-weight: 600; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .customer-tabs button[aria-selected='true'] { color: #fff; background: #102f50; box-shadow: 0 3px 6px #102f501a; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .customer-tabs button:hover:not([aria-selected='true']) { background: #eaf1f9; color: #173e69; }
+.frms-customer.overview-editorial-shell .customer-notifications-page [role='tabpanel'] { min-width: 0; }
+.frms-customer.overview-editorial-shell .customer-notifications-page [role='tabpanel'][hidden] { display: none; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .notification-history-note { margin: 0 0 22px; padding: 14px 18px; border-left: 3px solid #d0def0; border-radius: 0 6px 6px 0; background: #f6f9fc; color: #526880; font-size: 12px; line-height: 1.8; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .notification-page-count { margin: 0 0 28px; color: #526880; font-size: 12px; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .customer-notification-list { gap: 32px; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .notification-group { display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 0 24px; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .notification-group > h2 { grid-column: 1; grid-row: 1; align-self: start; margin: 0; padding: 20px 0 0 12px; border-left: 3px solid #245ce0; color: #31577d; font-size: 11px; letter-spacing: .025em; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .notification-card { grid-column: 2; display: flex; flex-direction: row; align-items: flex-start; gap: 16px; padding: 20px 0; border: 0; border-bottom: 1px solid #e2e9f1; border-radius: 0; background: transparent; box-shadow: none; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .notification-icon { width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; background: #eef4fc; color: #31577d; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .notification-copy { min-width: 0; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .notification-type { color: #173e69; background: transparent; padding: 0; font-size: 11px; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .notification-metadata { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; color: #62768b; font-size: 11px; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .notification-message { margin: 10px 0 0; font-size: 14px; line-height: 1.8; color: #24415f; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .notification-empty { min-height: 260px; padding: 40px 28px; border: 1px solid #dce5ee; border-radius: 12px; background: #f6f9fc; box-shadow: none; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .notification-empty h2 { font-size: 21px; color: #102f50; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .notification-empty .page-state { min-height: 0; padding: 0; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .pagination { gap: 16px; padding-top: 28px; margin-top: 20px; border-top: 1px solid #dce5ee; font-size: 12px; color: #526880; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .customer-transaction-list { gap: 20px; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .transaction-card { padding: 24px; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; box-shadow: 0 12px 24px -22px #15365a80; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .transaction-heading { gap: 14px; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .transaction-heading h2 { font-size: 17px; color: #102f50; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .transaction-icon { width: 40px; height: 40px; flex: 0 0 40px; background: #eef4fc; color: #245ce0; border-radius: 8px; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .transaction-result > strong { color: #102f50; font-size: 22px; font-variant-numeric: tabular-nums; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .transaction-details { padding-top: 20px; margin-top: 20px; border-color: #e2e9f1; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .transaction-details dl { grid-template-columns: .8fr 1fr 1fr; gap: 18px; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .transaction-details dt { font-size: 11px; color: #62768b; }
+.frms-customer.overview-editorial-shell .customer-notifications-page .transaction-details dd { font-size: 12px; color: #24415f; line-height: 1.75; overflow-wrap: anywhere; }
+.frms-customer.overview-editorial-shell .customer-account-settings { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(260px, 1fr); align-items: start; gap: 32px; }
+.frms-customer.overview-editorial-shell .account-page-heading { grid-column: 1 / -1; }
+.frms-customer.overview-editorial-shell .customer-account-settings :is(.account-profile-panel, .account-security-panel) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; padding: 26px; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; box-shadow: 0 14px 28px -24px #15365a80; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-profile-panel > :is(.account-profile-form, .account-information, .form-error, .page-state, .button) { grid-column: auto; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-section-heading h2 { display: flex; align-items: center; gap: 12px; color: #102f50; font-size: 21px; line-height: 1.4; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-section-heading h2::before { content: ''; width: 3px; height: 24px; flex: 0 0 3px; border-radius: 2px; background: #245ce0; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-section-heading p { margin-top: 10px; color: #526880; font-size: 12px; line-height: 1.8; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-profile-form { gap: 24px; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-profile-grid { gap: 22px 18px; }
+.frms-customer.overview-editorial-shell .customer-account-settings .form-field { gap: 8px; }
+.frms-customer.overview-editorial-shell .customer-account-settings .form-field label { color: #24415f; font-size: 12px; font-weight: 600; }
+.frms-customer.overview-editorial-shell .customer-account-settings .form-field input { min-height: 44px; padding: 10px 12px; border: 1px solid #bacbdb; border-radius: 5px; color: #24415f; background: #fff; font-size: 13px; }
+.frms-customer.overview-editorial-shell .customer-account-settings .form-field input:read-only { padding-right: 38px; border-color: #dce5ee; background: #f4f7fb; color: #526880; }
+.frms-customer.overview-editorial-shell .customer-account-settings .form-field input:disabled { border-color: #dce5ee; background: #f4f7fb; color: #62768b; }
+.frms-customer.overview-editorial-shell .customer-account-settings .form-field input[aria-invalid='true'] { border-color: #b91c1c; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-readonly-label { color: #62768b; background: #eef3f8; border-radius: 4px; font-size: 9px; }
+.frms-customer.overview-editorial-shell .customer-account-settings .form-field small { color: #62768b; font-size: 11px; line-height: 1.8; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-form-actions { padding-top: 22px; gap: 16px; border-color: #dce5ee; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-form-actions > span { color: #62768b; font-size: 11px; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-form-actions .action-row { gap: 8px; flex-wrap: wrap; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-security-panel { background: #f6f9fc; box-shadow: none; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-security-method { grid-column: auto; align-items: flex-start; gap: 12px; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-security-icon { width: 38px; height: 38px; flex: 0 0 38px; border-radius: 8px; color: #fff; background: #102f50; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-security-method h3 { font-size: 14px; color: #102f50; line-height: 1.6; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-security-method p { color: #526880; font-size: 12px; line-height: 1.8; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-information { grid-column: auto; gap: 10px; padding: 16px; border: 1px solid #dce5ee; border-radius: 6px; background: #eef3fa; color: #526880; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-information p { color: #526880; font-size: 12px; line-height: 1.8; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-information > svg { width: 16px; margin-top: 3px; }
+.frms-customer.overview-editorial-shell .customer-account-settings .account-save-success { padding: 14px 16px; border-radius: 6px; font-size: 12px; }
+.frms-customer.customer-shell.overview-editorial-shell .customer-account-settings :is(.account-profile-panel, .account-security-panel) > * { grid-column: 1; min-width: 0; }
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .frms-customer.overview-editorial-shell .customer-account-settings { grid-template-columns: minmax(0, 1fr); }
+  .frms-customer.overview-editorial-shell .customer-account-settings .account-security-panel { max-width: none; }
+  .frms-customer.overview-editorial-shell .customer-notifications-page .transaction-details { flex-wrap: wrap; }
+  .frms-customer.overview-editorial-shell .customer-notifications-page .transaction-details dl { flex-basis: 100%; }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .frms-customer.overview-editorial-shell .customer-notifications-page .transaction-card { transition: box-shadow .2s ease; }
+  .frms-customer.overview-editorial-shell .customer-notifications-page .transaction-card:hover { box-shadow: 0 16px 28px -22px #15365a80; }
+  .frms-customer.overview-editorial-shell :is(.customer-notifications-page, .customer-account-settings) :is(.button, .transaction-invoice-link, .notification-page-heading > .customer-icon-button) { transition: transform .18s ease, background-color .18s ease, box-shadow .18s ease; }
+  .frms-customer.overview-editorial-shell :is(.customer-notifications-page, .customer-account-settings) :is(.button, .transaction-invoice-link, .notification-page-heading > .customer-icon-button):hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 10px -6px #15365a55; }
+}
