@@ -81,7 +81,7 @@ function InvoiceDetails({ invoiceId }: { invoiceId: string }) {
         </button></div>
       </div>
       <header className="page-heading invoice-detail-heading">
-
+        <p className="billing-area-label">Your invoice record</p>
         <h1>Invoice Details</h1>
         <p className="muted">Review your invoice amounts, billing details and recorded payment status.</p>
       </header>

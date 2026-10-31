@@ -103,6 +103,7 @@ function PaymentResult({ userAccountId }: { userAccountId: string }) {
     <main className={`page-container flow-page narrow-page customer-payment-result ${invoiceReturn || !pendingPayment ? 'invoice-payment-result' : 'booking-payment'}`}>
       <nav className="remaining-page-navigation" aria-label="Payment navigation"><Link to={listPath}><ArrowLeft size={16} aria-hidden="true" />{invoiceReturn ? 'My Invoices' : 'My Reservations'}</Link></nav>
       <section className="page-heading">
+        <p className="billing-area-label">Your payment status</p>
         <h1>Payment Result</h1>
         <p className="muted">
           Check the payment status recorded by FRMS after paying with payOS.

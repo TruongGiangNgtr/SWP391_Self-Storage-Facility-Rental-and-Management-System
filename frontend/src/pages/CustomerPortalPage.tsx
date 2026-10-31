@@ -81,17 +81,17 @@ export function CustomerPortalPage() {
   const loadedTickets = tickets.response?.data.length ?? 0
   const hasMoreTickets = totalTickets > loadedTickets
 
-  const contractKpiValue = contracts.loading ? '…' : !contracts.response ? '—' : hasMoreContracts ? `${activeContracts.length} (first ${loadedContracts})` : String(activeContracts.length)
-  const contractKpiHelper = contracts.loading ? 'Loading contracts…' : contracts.error ? 'Currently unavailable' : hasMoreContracts ? `${activeContracts.length} active in first ${loadedContracts} · ${totalContracts} total contracts` : activeContracts.length === 1 ? '1 active contract' : `${activeContracts.length} active contracts`
-  const contractKpiTag = hasMoreContracts ? 'First 20 preview' : 'Active'
+  const contractKpiValue = contracts.loading ? '…' : !contracts.response ? '—' : String(activeContracts.length)
+  const contractKpiHelper = contracts.loading ? 'Loading contracts…' : contracts.error ? 'Currently unavailable' : hasMoreContracts ? `Among ${loadedContracts} loaded contracts` : activeContracts.length === 1 ? '1 active contract' : `${activeContracts.length} active contracts`
+  const contractKpiTag = 'Active'
 
-  const visitKpiValue = visits.loading ? '…' : !visits.response ? '—' : hasMoreVisits ? `${upcomingVisits.length} (first ${loadedVisits})` : String(upcomingVisits.length)
-  const visitKpiHelper = visits.loading ? 'Loading check-ins…' : visits.error ? 'Currently unavailable' : hasMoreVisits ? (upcomingVisit ? `${overviewDate(upcomingVisit.visitDate)} · in first ${loadedVisits}` : `No upcoming check-ins in first ${loadedVisits} · ${totalVisits} total visits`) : upcomingVisit ? overviewDate(upcomingVisit.visitDate) : 'No upcoming handovers'
-  const visitKpiTag = hasMoreVisits ? 'First 20 preview' : 'Scheduled'
+  const visitKpiValue = visits.loading ? '…' : !visits.response ? '—' : String(upcomingVisits.length)
+  const visitKpiHelper = visits.loading ? 'Loading check-ins…' : visits.error ? 'Currently unavailable' : hasMoreVisits ? (upcomingVisit ? `${overviewDate(upcomingVisit.visitDate)} · loaded visits` : `None among ${loadedVisits} loaded visits`) : upcomingVisit ? overviewDate(upcomingVisit.visitDate) : 'No upcoming handovers'
+  const visitKpiTag = 'Scheduled'
 
-  const ticketKpiValue = tickets.loading ? '…' : !tickets.response ? '—' : hasMoreTickets ? `${openTickets.length} (first ${loadedTickets})` : String(openTickets.length)
-  const ticketKpiHelper = tickets.loading ? 'Loading tickets…' : tickets.error ? 'Currently unavailable' : hasMoreTickets ? `${openTickets.length} open in first ${loadedTickets} · ${totalTickets} total tickets` : openTickets.length === 1 ? '1 open or in progress ticket' : `${openTickets.length} open or in progress tickets`
-  const ticketKpiTag = hasMoreTickets ? 'First 20 preview' : 'Open'
+  const ticketKpiValue = tickets.loading ? '…' : !tickets.response ? '—' : String(openTickets.length)
+  const ticketKpiHelper = tickets.loading ? 'Loading tickets…' : tickets.error ? 'Currently unavailable' : hasMoreTickets ? `Among ${loadedTickets} loaded tickets` : openTickets.length === 1 ? '1 open or in progress ticket' : `${openTickets.length} open or in progress tickets`
+  const ticketKpiTag = 'Open'
 
   const scopeNote = 'Counts cover the first 20 records returned by each list, not account-wide totals.'
   const metrics = [

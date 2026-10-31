@@ -1,0 +1,152 @@
+
+/* Deposit, invoices and payment history share the approved Customer editorial shell. */
+.frms-customer.customer-shell.billing-editorial-shell {
+  --flow-text: #102f50; --flow-muted: #526880; --flow-brand: #245ce0; --flow-border: #dce5ee;
+  background: #fff;
+  & .flow-page { gap: 28px; }
+  & :is(.billing-page-heading, .page-heading) { margin: 0; padding: 0 0 8px; border: 0; gap: 24px; }
+  & :is(.billing-page-heading, .page-heading) h1 { margin: 0; color: #102f50; font-size: clamp(30px, 2.8vw, 40px); font-weight: 700; line-height: 1.2; letter-spacing: -.035em; text-shadow: none; }
+  & :is(.billing-page-heading, .page-heading) p.muted { margin: 12px 0 0; max-width: 68ch; color: #526880; font-size: 14px; line-height: 1.75; }
+  & :is(.billing-page-heading, .page-heading) .billing-area-label { margin: 0 0 12px; color: #526880; font-size: 12px; font-weight: 600; letter-spacing: .035em; }
+  & :is(.button, .billing-text-link, .invoice-detail-text-link, .invoice-detail-text-button, .remaining-page-navigation > a, .remaining-page-navigation > button, .payment-result-history, .transaction-invoice-link, .rental-context a) { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; height: auto; width: auto; max-width: 100%; padding: 8px 14px; border: 1px solid #b7c8d9; border-radius: 5px; background: #fff; color: #173e69; font-size: 12px; font-weight: 600; line-height: 20px; text-decoration: none; box-shadow: 0 2px 3px #102f5005; }
+  & :is(.button, .billing-text-link, .invoice-detail-text-link, .invoice-detail-text-button, .remaining-page-navigation > a, .remaining-page-navigation > button, .payment-result-history, .transaction-invoice-link, .rental-context a):hover:not(:disabled) { background: #f4f8fd; border-color: #6486ac; text-decoration: none; }
+  & .button:not(.button-secondary):not(.button-danger) { background: #245ce0; color: #fff; border-color: #245ce0; box-shadow: 0 4px 8px #245ce01a; }
+  & .button:not(.button-secondary):not(.button-danger):hover:not(:disabled) { background: #194bc5; border-color: #194bc5; }
+  & :is(button, .button):disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+  & :is(input, select, textarea) { border: 1px solid #bacbdb; border-radius: 5px; background: #fff; color: #24415f; font-size: 13px; caret-color: #245ce0; }
+  & :is(input, select) { min-height: 44px; padding: 10px 12px; }
+  & input::placeholder { color: #73869a; opacity: 1; }
+  & .form-field label { font-size: 12px; color: #24415f; font-weight: 600; }
+  & :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid #245ce0; outline-offset: 4px; }
+  & .customer-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 0 18px; margin: 0; border-color: #dce5ee; }
+  & .customer-tabs button { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; margin: 0; padding: 8px 12px; border: 0; border-radius: 5px; background: #f3f6fa; color: #526880; font-size: 12px; }
+  & .customer-tabs button[aria-selected='true'] { background: #102f50; color: #fff; }
+  & .customer-tabs button[aria-selected='true'] .customer-tab-count { color: #fff; background: #36536f; }
+  & .billing-stack { gap: 24px; }
+  & .billing-heading-actions { gap: 10px; }
+  & .billing-contract-picker { padding: 24px; border: 1px solid #dce5ee; border-radius: 10px; background: #f6f9fc; box-shadow: none; }
+  & .billing-contract-picker strong { color: #102f50; font-size: 15px; }
+  & .billing-contract-picker .form-field { flex-basis: 390px; min-width: 0; }
+  & .billing-contract-picker p { color: #62768b; font-size: 12px; }
+  & :is(.billing-icon, .invoice-detail-icon, .remaining-icon, .payos-checkout-icon) { border: 0; border-radius: 8px; background: #eef4fc; color: #245ce0; }
+  & .billing-context { padding: 8px 0; gap: 24px; }
+  & .billing-context h2 { position: relative; padding-left: 14px; color: #102f50; font-size: 23px; }
+  & .billing-context h2::before { content: ''; position: absolute; inset: 3px auto 3px 0; width: 3px; border-radius: 2px; background: #245ce0; }
+  & .billing-context p { padding-left: 14px; color: #62768b; font-size: 12px; }
+  & :is(.billing-overview, .billing-records, .billing-invoice-list, .billing-guidance, .billing-help) { padding: 26px; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; box-shadow: 0 12px 24px -22px #15365a80; }
+  & .billing-section-heading { gap: 16px; }
+  & .billing-section-heading h2 { position: relative; padding-left: 14px; color: #102f50; font-size: 21px; }
+  & .billing-section-heading h2::before { content: ''; position: absolute; inset: 3px auto 3px 0; width: 3px; border-radius: 2px; background: #245ce0; }
+  & .billing-section-heading > svg { display: none; }
+  & .billing-section-heading p { color: #62768b; font-size: 12px; line-height: 1.8; }
+  & .billing-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; gap: 18px; }
+  & .billing-metrics > div { padding: 24px; border: 1px solid #dce5ee; border-radius: 10px; background: #f6f9fc; }
+  & .billing-metrics dt { color: #526880; font-size: 12px; }
+  & .billing-metrics dd { margin: 18px 0 10px; color: #102f50; font-size: 27px; line-height: 1.4; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  & .billing-metrics p { color: #62768b; font-size: 11px; line-height: 1.8; }
+  & .billing-metrics .billing-metric-original { background: #102f50; border-color: #102f50; }
+  & .billing-metric-original :is(dt, dt svg, dd) { color: #fff; }
+  & .billing-metric-original p { color: #c1d2e4; }
+  & .billing-metrics .billing-metric-deduction { background: #f6f9fc; border-color: #dce5ee; }
+  & .billing-metrics .billing-metric-refund { background: #f6f9fc; border-color: #dce5ee; }
+  & .billing-metric-refund.has-recorded-value dd { color: #047857; }
+  & .billing-info { padding: 16px; border: 0; border-radius: 6px; background: #f3f7fc; color: #526880; }
+  & .billing-info p { color: inherit; font-size: 12px; line-height: 1.8; }
+  & .billing-columns { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 28px; }
+  & :is(.billing-deposit-record, .billing-charge) { padding: 20px; border: 1px solid #e2e9f1; border-radius: 8px; background: #f7f9fc; gap: 18px; }
+  & .billing-record-title h3 { color: #102f50; font-size: 16px; }
+  & .billing-record-title small { color: #62768b; font-size: 11px; line-height: 1.7; }
+  & .billing-record-bottom > strong { color: #102f50; font-size: 23px; font-variant-numeric: tabular-nums; }
+  & .billing-record-bottom p { color: #526880; font-size: 13px; line-height: 1.8; }
+  & .billing-charge-note { color: #805417; font-size: 12px; line-height: 1.8; }
+  & .billing-guidance { background: #f6f9fc; box-shadow: none; }
+  & :is(.billing-guidance, .billing-help) h2 { color: #102f50; font-size: 20px; }
+  & .billing-guidance ol { color: #526880; font-size: 13px; line-height: 1.9; }
+  & .billing-help p { color: #62768b; font-size: 12px; line-height: 1.8; }
+  & .rental-list-filters { margin: 0; }
+  & .billing-filter { padding: 22px; gap: 16px; border: 1px solid #dce5ee; border-radius: 10px; background: #f6f9fc; box-shadow: none; }
+  & .billing-search input { padding-left: 36px; }
+  & .billing-filter-note { color: #62768b; font-size: 12px; line-height: 1.8; }
+  & .billing-table-wrap { width: 100%; min-width: 0; overflow-x: auto; border: 1px solid #e2e9f1; border-radius: 8px; }
+  & .billing-table { min-width: 650px; width: 100%; margin: 0; border-collapse: collapse; }
+  & .billing-table :is(th, td) { padding: 20px 16px; border-color: #e2e9f1; }
+  & .billing-table th { background: #f3f7fc; color: #526880; font-size: 11px; text-transform: none; font-weight: 600; }
+  & .billing-table td { color: #24415f; font-size: 12px; line-height: 1.8; vertical-align: middle; }
+  & .billing-table td[data-label='Amount due'] > strong { color: #102f50; font-size: 18px; white-space: nowrap; }
+  & .billing-table tbody tr:hover { background: #f8faff; }
+  & .billing-table td[data-label='Actions'] .button { min-height: 36px; padding: 7px 10px; white-space: nowrap; }
+  & .rental-context a { min-height: 32px; padding: 4px 10px; font-size: 11px; }
+  & .invoice-detail-amounts h3 svg { color: #c1d2e4; }
+  & .billing-metric-deduction dt svg { color: #526880; }
+  & .billing-table .rental-context { margin-top: 8px; color: #62768b; font-size: 11px; }
+  & .invoice-detail-navigation { margin: 0; gap: 12px; }
+  & .invoice-detail-tools { gap: 10px; }
+  & .invoice-detail-card { padding: 28px; gap: 26px; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; box-shadow: 0 16px 28px -24px #15365a80; }
+  & .invoice-detail-card-heading { padding-bottom: 20px; gap: 12px; border-color: #e2e9f1; }
+  & .invoice-detail-card-heading h2 { color: #102f50; font-size: 23px; }
+  & .invoice-detail-columns { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 28px; }
+  & .invoice-detail-amounts { padding: 26px; border: 1px solid #102f50; border-radius: 10px; background: #102f50; }
+  & .invoice-detail-amounts h3 { color: #fff; font-size: 18px; }
+  & .invoice-detail-breakdown { gap: 22px; }
+  & .invoice-detail-breakdown > div { padding: 0; border-color: #36536f; }
+  & .invoice-detail-breakdown dt { color: #c1d2e4; font-size: 12px; }
+  & .invoice-detail-breakdown dd { color: #fff; font-size: 18px; }
+  & .invoice-detail-breakdown .invoice-detail-total { padding-top: 22px; border: 0; border-top: 1px solid #36536f; border-radius: 0; background: transparent; }
+  & .invoice-detail-total :is(dt, dd) { color: #fff; }
+  & .invoice-detail-total dd { font-size: 34px; line-height: 1.3; }
+  & .invoice-detail-billing { padding: 24px; border: 1px solid #dce5ee; border-radius: 10px; background: #f6f9fc; }
+  & .invoice-detail-billing h3 { color: #102f50; font-size: 18px; }
+  & .invoice-detail-facts { gap: 24px; }
+  & .invoice-detail-facts dt { color: #62768b; font-size: 11px; }
+  & .invoice-detail-facts dd { color: #102f50; font-size: 14px; line-height: 1.7; }
+  & .invoice-detail-payment { padding-top: 24px; gap: 24px; border-color: #e2e9f1; background: transparent; }
+  & .invoice-detail-payment h3 { color: #102f50; font-size: 19px; }
+  & .invoice-detail-payment p { max-width: 65ch; color: #526880; font-size: 12px; line-height: 1.8; }
+  & .invoice-detail-payment .button { min-height: 44px; min-width: 185px; }
+  & .invoice-detail-recorded-state { padding: 18px; border: 0; border-left: 3px solid #b7c8d9; border-radius: 0 6px 6px 0; background: #f6f9fc; color: #526880; font-size: 12px; line-height: 1.8; }
+  & .invoice-detail-paid .invoice-detail-recorded-state { border-left-color: #18805c; background: #f2faf6; color: #145a43; }
+  & .customer-payment-result.narrow-page { max-width: 1120px; margin-inline: auto; }
+  & .payment-result-card { padding: 30px; gap: 26px; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; box-shadow: 0 16px 28px -24px #15365a80; }
+  & .payment-result-outcome { padding: 28px; border: 0; border-left: 3px solid #245ce0; border-radius: 0 8px 8px 0; background: #f3f7fc; }
+  & .payment-result-outcome h2 { color: #102f50; font-size: 28px; }
+  & .payment-result-outcome p { color: #526880; font-size: 13px; line-height: 1.8; }
+  & .payment-result-success .payment-result-outcome { border-color: #18805c; background: #f2faf6; }
+  & .payment-result-failed .payment-result-outcome { border-color: #bd5364; background: #fff6f7; }
+  & .payment-result-facts { padding: 0; gap: 24px; border: 0; border-radius: 0; background: transparent; }
+  & .payment-result-facts > div { padding: 0; border: 0; border-radius: 0; background: transparent; }
+  & .payment-result-facts dt { color: #62768b; font-size: 11px; }
+  & .payment-result-facts dd { color: #102f50; font-size: 18px; line-height: 1.7; }
+  & .payment-result-actions { padding-top: 22px; gap: 10px; border-color: #dce5ee; background: transparent; }
+  & .payment-result-pending-note { padding: 16px; border: 0; border-radius: 6px; background: #f3f7fc; color: #526880; font-size: 12px; line-height: 1.8; }
+  & .transaction-card { padding: 26px; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; box-shadow: 0 12px 24px -22px #15365a80; }
+  & .transaction-heading h2 { color: #102f50; }
+  & .transaction-result > strong { color: #102f50; }
+  & .payos-checkout-summary { padding: 26px; border: 1px solid #102f50; border-radius: 12px; background: #102f50; box-shadow: 0 12px 24px -22px #15365a80; }
+  & .payos-checkout-summary h2 { color: #fff; font-size: 23px; }
+  & .payos-checkout-summary > p { color: #c1d2e4; font-size: 12px; line-height: 1.8; }
+  & .payos-checkout-amount { border-color: #36536f; }
+  & .payos-checkout-amount dt { color: #c1d2e4; }
+  & .payos-checkout-amount dd { color: #fff; font-size: 30px; }
+  & .payos-checkout-panel { padding: 26px; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; box-shadow: 0 12px 24px -22px #15365a80; }
+  & .payos-checkout-heading h2 { color: #102f50; }
+  & .payos-checkout-heading p { color: #62768b; font-size: 12px; }
+  & .payos-checkout-provider { color: #173e69; }
+  & .payos-checkout-message { background: #f3f7fc; color: #526880; }
+  & .payos-checkout-footer { border-color: #dce5ee; }
+  & .payos-checkout-footer p { color: #62768b; }
+  & [id] { scroll-margin-top: 96px; }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .frms-customer.customer-shell.billing-editorial-shell {
+    & .billing-metrics { gap: 12px; }
+    & .billing-metrics > div { padding: 18px; }
+    & .billing-metrics dd { font-size: 22px; }
+    & :is(.billing-columns, .invoice-detail-columns, .payos-checkout-layout) { grid-template-columns: minmax(0, 1fr); }
+    & .billing-contract-picker { flex-wrap: wrap; }
+    & .billing-contract-picker .form-field { flex-basis: 100%; }
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .frms-customer.customer-shell.billing-editorial-shell :is(.button, .billing-text-link, .invoice-detail-text-link, .invoice-detail-text-button, .payment-result-history, .transaction-invoice-link, .rental-context a) { transition: transform .18s ease, background-color .18s ease; }
+  .frms-customer.customer-shell.billing-editorial-shell :is(.button, .billing-text-link, .invoice-detail-text-link, .invoice-detail-text-button, .payment-result-history, .transaction-invoice-link, .rental-context a):hover:not(:disabled) { transform: translateY(-2px); }
+}
