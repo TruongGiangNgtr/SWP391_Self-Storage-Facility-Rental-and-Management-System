@@ -92,12 +92,37 @@ export function VisitListPage() {
   const visible = matched.filter(visit => !status || visit.status === status)
   const selected = VISIT_STATUSES.indexOf(status)
   const facilityOptions = [...new Set(contextData.map(data => data.facilityId))].map(id => ({ id, name: facilities.reads[id]?.data?.name ?? 'Facility name unavailable' }))
+
+  const totalInScope = response?.pagination.totalItems ?? 0
+  const onPage = visits.length
+  const matchingOnPage = visible.length
+  const hasClientFilters = Boolean(filters.query || filters.type || filters.facility || filters.range || status)
+
+  let summaryText = 'Loading this page…'
+  if (error) {
+    summaryText = 'Visit list unavailable.'
+  } else if (filterPending) {
+    summaryText = 'Loading storage details for your filters…'
+  } else if (response) {
+    if (totalInScope === 0) {
+      summaryText = '0 visits in your account.'
+    } else if (hasClientFilters) {
+      summaryText = `${matchingOnPage} matching of ${onPage} visits on this page · ${totalInScope} total in account. Filters and tab counts cover this page only.`
+    } else {
+      summaryText = `Showing ${onPage} visits on this page · ${totalInScope} total in account. Tab counts cover this page only.`
+    }
+  }
   function renderCards() {
     if (loading || filterPending) return <LoadingState label={loading ? 'Loading your visits…' : 'Loading storage details for your filters…'} />
     if (error) return <button className="button button-secondary" type="button" onClick={refresh}>Retry Visits</button>
     if (dateError) return <div className="panel stack"><p role="alert">{dateError}</p><button className="button button-secondary" type="button" onClick={clearFilters}>Clear Filters</button></div>
     if (!visits.length) return <div className="panel stack"><EmptyState message="You do not have any visits on this page." /><Link className="button button-secondary" to="/customer/contracts">View My Contracts</Link></div>
-    if (!visible.length) return <div className="panel stack"><EmptyState message="No visits on this page match your filters." /><button className="button button-secondary" type="button" onClick={clearFilters}>Clear Filters</button></div>
+    if (!visible.length) {
+      const otherPagesHint = response && response.pagination.totalPages > 1
+        ? ' Other pages may contain matching visits.'
+        : ''
+      return <div className="panel stack"><EmptyState message={`No visits on this page match your filters.${otherPagesHint}`} /><button className="button button-secondary" type="button" onClick={clearFilters}>Clear Filters</button></div>
+    }
     return <div className="visits-card-list">{visible.map(visit => {
       const contextRead = contexts.reads[visitContextKey(visit)], context = contextRead?.data
       const facility = context && facilities.reads[context.facilityId]?.data
@@ -120,8 +145,8 @@ export function VisitListPage() {
     <ApiErrorAlert error={error} />
     {relatedError && <div className="panel stack"><p className="muted">Some related storage details could not be loaded. Visit dates and statuses still come from the visit service. Search and facility filters may be incomplete until you retry.</p><ApiErrorAlert error={relatedError} /><button className="button button-secondary" type="button" disabled={relatedLoading} onClick={retryContext}>Retry Storage Details</button></div>}
     <RentalListFilters><VisitFilterForm key={JSON.stringify(filters)} initial={filters} facilities={facilityOptions} onApply={applyFilters} /></RentalListFilters>
-    <div className="visits-list-summary"><p className="muted" role="status">{loading ? 'Loading this page…' : error ? 'Visit list unavailable.' : filterPending ? 'Loading storage details for your filters…' : `${visible.length} matching visits on this page. Counts and filters cover this page only.`}</p><div>{(filters.query || filters.type || filters.facility || filters.range || status) && <button className="visits-text-button" type="button" onClick={clearFilters}>Clear Filters</button>}<button className="visits-text-button" type="button" disabled={loading} onClick={refresh}><RefreshCw size={14} aria-hidden="true" />Refresh Visits</button></div></div>
-    <div className="visits-tabs"><CustomerTabs labels={VISIT_TABS} counts={loading || error || filterPending || dateError ? undefined : counts} ariaLabel="Visit status" selected={selected} onChange={index => applyFilters(filters, VISIT_STATUSES[index])}>{({ tabId, panelId }) => VISIT_TABS.map((label, index) => <div key={label} role="tabpanel" id={panelId(index)} aria-labelledby={tabId(index)} hidden={selected !== index} tabIndex={0}>{selected === index && renderCards()}</div>)}</CustomerTabs></div>
+    <div className="visits-list-summary"><p className="muted" role="status">{summaryText}</p><div>{(filters.query || filters.type || filters.facility || filters.range || status) && <button className="visits-text-button" type="button" onClick={clearFilters}>Clear Filters</button>}<button className="visits-text-button" type="button" disabled={loading} onClick={refresh}><RefreshCw size={14} aria-hidden="true" />Refresh Visits</button></div></div>
+    <div className="visits-tabs"><CustomerTabs labels={VISIT_TABS} counts={loading || error || filterPending || dateError ? undefined : counts} ariaLabel="Visit status (counts on this page only)" selected={selected} onChange={index => applyFilters(filters, VISIT_STATUSES[index])}>{({ tabId, panelId }) => VISIT_TABS.map((label, index) => <div key={label} role="tabpanel" id={panelId(index)} aria-labelledby={tabId(index)} hidden={selected !== index} tabIndex={0}>{selected === index && renderCards()}</div>)}</CustomerTabs></div>
     {response && <PaginationControls pagination={response.pagination} disabled={loading} onPageChange={next => setParams(current => { const query = new URLSearchParams(current); if (next === 1) query.delete('page'); else query.set('page', String(next)); return query })} />}
     <section className="panel visits-guidelines" id="visit-guidelines" tabIndex={-1}><span className="visits-icon"><ShieldCheck size={24} aria-hidden="true" /></span><div><h2>Facility Visit Guidelines</h2><p className="muted">Only scheduled visits can be rescheduled or cancelled, subject to the visit policy. Access visits require an active contract and cannot be created while a return visit is pending.</p></div></section>
   </main>

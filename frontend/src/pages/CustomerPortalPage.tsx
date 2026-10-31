@@ -68,12 +68,36 @@ export function CustomerPortalPage() {
   const busy = contracts.loading || visits.loading || tickets.loading || rental.loading || handover.loading || returnSummary.loading || notifications.loading
   const contractPath = activeContract ? `/customer/contracts/${encodeURIComponent(activeContract.contractId)}` : '/customer/contracts'
   const trackingPath = activeContract ? `${contractPath}/fees-return` : handoverData ? `/customer/reservations/${encodeURIComponent(handoverData.reservationId)}` : '/customer/invoices'
+  const totalContracts = contracts.response?.pagination.totalItems ?? 0
+  const loadedContracts = contracts.response?.data.length ?? 0
+  const hasMoreContracts = totalContracts > loadedContracts
+
+  const totalVisits = visits.response?.pagination.totalItems ?? 0
+  const loadedVisits = visits.response?.data.length ?? 0
+  const hasMoreVisits = totalVisits > loadedVisits
+
+  const totalTickets = tickets.response?.pagination.totalItems ?? 0
+  const loadedTickets = tickets.response?.data.length ?? 0
+  const hasMoreTickets = totalTickets > loadedTickets
+
+  const contractKpiValue = contracts.loading ? '…' : !contracts.response ? '—' : hasMoreContracts ? `${activeContracts.length} (first ${loadedContracts})` : String(activeContracts.length)
+  const contractKpiHelper = contracts.loading ? 'Loading contracts…' : contracts.error ? 'Currently unavailable' : hasMoreContracts ? `${activeContracts.length} active in first ${loadedContracts} · ${totalContracts} total contracts` : activeContracts.length === 1 ? '1 active contract' : `${activeContracts.length} active contracts`
+  const contractKpiTag = hasMoreContracts ? 'First 20 preview' : 'Active'
+
+  const visitKpiValue = visits.loading ? '…' : !visits.response ? '—' : hasMoreVisits ? `${upcomingVisits.length} (first ${loadedVisits})` : String(upcomingVisits.length)
+  const visitKpiHelper = visits.loading ? 'Loading check-ins…' : visits.error ? 'Currently unavailable' : hasMoreVisits ? (upcomingVisit ? `${overviewDate(upcomingVisit.visitDate)} · in first ${loadedVisits}` : `No upcoming check-ins in first ${loadedVisits} · ${totalVisits} total visits`) : upcomingVisit ? overviewDate(upcomingVisit.visitDate) : 'No upcoming handovers'
+  const visitKpiTag = hasMoreVisits ? 'First 20 preview' : 'Scheduled'
+
+  const ticketKpiValue = tickets.loading ? '…' : !tickets.response ? '—' : hasMoreTickets ? `${openTickets.length} (first ${loadedTickets})` : String(openTickets.length)
+  const ticketKpiHelper = tickets.loading ? 'Loading tickets…' : tickets.error ? 'Currently unavailable' : hasMoreTickets ? `${openTickets.length} open in first ${loadedTickets} · ${totalTickets} total tickets` : openTickets.length === 1 ? '1 open or in progress ticket' : `${openTickets.length} open or in progress tickets`
+  const ticketKpiTag = hasMoreTickets ? 'First 20 preview' : 'Open'
+
   const scopeNote = 'Counts cover the first 20 records returned by each list, not account-wide totals.'
   const metrics = [
-    { title: 'Active Contracts', value: contracts.loading ? '…' : contracts.response ? String(activeContracts.length) : '—', helper: contracts.loading ? 'Loading contracts…' : contracts.error ? 'Currently unavailable' : 'In your loaded contracts', to: '/customer/contracts', icon: Building2, tag: 'Active', tone: 'green' },
-    { title: 'Upcoming Check-in', value: visits.loading ? '…' : visits.response ? String(upcomingVisits.length) : '—', helper: upcomingVisit ? overviewDate(upcomingVisit.visitDate) : visits.error ? 'Currently unavailable' : 'No upcoming handovers loaded', to: '/customer/visits', icon: CalendarDays, tag: 'Scheduled', tone: 'sky' },
+    { title: 'Active Contracts', value: contractKpiValue, helper: contractKpiHelper, to: '/customer/contracts', icon: Building2, tag: contractKpiTag, tone: 'green' },
+    { title: 'Upcoming Check-in', value: visitKpiValue, helper: visitKpiHelper, to: '/customer/visits', icon: CalendarDays, tag: visitKpiTag, tone: 'sky' },
     { title: 'Security Deposit', value: depositLoading ? '…' : deposit ? formatMoney(deposit.depositAmount) : '—', helper: activeContract ? 'Original deposit · selected contract' : 'Original deposit · upcoming reservation', to: trackingPath, icon: WalletCards, tag: 'Original deposit', tone: 'blue' },
-    { title: 'Open Support Tickets', value: tickets.loading ? '…' : tickets.response ? String(openTickets.length) : '—', helper: tickets.error ? 'Currently unavailable' : 'Open or in progress · loaded tickets', to: '/customer/support-tickets', icon: MessageSquare, tag: 'Open', tone: 'slate' },
+    { title: 'Open Support Tickets', value: ticketKpiValue, helper: ticketKpiHelper, to: '/customer/support-tickets', icon: MessageSquare, tag: ticketKpiTag, tone: 'slate' },
   ]
 
   return <main className="page-container flow-page customer-overview">

@@ -82,6 +82,26 @@ export function CustomerContractListPage() {
   const chargeContract = chargeContracts.find(contract => contract.contractId === selectedContractId) ?? chargeContracts.find(contract => contract.status === 'ACTIVE') ?? chargeContracts[0]
   const chargeReservation = chargeContract && details.reads[chargeContract.contractId]?.reservation
 
+  const totalInScope = response?.pagination.totalItems ?? 0
+  const onPage = contracts.length
+  const matchingOnPage = visible.length
+  const hasClientFilters = Boolean(filters.query || filters.facility || filters.status)
+
+  let summaryText = 'Loading this page…'
+  if (error) {
+    summaryText = 'Contract list unavailable.'
+  } else if (filterPending) {
+    summaryText = 'Loading storage details for your search…'
+  } else if (response) {
+    if (totalInScope === 0) {
+      summaryText = '0 contracts in your account.'
+    } else if (hasClientFilters) {
+      summaryText = `${matchingOnPage} matching of ${onPage} contracts on this page · ${totalInScope} total in account. Filters and tab counts cover this page only.`
+    } else {
+      summaryText = `Showing ${onPage} contracts on this page · ${totalInScope} total in account. Tab counts cover this page only.`
+    }
+  }
+
   function renderCard(contract: ContractListItem) {
     const read = details.reads[contract.contractId]
     const original = read?.reservation
@@ -104,23 +124,23 @@ export function CustomerContractListPage() {
     </article>
   }
   function renderHistory() {
-    return <section className="contracts-history"><div className="contracts-section-heading"><div><h2>Contract History</h2><p className="muted">Your completed and closed rental contracts.</p></div><span>{historyContracts.length} on this page</span></div>{historyContracts.length ? <div className="contracts-card-list">{historyContracts.map(renderCard)}</div> : <EmptyState message="No contract history on this page matches your filters." />}</section>
+    return <section className="contracts-history"><div className="contracts-section-heading"><div><h2>Contract History</h2><p className="muted">Your completed and closed rental contracts.</p></div><span>{historyContracts.length} on this page</span></div>{historyContracts.length ? <div className="contracts-card-list">{historyContracts.map(renderCard)}</div> : <EmptyState message={response && response.pagination.totalPages > 1 ? 'No contract history on this page matches your filters. Other pages may contain contract history.' : 'No contract history on this page matches your filters.'} />}</section>
   }
   function renderPanel(historyOnly: boolean) {
     if (loading || filterPending) return <LoadingState label={loading ? 'Loading your contracts…' : 'Loading storage details for your search…'} />
     if (error) return <button className="button button-secondary" type="button" onClick={refresh}>Retry Contracts</button>
     if (!contracts.length) return <div className="panel stack"><EmptyState message="You do not have any contracts on this page. A contract is created after handover is completed." /><Link className="button button-secondary" to="/customer/storage-search">Find Storage</Link></div>
-    if (!visible.length) return <div className="panel stack"><EmptyState message="No contracts on this page match your filters." /><button className="button button-secondary" type="button" onClick={clearFilters}>Clear Filters</button></div>
+    if (!visible.length) return <div className="panel stack"><EmptyState message={response && response.pagination.totalPages > 1 ? 'No contracts on this page match your filters. Other pages may contain matching contracts.' : 'No contracts on this page match your filters.'} /><button className="button button-secondary" type="button" onClick={clearFilters}>Clear Filters</button></div>
     if (historyOnly) return renderHistory()
-    return <div className="contracts-sections"><section aria-label="Active contracts on this page" className="contracts-card-list">{activeContracts.length ? activeContracts.map(renderCard) : <EmptyState message="No active contracts on this page match your filters." />}</section>{historyContracts.length > 0 && renderHistory()}</div>
+    return <div className="contracts-sections"><section aria-label="Active contracts on this page" className="contracts-card-list">{activeContracts.length ? activeContracts.map(renderCard) : <EmptyState message={response && response.pagination.totalPages > 1 ? 'No active contracts on this page match your filters. Other pages may contain active contracts.' : 'No active contracts on this page match your filters.'} />}</section>{historyContracts.length > 0 && renderHistory()}</div>
   }
   return <main className="page-container flow-page customer-contracts">
     <section className="page-heading contracts-heading"><div><h1>My Contracts</h1><p className="muted">Manage your active contracts, view rental terms and review contract history.</p></div><Link className="button button-secondary contracts-soft-button" to="/customer/support-tickets"><CircleHelp size={17} aria-hidden="true" />Contact Support</Link></section>
     <ApiErrorAlert error={error} />
     {(facilities.error || details.error) && <div className="panel stack"><p className="muted">Some related details could not be loaded. Missing amounts are not shown as zero. Refresh before relying on a contract whose details have changed.</p><ApiErrorAlert error={details.error ?? facilities.error} /><button className="button button-secondary" type="button" disabled={details.loading || facilities.loading} onClick={() => { details.retry(); facilities.retry() }}>Retry Contract Details</button></div>}
     <RentalListFilters><ContractFilterForm key={JSON.stringify(filters)} initial={filters} facilities={facilityOptions} onApply={next => applyFilters(next, next.status === 'COMPLETED' || next.status === 'TERMINATED' ? 1 : next.status === 'ACTIVE' ? 0 : selectedTab)} /></RentalListFilters>
-    <div className="contracts-list-summary"><p className="muted" role="status">{loading ? 'Loading this page…' : error ? 'Contract list unavailable.' : filterPending ? 'Loading storage details for your search…' : `${visible.length} matching contracts on this page. Counts and filters cover this page only.`}</p><div>{(filters.query || filters.status || filters.facility) && <button className="contracts-text-button" type="button" onClick={clearFilters}>Clear Filters</button>}<button className="contracts-text-button" type="button" disabled={loading} onClick={refresh}><RefreshCw size={14} aria-hidden="true" />Refresh Contracts</button></div></div>
-    <div className="contracts-tabs"><CustomerTabs labels={CONTRACT_TABS} counts={loading || error || filterPending ? undefined : [activeContracts.length, historyContracts.length]} ariaLabel="Contract sections" selected={selectedTab} onChange={index => applyFilters({ ...filters, status: '' }, index)}>{({ tabId, panelId }) => CONTRACT_TABS.map((label, index) => <div key={label} role="tabpanel" id={panelId(index)} aria-labelledby={tabId(index)} hidden={selectedTab !== index} tabIndex={0}>{selectedTab === index && renderPanel(index === 1)}</div>)}</CustomerTabs></div>
+    <div className="contracts-list-summary"><p className="muted" role="status">{summaryText}</p><div>{(filters.query || filters.status || filters.facility) && <button className="contracts-text-button" type="button" onClick={clearFilters}>Clear Filters</button>}<button className="contracts-text-button" type="button" disabled={loading} onClick={refresh}><RefreshCw size={14} aria-hidden="true" />Refresh Contracts</button></div></div>
+    <div className="contracts-tabs"><CustomerTabs labels={CONTRACT_TABS} counts={loading || error || filterPending ? undefined : [activeContracts.length, historyContracts.length]} ariaLabel="Contract sections (counts on this page only)" selected={selectedTab} onChange={index => applyFilters({ ...filters, status: '' }, index)}>{({ tabId, panelId }) => CONTRACT_TABS.map((label, index) => <div key={label} role="tabpanel" id={panelId(index)} aria-labelledby={tabId(index)} hidden={selectedTab !== index} tabIndex={0}>{selectedTab === index && renderPanel(index === 1)}</div>)}</CustomerTabs></div>
     {response && <PaginationControls pagination={response.pagination} disabled={loading} onPageChange={next => setParams(current => { const query = new URLSearchParams(current); if (next === 1) query.delete('page'); else query.set('page', String(next)); return query })} />}
     {!loading && !error && !filterPending && chargeContract && <section className="panel contracts-charges"><span className="contracts-icon"><Wallet size={24} aria-hidden="true" /></span><div className="contracts-charges-content"><h2>Deposit &amp; Charges</h2><p className="muted">Review invoices, fees and return settlement for the selected contract.</p><div className="form-field"><label htmlFor="charges-contract">Contract on this page</label><select id="charges-contract" value={chargeContract.contractId} onChange={event => setSelectedContractId(event.target.value)}>{chargeContracts.map(contract => <option key={contract.contractId} value={contract.contractId}>{contractTitle(details.reads[contract.contractId]?.contract ?? contract)} · {contractUnit(details.reads[contract.contractId]?.contract ?? contract)} · {reservationPeriod(contract.startMonth, contract.endMonth)} · {customerLabel(contract.status)}</option>)}</select></div>{chargeReservation && <small>Original deposit: {formatMoney(chargeReservation.depositAmount)}. See settlement for any refund or deduction.</small>}</div><Link className="button" to={`/customer/contracts/${encodeURIComponent(chargeContract.contractId)}/fees-return`}>View Deposit &amp; Charges<ArrowRight size={16} aria-hidden="true" /></Link></section>}
   </main>

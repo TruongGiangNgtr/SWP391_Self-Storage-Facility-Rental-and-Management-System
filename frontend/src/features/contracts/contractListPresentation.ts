@@ -15,11 +15,11 @@ function validUnitDisplay(unit: ContractListItem['storageUnit'], storageUnitId: 
   return unit === undefined || Boolean(unit && unit.storageUnitId === storageUnitId && isUuid(unit.unitTypeId) &&
     typeof unit.unitCode === 'string' && typeof unit.unitTypeName === 'string')
 }
-export function isContractListResponse(value: unknown, page: number): value is ApiCollectionResponse<ContractListItem> {
+export function isContractListResponse(value: unknown, page: number, expectedPageSize = 20): value is ApiCollectionResponse<ContractListItem> {
   const response = value as ApiCollectionResponse<ContractListItem> | null
   return Boolean(response && Array.isArray(response.data) && isSupportPagination(response.pagination) &&
-    response.pagination.page === page && response.pagination.pageSize === 20 && response.data.length <= 20 &&
-    response.pagination.totalItems >= response.data.length && response.pagination.totalPages === Math.ceil(response.pagination.totalItems / 20) &&
+    response.pagination.page === page && response.pagination.pageSize === expectedPageSize && response.data.length <= expectedPageSize &&
+    response.pagination.totalItems >= response.data.length && response.pagination.totalPages === Math.ceil(response.pagination.totalItems / expectedPageSize) &&
     new Set(response.data.map(item => item?.contractId)).size === response.data.length && response.data.every(item => item &&
       isUuid(item.contractId) && isUuid(item.customerId) && isUuid(item.facilityId) && isUuid(item.storageUnitId) &&
       isRentalMonth(item.startMonth) && isRentalMonth(item.endMonth) && item.endMonth >= item.startMonth &&
