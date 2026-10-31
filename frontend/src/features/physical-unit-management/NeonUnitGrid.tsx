@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useMemo } from 'react'
 import type { StorageUnit, StorageUnitStatus } from '../../api/storageUnitApi'
+import { ClickSpark } from '../../components/react-bits/ClickSpark'
 import { Squares } from '../../components/react-bits/Squares'
 import { StatusBadge } from '../../components/StatusBadge'
 import { StorageUnitCode } from '../../components/StorageUnitCode'
@@ -224,52 +225,76 @@ export function NeonUnitGrid({
                 </div>
 
                 <div className="locker-card-actions" onClick={(e) => e.stopPropagation()}>
-                  <button
-                    type="button"
-                    className="locker-action-btn btn-view"
-                    onClick={() => void onOpenDetail(unit)}
-                    title="Xem chi tiết ô kho"
+                  <ClickSpark
+                    sparkColor="#38bdf8"
+                    sparkCount={8}
+                    sparkRadius={18}
+                    duration={350}
+                    className="locker-action-spark"
                   >
-                    <Eye size={14} />
-                    <span>Xem</span>
-                  </button>
+                    <button
+                      type="button"
+                      className="locker-action-btn btn-view"
+                      onClick={() => void onOpenDetail(unit)}
+                      title="Xem chi tiết ô kho"
+                    >
+                      <Eye size={14} />
+                      <span>Xem</span>
+                    </button>
+                  </ClickSpark>
 
-                  <button
-                    type="button"
-                    className="locker-action-btn btn-edit"
-                    onClick={() => void onOpenEdit(unit)}
-                    title="Chỉnh sửa ô kho"
+                  <ClickSpark
+                    sparkColor="#818cf8"
+                    sparkCount={8}
+                    sparkRadius={18}
+                    duration={350}
+                    className="locker-action-spark"
                   >
-                    <Pencil size={14} />
-                    <span>Sửa</span>
-                  </button>
+                    <button
+                      type="button"
+                      className="locker-action-btn btn-edit"
+                      onClick={() => void onOpenEdit(unit)}
+                      title="Chỉnh sửa ô kho"
+                    >
+                      <Pencil size={14} />
+                      <span>Sửa</span>
+                    </button>
+                  </ClickSpark>
 
-                  <button
-                    type="button"
-                    className="locker-action-btn btn-status"
-                    onClick={() => void onOpenStatus(unit)}
-                    disabled={!target}
-                    title={
-                      target
-                        ? `Chuyển trạng thái sang ${statusLabel(target)}`
-                        : 'Trạng thái được điều khiển theo chu kỳ bàn giao/trả kho'
-                    }
+                  <ClickSpark
+                    sparkColor={target === 'MAINTENANCE' ? '#f59e0b' : target === 'AVAILABLE' ? '#10b981' : '#64748b'}
+                    sparkCount={8}
+                    sparkRadius={18}
+                    duration={350}
+                    className="locker-action-spark"
                   >
-                    {target === 'MAINTENANCE' ? (
-                      <Wrench size={14} />
-                    ) : target === 'AVAILABLE' ? (
-                      <ShieldCheck size={14} />
-                    ) : (
-                      <CircleOff size={14} />
-                    )}
-                    <span>
-                      {target === 'MAINTENANCE'
-                        ? 'Bảo trì'
-                        : target === 'AVAILABLE'
-                        ? 'Mở lại'
-                        : 'Khóa'}
-                    </span>
-                  </button>
+                    <button
+                      type="button"
+                      className="locker-action-btn btn-status"
+                      onClick={() => void onOpenStatus(unit)}
+                      disabled={!target}
+                      title={
+                        target
+                          ? `Chuyển trạng thái sang ${statusLabel(target)}`
+                          : 'Trạng thái được điều khiển theo chu kỳ bàn giao/trả kho'
+                      }
+                    >
+                      {target === 'MAINTENANCE' ? (
+                        <Wrench size={14} />
+                      ) : target === 'AVAILABLE' ? (
+                        <ShieldCheck size={14} />
+                      ) : (
+                        <CircleOff size={14} />
+                      )}
+                      <span>
+                        {target === 'MAINTENANCE'
+                          ? 'Bảo trì'
+                          : target === 'AVAILABLE'
+                          ? 'Mở lại'
+                          : 'Khóa'}
+                      </span>
+                    </button>
+                  </ClickSpark>
                 </div>
               </article>
             )
@@ -289,44 +314,56 @@ export function NeonUnitGrid({
 
           {totalPages > 1 && (
             <nav className="neon-page-nav" aria-label="Điều hướng phân trang ô kho">
-              <button
-                type="button"
-                className="neon-nav-btn"
-                disabled={page <= 1}
-                onClick={() => onPageChange(page - 1)}
-                title="Trang trước"
-              >
-                <ChevronLeft size={16} />
-                <span>Trước</span>
-              </button>
+              <ClickSpark sparkColor="#38bdf8" sparkCount={6} sparkRadius={16} duration={300} className="neon-nav-spark">
+                <button
+                  type="button"
+                  className="neon-nav-btn"
+                  disabled={page <= 1}
+                  onClick={() => onPageChange(page - 1)}
+                  title="Trang trước"
+                >
+                  <ChevronLeft size={16} />
+                  <span>Trước</span>
+                </button>
+              </ClickSpark>
 
               <div className="neon-page-numbers">
                 {getPageNumbers(page, totalPages).map((p, idx) =>
                   p === '...' ? (
                     <span key={`dots-${idx}`} className="neon-page-dots">…</span>
                   ) : (
-                    <button
-                      key={`page-${p}`}
-                      type="button"
-                      className={`neon-page-btn ${page === p ? 'active' : ''}`}
-                      onClick={() => onPageChange(Number(p))}
+                    <ClickSpark
+                      key={`spark-page-${p}`}
+                      sparkColor={page === p ? '#00f5ff' : '#94a3b8'}
+                      sparkCount={6}
+                      sparkRadius={14}
+                      duration={300}
+                      className="neon-page-spark"
                     >
-                      {p}
-                    </button>
+                      <button
+                        type="button"
+                        className={`neon-page-btn ${page === p ? 'active' : ''}`}
+                        onClick={() => onPageChange(Number(p))}
+                      >
+                        {p}
+                      </button>
+                    </ClickSpark>
                   )
                 )}
               </div>
 
-              <button
-                type="button"
-                className="neon-nav-btn"
-                disabled={page >= totalPages}
-                onClick={() => onPageChange(page + 1)}
-                title="Trang kế tiếp"
-              >
-                <span>Sau</span>
-                <ChevronRight size={16} />
-              </button>
+              <ClickSpark sparkColor="#38bdf8" sparkCount={6} sparkRadius={16} duration={300} className="neon-nav-spark">
+                <button
+                  type="button"
+                  className="neon-nav-btn"
+                  disabled={page >= totalPages}
+                  onClick={() => onPageChange(page + 1)}
+                  title="Trang kế tiếp"
+                >
+                  <span>Sau</span>
+                  <ChevronRight size={16} />
+                </button>
+              </ClickSpark>
             </nav>
           )}
         </footer>

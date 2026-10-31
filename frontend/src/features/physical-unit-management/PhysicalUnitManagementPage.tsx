@@ -1,5 +1,6 @@
 import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
 import { StorageUnitCode } from '../../components/StorageUnitCode'
+import { ClickSpark } from '../../components/react-bits/ClickSpark'
 import { NeonUnitGrid } from './NeonUnitGrid'
 import { LayoutGrid, List } from 'lucide-react'
 import { EmployeeModal } from '../../components/EmployeeModal'
@@ -663,24 +664,35 @@ export function PhysicalUnitManagementPage() {
         </div>
 
         <div className="physical-heading-actions">
-          <button
-            type="button"
-            className="handover-refresh-button"
-            onClick={() => void refresh()}
-            disabled={isLoading}
+          <ClickSpark sparkColor="#94a3b8" sparkCount={8} sparkRadius={18} duration={300}>
+            <button
+              type="button"
+              className="handover-refresh-button"
+              onClick={() => void refresh()}
+              disabled={isLoading}
+            >
+              <RefreshCw size={17} />
+              Refresh
+            </button>
+          </ClickSpark>
+          <ClickSpark
+            sparkColor={['#00f5ff', '#38bdf8', '#34d399', '#a855f7']}
+            sparkCount={12}
+            sparkRadius={25}
+            sparkSize={12}
+            duration={450}
+            ring
           >
-            <RefreshCw size={17} />
-            Refresh
-          </button>
-          <button
-            type="button"
-            className="physical-primary-button"
-            onClick={openCreate}
-            disabled={!facilityId}
-          >
-            <Plus size={17} />
-            Add StorageUnit
-          </button>
+            <button
+              type="button"
+              className="physical-primary-button"
+              onClick={openCreate}
+              disabled={!facilityId}
+            >
+              <Plus size={17} />
+              Add StorageUnit
+            </button>
+          </ClickSpark>
         </div>
       </div>
 
@@ -778,24 +790,28 @@ export function PhysicalUnitManagementPage() {
           </label>
 
           <div className="physical-view-toggle">
-            <button
-              type="button"
-              className={`physical-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
-              onClick={() => setViewMode('grid')}
-              title="Sơ đồ Holographic Grid"
-            >
-              <LayoutGrid size={15} />
-              <span>Sơ đồ</span>
-            </button>
-            <button
-              type="button"
-              className={`physical-view-btn ${viewMode === 'table' ? 'active' : ''}`}
-              onClick={() => setViewMode('table')}
-              title="Danh sách bảng"
-            >
-              <List size={15} />
-              <span>Bảng</span>
-            </button>
+            <ClickSpark sparkColor="#00f5ff" sparkCount={8} sparkRadius={16} duration={300}>
+              <button
+                type="button"
+                className={`physical-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => setViewMode('grid')}
+                title="Sơ đồ Holographic Grid"
+              >
+                <LayoutGrid size={15} />
+                <span>Sơ đồ</span>
+              </button>
+            </ClickSpark>
+            <ClickSpark sparkColor="#38bdf8" sparkCount={8} sparkRadius={16} duration={300}>
+              <button
+                type="button"
+                className={`physical-view-btn ${viewMode === 'table' ? 'active' : ''}`}
+                onClick={() => setViewMode('table')}
+                title="Danh sách bảng"
+              >
+                <List size={15} />
+                <span>Bảng</span>
+              </button>
+            </ClickSpark>
           </div>
         </div>
 
@@ -882,23 +898,34 @@ export function PhysicalUnitManagementPage() {
                       <td><span className={statusClass(unit.status)}>{statusLabel(unit.status)}</span></td>
                       <td>
                         <div className="physical-row-actions">
-                          <button type="button" onClick={() => void openDetail(unit)} title="View latest detail">
-                            <Eye size={16} />
-                            <span>View</span>
-                          </button>
-                          <button type="button" onClick={() => void openEdit(unit)} title="Edit Unit Type or location">
-                            <Pencil size={16} />
-                            <span>Edit</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void openStatus(unit)}
-                            disabled={!target}
-                            title={target ? `Change status to ${statusLabel(target)}` : 'Status is controlled by handover/return lifecycle'}
+                          <ClickSpark sparkColor="#38bdf8" sparkCount={6} sparkRadius={16} duration={300}>
+                            <button type="button" onClick={() => void openDetail(unit)} title="View latest detail">
+                              <Eye size={16} />
+                              <span>View</span>
+                            </button>
+                          </ClickSpark>
+                          <ClickSpark sparkColor="#818cf8" sparkCount={6} sparkRadius={16} duration={300}>
+                            <button type="button" onClick={() => void openEdit(unit)} title="Edit Unit Type or location">
+                              <Pencil size={16} />
+                              <span>Edit</span>
+                            </button>
+                          </ClickSpark>
+                          <ClickSpark
+                            sparkColor={target === 'MAINTENANCE' ? '#f59e0b' : target === 'AVAILABLE' ? '#10b981' : '#64748b'}
+                            sparkCount={6}
+                            sparkRadius={16}
+                            duration={300}
                           >
-                            {target === 'MAINTENANCE' ? <Wrench size={16} /> : target === 'AVAILABLE' ? <ShieldCheck size={16} /> : <CircleOff size={16} />}
-                            <span>{target === 'MAINTENANCE' ? 'Maintain' : target === 'AVAILABLE' ? 'Restore' : 'Lifecycle'}</span>
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => void openStatus(unit)}
+                              disabled={!target}
+                              title={target ? `Change status to ${statusLabel(target)}` : 'Status is controlled by handover/return lifecycle'}
+                            >
+                              {target === 'MAINTENANCE' ? <Wrench size={16} /> : target === 'AVAILABLE' ? <ShieldCheck size={16} /> : <CircleOff size={16} />}
+                              <span>{target === 'MAINTENANCE' ? 'Maintain' : target === 'AVAILABLE' ? 'Restore' : 'Lifecycle'}</span>
+                            </button>
+                          </ClickSpark>
                         </div>
                       </td>
                     </tr>
@@ -957,10 +984,19 @@ export function PhysicalUnitManagementPage() {
             <FormError error={formError} />
             <div className="physical-dialog-actions">
               <button type="button" className="physical-secondary-button" onClick={closeDialog} disabled={isSubmitting}>Cancel</button>
-              <button type="submit" className="physical-primary-button" disabled={isSubmitting || isVerifyingUnitType}>
-                <Plus size={16} />
-                {isSubmitting ? 'Creating…' : 'Create StorageUnit'}
-              </button>
+              <ClickSpark
+                sparkColor={['#10b981', '#34d399', '#6ee7b7']}
+                sparkCount={12}
+                sparkRadius={25}
+                sparkSize={12}
+                duration={450}
+                ring
+              >
+                <button type="submit" className="physical-primary-button" disabled={isSubmitting || isVerifyingUnitType}>
+                  <Plus size={16} />
+                  {isSubmitting ? 'Creating…' : 'Create StorageUnit'}
+                </button>
+              </ClickSpark>
             </div>
           </form>
         </ManagerDialog>
@@ -999,10 +1035,19 @@ export function PhysicalUnitManagementPage() {
               <FormError error={formError} />
               <div className="physical-dialog-actions">
                 <button type="button" className="physical-secondary-button" onClick={closeDialog} disabled={isSubmitting}>Cancel</button>
-                <button type="submit" className="physical-primary-button" disabled={isSubmitting || isVerifyingUnitType}>
-                  <Check size={16} />
-                  {isSubmitting ? 'Saving…' : 'Save changes'}
-                </button>
+                <ClickSpark
+                  sparkColor={['#38bdf8', '#60a5fa', '#818cf8']}
+                  sparkCount={12}
+                  sparkRadius={25}
+                  sparkSize={12}
+                  duration={450}
+                  ring
+                >
+                  <button type="submit" className="physical-primary-button" disabled={isSubmitting || isVerifyingUnitType}>
+                    <Check size={16} />
+                    {isSubmitting ? 'Saving…' : 'Save changes'}
+                  </button>
+                </ClickSpark>
               </div>
             </form>
           )}
@@ -1034,9 +1079,11 @@ export function PhysicalUnitManagementPage() {
               <FormError error={formError} />
               <div className="physical-dialog-actions">
                 <button type="button" className="physical-secondary-button" onClick={closeDialog}>Close</button>
-                <button type="button" className="physical-primary-button" onClick={() => void openEdit(selectedUnit)}>
-                  <Pencil size={16} /> Edit unit
-                </button>
+                <ClickSpark sparkColor="#38bdf8" sparkCount={10} sparkRadius={22} duration={400}>
+                  <button type="button" className="physical-primary-button" onClick={() => void openEdit(selectedUnit)}>
+                    <Pencil size={16} /> Edit unit
+                  </button>
+                </ClickSpark>
               </div>
             </>
           )}
@@ -1073,15 +1120,24 @@ export function PhysicalUnitManagementPage() {
               <FormError error={formError} />
               <div className="physical-dialog-actions">
                 <button type="button" className="physical-secondary-button" onClick={closeDialog} disabled={isSubmitting}>Cancel</button>
-                <button
-                  type="button"
-                  className="physical-primary-button"
-                  onClick={() => void handleStatusTransition()}
-                  disabled={isSubmitting || !selectedStatusTarget}
+                <ClickSpark
+                  sparkColor={selectedStatusTarget === 'MAINTENANCE' ? ['#f59e0b', '#fbbf24', '#fde68a'] : ['#10b981', '#34d399', '#6ee7b7']}
+                  sparkCount={12}
+                  sparkRadius={25}
+                  sparkSize={12}
+                  duration={450}
+                  ring
                 >
-                  {selectedStatusTarget === 'MAINTENANCE' ? <Wrench size={16} /> : <ShieldCheck size={16} />}
-                  {isSubmitting ? 'Updating…' : selectedStatusTarget ? `Set ${statusLabel(selectedStatusTarget)}` : 'Unavailable'}
-                </button>
+                  <button
+                    type="button"
+                    className="physical-primary-button"
+                    onClick={() => void handleStatusTransition()}
+                    disabled={isSubmitting || !selectedStatusTarget}
+                  >
+                    {selectedStatusTarget === 'MAINTENANCE' ? <Wrench size={16} /> : <ShieldCheck size={16} />}
+                    {isSubmitting ? 'Updating…' : selectedStatusTarget ? `Set ${statusLabel(selectedStatusTarget)}` : 'Unavailable'}
+                  </button>
+                </ClickSpark>
               </div>
             </div>
           )}
