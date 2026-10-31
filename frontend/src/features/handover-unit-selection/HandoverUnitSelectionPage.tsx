@@ -17,6 +17,7 @@ import {
 import { handoverAssignmentApi } from '../../api/handoverAssignmentApi'
 import { presentApiError, type ApiErrorPresentation } from '../../api/apiErrorPresentation'
 import { ApiErrorAlert } from '../../components/ApiErrorAlert'
+import { StorageUnitCode } from '../../components/StorageUnitCode'
 import type { HandoverUnitAssignment } from '../handover/handover.types'
 import { isActiveHandoverAssignment } from '../handover/handoverValidation'
 import { reservationApi } from '../../api/reservationApi'
@@ -580,7 +581,7 @@ export function HandoverUnitSelectionPage() {
 
                     <div className="handover-unit-content">
                       <div className="handover-unit-title-row">
-                        <strong>{employeeText(unit.unitCode)}</strong>
+                        <strong><StorageUnitCode code={unit.unitCode} /></strong>
                         <span>AVAILABLE</span>
                       </div>
                       <p>{unit.locationInfo || 'No location information'}</p>
@@ -619,7 +620,7 @@ export function HandoverUnitSelectionPage() {
         <section className="handover-selection-summary">
           <div>
             <span>Selected for handover</span>
-            <h2>{employeeText(selectedUnit.unitCode)}</h2>
+            <h2><StorageUnitCode code={selectedUnit.unitCode} /></h2>
             <p>
               <EmployeeEntityLabel kind="customer" id={selectedReservation.customerId} /> · {selectedReservation.startMonth} → {selectedReservation.endMonth} ·
               {' '}Unit {employeeText(selectedUnit.unitCode)}

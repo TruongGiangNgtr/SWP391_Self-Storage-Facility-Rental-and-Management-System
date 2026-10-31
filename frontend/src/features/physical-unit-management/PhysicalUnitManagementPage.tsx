@@ -1,4 +1,5 @@
 import { EmployeeEntityLabel } from '../../components/EmployeeEntityLabel'
+import { StorageUnitCode } from '../../components/StorageUnitCode'
 import { EmployeeModal } from '../../components/EmployeeModal'
 import {
   AlertTriangle,
@@ -798,7 +799,7 @@ export function PhysicalUnitManagementPage() {
                         <div className="physical-unit-cell">
                           <span><Warehouse size={17} /></span>
                           <div>
-                            <strong>{unit.unitCode}</strong>
+                            <StorageUnitCode code={unit.unitCode} />
                           </div>
                         </div>
                       </td>
@@ -936,7 +937,7 @@ export function PhysicalUnitManagementPage() {
             <>
               <div className="physical-detail-grid">
                 <div><span>Status</span><strong className={statusClass(selectedUnit.status)}>{statusLabel(selectedUnit.status)}</strong></div>
-                <div><span>StorageUnit</span><strong>{selectedUnit.unitCode}</strong></div>
+                <div><span>StorageUnit</span><StorageUnitCode code={selectedUnit.unitCode} /></div>
                 <div><span>Facility</span><strong><EmployeeEntityLabel kind="facility" id={selectedUnit.facilityId} /></strong></div>
                 <div><span>Location</span><strong>{selectedUnit.locationInfo || 'Not specified'}</strong></div>
                 <div className="physical-detail-wide">

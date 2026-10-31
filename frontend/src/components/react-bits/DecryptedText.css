@@ -1,0 +1,61 @@
+/* React Bits DecryptedText styling */
+.decrypted-text {
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+.decrypted-container {
+  cursor: default;
+}
+
+.decrypted-chars {
+  display: inline;
+}
+
+/* Scrambling glyph effect */
+.decrypted-scramble {
+  color: #06b6d4;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(6, 182, 212, 0.6);
+  opacity: 0.9;
+}
+
+/* Cyber-Command Storage Unit Code Badge */
+.storage-unit-code-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: #0f172a;
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  box-shadow: 0 2px 8px -1px rgba(14, 165, 233, 0.2);
+  transition: all 0.2s ease;
+}
+
+.storage-unit-code-badge:hover {
+  border-color: rgba(56, 189, 248, 0.65);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+  transform: translateY(-1px);
+}
+
+.storage-unit-code-badge .decrypted-scramble {
+  color: #22d3ee;
+  text-shadow: 0 0 8px rgba(34, 211, 238, 0.8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .decrypted-scramble {
+    text-shadow: none !important;
+    color: inherit !important;
+  }
+  .storage-unit-code-badge:hover {
+    transform: none !important;
+  }
+}
