@@ -1299,15 +1299,20 @@ a {
 }
 
 .facility-action-button {
-  min-height: 26px;
-  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 12px;
 
-  border-radius: 5px;
+  border-radius: 6px;
 
   cursor: pointer;
   font-family: inherit;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .facility-action-button--deactivate {
@@ -1316,10 +1321,20 @@ a {
   background: #fff5f5;
 }
 
+.facility-action-button--deactivate:hover:not(:disabled) {
+  border-color: #e57373;
+  background: #fee2e2;
+}
+
 .facility-action-button--activate {
   border: 1px solid #b9caff;
   color: #3262dd;
   background: #f1f5ff;
+}
+
+.facility-action-button--activate:hover:not(:disabled) {
+  border-color: #8da4ef;
+  background: #e0e9ff;
 }
 
 .facility-icon-button {
