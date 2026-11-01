@@ -121,8 +121,9 @@
   overflow-wrap: anywhere;
   text-overflow: clip;
 }
-.manager-shell.manager-shell .physical-table { min-width: 0; table-layout: auto; }
-.manager-shell.manager-shell .physical-row-actions { flex-wrap: wrap; justify-content: flex-start; }
+.manager-shell.manager-shell .physical-table { min-width: 860px; table-layout: auto; }
+.manager-shell.manager-shell .physical-row-actions { flex-wrap: nowrap; justify-content: flex-end; gap: 6px; white-space: nowrap; }
+.manager-shell.manager-shell .physical-row-actions button { white-space: nowrap; flex-shrink: 0; }
 .manager-shell.manager-shell .physical-row-actions button span { display: inline; }
 .manager-shell.manager-shell .physical-facility-id { color: var(--frms-primary) !important; }
 .manager-shell.manager-shell .handover-reservation-card > div:first-child :is(strong, span) { color: var(--employee-text); font-size: var(--frms-font-size-body); }

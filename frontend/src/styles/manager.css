@@ -396,6 +396,7 @@
   font: inherit;
   font-size: 12px;
   font-weight: 650;
+  white-space: nowrap;
 }
 
 .handover-refresh-button {
@@ -687,9 +688,10 @@
 }
 
 .handover-select-button {
-  min-width: 78px;
+  min-width: fit-content;
   min-height: 34px;
-  padding: 0 10px;
+  padding: 0 14px;
+  white-space: nowrap;
   color: var(--frms-primary);
   background: #edf2ff;
 }
