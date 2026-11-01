@@ -58,7 +58,7 @@
 
 .awp07-resource-cell code,
 .awp07-table code {
-  color: #64748b;
+  color: var(--frms-muted);
   font-size: 11px;
 }
 
@@ -125,7 +125,7 @@
 }
 
 .awp07-drawer__header code {
-  color: #64748b;
+  color: var(--frms-muted);
   font-size: 11px;
   overflow-wrap: anywhere;
 }
@@ -178,7 +178,7 @@
 
 .awp07-detail-grid span,
 .awp07-identifier-block span {
-  color: #64748b;
+  color: var(--frms-muted);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -240,7 +240,7 @@
 .awp07-snapshot-card p {
   margin: 0;
   padding: 18px 14px;
-  color: #64748b;
+  color: var(--frms-muted);
   font-size: 12px;
 }
 

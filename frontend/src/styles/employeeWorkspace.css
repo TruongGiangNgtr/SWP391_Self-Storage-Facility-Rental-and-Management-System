@@ -29,6 +29,12 @@
   font-size: var(--frms-font-size-body);
   line-height: 1.5;
 
+  & .decrypted-scramble {
+    color: var(--frms-secondary);
+    opacity: 1;
+    text-shadow: none;
+  }
+
   & :is(.staff-header, .manager-header, .admin-header, .bo-header) {
     min-height: 72px;
     padding: var(--frms-space-md) 28px;
