@@ -86,17 +86,6 @@
   padding: 0;
 }
 
-.admin-footer {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 24px;
-  padding: 16px 24px;
-  border-top: 1px solid var(--frms-border);
-  color: var(--frms-secondary);
-  font-size: 13px;
-}
-
 /* A native dialog supplies background inertness; existing panels supply layout. */
 dialog.admin-modal-frame {
   inset: 0;
@@ -179,10 +168,6 @@ dialog.admin-modal-frame:is(.awp01-drawer-layer, .awp07-drawer-layer) {
 
   .admin-header-user {
     width: 100%;
-  }
-
-  .admin-footer {
-    padding-inline: 16px;
   }
 
 }

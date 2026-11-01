@@ -13,7 +13,7 @@ interface FooterSection {
 }
 
 interface EmployeePortalFooterProps {
-  variant: 'manager' | 'staff'
+  variant: 'manager' | 'staff' | 'admin'
   portalName: string
   homePath: string
   displayName: string
@@ -23,7 +23,7 @@ interface EmployeePortalFooterProps {
   onSignOut: () => void
 }
 
-/** Shared employee-portal footer: Staff and Manager use the same layout and responsive rules. */
+/** Shared employee-portal footer with common layout and responsive rules. */
 export function EmployeePortalFooter({
   variant,
   portalName,

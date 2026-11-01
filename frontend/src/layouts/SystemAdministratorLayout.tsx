@@ -12,6 +12,7 @@ import {
 } from 'react-router-dom'
 import { useAuth } from '../auth/auth.context'
 import { BrandLogo } from '../components/BrandLogo'
+import { EmployeePortalFooter } from '../components/EmployeePortalFooter'
 import '../styles/manager.css'
 import '../styles/admin.css'
 import '../styles/employeeIdentity.css'
@@ -133,10 +134,25 @@ export function SystemAdministratorLayout() {
         </main>
       </div>
 
-      <footer className="admin-footer">
-        <span>© 2026 FStoRent</span>
-        <span>System Administrator workspace</span>
-      </footer>
+      <EmployeePortalFooter
+        variant="admin"
+        portalName="System Administrator"
+        homePath="/admin/users"
+        displayName={displayName}
+        description="User accounts, customer access, employee accounts, and access administration for FStoRent."
+        trustMessage="System Administrator workspace"
+        sections={[
+          {
+            title: 'ACCOUNTS',
+            links: navItems.slice(0, 3),
+          },
+          {
+            title: 'ACCESS & HISTORY',
+            links: navItems.slice(3),
+          },
+        ]}
+        onSignOut={logout}
+      />
     </div>
   )
 }
