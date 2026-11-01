@@ -18,13 +18,6 @@
   filter: drop-shadow(0 0 1px currentColor);
 }
 
-.status-badge-shiny {
-  display: inline-flex;
-  align-items: center;
-  font: inherit;
-  letter-spacing: inherit;
-}
-
 @keyframes shiny-sweep {
   0% {
     background-position: 120% 0;

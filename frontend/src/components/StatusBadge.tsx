@@ -1,5 +1,4 @@
 import { FlowIcon, type FlowIconName } from './FlowIcon'
-import { ShinyText } from './react-bits/ShinyText'
 
 const STATUS_ICONS: Record<string, FlowIconName> = {
   PAID: 'paid',
@@ -17,10 +16,14 @@ const DEFAULT_LABELS: Record<string, string> = {
 export interface StatusBadgeProps {
   status: string
   label?: string
+  /**
+   * @deprecated Shiny text sweep was distilled out to eliminate text invisibility
+   * and meet WCAG 2.1 AA contrast requirements. Maintained for interface compatibility.
+   */
   shiny?: boolean
 }
 
-export function StatusBadge({ status, label, shiny = true }: StatusBadgeProps) {
+export function StatusBadge({ status, label }: StatusBadgeProps) {
   const normalized = status.toLowerCase().replaceAll('_', '-')
   const icon = STATUS_ICONS[status]
   const displayText = label ?? DEFAULT_LABELS[status] ?? status
@@ -28,13 +31,7 @@ export function StatusBadge({ status, label, shiny = true }: StatusBadgeProps) {
   return (
     <span className={`status-badge status-${normalized}`}>
       {icon && <FlowIcon name={icon} />}
-      {shiny ? (
-        <ShinyText speed={3.5} className="status-badge-shiny">
-          {displayText}
-        </ShinyText>
-      ) : (
-        displayText
-      )}
+      {displayText}
     </span>
   )
 }
