@@ -1,12 +1,14 @@
-import { DecryptedText } from './react-bits/DecryptedText'
-import './react-bits/DecryptedText.css'
+import './StorageUnitCode.css'
 
 export interface StorageUnitCodeProps {
   code?: string | null
   className?: string
   badge?: boolean
+  /** @deprecated Unit codes are always static; animation options are ignored. */
   speed?: number
+  /** @deprecated Unit codes are always static; animation options are ignored. */
   maxIterations?: number
+  /** @deprecated Unit codes are always static; animation options are ignored. */
   sequential?: boolean
 }
 
@@ -14,9 +16,6 @@ export function StorageUnitCode({
   code,
   className = '',
   badge = true,
-  speed = 35,
-  maxIterations = 8,
-  sequential = true,
 }: StorageUnitCodeProps) {
   if (!code || !code.trim()) {
     return <span className="muted">—</span>
@@ -26,16 +25,10 @@ export function StorageUnitCode({
 
   return (
     <span
-      className={`${badge ? 'storage-unit-code-badge' : 'storage-unit-code-text'} ${className}`.trim()}
+      className={`storage-unit-code${badge ? ' storage-unit-code--badge' : ''} ${className}`.trim()}
       title={`Storage Unit: ${cleanCode}`}
     >
-      <DecryptedText
-        text={cleanCode}
-        speed={speed}
-        maxIterations={maxIterations}
-        sequential={sequential}
-        animateOn="view"
-      />
+      {cleanCode}
     </span>
   )
 }

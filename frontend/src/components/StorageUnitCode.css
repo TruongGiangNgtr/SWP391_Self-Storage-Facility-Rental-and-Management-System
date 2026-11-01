@@ -1,0 +1,19 @@
+.storage-unit-code {
+  font-family: var(--frms-font-body);
+  font-size: var(--frms-font-size-body);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+  color: var(--frms-text);
+  overflow-wrap: anywhere;
+}
+
+.storage-unit-code--badge {
+  display: inline-block;
+  max-width: 100%;
+  padding: var(--frms-space-xs) var(--frms-space-sm);
+  border: 1px solid var(--frms-border);
+  border-radius: var(--frms-radius-small);
+  background: var(--frms-canvas);
+  vertical-align: baseline;
+}
