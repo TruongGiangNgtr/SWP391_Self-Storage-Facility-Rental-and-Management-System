@@ -868,6 +868,9 @@
 .fwp-action-card > p { margin: 0 0 12px; color: #6d7a90; font-size: 10px; line-height: 1.55; }
 .fwp-stack-form { display: flex; flex-direction: column; gap: 10px; }
 .fwp-inline-form { display: grid; grid-template-columns: 130px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.fwp-inline-form > .form-field { min-width: 0; }
+.fwp-inline-form > .form-field > :is(input, select) { width: 100%; min-width: 0; }
+.fwp-inline-form > button { align-self: end; }
 
 .fwp-record-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .fwp-record-summary > div { padding: 11px 12px; box-shadow: none; }

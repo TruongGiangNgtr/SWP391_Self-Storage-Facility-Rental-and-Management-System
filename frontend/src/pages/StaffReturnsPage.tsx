@@ -174,6 +174,7 @@ function ReturnConfirmationPanel() {
                         <input
                           className="fwp-inline-date"
                           type="date"
+                          aria-label={`Actual return date for ${item.customer?.fullName ?? 'visit'}`}
                           value={returnDates[item.referenceId] ?? date}
                           onChange={(event) => setReturnDates((current) => ({ ...current, [item.referenceId]: event.target.value }))}
                           disabled={busyId === item.referenceId}
@@ -595,10 +596,16 @@ function InspectionWorkspace({ mode }: InspectionWorkspaceProps) {
                       <h3><Camera size={17} /> Evidence ({detail.evidence.length})</h3>
                       <p>Attach photos, videos, or documents of the unit’s condition. Uploaded files are saved immediately to this inspection.</p>
                       <form className="fwp-inline-form" onSubmit={uploadEvidence}>
-                        <select value={evidenceType} onChange={(event) => setEvidenceType(event.target.value as EvidenceType)} disabled={busy !== null}>
-                          <option value="IMAGE">Photo (IMAGE)</option><option value="VIDEO">Video (VIDEO)</option><option value="DOCUMENT">Document (DOCUMENT)</option>
-                        </select>
-                        <input type="file" onChange={(event) => setEvidenceFile(event.target.files?.[0] ?? null)} disabled={busy !== null} />
+                        <label className="form-field">
+                          <span>Evidence type</span>
+                          <select value={evidenceType} onChange={(event) => setEvidenceType(event.target.value as EvidenceType)} disabled={busy !== null}>
+                            <option value="IMAGE">Photo (IMAGE)</option><option value="VIDEO">Video (VIDEO)</option><option value="DOCUMENT">Document (DOCUMENT)</option>
+                          </select>
+                        </label>
+                        <label className="form-field">
+                          <span>Evidence file</span>
+                          <input type="file" onChange={(event) => setEvidenceFile(event.target.files?.[0] ?? null)} disabled={busy !== null} />
+                        </label>
                         <button className="fwp-button fwp-button-secondary" type="submit" disabled={busy !== null}>{busy === 'evidence' ? 'Uploading…' : 'Upload'}</button>
                       </form>
                       {renderEvidenceItemsList()}
