@@ -477,12 +477,15 @@
 .fwp-link-button {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   padding: 0;
   color: #3c62e6;
   background: transparent;
   font-size: 11px;
   font-weight: 700;
   text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
 }
 .fwp-link-button:hover { color: #244bce; text-decoration: underline; }
 
@@ -513,8 +516,15 @@
 
 .fwp-table-card { overflow: hidden; }
 .fwp-table-wrap { width: 100%; overflow-x: auto; }
-.fwp-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.fwp-table { width: 100%; min-width: 860px; border-collapse: collapse; font-size: 11px; }
 .fwp-table th { padding: 11px 14px; border-bottom: 1px solid #e6ebf3; color: #66738a; background: #f9fafc; font-size: 9px; font-weight: 800; letter-spacing: .045em; text-align: left; text-transform: uppercase; white-space: nowrap; }
+.fwp-table th[aria-label="Actions"],
+.fwp-table th:last-child,
+.fwp-table td:last-child {
+  width: 140px;
+  text-align: right;
+  white-space: nowrap;
+}
 .fwp-table td { padding: 12px 14px; border-bottom: 1px solid #edf0f5; color: #2d3a51; vertical-align: middle; }
 .fwp-table tbody tr:last-child td { border-bottom: 0; }
 .fwp-table tbody tr:hover td { background: #fafbff; }
@@ -661,15 +671,25 @@
 }
 
 .fwp-action-priority {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
   background: #10b981 !important;
   color: #ffffff !important;
-  border-color: #059669 !important;
+  border: 1px solid #059669 !important;
   font-weight: 700 !important;
+  text-decoration: none !important;
   box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
 }
 
 .fwp-action-priority:hover {
   background: #059669 !important;
+  color: #ffffff !important;
+  text-decoration: none !important;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
 }
 
@@ -677,6 +697,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
   transition: all 0.15s ease;
 }
 
