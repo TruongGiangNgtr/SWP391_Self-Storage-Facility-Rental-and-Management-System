@@ -1,0 +1,17 @@
+.react-bits-click-spark {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.react-bits-click-spark--block {
+  display: flex;
+  width: 100%;
+}
+
+.react-bits-click-spark-canvas {
+  position: absolute;
+  pointer-events: none;
+  z-index: 90;
+  will-change: transform;
+}

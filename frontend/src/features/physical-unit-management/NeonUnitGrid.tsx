@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useMemo } from 'react'
 import type { StorageUnit, StorageUnitStatus } from '../../api/storageUnitApi'
+import { ClickSpark } from '../../components/react-bits/ClickSpark'
 import { Squares } from '../../components/react-bits/Squares'
 import { StatusBadge } from '../../components/StatusBadge'
 import { StorageUnitCode } from '../../components/StorageUnitCode'
@@ -105,39 +106,39 @@ export function NeonUnitGrid({
           <div className="neon-telemetry-title">
             <span className="neon-title-icon"><Warehouse size={18} /></span>
             <div>
-              <h3>Sơ Đồ Ô Kho Holographic</h3>
-              <p>Mạng lưới ô kho vật lý thời gian thực theo cấu trúc tầng &amp; phân khu</p>
+              <h3>Holographic StorageUnit Grid</h3>
+              <p>Real-time physical unit map by zone and floor structure</p>
             </div>
           </div>
           <div className="neon-occupancy-badge">
             <Sparkles size={14} className="neon-sparkle" />
-            <span>Tỷ lệ lấp đầy: <strong>{stats.occupancyRate}%</strong></span>
+            <span>Occupancy rate: <strong>{stats.occupancyRate}%</strong></span>
           </div>
         </div>
 
         <div className="neon-telemetry-metrics">
           <div className="neon-metric-pill metric-total">
-            <span>Tổng số ô kho</span>
+            <span>Total units</span>
             <strong>{stats.total}</strong>
           </div>
           <div className="neon-metric-pill metric-available">
             <span className="neon-pill-dot dot-emerald" />
-            <span>Khả dụng</span>
+            <span>Available</span>
             <strong>{stats.available}</strong>
           </div>
           <div className="neon-metric-pill metric-occupied">
             <span className="neon-pill-dot dot-blue" />
-            <span>Đang sử dụng</span>
+            <span>In use</span>
             <strong>{stats.inUse}</strong>
           </div>
           <div className="neon-metric-pill metric-inspection">
             <span className="neon-pill-dot dot-cyan" />
-            <span>Đang kiểm tra</span>
+            <span>Inspection</span>
             <strong>{stats.inspection}</strong>
           </div>
           <div className="neon-metric-pill metric-maintenance">
             <span className="neon-pill-dot dot-amber" />
-            <span>Bảo trì</span>
+            <span>Maintenance</span>
             <strong>{stats.maintenance}</strong>
           </div>
         </div>
@@ -149,22 +150,22 @@ export function NeonUnitGrid({
               <div
                 className="capacity-segment seg-occupied"
                 style={{ width: `${(stats.inUse / stats.total) * 100}%` }}
-                title={`Đang sử dụng: ${stats.inUse}`}
+                title={`In use: ${stats.inUse}`}
               />
               <div
                 className="capacity-segment seg-available"
                 style={{ width: `${(stats.available / stats.total) * 100}%` }}
-                title={`Khả dụng: ${stats.available}`}
+                title={`Available: ${stats.available}`}
               />
               <div
                 className="capacity-segment seg-inspection"
                 style={{ width: `${(stats.inspection / stats.total) * 100}%` }}
-                title={`Đang kiểm tra: ${stats.inspection}`}
+                title={`Inspection: ${stats.inspection}`}
               />
               <div
                 className="capacity-segment seg-maintenance"
                 style={{ width: `${(stats.maintenance / stats.total) * 100}%` }}
-                title={`Bảo trì: ${stats.maintenance}`}
+                title={`Maintenance: ${stats.maintenance}`}
               />
             </>
           )}
@@ -219,57 +220,81 @@ export function NeonUnitGrid({
 
                   <div className="locker-location-tag">
                     <MapPin size={13} className="location-icon" aria-hidden="true" />
-                    <span>{unit.locationInfo || 'Vị trí chưa thiết lập'}</span>
+                    <span>{unit.locationInfo || 'Location not specified'}</span>
                   </div>
                 </div>
 
                 <div className="locker-card-actions" onClick={(e) => e.stopPropagation()}>
-                  <button
-                    type="button"
-                    className="locker-action-btn btn-view"
-                    onClick={() => void onOpenDetail(unit)}
-                    title="Xem chi tiết ô kho"
+                  <ClickSpark
+                    sparkColor="#38bdf8"
+                    sparkCount={8}
+                    sparkRadius={18}
+                    duration={350}
+                    className="locker-action-spark"
                   >
-                    <Eye size={14} />
-                    <span>Xem</span>
-                  </button>
+                    <button
+                      type="button"
+                      className="locker-action-btn btn-view"
+                      onClick={() => void onOpenDetail(unit)}
+                      title="View StorageUnit details"
+                    >
+                      <Eye size={14} />
+                      <span>View</span>
+                    </button>
+                  </ClickSpark>
 
-                  <button
-                    type="button"
-                    className="locker-action-btn btn-edit"
-                    onClick={() => void onOpenEdit(unit)}
-                    title="Chỉnh sửa ô kho"
+                  <ClickSpark
+                    sparkColor="#818cf8"
+                    sparkCount={8}
+                    sparkRadius={18}
+                    duration={350}
+                    className="locker-action-spark"
                   >
-                    <Pencil size={14} />
-                    <span>Sửa</span>
-                  </button>
+                    <button
+                      type="button"
+                      className="locker-action-btn btn-edit"
+                      onClick={() => void onOpenEdit(unit)}
+                      title="Edit StorageUnit"
+                    >
+                      <Pencil size={14} />
+                      <span>Edit</span>
+                    </button>
+                  </ClickSpark>
 
-                  <button
-                    type="button"
-                    className="locker-action-btn btn-status"
-                    onClick={() => void onOpenStatus(unit)}
-                    disabled={!target}
-                    title={
-                      target
-                        ? `Chuyển trạng thái sang ${statusLabel(target)}`
-                        : 'Trạng thái được điều khiển theo chu kỳ bàn giao/trả kho'
-                    }
+                  <ClickSpark
+                    sparkColor={target === 'MAINTENANCE' ? '#f59e0b' : target === 'AVAILABLE' ? '#10b981' : '#64748b'}
+                    sparkCount={8}
+                    sparkRadius={18}
+                    duration={350}
+                    className="locker-action-spark"
                   >
-                    {target === 'MAINTENANCE' ? (
-                      <Wrench size={14} />
-                    ) : target === 'AVAILABLE' ? (
-                      <ShieldCheck size={14} />
-                    ) : (
-                      <CircleOff size={14} />
-                    )}
-                    <span>
-                      {target === 'MAINTENANCE'
-                        ? 'Bảo trì'
-                        : target === 'AVAILABLE'
-                        ? 'Mở lại'
-                        : 'Khóa'}
-                    </span>
-                  </button>
+                    <button
+                      type="button"
+                      className="locker-action-btn btn-status"
+                      onClick={() => void onOpenStatus(unit)}
+                      disabled={!target}
+                      title={
+                        target
+                          ? `Change status to ${statusLabel(target)}`
+                          : 'Status is controlled by handover/return lifecycle'
+                      }
+                    >
+                      {target === 'MAINTENANCE' ? (
+                        <Wrench size={14} />
+                      ) : target === 'AVAILABLE' ? (
+                        <ShieldCheck size={14} />
+                      ) : (
+                        <CircleOff size={14} />
+                      )}
+                      <span>
+                        {target === 'MAINTENANCE'
+                          ? 'Maintain'
+                          : target === 'AVAILABLE'
+                          ? 'Restore'
+                          : 'Locked'}
+                      </span>
+                    </button>
+                  </ClickSpark>
                 </div>
               </article>
             )
@@ -282,51 +307,63 @@ export function NeonUnitGrid({
         <footer className="neon-pagination-bar" aria-label="Locker grid pagination">
           <div className="neon-pagination-info">
             <span>
-              Hiển thị <strong>{startIdx}</strong>–<strong>{endIdx}</strong> trong{' '}
-              <strong>{filteredUnits.length}</strong> ô kho (Trang {page}/{totalPages})
+              Showing <strong>{startIdx}</strong>–<strong>{endIdx}</strong> of{' '}
+              <strong>{filteredUnits.length}</strong> units (Page {page}/{totalPages})
             </span>
           </div>
 
           {totalPages > 1 && (
-            <nav className="neon-page-nav" aria-label="Điều hướng phân trang ô kho">
-              <button
-                type="button"
-                className="neon-nav-btn"
-                disabled={page <= 1}
-                onClick={() => onPageChange(page - 1)}
-                title="Trang trước"
-              >
-                <ChevronLeft size={16} />
-                <span>Trước</span>
-              </button>
+            <nav className="neon-page-nav" aria-label="StorageUnit pagination navigation">
+              <ClickSpark sparkColor="#38bdf8" sparkCount={6} sparkRadius={16} duration={300} className="neon-nav-spark">
+                <button
+                  type="button"
+                  className="neon-nav-btn"
+                  disabled={page <= 1}
+                  onClick={() => onPageChange(page - 1)}
+                  title="Previous page"
+                >
+                  <ChevronLeft size={16} />
+                  <span>Previous</span>
+                </button>
+              </ClickSpark>
 
               <div className="neon-page-numbers">
                 {getPageNumbers(page, totalPages).map((p, idx) =>
                   p === '...' ? (
                     <span key={`dots-${idx}`} className="neon-page-dots">…</span>
                   ) : (
-                    <button
-                      key={`page-${p}`}
-                      type="button"
-                      className={`neon-page-btn ${page === p ? 'active' : ''}`}
-                      onClick={() => onPageChange(Number(p))}
+                    <ClickSpark
+                      key={`spark-page-${p}`}
+                      sparkColor={page === p ? '#00f5ff' : '#94a3b8'}
+                      sparkCount={6}
+                      sparkRadius={14}
+                      duration={300}
+                      className="neon-page-spark"
                     >
-                      {p}
-                    </button>
+                      <button
+                        type="button"
+                        className={`neon-page-btn ${page === p ? 'active' : ''}`}
+                        onClick={() => onPageChange(Number(p))}
+                      >
+                        {p}
+                      </button>
+                    </ClickSpark>
                   )
                 )}
               </div>
 
-              <button
-                type="button"
-                className="neon-nav-btn"
-                disabled={page >= totalPages}
-                onClick={() => onPageChange(page + 1)}
-                title="Trang kế tiếp"
-              >
-                <span>Sau</span>
-                <ChevronRight size={16} />
-              </button>
+              <ClickSpark sparkColor="#38bdf8" sparkCount={6} sparkRadius={16} duration={300} className="neon-nav-spark">
+                <button
+                  type="button"
+                  className="neon-nav-btn"
+                  disabled={page >= totalPages}
+                  onClick={() => onPageChange(page + 1)}
+                  title="Next page"
+                >
+                  <span>Next</span>
+                  <ChevronRight size={16} />
+                </button>
+              </ClickSpark>
             </nav>
           )}
         </footer>

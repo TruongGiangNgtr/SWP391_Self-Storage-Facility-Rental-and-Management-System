@@ -367,6 +367,20 @@
 }
 
 /* Quick Action Buttons on Card Bottom */
+.locker-action-spark {
+  flex: 1;
+  display: flex;
+}
+
+.locker-action-spark .locker-action-btn {
+  width: 100%;
+}
+
+.neon-nav-spark,
+.neon-page-spark {
+  display: inline-flex;
+}
+
 .locker-card-actions {
   display: flex;
   align-items: center;
