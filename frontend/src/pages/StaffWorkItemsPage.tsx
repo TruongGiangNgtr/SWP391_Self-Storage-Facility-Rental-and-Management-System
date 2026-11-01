@@ -130,6 +130,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
     key: string
     items: StaffWorkItem[] | null
     error: ApiErrorPresentation | null
+    fetchedAt: string | null
   } | null>(null)
   const key = `${date}:${retry}`
   const loading = snapshot?.key !== key
@@ -140,10 +141,19 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
     let active = true
     fetchAllEmployeePages((nextPage, pageSize) => visitApi.listStaffWorkItems({ date, page: nextPage, pageSize }))
       .then((nextResult) => {
-        if (active) setSnapshot({ key, items: nextResult.items, error: null })
+        if (active) {
+          const fetchedAt = new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'Asia/Ho_Chi_Minh',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+          }).format(new Date())
+          setSnapshot({ key, items: nextResult.items, error: null, fetchedAt })
+        }
       })
       .catch((caughtError: unknown) => {
-        if (active) setSnapshot({ key, items: null, error: presentApiError(caughtError) })
+        if (active) setSnapshot({ key, items: null, error: presentApiError(caughtError), fetchedAt: null })
       })
     return () => { active = false }
   }, [date, key])
@@ -168,13 +178,82 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
     })
   }, [allItems, lookupLabel, queueMode, search])
 
-  const scheduledCount = useMemo(() => {
+  // Granular counts aligned with approved FRMS work types
+  const scheduledReservationCount = useMemo(() => {
+    return (allItems ?? []).filter((item) => item.workType === 'RESERVATION_VISIT' && item.status === 'SCHEDULED').length
+  }, [allItems])
+
+  const readyForHandoverCount = useMemo(() => {
+    return (allItems ?? []).filter((item) => item.workType === 'RESERVATION_VISIT' && item.status === 'CHECKED_IN').length
+  }, [allItems])
+
+  const scheduledAccessCount = useMemo(() => {
+    return (allItems ?? []).filter((item) => item.workType === 'ACCESS_VISIT' && item.status === 'SCHEDULED').length
+  }, [allItems])
+
+  const inFacilityAccessCount = useMemo(() => {
+    return (allItems ?? []).filter((item) => item.workType === 'ACCESS_VISIT' && item.status === 'CHECKED_IN').length
+  }, [allItems])
+
+  const totalScheduledCount = useMemo(() => {
     return (allItems ?? []).filter((item) => item.status === 'SCHEDULED').length
   }, [allItems])
 
-  const checkedInCount = useMemo(() => {
+  const totalCheckedInCount = useMemo(() => {
     return (allItems ?? []).filter((item) => item.status === 'CHECKED_IN').length
   }, [allItems])
+
+  const summaryConfig = useMemo(() => {
+    if (isHandover) {
+      return {
+        totalLabel: 'Total Handovers',
+        totalSubtext: 'Reservations today',
+        totalCount: scheduledReservationCount + readyForHandoverCount,
+        card2Label: 'Awaiting Check-in',
+        card2Count: scheduledReservationCount,
+        card2Subtext: 'Stage 1 · Not checked in',
+        card3Label: 'Ready for Handover',
+        card3Count: readyForHandoverCount,
+        card3Subtext: 'Stage 2 · Checked in',
+      }
+    }
+    if (queueMode === 'access') {
+      return {
+        totalLabel: 'Total Access Visits',
+        totalSubtext: 'Access tasks today',
+        totalCount: scheduledAccessCount + inFacilityAccessCount,
+        card2Label: 'Scheduled Access',
+        card2Count: scheduledAccessCount,
+        card2Subtext: 'Awaiting arrival',
+        card3Label: 'In Facility / Active',
+        card3Count: inFacilityAccessCount,
+        card3Subtext: 'Awaiting check-out',
+      }
+    }
+    return {
+      totalLabel: 'Total work items',
+      totalSubtext: 'All operations today',
+      totalCount: allItems ? allItems.length : 0,
+      card2Label: 'Scheduled Visits',
+      card2Count: totalScheduledCount,
+      card2Subtext: 'All visits awaiting arrival',
+      card3Label: 'In Facility / Active',
+      card3Count: totalCheckedInCount,
+      card3Subtext: readyForHandoverCount > 0
+        ? `${readyForHandoverCount} ready for handover`
+        : 'Checked-in visits today',
+    }
+  }, [
+    isHandover,
+    queueMode,
+    allItems,
+    scheduledReservationCount,
+    readyForHandoverCount,
+    scheduledAccessCount,
+    inFacilityAccessCount,
+    totalScheduledCount,
+    totalCheckedInCount,
+  ])
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
@@ -190,9 +269,15 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
           <h1>{copy.title}</h1>
           <p>{copy.description}</p>
         </div>
-        <button className="fwp-button fwp-button-secondary" type="button" disabled={loading} onClick={() => setRetry((value) => value + 1)}>
-          <RefreshCw size={16} />
-          Refresh
+        <button
+          className="fwp-button fwp-button-secondary"
+          type="button"
+          disabled={loading}
+          onClick={() => setRetry((value) => value + 1)}
+          aria-label="Refresh operational tasks"
+        >
+          <RefreshCw size={16} className={loading ? 'fwp-spinning' : undefined} />
+          {loading ? 'Refreshing…' : 'Refresh'}
         </button>
       </header>
 
@@ -218,14 +303,14 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
           spotlightRadius={280}
         >
           <div className="fwp-metric-header">
-            <span className="fwp-metric-label">Total work items</span>
+            <span className="fwp-metric-label">{summaryConfig.totalLabel}</span>
             <div className="fwp-metric-icon-badge fwp-badge-cyan">
               <ListChecks size={16} aria-hidden="true" />
             </div>
           </div>
-          <strong className="fwp-metric-value">{loading || !allItems ? '—' : allItems.length}</strong>
+          <strong className="fwp-metric-value">{loading || !allItems ? '—' : summaryConfig.totalCount}</strong>
           <div className="fwp-metric-footer">
-            <span className="fwp-metric-subtext">All operations today</span>
+            <span className="fwp-metric-subtext">{summaryConfig.totalSubtext}</span>
           </div>
         </SpotlightCard>
 
@@ -235,15 +320,15 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
           spotlightRadius={280}
         >
           <div className="fwp-metric-header">
-            <span className="fwp-metric-label">Scheduled Visits</span>
+            <span className="fwp-metric-label">{summaryConfig.card2Label}</span>
             <div className="fwp-metric-icon-badge fwp-badge-amber">
               <Clock size={16} aria-hidden="true" />
             </div>
           </div>
-          <strong className="fwp-metric-value">{loading || !allItems ? '—' : scheduledCount}</strong>
+          <strong className="fwp-metric-value">{loading || !allItems ? '—' : summaryConfig.card2Count}</strong>
           <div className="fwp-metric-footer">
             <span className="fwp-status-dot fwp-pulse-amber" aria-hidden="true" />
-            <span className="fwp-metric-subtext">Awaiting arrival</span>
+            <span className="fwp-metric-subtext">{summaryConfig.card2Subtext}</span>
           </div>
         </SpotlightCard>
 
@@ -253,15 +338,15 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
           spotlightRadius={280}
         >
           <div className="fwp-metric-header">
-            <span className="fwp-metric-label">In Facility / Ready</span>
+            <span className="fwp-metric-label">{summaryConfig.card3Label}</span>
             <div className="fwp-metric-icon-badge fwp-badge-emerald">
               <KeyRound size={16} aria-hidden="true" />
             </div>
           </div>
-          <strong className="fwp-metric-value">{loading || !allItems ? '—' : checkedInCount}</strong>
+          <strong className="fwp-metric-value">{loading || !allItems ? '—' : summaryConfig.card3Count}</strong>
           <div className="fwp-metric-footer">
             <span className="fwp-status-dot fwp-pulse-emerald" aria-hidden="true" />
-            <span className="fwp-metric-subtext">Ready for handover</span>
+            <span className="fwp-metric-subtext">{summaryConfig.card3Subtext}</span>
           </div>
         </SpotlightCard>
 
@@ -349,12 +434,12 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
         >
           <div className="fwp-queue-header">
             <div className="fwp-queue-title">
-              <span className="fwp-queue-badge">LIVE QUEUE</span>
-              <span className="fwp-queue-count">{filteredItems.length} tasks scheduled</span>
+              <span className="fwp-queue-badge">QUEUE SNAPSHOT</span>
+              <span className="fwp-queue-count">{filteredItems.length} {filteredItems.length === 1 ? 'task in view' : 'tasks in view'}</span>
             </div>
             <div className="fwp-queue-status">
-              <span className="fwp-status-dot fwp-pulse-cyan" aria-hidden="true" />
-              <span>Operational Feed (GMT+7)</span>
+              <span className="fwp-status-dot" style={{ backgroundColor: '#0284c7' }} aria-hidden="true" />
+              <span>{snapshot?.fetchedAt ? `Snapshot at ${snapshot.fetchedAt} (GMT+7)` : 'Operational snapshot (GMT+7)'}</span>
             </div>
           </div>
           <div className="fwp-table-wrap">

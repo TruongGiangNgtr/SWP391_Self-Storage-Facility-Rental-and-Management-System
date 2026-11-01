@@ -21,6 +21,7 @@ export function UnitTypePricingPage() {
   const [unitTypes, setUnitTypes] = useState<UnitType[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [pageError, setPageError] = useState<string | null>(null)
+  const [revision, setRevision] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [modeFilter, setModeFilter] =
     useState<'ALL' | UnitTypeMode>('ALL')
@@ -89,7 +90,7 @@ export function UnitTypePricingPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [revision])
 
   const totalUnitTypes = unitTypes.length
 
@@ -468,6 +469,14 @@ export function UnitTypePricingPage() {
                       </strong>
 
                       <span>{pageError}</span>
+
+                      <button
+                        type="button"
+                        className="facility-secondary-button"
+                        onClick={() => setRevision((value) => value + 1)}
+                      >
+                        Retry
+                      </button>
                     </div>
                   </td>
                 </tr>
