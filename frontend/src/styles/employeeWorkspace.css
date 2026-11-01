@@ -284,6 +284,12 @@
     min-width: 44px;
     min-height: 44px;
   }
+  & td :is(.fwp-link-button, .mwp05-link-button, .awp01-link-button) {
+    min-width: auto;
+    min-height: auto;
+    line-height: 1.4;
+    vertical-align: middle;
+  }
   & .mwp05-icon-button { flex-basis: 44px; }
   & .employee-form-fields { min-width: 0; margin: 0; padding: 0; border: 0; display: grid; gap: 20px; }
   & :is(.facility-name-cell, .facility-location-cell, .facility-modal, .mwp05-modal, .mwp05-drawer) { overflow-wrap: anywhere; }

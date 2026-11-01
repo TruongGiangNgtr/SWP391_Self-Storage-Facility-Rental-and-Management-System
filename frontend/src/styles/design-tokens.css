@@ -74,6 +74,12 @@
 :where(.staff-shell, .manager-shell, .admin-shell, .bo-shell) :where(main, section, form, .panel) { min-width: 0; }
 
 :is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(button, .button) { min-height: 44px; font-size: var(--frms-font-size-body); }
+:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) td :is(.fwp-link-button, .mwp05-link-button, .awp01-link-button) {
+  min-height: auto;
+  min-width: auto;
+  line-height: 1.4;
+  vertical-align: middle;
+}
 :is(.admin-shell.admin-shell, .bo-shell.bo-shell) :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
   min-height: 44px;
   font-size: var(--frms-font-size-body);

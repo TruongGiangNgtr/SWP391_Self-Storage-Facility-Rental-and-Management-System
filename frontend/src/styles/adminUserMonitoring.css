@@ -491,11 +491,13 @@
   white-space: nowrap;
 }
 
-.awp01-row-actions a.awp01-link-button {
+.awp01-row-actions :is(a, button).awp01-link-button {
+  min-height: auto;
+  min-width: auto;
   text-decoration: none;
 }
 
-.awp01-row-actions a.awp01-link-button:hover {
+.awp01-row-actions :is(a, button).awp01-link-button:hover {
   text-decoration: underline;
 }
 

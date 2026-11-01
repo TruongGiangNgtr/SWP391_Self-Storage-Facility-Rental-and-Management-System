@@ -50,6 +50,12 @@
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.detail-list, .fwp-detail-grid, .physical-detail-grid) dd { font-size: 15px; }
 
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(button, .button, .fwp-link-button) { min-height: 44px; }
+:is(.staff-shell.staff-shell, .manager-shell.manager-shell) td :is(.fwp-link-button, .mwp05-link-button, .awp01-link-button) {
+  min-height: auto;
+  min-width: auto;
+  line-height: 1.4;
+  vertical-align: middle;
+}
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.fwp-icon-button, .mop-icon-button, .manager-dialog-close, .fwp-mini-pagination button) { min-width: 44px; min-height: 44px; }
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(input:not([type="checkbox"]), select) { min-height: 44px; }
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(button, a, input, select, textarea):focus-visible { outline: 3px solid var(--frms-primary); outline-offset: 3px; }
