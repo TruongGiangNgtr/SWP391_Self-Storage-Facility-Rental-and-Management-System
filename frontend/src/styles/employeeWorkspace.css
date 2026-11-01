@@ -285,8 +285,8 @@
     min-height: 44px;
   }
   & td :is(.fwp-link-button, .mwp05-link-button, .awp01-link-button) {
-    min-width: auto;
-    min-height: auto;
+    min-width: 44px;
+    min-height: 44px;
     line-height: 1.4;
     vertical-align: middle;
   }
