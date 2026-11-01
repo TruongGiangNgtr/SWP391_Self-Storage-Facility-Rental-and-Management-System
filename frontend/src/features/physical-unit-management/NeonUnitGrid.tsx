@@ -6,15 +6,13 @@ import {
   MapPin,
   Pencil,
   ShieldCheck,
-  Sparkles,
   Warehouse,
   Wrench,
 } from 'lucide-react'
 import { useMemo } from 'react'
 import type { StorageUnit, StorageUnitStatus } from '../../api/storageUnitApi'
-import { Squares } from '../../components/react-bits/Squares'
 import { StatusBadge } from '../../components/StatusBadge'
-import { StorageUnitCode } from '../../components/StorageUnitCode'
+import { formatMoney } from '../../utils/formatters'
 import './NeonUnitGrid.css'
 
 export interface UnitTypeInfo {
@@ -25,7 +23,7 @@ export interface UnitTypeInfo {
   rentalPrice: number
 }
 
-export interface NeonUnitGridProps {
+export interface StorageUnitGridProps {
   units: StorageUnit[]
   filteredUnits: StorageUnit[]
   visibleUnits: StorageUnit[]
@@ -41,6 +39,8 @@ export interface NeonUnitGridProps {
   statusLabel: (status: StorageUnitStatus) => string
 }
 
+export type NeonUnitGridProps = StorageUnitGridProps
+
 function getPageNumbers(current: number, total: number): (number | '...')[] {
   if (total <= 7) {
     return Array.from({ length: total }, (_, i) => i + 1)
@@ -54,7 +54,7 @@ function getPageNumbers(current: number, total: number): (number | '...')[] {
   return [1, '...', current - 1, current, current + 1, '...', total]
 }
 
-export function NeonUnitGrid({
+export function StorageUnitGrid({
   units,
   filteredUnits,
   visibleUnits,
@@ -68,7 +68,7 @@ export function NeonUnitGrid({
   onOpenStatus,
   managerStatusTarget,
   statusLabel,
-}: NeonUnitGridProps) {
+}: StorageUnitGridProps) {
   const stats = useMemo(() => {
     const total = units.length
     const available = units.filter((u) => u.status === 'AVAILABLE').length
@@ -79,236 +79,213 @@ export function NeonUnitGrid({
     return { total, available, inUse, inspection, maintenance, occupancyRate }
   }, [units])
 
-  const getLockerThemeClass = (status: StorageUnitStatus) => {
-    switch (status) {
-      case 'AVAILABLE':
-        return 'neon-locker-available'
-      case 'IN_USE':
-        return 'neon-locker-occupied'
-      case 'INSPECTION':
-        return 'neon-locker-inspection'
-      case 'MAINTENANCE':
-        return 'neon-locker-maintenance'
-      default:
-        return 'neon-locker-unavailable'
-    }
-  }
-
   const startIdx = Math.min((page - 1) * pageSize + 1, filteredUnits.length)
   const endIdx = Math.min(page * pageSize, filteredUnits.length)
 
   return (
-    <div className="neon-grid-wrapper">
-      {/* Facility Capacity & Occupancy Telemetry Bar */}
-      <section className="neon-telemetry-card" aria-label="Facility capacity overview">
-        <div className="neon-telemetry-header">
-          <div className="neon-telemetry-title">
-            <span className="neon-title-icon"><Warehouse size={18} /></span>
+    <div className="storage-grid-wrapper">
+      {/* Facility Capacity & Occupancy Overview Card */}
+      <section className="storage-telemetry-card" aria-label="Facility capacity overview">
+        <div className="storage-telemetry-header">
+          <div className="storage-telemetry-title">
+            <span className="storage-title-icon">
+              <Warehouse size={18} aria-hidden="true" />
+            </span>
             <div>
-              <h3>Sơ Đồ Ô Kho Holographic</h3>
-              <p>Mạng lưới ô kho vật lý thời gian thực theo cấu trúc tầng &amp; phân khu</p>
+              <h3>Storage Unit Capacity Overview</h3>
+              <p>Real-time physical unit allocation and status across facility zones</p>
             </div>
           </div>
-          <div className="neon-occupancy-badge">
-            <Sparkles size={14} className="neon-sparkle" />
-            <span>Tỷ lệ lấp đầy: <strong>{stats.occupancyRate}%</strong></span>
+          <div className="storage-occupancy-badge">
+            <span>Occupancy: <strong>{stats.occupancyRate}%</strong></span>
           </div>
         </div>
 
-        <div className="neon-telemetry-metrics">
-          <div className="neon-metric-pill metric-total">
-            <span>Tổng số ô kho</span>
+        <div className="storage-telemetry-metrics">
+          <div className="storage-metric-pill">
+            <span>Total Units</span>
             <strong>{stats.total}</strong>
           </div>
-          <div className="neon-metric-pill metric-available">
-            <span className="neon-pill-dot dot-emerald" />
-            <span>Khả dụng</span>
+          <div className="storage-metric-pill">
+            <span className="storage-pill-dot dot-available" aria-hidden="true" />
+            <span>Available</span>
             <strong>{stats.available}</strong>
           </div>
-          <div className="neon-metric-pill metric-occupied">
-            <span className="neon-pill-dot dot-blue" />
-            <span>Đang sử dụng</span>
+          <div className="storage-metric-pill">
+            <span className="storage-pill-dot dot-occupied" aria-hidden="true" />
+            <span>In Use</span>
             <strong>{stats.inUse}</strong>
           </div>
-          <div className="neon-metric-pill metric-inspection">
-            <span className="neon-pill-dot dot-cyan" />
-            <span>Đang kiểm tra</span>
+          <div className="storage-metric-pill">
+            <span className="storage-pill-dot dot-inspection" aria-hidden="true" />
+            <span>Under Inspection</span>
             <strong>{stats.inspection}</strong>
           </div>
-          <div className="neon-metric-pill metric-maintenance">
-            <span className="neon-pill-dot dot-amber" />
-            <span>Bảo trì</span>
+          <div className="storage-metric-pill">
+            <span className="storage-pill-dot dot-maintenance" aria-hidden="true" />
+            <span>Maintenance</span>
             <strong>{stats.maintenance}</strong>
           </div>
         </div>
 
         {/* Multi-segmented Capacity Progress Bar */}
-        <div className="neon-capacity-bar" aria-hidden="true">
+        <div className="storage-capacity-bar" aria-hidden="true">
           {stats.total > 0 && (
             <>
               <div
                 className="capacity-segment seg-occupied"
                 style={{ width: `${(stats.inUse / stats.total) * 100}%` }}
-                title={`Đang sử dụng: ${stats.inUse}`}
+                title={`In Use: ${stats.inUse}`}
               />
               <div
                 className="capacity-segment seg-available"
                 style={{ width: `${(stats.available / stats.total) * 100}%` }}
-                title={`Khả dụng: ${stats.available}`}
+                title={`Available: ${stats.available}`}
               />
               <div
                 className="capacity-segment seg-inspection"
                 style={{ width: `${(stats.inspection / stats.total) * 100}%` }}
-                title={`Đang kiểm tra: ${stats.inspection}`}
+                title={`Under Inspection: ${stats.inspection}`}
               />
               <div
                 className="capacity-segment seg-maintenance"
                 style={{ width: `${(stats.maintenance / stats.total) * 100}%` }}
-                title={`Bảo trì: ${stats.maintenance}`}
+                title={`Maintenance: ${stats.maintenance}`}
               />
             </>
           )}
         </div>
       </section>
 
-      {/* Interactive Blueprint Canvas with Squares Background */}
-      <div className="neon-canvas-container">
-        <Squares
-          direction="diagonal"
-          speed={0.35}
-          squareSize={38}
-          borderColor="rgba(56, 189, 248, 0.08)"
-          hoverFillColor="rgba(56, 189, 248, 0.16)"
-        />
+      {/* Storage Units Cards Grid */}
+      <div className="storage-units-grid">
+        {visibleUnits.map((unit) => {
+          const unitType = unitTypeCache[unit.unitTypeId]
+          const target = managerStatusTarget(unit.status)
 
-        <div className="neon-lockers-grid">
-          {visibleUnits.map((unit) => {
-            const unitType = unitTypeCache[unit.unitTypeId]
-            const target = managerStatusTarget(unit.status)
-            const themeClass = getLockerThemeClass(unit.status)
+          return (
+            <article
+              key={unit.storageUnitId}
+              className="storage-unit-card"
+              onClick={() => void onOpenDetail(unit)}
+              tabIndex={0}
+              role="button"
+              aria-label={`Storage unit ${unit.unitCode}, status ${statusLabel(unit.status)}`}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  void onOpenDetail(unit)
+                }
+              }}
+            >
+              <div className="storage-card-header">
+                <div className="unit-card-code-wrap">
+                  <Warehouse size={16} className="unit-card-code-icon" aria-hidden="true" />
+                  <strong className="unit-card-code">{unit.unitCode}</strong>
+                </div>
+                <StatusBadge status={unit.status} label={statusLabel(unit.status)} />
+              </div>
 
-            return (
-              <article
-                key={unit.storageUnitId}
-                className={`neon-locker-card ${themeClass}`}
-                onClick={() => void onOpenDetail(unit)}
-                tabIndex={0}
-                role="button"
-                aria-label={`Storage unit ${unit.unitCode}, status ${statusLabel(unit.status)}`}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    void onOpenDetail(unit)
+              <div className="storage-card-body">
+                <div className="unit-card-type-name">
+                  {unitType?.name ?? 'Unit type name unavailable'}
+                </div>
+                <div className="unit-card-type-meta">
+                  {unitType
+                    ? `${unitType.mode} · ${unitType.size} · ${formatMoney(unitType.rentalPrice)}`
+                    : 'Unit type details unavailable'}
+                </div>
+                <div className="unit-card-location">
+                  <MapPin size={13} aria-hidden="true" />
+                  <span>{unit.locationInfo || 'Location not assigned'}</span>
+                </div>
+              </div>
+
+              <div className="storage-card-actions" onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className="unit-action-btn"
+                  onClick={() => void onOpenDetail(unit)}
+                  title="View unit details"
+                >
+                  <Eye size={14} aria-hidden="true" />
+                  <span>View</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="unit-action-btn"
+                  onClick={() => void onOpenEdit(unit)}
+                  title="Edit unit type or location"
+                >
+                  <Pencil size={14} aria-hidden="true" />
+                  <span>Edit</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="unit-action-btn"
+                  onClick={() => void onOpenStatus(unit)}
+                  disabled={!target}
+                  title={
+                    target
+                      ? `Change status to ${statusLabel(target)}`
+                      : 'Status is controlled by handover/return lifecycle'
                   }
-                }}
-              >
-                <div className="locker-card-header">
-                  <StorageUnitCode code={unit.unitCode} />
-                  <StatusBadge status={unit.status} label={statusLabel(unit.status)} />
-                </div>
-
-                <div className="locker-card-body">
-                  <div className="locker-type-info">
-                    <strong className="locker-type-name">
-                      {unitType?.name ?? 'Unit type name unavailable'}
-                    </strong>
-                    <span className="locker-type-mode">
-                      {unitType ? `${unitType.mode} · ${unitType.size}` : 'Type details unavailable'}
-                    </span>
-                  </div>
-
-                  <div className="locker-location-tag">
-                    <MapPin size={13} className="location-icon" aria-hidden="true" />
-                    <span>{unit.locationInfo || 'Vị trí chưa thiết lập'}</span>
-                  </div>
-                </div>
-
-                <div className="locker-card-actions" onClick={(e) => e.stopPropagation()}>
-                  <button
-                    type="button"
-                    className="locker-action-btn btn-view"
-                    onClick={() => void onOpenDetail(unit)}
-                    title="Xem chi tiết ô kho"
-                  >
-                    <Eye size={14} />
-                    <span>Xem</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="locker-action-btn btn-edit"
-                    onClick={() => void onOpenEdit(unit)}
-                    title="Chỉnh sửa ô kho"
-                  >
-                    <Pencil size={14} />
-                    <span>Sửa</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="locker-action-btn btn-status"
-                    onClick={() => void onOpenStatus(unit)}
-                    disabled={!target}
-                    title={
-                      target
-                        ? `Chuyển trạng thái sang ${statusLabel(target)}`
-                        : 'Trạng thái được điều khiển theo chu kỳ bàn giao/trả kho'
-                    }
-                  >
-                    {target === 'MAINTENANCE' ? (
-                      <Wrench size={14} />
-                    ) : target === 'AVAILABLE' ? (
-                      <ShieldCheck size={14} />
-                    ) : (
-                      <CircleOff size={14} />
-                    )}
-                    <span>
-                      {target === 'MAINTENANCE'
-                        ? 'Bảo trì'
-                        : target === 'AVAILABLE'
-                        ? 'Mở lại'
-                        : 'Khóa'}
-                    </span>
-                  </button>
-                </div>
-              </article>
-            )
-          })}
-        </div>
+                >
+                  {target === 'MAINTENANCE' ? (
+                    <Wrench size={14} aria-hidden="true" />
+                  ) : target === 'AVAILABLE' ? (
+                    <ShieldCheck size={14} aria-hidden="true" />
+                  ) : (
+                    <CircleOff size={14} aria-hidden="true" />
+                  )}
+                  <span>
+                    {target === 'MAINTENANCE'
+                      ? 'Maintain'
+                      : target === 'AVAILABLE'
+                      ? 'Restore'
+                      : 'Lifecycle'}
+                  </span>
+                </button>
+              </div>
+            </article>
+          )
+        })}
       </div>
 
-      {/* Neon Holographic Pagination Bar */}
+      {/* Enterprise Pagination Bar */}
       {filteredUnits.length > 0 && (
-        <footer className="neon-pagination-bar" aria-label="Locker grid pagination">
-          <div className="neon-pagination-info">
+        <footer className="storage-pagination-bar" aria-label="Storage unit grid pagination">
+          <div className="storage-pagination-info">
             <span>
-              Hiển thị <strong>{startIdx}</strong>–<strong>{endIdx}</strong> trong{' '}
-              <strong>{filteredUnits.length}</strong> ô kho (Trang {page}/{totalPages})
+              Showing <strong>{startIdx}</strong>–<strong>{endIdx}</strong> of{' '}
+              <strong>{filteredUnits.length}</strong> storage units (Page {page} of {totalPages})
             </span>
           </div>
 
           {totalPages > 1 && (
-            <nav className="neon-page-nav" aria-label="Điều hướng phân trang ô kho">
+            <nav className="storage-page-nav" aria-label="Storage unit pagination navigation">
               <button
                 type="button"
-                className="neon-nav-btn"
+                className="storage-nav-btn"
                 disabled={page <= 1}
                 onClick={() => onPageChange(page - 1)}
-                title="Trang trước"
+                title="Previous page"
               >
-                <ChevronLeft size={16} />
-                <span>Trước</span>
+                <ChevronLeft size={16} aria-hidden="true" />
+                <span>Previous</span>
               </button>
 
-              <div className="neon-page-numbers">
+              <div className="storage-page-numbers">
                 {getPageNumbers(page, totalPages).map((p, idx) =>
                   p === '...' ? (
-                    <span key={`dots-${idx}`} className="neon-page-dots">…</span>
+                    <span key={`dots-${idx}`} className="storage-page-dots">…</span>
                   ) : (
                     <button
                       key={`page-${p}`}
                       type="button"
-                      className={`neon-page-btn ${page === p ? 'active' : ''}`}
+                      className={`storage-page-btn ${page === p ? 'active' : ''}`}
                       onClick={() => onPageChange(Number(p))}
                     >
                       {p}
@@ -319,13 +296,13 @@ export function NeonUnitGrid({
 
               <button
                 type="button"
-                className="neon-nav-btn"
+                className="storage-nav-btn"
                 disabled={page >= totalPages}
                 onClick={() => onPageChange(page + 1)}
-                title="Trang kế tiếp"
+                title="Next page"
               >
-                <span>Sau</span>
-                <ChevronRight size={16} />
+                <span>Next</span>
+                <ChevronRight size={16} aria-hidden="true" />
               </button>
             </nav>
           )}
@@ -335,4 +312,5 @@ export function NeonUnitGrid({
   )
 }
 
-export default NeonUnitGrid
+export const NeonUnitGrid = StorageUnitGrid
+export default StorageUnitGrid
