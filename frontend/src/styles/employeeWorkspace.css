@@ -285,10 +285,41 @@
     min-height: 44px;
   }
   & td :is(.fwp-link-button, .mwp05-link-button, .awp01-link-button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--frms-space-sm);
+    box-sizing: border-box;
     min-width: 44px;
     min-height: 44px;
-    line-height: 1.4;
+    max-width: 100%;
+    padding: var(--frms-space-sm) var(--frms-space-md);
+    border: 1px solid var(--frms-primary-border);
+    border-radius: var(--frms-radius-small);
+    color: var(--frms-primary-hover);
+    background: var(--frms-surface);
+    font-weight: 600;
+    line-height: 1.5;
+    text-decoration: none;
+    white-space: normal;
+    overflow-wrap: anywhere;
     vertical-align: middle;
+    cursor: pointer;
+    transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+
+    &:hover:not(:disabled):not(.fwp-action-priority) {
+      color: var(--frms-primary-hover);
+      background: var(--frms-primary-soft);
+      border-color: var(--frms-primary);
+      box-shadow: 0 1px 3px color-mix(in srgb, var(--frms-primary) 15%, transparent);
+      text-decoration: none;
+    }
+    &:focus-visible {
+      outline: 3px solid var(--frms-primary);
+      outline-offset: 2px;
+    }
+    &:disabled { cursor: not-allowed; }
+    &:hover svg { transform: none; }
   }
   & .mwp05-icon-button { flex-basis: 44px; }
   & .employee-form-fields { min-width: 0; margin: 0; padding: 0; border: 0; display: grid; gap: 20px; }
