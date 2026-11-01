@@ -5,7 +5,8 @@ namespace Frms.Api.DTOs.Requests;
 /// <summary>Payload for creating an ACCESS visit (VIS-001).</summary>
 public sealed record CreateAccessVisitRequest
 {
-    public required DateOnly VisitDate { get; init; }
+    [Required]
+    public DateOnly? VisitDate { get; init; }
 }
 
 /// <summary>Payload for creating a RETURN visit (VIS-002).</summary>
