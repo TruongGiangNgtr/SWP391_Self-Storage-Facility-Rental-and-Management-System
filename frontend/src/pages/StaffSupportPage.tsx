@@ -224,7 +224,7 @@ export function StaffSupportPage() {
             <div className="fwp-state-card"><strong>No matching Support Tickets</strong><p>No accessible tickets in your facility match the current filters.</p></div>
           ) : (
             <div className="fwp-table-wrap">
-              <table className="fwp-table">
+              <table className="fwp-table" aria-label="Staff support tickets">
                 <thead><tr><th>Ticket</th><th>Category</th><th>Status</th><th>Assigned</th><th>Created</th><th /></tr></thead>
                 <tbody>
                   {visibleTickets.map((ticket) => (

@@ -615,7 +615,7 @@ export function DiscountManagementPage() {
         </div>
 
         <div className="facility-table-scroll">
-          <table className="facility-table discount-table">
+          <table className="facility-table discount-table" aria-label="Customer discount registry">
             <thead>
               <tr>
                 <th>Discount</th>

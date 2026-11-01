@@ -419,7 +419,7 @@ export function UnitTypePricingPage() {
         </div>
 
         <div className="facility-table-scroll">
-          <table className="facility-table">
+          <table className="facility-table" aria-label="Unit type pricing registry">
             <thead>
               <tr>
                 <th>Unit Type</th>

@@ -160,7 +160,7 @@ function ReturnConfirmationPanel() {
       ) : (
         <section className="fwp-table-card">
           <div className="fwp-table-wrap">
-            <table className="fwp-table">
+            <table className="fwp-table" aria-label="Scheduled return visits">
               <thead><tr><th>Customer</th><th>Visit</th><th>Contract</th><th>Status</th><th>Actual return date</th><th>Action</th></tr></thead>
               <tbody>
                 {visibleReturns.map((item) => (

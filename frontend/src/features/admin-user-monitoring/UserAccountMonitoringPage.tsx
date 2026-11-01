@@ -177,7 +177,7 @@ export default function UserAccountMonitoringPage() {
       {!loading && !error && accounts.length > 0 && (
         <section className="awp01-table-card">
           <div className="awp01-table-wrap" role="region" aria-label="Account results (scroll horizontally for more columns)" tabIndex={0}>
-            <table className="awp01-table">
+            <table className="awp01-table" aria-label="User account monitoring">
               <thead>
                 <tr>
                   <th>User</th>

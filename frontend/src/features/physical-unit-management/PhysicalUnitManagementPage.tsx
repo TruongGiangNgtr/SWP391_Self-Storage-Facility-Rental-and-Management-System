@@ -840,7 +840,7 @@ export function PhysicalUnitManagementPage() {
             />
           ) : (
             <div className="physical-table-wrap">
-              <table className="physical-table">
+              <table className="physical-table" aria-label="Physical storage units">
               <thead>
                 <tr>
                   <th>Unit</th>

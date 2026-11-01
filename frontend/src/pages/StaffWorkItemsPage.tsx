@@ -358,7 +358,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
             </div>
           </div>
           <div className="fwp-table-wrap">
-            <table className="fwp-table">
+            <table className="fwp-table" aria-label={copy.title}>
               <thead>
                 <tr>
                   <th>Work item</th>

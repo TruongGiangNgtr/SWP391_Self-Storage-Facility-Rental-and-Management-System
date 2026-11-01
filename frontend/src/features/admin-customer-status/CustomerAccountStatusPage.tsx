@@ -112,7 +112,7 @@ export default function CustomerAccountStatusPage() {
       {!loading && !error && accounts.length > 0 && (
         <section className="awp01-table-card">
           <div className="awp01-table-wrap" role="region" aria-label="Account results (scroll horizontally for more columns)" tabIndex={0}>
-            <table className="awp01-table awp02-table">
+            <table className="awp01-table awp02-table" aria-label="Customer account statuses">
               <thead><tr><th>Customer</th><th>Contact</th><th>Status</th><th>Action</th></tr></thead>
               <tbody>{accounts.map((account) => (
                 <tr key={account.userAccountId}>

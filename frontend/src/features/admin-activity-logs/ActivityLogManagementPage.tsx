@@ -475,7 +475,7 @@ export default function ActivityLogManagementPage() {
       {!loading && !error && items.length > 0 && (
         <section className="awp01-table-card">
           <div className="awp01-table-wrap" role="region" aria-label="Activity log results (scroll horizontally for more columns)" tabIndex={0}>
-            <table className="awp01-table awp07-table">
+            <table className="awp01-table awp07-table" aria-label="Activity log history">
               <thead>
                 <tr>
                   <th>Recorded (GMT+7)</th>

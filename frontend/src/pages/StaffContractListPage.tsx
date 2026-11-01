@@ -118,7 +118,7 @@ export function StaffContractListPage() {
           ? <EmptyState message={allContracts.length ? 'No contracts in your facility match your filters.' : 'No contracts in your facility.'} />
           : <section className="fwp-table-card" aria-label="Facility contracts">
             <div className="fwp-table-wrap">
-              <table className="fwp-table">
+              <table className="fwp-table" aria-label="Facility contracts">
                 <thead><tr><th>Storage unit</th><th>Storage type</th><th>Rental period</th><th>Status</th><th>Details</th></tr></thead>
                 <tbody>{visibleContracts.map(contract => (
                   <tr key={contract.contractId}>

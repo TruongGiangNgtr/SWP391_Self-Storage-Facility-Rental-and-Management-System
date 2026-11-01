@@ -129,7 +129,7 @@ export default function ManagerSupportTicketsPage() {
       {!loading && !error && tickets.length > 0 && (
         <section className="mwp05-table-card">
           <div className="mwp05-table-wrap">
-            <table className="mwp05-table">
+            <table className="mwp05-table" aria-label="Support ticket staff assignments">
               <thead>
                 <tr>
                   <th>Ticket</th>

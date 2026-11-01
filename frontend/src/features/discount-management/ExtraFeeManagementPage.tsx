@@ -59,7 +59,7 @@ export function ExtraFeeManagementPage() {
     {error && <button className="facility-secondary-button" onClick={() => setRevision(current => current + 1)}>Retry</button>}
     {loading && <LoadingState label="Loading extra fee configurations..." />}
     {!loading && !error && response && <div className="facility-table-card">
-      <div className="facility-table-scroll"><table className="facility-table">
+      <div className="facility-table-scroll"><table className="facility-table" aria-label="Extra fee configuration">
         <thead><tr><th>Fee type</th><th>Default amount</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>{response.data.map(fee => <tr key={fee.extraFeeTypeId}>
           <td>{fee.name.replaceAll('_', ' ')}</td>

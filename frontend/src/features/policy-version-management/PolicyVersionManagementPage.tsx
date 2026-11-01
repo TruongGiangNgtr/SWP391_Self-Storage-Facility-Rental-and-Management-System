@@ -503,7 +503,7 @@ export function PolicyVersionManagementPage() {
         </div>
 
         <div className="facility-table-scroll">
-          <table className="facility-table policy-table">
+          <table className="facility-table policy-table" aria-label="Policy version registry">
             <thead>
               <tr>
                 <th>Version</th>

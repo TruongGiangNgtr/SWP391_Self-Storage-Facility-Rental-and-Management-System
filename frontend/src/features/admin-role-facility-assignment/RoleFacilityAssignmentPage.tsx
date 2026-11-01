@@ -280,7 +280,7 @@ function EmployeeAssignmentsPanel() {
       {!loading && !error && accounts.length > 0 && (
         <section className="awp01-table-card">
           <div className="awp01-table-wrap" role="region" aria-label="Account results (scroll horizontally for more columns)" tabIndex={0}>
-            <table className="awp01-table awp03-table awp04-table">
+            <table className="awp01-table awp03-table awp04-table" aria-label="Employee role and facility assignments">
               <thead>
                 <tr>
                   <th>Employee</th>

@@ -417,7 +417,7 @@ export default function EmployeeAccountManagementPage() {
       {!loading && !error && accounts.length > 0 && (
         <section className="awp01-table-card">
           <div className="awp01-table-wrap" role="region" aria-label="Account results (scroll horizontally for more columns)" tabIndex={0}>
-            <table className="awp01-table awp03-table">
+            <table className="awp01-table awp03-table" aria-label="Employee accounts">
               <thead>
                 <tr>
                   <th>Employee</th>
