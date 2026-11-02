@@ -316,6 +316,7 @@
     min-height: 44px;
     transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
   }
+  & .sut-day { min-width: 24px; }
   & :is(.fwp-button, .awp01-button, .awp06-primary-button, .facility-create-button, .facility-action-button, .button) { border-radius: var(--frms-radius-control); }
   & :is(button, a):active:not(:disabled) { filter: brightness(.97); }
   & :is(.panel, .fwp-table-card, .awp01-table-card, .physical-panel, .mop-section, .fr-card) {

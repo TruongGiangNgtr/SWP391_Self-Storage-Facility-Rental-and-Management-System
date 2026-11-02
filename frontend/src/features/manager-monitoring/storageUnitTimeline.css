@@ -22,9 +22,10 @@
 .sut-table th:first-child { position: sticky; left: 0; z-index: 2; width: 180px; padding: 12px; background: var(--frms-surface); text-align: left; overflow-wrap: anywhere; box-shadow: 1px 0 var(--frms-border); }
 .sut-table thead th:first-child { background: var(--frms-canvas); white-space: normal; }
 .sut-table small { display: block; color: var(--frms-muted); font-size: 13px; font-weight: 400; margin-top: 4px; }
+.manager-shell .sut .sut-table tbody th small { color: #fff; }
 .sut-track { position: relative; height: 44px; overflow: hidden; }
 .sut-segment { position: absolute; top: 0; height: 100%; overflow: hidden; white-space: nowrap; }
-.sut-day { display: block; width: 100%; min-width: 44px; height: 44px; padding: 0; border: 0; border-radius: 0; cursor: pointer; }
+.sut-day { display: block; width: 100%; min-width: 24px; height: 44px; padding: 0; border: 0; border-radius: 0; cursor: pointer; }
 .sut-day .sut-segment { pointer-events: none; }
 .sut-day:hover { outline: 2px solid var(--frms-muted); outline-offset: -2px; }
 .sut-day:focus-visible, .sut-day[aria-pressed=true] { outline: 3px solid var(--frms-primary); outline-offset: -3px; }
