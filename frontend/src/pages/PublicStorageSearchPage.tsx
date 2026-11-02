@@ -1,3 +1,4 @@
+import { GuestPageHero } from '../components/GuestPageHero'
 import { useId, useMemo, useState } from 'react'
 import { ArrowUpRight, Search } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -34,13 +35,10 @@ function PublicSearchResults() {
   const inputValues = filters.startMonth || filters.endMonth ? filters : { ...filters, startMonth: initialPublicFilters().startMonth, endMonth: initialPublicFilters().endMonth }
   const url = (extra: { page?: number; sortDirection?: 'asc' | 'desc' } = {}) => `/facilities?${publicSearchQuery(filters, { pageSize: query.pageSize, page: query.page, sortDirection: query.sortDirection, ...extra })}`
   return <main className="page-container flow-page public-search-page booking-search">
-    <header className="booking-search-heading">
-      <div><nav className="flow-breadcrumb" aria-label="Breadcrumb"><Link to="/">Home</Link><span aria-hidden="true">/</span><span aria-current="page">Find Storage</span></nav><h1>Find Storage</h1><p>A little more room for what comes next. Choose your rental months, compare available spaces and review your selection.</p></div>
-      <Link className="booking-guide-link" to="/size-guide">Not sure which size? <ArrowUpRight size={16} aria-hidden="true" /></Link>
-    </header>
+    <GuestPageHero compact eyebrow="FIND YOUR NEXT SPACE" title={<>A little more room.<br /><span>A world of possibility.</span></>} description="Choose your rental months, compare available spaces and review your selection." image="/images/home/fstorent-campus-arrival-poster.png" breadcrumb={<nav className="flow-breadcrumb" aria-label="Breadcrumb"><Link to="/">Home</Link><span aria-hidden="true">/</span><span aria-current="page">Find Storage</span></nav>}><a className="button" href="#guest-storage-preferences">Find Storage<ArrowUpRight size={16} aria-hidden="true" /></a><Link className="guest-inline-link" to="/size-guide">Not sure which size?<ArrowUpRight size={16} aria-hidden="true" /></Link></GuestPageHero>
     <BookingJourney step={0} />
     <div className="booking-search-layout">
-      <aside className="booking-filter-rail" aria-label="Search preferences">
+      <aside className="booking-filter-rail" id="guest-storage-preferences" aria-label="Search preferences">
         <PublicStorageSearchForm initialValues={inputValues} embedded onDirtyChange={setDirty} onSearch={next => navigate(`/facilities?${publicSearchQuery(next)}`)} />
         <div className="booking-filter-help"><p>A space that fits starts with the right size.</p><Link className="booking-guide-link" to="/size-guide">Explore the size guide <ArrowUpRight size={14} aria-hidden="true" /></Link></div>
       </aside>

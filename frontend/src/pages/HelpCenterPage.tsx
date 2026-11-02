@@ -1,3 +1,4 @@
+import { GuestPageHero } from '../components/GuestPageHero'
 import { Link } from 'react-router-dom'
 import { ArrowRight, MessageSquare } from 'lucide-react'
 import { useAuth } from '../auth/auth.context'
@@ -12,7 +13,7 @@ export function HelpCenterPage() {
   const { user } = useAuth()
   const policies = usePublicPolicies()
   return <main className="page-container public-help-center">
-    <section className="help-hero"><div className="gwp-container"><nav className="flow-breadcrumb" aria-label="Breadcrumb"><Link to="/">Home</Link><span aria-hidden="true">/</span><span aria-current="page">Help Center</span></nav><div className="help-hero-copy"><h1>Help Center</h1><p>Four concise guides to booking, payments, rental and storage rules.</p></div></div></section>
+    <GuestPageHero eyebrow="HERE TO HELP YOU MOVE FORWARD" title={<>A little clarity.<br /><span>A lot more confidence.</span></>} description="Four concise guides to booking, payments, rental and storage rules." image="/images/guest/fstorent-help-welcome.png" breadcrumb={<nav className="flow-breadcrumb" aria-label="Breadcrumb"><Link to="/">Home</Link><span aria-hidden="true">/</span><span aria-current="page">Help Center</span></nav>}><a className="button" href="#help-policies-heading">Explore policy guides<ArrowRight size={16} aria-hidden="true" /></a><Link className="guest-inline-link" to="/facilities">Contact a facility<ArrowRight size={16} aria-hidden="true" /></Link></GuestPageHero>
     <section className="help-policies" aria-labelledby="help-policies-heading"><div className="gwp-container">
       <div className="help-section-heading"><h2 id="help-policies-heading">Storage Policies</h2><p>Find the rules you need before and during your rental.</p></div>
       <ApiErrorAlert error={policies.error} />

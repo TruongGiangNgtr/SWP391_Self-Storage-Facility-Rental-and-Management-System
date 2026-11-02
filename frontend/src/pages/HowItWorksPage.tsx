@@ -1,5 +1,5 @@
+import { GuestPageHero } from '../components/GuestPageHero'
 import { StorageReady } from '../components/StorageReady'
-import { useState } from 'react'
 import { ArrowRight, CalendarDays, Check, ClipboardList, CreditCard, FileText, Handshake, Info, MapPin, Package, RotateCcw } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/auth.context'
@@ -46,20 +46,9 @@ const DURING_RENTAL = [
 export function HowItWorksPage() {
   const { user } = useAuth()
   const customer = user?.role === 'CUSTOMER'
-  const [heroImageFailed, setHeroImageFailed] = useState(false)
 
   return <main className="page-container public-how-it-works">
-    <section className="how-hero"><div className="gwp-container">
-      <nav className="flow-breadcrumb" aria-label="Breadcrumb"><Link to="/">Home</Link><span aria-hidden="true">/</span><span aria-current="page">How It Works</span></nav>
-      <div className="how-hero-grid"><div>
-        <h1>Storage made simple.</h1>
-        <p className="how-intro">Find a space, reserve your storage type and pay the deposit. Arrange handover, pay your first month at the facility and start your contract.</p>
-        <Link className="button" to="/facilities">Find Storage<ArrowRight size={16} aria-hidden="true" /></Link>
-      </div><div className="how-hero-media">
-        {heroImageFailed ? <div role="img" aria-label="FStoRent reception illustration unavailable"><Package size={72} strokeWidth={1.25} aria-hidden="true" /></div>
-          : <img src="/images/how-it-works/fstorent-reception.webp" alt="Illustration of a FStoRent employee welcoming a customer at reception, with their belongings on a trolley and storage units visible outside." width={1672} height={941} loading="eager" fetchPriority="high" decoding="async" onError={() => setHeroImageFailed(true)} />}
-      </div></div>
-    </div></section>
+    <GuestPageHero eyebrow="A SIMPLE WAY TO MAKE ROOM" title={<>Storage made<br /><span>simple.</span></>} description="Find a space, reserve your storage type and pay the deposit. Arrange handover, pay your first month at the facility and start your contract." image="/images/guest/fstorent-service.png" breadcrumb={<nav className="flow-breadcrumb" aria-label="Breadcrumb"><Link to="/">Home</Link><span aria-hidden="true">/</span><span aria-current="page">How It Works</span></nav>}><Link className="button" to="/facilities">Find Storage<ArrowRight size={16} aria-hidden="true" /></Link><a className="guest-inline-link" href="#how-journey-heading">Explore the journey<ArrowRight size={16} aria-hidden="true" /></a></GuestPageHero>
 
     <section className="how-section how-tint" aria-labelledby="how-journey-heading"><div className="gwp-container">
       <div className="how-section-heading"><h2 id="how-journey-heading">From finding storage to moving in.</h2></div>
