@@ -21,24 +21,30 @@ public sealed class ContractAccessVisitsController(IVisitService visitService): 
         [FromBody] CreateAccessVisitRequest request,
         CancellationToken cancellationToken)
     {
-        var visit =
-            await visitService.CreateAccessAsync(
-                contractId,
-                request.VisitDate,
-                cancellationToken);
+        if (request is null || request.VisitDate is null)
+        {
+            return BadRequest(
+                new ApiErrorResponse(
+                    "VALIDATION_ERROR",
+                    "Visit date is required or invalid.",
+                    HttpContext.TraceIdentifier));
+        }
 
-        var response =
-            new VisitDetailResponse(
-                visit.VisitId,
-                visit.EntityId,
-                visit.VisitType,
-                visit.VisitDate,
-                visit.ActualReturnDate.HasValue
-                    ? DateOnly.FromDateTime(
-                        visit.ActualReturnDate.Value)
-                    : null,
-                visit.Status,
-                visit.EmployeeId);
+        var visit = await visitService.CreateAccessAsync(
+            contractId,
+            request.VisitDate.Value,
+            cancellationToken);
+
+        var response = new VisitDetailResponse(
+            visit.VisitId,
+            visit.EntityId,
+            visit.VisitType,
+            visit.VisitDate,
+            visit.ActualReturnDate.HasValue
+                ? DateOnly.FromDateTime(visit.ActualReturnDate.Value)
+                : null,
+            visit.Status,
+            visit.EmployeeId);
 
         return StatusCode(
             StatusCodes.Status201Created,
