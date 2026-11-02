@@ -10,11 +10,14 @@ interface MonthPickerProps {
   value: string
   min: string
   describedBy?: string
+  disabled?: boolean
+  invalid?: boolean
+  displayInEnglish?: boolean
   onChange(value: string): void
 }
 
 // Calendar navigation is presentation only. The caller still validates the rental range.
-export function MonthPicker({ id, label, value, min, describedBy, onChange }: MonthPickerProps) {
+export function MonthPicker({ id, label, value, min, describedBy, disabled = false, invalid = false, displayInEnglish = false, onChange }: MonthPickerProps) {
   const root = useRef<HTMLDivElement>(null)
   const trigger = useRef<HTMLButtonElement>(null)
   const previousYearButton = useRef<HTMLButtonElement>(null)
@@ -28,6 +31,8 @@ export function MonthPicker({ id, label, value, min, describedBy, onChange }: Mo
   const monthValue = (index: number) => `${String(year).padStart(4, '0')}-${String(index + 1).padStart(2, '0')}`
   const firstEnabled = MONTHS.findIndex((_, index) => monthValue(index) >= min)
   const hasSelection = selectedYear === year && value >= min
+  const displayedMonth = /^\d{4}-(0[1-9]|1[0-2])$/.test(value)
+    ? `${MONTHS[Number(value.slice(5, 7)) - 1]} ${value.slice(0, 4)}` : ''
 
   function show() {
     const bounds = root.current?.getBoundingClientRect()
@@ -65,10 +70,13 @@ export function MonthPicker({ id, label, value, min, describedBy, onChange }: Mo
   return <div className="public-month month-picker" ref={root}
     onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) close() }}
     onKeyDown={event => { if (open && event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(true) } }}>
-    <input id={id} className="month-picker-input" type="month" min={min} value={value} aria-describedby={describedBy}
-      onChange={event => onChange(event.target.value)}
+    <input id={id} className="month-picker-input" type={displayInEnglish ? 'text' : 'month'}
+      min={displayInEnglish ? undefined : min} value={displayInEnglish ? displayedMonth : value}
+      readOnly={displayInEnglish} disabled={disabled} aria-invalid={invalid || undefined} aria-describedby={describedBy}
+      onClick={displayInEnglish && !disabled ? show : undefined}
+      onChange={event => { if (!displayInEnglish) onChange(event.target.value) }}
       onKeyDown={event => { if ((event.altKey && event.key === 'ArrowDown') || event.key === 'F4') { event.preventDefault(); show() } }} />
-    <button ref={trigger} className="month-picker-trigger" type="button" aria-label={`Choose ${label.toLowerCase()}`} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? popupId : undefined}
+    <button ref={trigger} className="month-picker-trigger" type="button" disabled={disabled} aria-label={`Choose ${label.toLowerCase()}`} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? popupId : undefined}
       onClick={() => { if (open) close(); else show() }}><CalendarDays size={18} aria-hidden="true" /></button>
     {open && <div id={popupId} className={`month-picker-popup ${above ? 'month-picker-above' : ''}`} role="dialog" aria-label={`${label} picker`}>
       <div className="month-picker-year">

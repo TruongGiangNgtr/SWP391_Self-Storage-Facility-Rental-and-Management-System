@@ -9,6 +9,7 @@ import { contractTitle, contractUnit, customerLabel } from '../utils/customerPre
 import { getExtensionStartMonth, isRentalMonth, validateRenewalMonth } from '../features/renewal/renewalValidation'
 import { reservationDuration, reservationPeriod } from '../features/reservations/reservationListPresentation'
 import { CustomerFieldError } from '../components/CustomerFieldError'
+import { MonthPicker } from '../components/MonthPicker'
 import { useContractRenewal } from '../features/renewal/useContractRenewal'
 import { formatMoney, formatMonthRange } from '../utils/formatters'
 import '../styles/customer-renewal.css'
@@ -55,7 +56,7 @@ export function ContractRenewalPage() {
         {targetReached && <p className="notice">The Contract now reaches or exceeds the end month from your last attempt. That does not identify which request updated it. Review the Contract before choosing any further extension; do not repeat the same target.</p>}
         {canRenew && <form id="contract-renewal-form" className="renewal-form" aria-label="Renewal form" onSubmit={handleRenew} noValidate>
           <section className="renewal-selection" aria-label="Choose extension period">
-            <div className="form-field"><label htmlFor="newEndMonth"><CalendarDays size={17} aria-hidden="true" />Select New Check-out Month</label><input id="newEndMonth" type="month" min={extensionStartMonth!} value={newEndMonth} disabled={busy} aria-invalid={Boolean(monthError)} aria-describedby={`newEndMonth-help${monthError ? ' newEndMonth-error' : ''}`} onChange={event => { setNewEndMonth(event.target.value); setMonthError(null) }} /><CustomerFieldError id="newEndMonth-error" message={monthError} /></div>
+            <div className="form-field"><label htmlFor="newEndMonth"><CalendarDays size={17} aria-hidden="true" />Select New Check-out Month</label><MonthPicker id="newEndMonth" label="New check-out month" min={extensionStartMonth!} value={newEndMonth} disabled={busy} invalid={Boolean(monthError)} displayInEnglish describedBy={`newEndMonth-help${monthError ? ' newEndMonth-error' : ''}`} onChange={value => { setNewEndMonth(value); setMonthError(null) }} /><CustomerFieldError id="newEndMonth-error" message={monthError} /></div>
             <p id="newEndMonth-help" className="renewal-helper">Select a month after {contract.endMonth}. Your extension starts at {extensionStartMonth}.</p>
             <dl className="renewal-facts"><div><dt>Current End Month</dt><dd>{contract.endMonth}</dd></div><div><dt>New Check-out Month{validSelection && <span className="renewal-duration">+{reservationDuration(extensionStartMonth!, newEndMonth)}</span>}</dt><dd className="renewal-new-month">{validSelection ? newEndMonth : 'Choose a month'}</dd></div></dl>
           </section>

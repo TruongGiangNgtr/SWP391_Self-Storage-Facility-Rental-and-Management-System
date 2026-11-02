@@ -1,13 +1,20 @@
 import { Link, useLocation, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Building2, CalendarDays, CalendarPlus, CircleHelp, CirclePlus, FileText, Info, MapPin, ReceiptText, RefreshCw, ShieldCheck, SlidersHorizontal, Undo2, Wallet, Warehouse } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Building2, CalendarDays, CalendarPlus, CircleHelp, CirclePlus, FileText, History, Info, MapPin, ReceiptText, RefreshCw, ShieldCheck, SlidersHorizontal, Undo2, Wallet, Warehouse } from 'lucide-react'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { LoadingState } from '../components/PageStates'
 import { CustomerStatusBadge as StatusBadge } from '../components/CustomerStatusBadge'
 import { contractTitle, contractUnit, customerLabel } from '../utils/customerPresentation'
 import { useCustomerContractDetails } from '../features/contracts/useCustomerContractDetails'
 import { reservationDuration, reservationPeriod } from '../features/reservations/reservationListPresentation'
-import { formatMoney } from '../utils/formatters'
+import { formatMoney, formatUtcDateTime } from '../utils/formatters'
+import type { ContractVisit } from '../features/handover/contract.types'
 import '../styles/customer-contract-details.css'
+
+const VISIT_LABELS: Record<ContractVisit['visitType'], string> = {
+  RESERVATION: 'Handover Visit',
+  ACCESS: 'Access Visit',
+  RETURN: 'Return Visit',
+}
 
 export function CustomerContractDetailPage() {
   const location = useLocation()
@@ -41,6 +48,19 @@ export function CustomerContractDetailPage() {
               <dl className="contract-detail-facts"><div><dt>Original Monthly Rent</dt><dd className="contract-detail-rent">{reservation ? <>{formatMoney(reservation.lockedRentalPrice)}<small>/ month</small></> : unavailable}</dd></div><div><dt>Original Security Deposit</dt><dd>{reservation ? formatMoney(reservation.depositAmount) : unavailable}</dd></div><div><dt>Deposit Invoice Status</dt><dd>{reservation ? <StatusBadge status={reservation.depositInvoice.status} /> : unavailable}</dd></div><div><dt>Agreement Status</dt><dd>{customerLabel(contract.status)}</dd></div></dl>
               <div className="contract-detail-info"><Info size={17} aria-hidden="true" /><p>These prices are the original reservation snapshots. Renewal pricing may differ; use the recorded invoices for later billed amounts. The original deposit is not a current balance or a refund confirmation.</p></div>
               <Link className="contract-detail-text-link" to={`${detailsPath}/fees-return`}>View Billing &amp; Return Tracking<ArrowRight size={14} aria-hidden="true" /></Link>
+            </section>
+
+            <section className="panel contract-detail-card" aria-labelledby="extension-history-heading"><div className="contract-detail-card-heading"><History size={20} aria-hidden="true" /><h2 id="extension-history-heading">Extension History</h2></div>
+              {!Array.isArray(contract.extensions) ? <p className="muted">Extension history is unavailable. Refresh the contract to try again.</p> : contract.extensions.length === 0 ? <p className="muted">No extensions have been recorded for this contract.</p> :
+                <div className="contract-detail-history-list">{contract.extensions.map(extension => <div className="contract-detail-history-entry" key={extension.contractExtensionId}>
+                  <dl className="contract-detail-facts"><div><dt>Previous End Month</dt><dd>{extension.oldEndMonth}</dd></div><div><dt>New End Month</dt><dd>{extension.newEndMonth}</dd></div><div><dt>Applied Monthly Price</dt><dd>{formatMoney(extension.appliedMonthlyPrice)}<small>/ month</small></dd></div><div><dt>Extended On (GMT+7)</dt><dd>{formatUtcDateTime(extension.createdAt)}</dd></div></dl>
+                </div>)}</div>}
+            </section>
+            <section className="panel contract-detail-card" aria-labelledby="visit-history-heading"><div className="contract-detail-card-heading"><CalendarDays size={20} aria-hidden="true" /><h2 id="visit-history-heading">Visit History</h2></div>
+              {!Array.isArray(contract.visits) ? <p className="muted">Visit history is unavailable. Refresh the contract to try again.</p> : contract.visits.length === 0 ? <p className="muted">No visits have been recorded for this contract.</p> :
+                <div className="contract-detail-history-list">{contract.visits.map(visit => <div className="contract-detail-history-entry" key={visit.visitId}>
+                  <dl className="contract-detail-facts"><div><dt>Visit Type</dt><dd>{VISIT_LABELS[visit.visitType] ?? visit.visitType}</dd></div><div><dt>Visit Date (GMT+7)</dt><dd>{visit.visitDate}</dd></div><div><dt>Status</dt><dd><StatusBadge status={visit.status} /></dd></div><div><dt>Details</dt><dd><Link className="contract-detail-text-link" to={`/customer/visits/${encodeURIComponent(visit.visitId)}`}>View Details<ArrowRight size={14} aria-hidden="true" /></Link></dd></div></dl>
+                </div>)}</div>}
             </section>
 
           </div>
