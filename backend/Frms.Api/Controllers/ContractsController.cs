@@ -79,7 +79,27 @@ public sealed class ContractsController(
         RenewContract(
             Guid contractId,
             [FromBody] RenewContractRequest request,
-            CancellationToken cancellationToken) {
+            CancellationToken cancellationToken) 
+    {
+        if (request is null ||
+            string.IsNullOrWhiteSpace(request.NewEndMonth))
+        {
+            return BadRequest(new ApiErrorResponse(
+                "VALIDATION_ERROR",
+                "New End Month is required.",
+                HttpContext.TraceIdentifier));
+        }
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(
+            request.NewEndMonth,
+            @"^\d{4}-(0[1-9]|1[0-2])$"))
+        {
+            return BadRequest(new ApiErrorResponse(
+                "VALIDATION_ERROR",
+                "New End Month must use YYYY-MM format.",
+                HttpContext.TraceIdentifier));
+        }
+
         var result = await renewalService.RenewAsync(
             new RenewContractCommand(
                 contractId,
