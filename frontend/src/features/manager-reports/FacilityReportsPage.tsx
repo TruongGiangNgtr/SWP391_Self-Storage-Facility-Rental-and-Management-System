@@ -13,11 +13,12 @@ import { formatMoney, formatUtcDateTime, getCurrentBusinessDate } from '../../ut
 import './facilityReports.css'
 
 const statuses = [
-  { label: 'Available', status: 'AVAILABLE', key: 'availableUnits', color: '#26a879' },
+  { label: 'Available', status: 'AVAILABLE', key: 'availableUnits', color: 'var(--frms-success)' },
   { label: 'In use', status: 'IN_USE', key: 'inUseUnits', color: '#4964ee' },
-  { label: 'Under inspection', status: 'INSPECTION', key: 'inspectionUnits', color: '#e9a022' },
-  { label: 'Maintenance', status: 'MAINTENANCE', key: 'maintenanceUnits', color: '#8392aa' },
+  { label: 'Under inspection', status: 'INSPECTION', key: 'inspectionUnits', color: 'var(--frms-warning)' },
+  { label: 'Maintenance', status: 'MAINTENANCE', key: 'maintenanceUnits', color: 'var(--frms-secondary)' },
 ] as const
+const unknownColor = 'var(--frms-control-border)'
 const percent = (value: number) => `${(value * 100).toFixed(1)}%`
 const currentMonth = () => getCurrentBusinessDate().slice(0, 7)
 const validMonth = (value: string) => /^\d{4}-(0[1-9]|1[0-2])$/.test(value) && value >= '0001-01' && value <= currentMonth()
@@ -131,7 +132,7 @@ function DailyHistory({ report }: { report: FacilityUnitReport }) {
   const tickStep = Math.max(1, Math.ceil(maxUnits / 4))
   const chartMaximum = tickStep * 4
   return <section className="fr-card"><h3><BarChart3 size={18} /> Daily operational status · {monthLabel(report.month)}</h3><p>Number of units by day. Select a day for exact counts; missing history is shown as Unknown.</p>
-    <div className="fr-legend">{statuses.map(item => <span key={item.key}><i className="fr-dot" style={{ background: item.color }} />{item.label}</span>)}<span><i className="fr-dot" style={{ background: '#cbd5e1' }} />Unknown</span></div>
+    <div className="fr-legend">{statuses.map(item => <span key={item.key}><i className="fr-dot" style={{ background: item.color }} />{item.label}</span>)}<span><i className="fr-dot" style={{ background: unknownColor }} />Unknown</span></div>
     {!report.dailyTrend.length ? <EmptyState message="No daily history is available for this period." /> : <>
       <div className="fr-chart-unit" aria-hidden="true">Units</div>
       <div className="fr-chart-plot">
@@ -139,7 +140,7 @@ function DailyHistory({ report }: { report: FacilityUnitReport }) {
         <div className="fr-daily-chart" role="group" aria-label={'Daily status counts for ' + report.month}>{report.dailyTrend.map(day => {
           const description = `${day.date}: ${statuses.map(status => `${status.label}: ${day[status.key]}`).join(', ')}, Unknown: ${day.unknownUnits}, Usage: ${day.usageRate === null ? 'Unavailable' : percent(day.usageRate)}`
           return <button type="button" className="fr-daily-column" key={day.date} aria-label={description} aria-pressed={day.date === selectedDate} title={description} onClick={() => setSelectedDate(day.date)}>
-            <span className="fr-daily-stack" aria-hidden="true">{statuses.map(status => <span key={status.key} style={{ height: (day[status.key] / chartMaximum * 100) + '%', background: status.color }} />)}<span style={{ height: (day.unknownUnits / chartMaximum * 100) + '%', background: '#cbd5e1' }} /></span><span aria-hidden="true">{Number(day.date.slice(-2))}</span>
+            <span className="fr-daily-stack" aria-hidden="true">{statuses.map(status => <span key={status.key} style={{ height: (day[status.key] / chartMaximum * 100) + '%', background: status.color }} />)}<span style={{ height: (day.unknownUnits / chartMaximum * 100) + '%', background: unknownColor }} /></span><span aria-hidden="true">{Number(day.date.slice(-2))}</span>
           </button>
         })}</div>
       </div>

@@ -54,6 +54,7 @@
     line-height: 1.5;
     letter-spacing: .025em;
   }
+  & :is(.staff-portal-badge, .manager-portal-badge) { font-size: 13px; }
   & :is(.staff-header-user-text, .manager-header-user-text, .admin-header-user-text, .bo-user-text) {
     min-width: 0;
     & strong { font-size: 13px; }
@@ -180,6 +181,11 @@
     & button:hover:not(:disabled) { color: var(--employee-nav-surface); background: #dceaff; }
     & :focus-visible { outline-color: #fff; }
   }
+  & .fr-header .fr-scope-label {
+    color: var(--frms-success);
+    background: var(--frms-success-soft);
+  }
+  & .fr-page tbody th { font-size: var(--frms-font-size-body); }
   & :is(.fwp-summary, .awp01-summary, .physical-summary-grid, .mop-stats) {
     display: flex;
     flex-wrap: wrap;
