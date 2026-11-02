@@ -113,7 +113,7 @@ export const businessApi = {
 
   listAllUnitTypes(): Promise<UnitType[]> {
     return readAllPages((page) =>
-      businessApi.listUnitTypes(page, 100),
+      businessApi.listUnitTypes(page, 20),
     )
   },
 
