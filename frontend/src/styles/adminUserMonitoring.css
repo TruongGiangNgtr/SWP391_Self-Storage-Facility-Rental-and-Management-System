@@ -187,6 +187,10 @@
   text-transform: uppercase;
 }
 
+.awp01-table tbody tr {
+  background: var(--frms-surface);
+}
+
 .awp01-table tbody tr:hover {
   background: #fafcff;
 }
@@ -686,6 +690,11 @@
 
 .admin-shell .awp01-table:has(th[aria-label='Actions']) th:last-child {
   background: var(--frms-canvas);
+}
+
+/* Keep pinned actions opaque and in sync with the row's stripe/hover color. */
+.admin-shell .awp01-table:has(th[aria-label='Actions']) tbody td:last-child {
+  background: inherit;
 }
 
 .admin-shell .awp01-state-card > small {
