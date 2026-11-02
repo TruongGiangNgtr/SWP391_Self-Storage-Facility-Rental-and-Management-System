@@ -14,8 +14,6 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { presentApiError, type ApiErrorPresentation } from '../api/apiErrorPresentation'
 import { visitApi } from '../api/visitApi'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
-import { DecryptedText } from '../components/react-bits/DecryptedText'
-import { SpotlightCard } from '../components/react-bits/SpotlightCard'
 import { StatusBadge } from '../components/StatusBadge'
 import { isReservationWorkItem, type StaffWorkItem } from '../features/handover/handover.types'
 import { isAccessWorkItem } from '../features/visits/accessValidation'
@@ -191,7 +189,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
           <p>{copy.description}</p>
         </div>
         <button className="fwp-button fwp-button-secondary" type="button" disabled={loading} onClick={() => setRetry((value) => value + 1)}>
-          <RefreshCw size={16} />
+          <RefreshCw size={16} aria-hidden="true" />
           Refresh
         </button>
       </header>
@@ -210,13 +208,8 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
         <p className="fwp-toolbar-note">{PAGE_COPY[stage].description}</p>
       </>}
 
-      {/* Cyber-Command Operational Telemetry / Summary Cluster with React Bits SpotlightCard */}
       <section className="fwp-summary fwp-summary-command" aria-label="Work list summary">
-        <SpotlightCard
-          className="fwp-summary-card fwp-metric-total"
-          spotlightColor="rgba(6, 182, 212, 0.18)"
-          spotlightRadius={280}
-        >
+        <div className="fwp-summary-card fwp-metric-total">
           <div className="fwp-metric-header">
             <span className="fwp-metric-label">Total work items</span>
             <div className="fwp-metric-icon-badge fwp-badge-cyan">
@@ -227,13 +220,9 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
           <div className="fwp-metric-footer">
             <span className="fwp-metric-subtext">All operations today</span>
           </div>
-        </SpotlightCard>
+        </div>
 
-        <SpotlightCard
-          className="fwp-summary-card fwp-metric-scheduled"
-          spotlightColor="rgba(245, 158, 11, 0.18)"
-          spotlightRadius={280}
-        >
+        <div className="fwp-summary-card fwp-metric-scheduled">
           <div className="fwp-metric-header">
             <span className="fwp-metric-label">Scheduled Visits</span>
             <div className="fwp-metric-icon-badge fwp-badge-amber">
@@ -245,13 +234,9 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
             <span className="fwp-status-dot fwp-pulse-amber" aria-hidden="true" />
             <span className="fwp-metric-subtext">Awaiting arrival</span>
           </div>
-        </SpotlightCard>
+        </div>
 
-        <SpotlightCard
-          className="fwp-summary-card fwp-metric-handover"
-          spotlightColor="rgba(16, 185, 129, 0.18)"
-          spotlightRadius={280}
-        >
+        <div className="fwp-summary-card fwp-metric-handover">
           <div className="fwp-metric-header">
             <span className="fwp-metric-label">In Facility / Ready</span>
             <div className="fwp-metric-icon-badge fwp-badge-emerald">
@@ -263,13 +248,9 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
             <span className="fwp-status-dot fwp-pulse-emerald" aria-hidden="true" />
             <span className="fwp-metric-subtext">Ready for handover</span>
           </div>
-        </SpotlightCard>
+        </div>
 
-        <SpotlightCard
-          className="fwp-summary-card fwp-metric-matching"
-          spotlightColor="rgba(37, 99, 235, 0.18)"
-          spotlightRadius={280}
-        >
+        <div className="fwp-summary-card fwp-metric-matching">
           <div className="fwp-metric-header">
             <span className="fwp-metric-label">Matching items</span>
             <div className="fwp-metric-icon-badge fwp-badge-blue">
@@ -280,7 +261,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
           <div className="fwp-metric-footer">
             <span className="fwp-metric-subtext">Active filter results</span>
           </div>
-        </SpotlightCard>
+        </div>
       </section>
 
       <section className="fwp-toolbar" aria-label="Work-list filters">
@@ -330,22 +311,16 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
       )}
 
       {!loading && !error && visibleItems.length === 0 && (
-        <SpotlightCard
-          className="fwp-state-card"
-          spotlightColor="rgba(148, 163, 184, 0.15)"
-          spotlightRadius={350}
-        >
+        <div className="fwp-state-card">
           <strong>No matching work items</strong>
           <p>No work items for the selected date match your filters.</p>
-        </SpotlightCard>
+        </div>
       )}
 
       {!loading && !error && visibleItems.length > 0 && (
-        <SpotlightCard
+        <div
           className="fwp-table-card fwp-queue-container"
           aria-label={`${copy.title} table`}
-          spotlightColor="rgba(6, 182, 212, 0.08)"
-          spotlightRadius={550}
         >
           <div className="fwp-queue-header">
             <div className="fwp-queue-title">
@@ -388,14 +363,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
                           />
                           <div>
                             <strong>{readableWorkType(item.workType)}</strong>
-                            <DecryptedText
-                              text={item.referenceId}
-                              speed={25}
-                              maxIterations={6}
-                              sequential
-                              animateOn="view"
-                              parentClassName="fwp-ref-code"
-                            />
+                            <code className="fwp-ref-code">{item.referenceId}</code>
                           </div>
                         </div>
                       </td>
@@ -415,8 +383,8 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
                       </td>
                       <td>
                         <div className="fwp-status-cell">
-                          {isCheckedIn && <span className="fwp-status-dot fwp-pulse-emerald" title="Customer checked in - ready for handover" />}
-                          {isScheduled && <span className="fwp-status-dot fwp-pulse-amber" title="Visit scheduled" />}
+                          {isCheckedIn && <span className="fwp-status-dot fwp-pulse-emerald" title="Customer checked in - ready for handover" aria-hidden="true" />}
+                          {isScheduled && <span className="fwp-status-dot fwp-pulse-amber" title="Visit scheduled" aria-hidden="true" />}
                           <StatusBadge status={item.status} />
                         </div>
                       </td>
@@ -429,7 +397,11 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
                       </td>
                       <td>
                         {link ? (
-                          <Link className={`fwp-link-button ${isCheckedIn ? 'fwp-action-priority' : ''}`} to={link}>
+                          <Link
+                            className={`fwp-link-button ${isCheckedIn ? 'fwp-action-priority' : ''}`}
+                            to={link}
+                            aria-label={`${actionLabel(item)} for ${item.customer?.fullName ?? item.referenceId}`}
+                          >
                             <span>{actionLabel(item)}</span>
                             <ArrowRight size={14} aria-hidden="true" />
                           </Link>
@@ -443,7 +415,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
               </tbody>
             </table>
           </div>
-        </SpotlightCard>
+        </div>
       )}
       {!loading && !error && totalPages > 1 && (
         <footer className="fwp-pagination">
