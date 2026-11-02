@@ -1,15 +1,15 @@
 
 /* Route-only preview: Guest's editorial language applied to /customer. */
 .frms-customer.customer-shell.overview-editorial-shell {
-  --flow-text: #102f50;
-  --flow-muted: #526880;
-  --flow-brand: #245ce0;
-  --flow-border: #dce5ee;
-  --support-ink: #102f50;
-  --support-muted: #526880;
-  --support-line: #dce5ee;
-  --support-paper: #fff;
-  background: #fff;
+  --flow-text: var(--brand-ink);
+  --flow-muted: var(--brand-secondary);
+  --flow-brand: var(--brand-primary);
+  --flow-border: var(--brand-border);
+  --support-ink: var(--brand-ink);
+  --support-muted: var(--brand-secondary);
+  --support-line: var(--brand-border);
+  --support-paper: var(--brand-surface);
+  background: var(--brand-canvas);
   color: var(--flow-text);
 }
 .frms-customer.overview-editorial-shell::before,

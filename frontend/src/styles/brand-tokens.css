@@ -1,0 +1,17 @@
+/* Values from the current Customer editorial components, shared by both portals. */
+:root {
+  --brand-primary: #245ce0;
+  --brand-primary-hover: #194bc5;
+  --brand-primary-soft: #eef4fc;
+  --brand-primary-border: #d5e0eb;
+  --brand-ink: #102f50;
+  --brand-secondary: #526880;
+  --brand-muted: #62768b;
+  --brand-canvas: #fff;
+  --brand-surface: #fff;
+  --brand-surface-soft: #f6f9fc;
+  --brand-border: #dce5ee;
+  --brand-control-border: #bacbdb;
+  --brand-control-radius: 5px;
+  --brand-panel-radius: 12px;
+}
