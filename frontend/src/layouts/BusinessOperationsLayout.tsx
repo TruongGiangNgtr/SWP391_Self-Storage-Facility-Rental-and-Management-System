@@ -1,5 +1,5 @@
 import { EmployeePageTransition } from '../components/EmployeePageTransition'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import {
   AtSign,
   Building2,
@@ -10,7 +10,7 @@ import {
   Tag,
 } from 'lucide-react'
 import { useAuth } from '../auth/auth.context'
-import { BrandLogo } from '../components/BrandLogo'
+import { EmployeeHeaderBrand } from '../components/EmployeeHeaderBrand'
 import '../styles/manager.css'
 import '../styles/business-sidebar.css'
 import '../styles/employeeWorkspace.css'
@@ -32,7 +32,7 @@ export function BusinessOperationsLayout({
       <a className="portal-skip-link" href="#business-main">Skip to content</a>
     <header className="bo-header">
       <div className="bo-brand">
-        <BrandLogo size="small" />
+        <EmployeeHeaderBrand />
 
         <span className="bo-portal-badge">
           BUSINESS OPERATIONS PORTAL
@@ -157,57 +157,6 @@ export function BusinessOperationsLayout({
       </main>
     </div>
 
-    <footer className="bo-footer">
-      <div className="bo-footer__main">
-        <div className="bo-footer__brand">
-          <BrandLogo inverse />
-
-          <p>
-            Manage facilities, unit types and pricing, policies,
-            discounts, extra fees, and business reports.
-          </p>
-        </div>
-
-        <nav className="bo-footer__column" aria-label="Business operations shortcuts">
-          <strong>OPERATIONS</strong>
-          <Link to={`${basePath}/facilities`}>Facilities</Link>
-          <Link to={`${basePath}/monitoring`}>Multi-Facility Monitoring</Link>
-          <Link to={`${basePath}/reports`}>Reports</Link>
-        </nav>
-
-        <nav className="bo-footer__column" aria-label="Business configuration shortcuts">
-          <strong>CONFIGURATION</strong>
-          <Link to={`${basePath}/unit-types`}>Unit Types &amp; Pricing</Link>
-          <Link to={`${basePath}/policies`}>Policies</Link>
-          <Link to={`${basePath}/discounts`}>Discount &amp; Extra Fee</Link>
-        </nav>
-
-        <div className="bo-footer__column">
-          <strong>ACCOUNT</strong>
-
-
-          <button
-            type="button"
-            className="bo-footer__logout"
-            onClick={() => {
-              if (user) {
-                logout()
-              }
-            }}
-          >
-            Sign Out
-          </button>
-        </div>
-      </div>
-
-      <div className="bo-footer__bottom">
-        <span>
-          © 2026 FStoRent. All rights reserved.
-        </span>
-
-        <span>Business Operations Manager workspace</span>
-      </div>
-    </footer>
   </div>
 )
 }

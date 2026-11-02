@@ -1,5 +1,12 @@
 /* Employee presentation only. Loaded after the incumbent feature styles so the
    four workspaces share one rhythm without changing customer/public surfaces. */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/PlusJakartaSans.ttf') format('truetype');
+  font-weight: 200 800;
+  font-display: swap;
+}
+
 .employee-workspace.employee-workspace.employee-identity.employee-identity:is(.staff-shell, .manager-shell, .admin-shell, .bo-shell) {
   --employee-nav-surface: #102a56;
   --employee-heading-surface: #174b9b;
@@ -43,6 +50,28 @@
   }
   & :is(.staff-brand, .manager-brand, .admin-brand, .bo-brand) { min-width: 0; gap: var(--frms-space-lg); }
   & header .brand-logo--small .brand-logo__wordmark { font-size: var(--frms-font-size-title); }
+  & header .employee-header-brand {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 8px;
+    min-height: 44px;
+    color: #153a68;
+    font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -.025em;
+    white-space: nowrap;
+    & span { color: inherit; font-size: inherit; }
+    & .employee-header-brand__mark { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; }
+    & .flow-icon { display: inline-flex; width: 24px; height: 24px; }
+    & img {
+      display: block;
+      width: 24px;
+      height: 24px;
+      filter: brightness(0) saturate(100%) invert(31%) sepia(88%) saturate(2050%) hue-rotate(211deg) brightness(89%) contrast(96%);
+    }
+  }
   & :is(.staff-portal-badge, .manager-portal-badge, .admin-portal-badge, .bo-portal-badge) {
     max-width: 240px;
     padding: 5px 9px;

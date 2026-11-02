@@ -12,8 +12,7 @@ import {
   NavLink,
 } from 'react-router-dom'
 import { useAuth } from '../auth/auth.context'
-import { BrandLogo } from '../components/BrandLogo'
-import { EmployeePortalFooter } from '../components/EmployeePortalFooter'
+import { EmployeeHeaderBrand } from '../components/EmployeeHeaderBrand'
 import '../styles/manager.css'
 import '../styles/employeeIdentity.css'
 import '../styles/employeeWorkspace.css'
@@ -77,7 +76,7 @@ export function FacilityManagerLayout() {
       <a className="portal-skip-link" href="#manager-main">Skip to content</a>
       <header className="manager-header">
         <div className="manager-brand">
-          <BrandLogo size="small" />
+          <EmployeeHeaderBrand />
           <span className="manager-portal-badge">
             FACILITY MANAGER PORTAL
           </span>
@@ -154,33 +153,6 @@ export function FacilityManagerLayout() {
         </main>
       </div>
 
-      <EmployeePortalFooter
-        variant="manager"
-        portalName="Facility Manager"
-        homePath="/manager/handover-unit-selection"
-        displayName={displayName}
-        description="Facility-level storage operations, handover coordination, inspections, support assignment, and reporting for FStoRent."
-        trustMessage="Secure · Facility-scoped · Role-based access"
-        sections={[
-          {
-            title: 'OPERATIONS',
-            links: [
-              { to: '/manager/handover-unit-selection', label: 'Handover Unit Selection' },
-              { to: '/manager/physical-units', label: 'Physical Unit Management' },
-              { to: '/manager/operations', label: 'Facility Monitoring' },
-            ],
-          },
-          {
-            title: 'WORKFLOWS',
-            links: [
-              { to: '/manager/returns-inspections', label: 'Returns & Inspections' },
-              { to: '/manager/support-assignment', label: 'Support Assignment' },
-              { to: '/manager/reports', label: 'Facility Reports' },
-            ],
-          },
-        ]}
-        onSignOut={logout}
-      />
     </div>
   )
 }

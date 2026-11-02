@@ -11,8 +11,7 @@ import {
   NavLink,
 } from 'react-router-dom'
 import { useAuth } from '../auth/auth.context'
-import { BrandLogo } from '../components/BrandLogo'
-import { EmployeePortalFooter } from '../components/EmployeePortalFooter'
+import { EmployeeHeaderBrand } from '../components/EmployeeHeaderBrand'
 import '../styles/manager.css'
 import '../styles/admin.css'
 import '../styles/employeeIdentity.css'
@@ -77,7 +76,7 @@ export function SystemAdministratorLayout() {
       <a className="portal-skip-link" href="#admin-main">Skip to content</a>
       <header className="admin-header">
         <div className="admin-brand">
-          <BrandLogo size="small" />
+          <EmployeeHeaderBrand />
           <span className="admin-portal-badge">
             SYSTEM ADMINISTRATOR PORTAL
           </span>
@@ -134,25 +133,6 @@ export function SystemAdministratorLayout() {
         </main>
       </div>
 
-      <EmployeePortalFooter
-        variant="admin"
-        portalName="System Administrator"
-        homePath="/admin/users"
-        displayName={displayName}
-        description="User accounts, customer access, employee accounts, and access administration for FStoRent."
-        trustMessage="System Administrator workspace"
-        sections={[
-          {
-            title: 'ACCOUNTS',
-            links: navItems.slice(0, 3),
-          },
-          {
-            title: 'ACCESS & HISTORY',
-            links: navItems.slice(3),
-          },
-        ]}
-        onSignOut={logout}
-      />
     </div>
   )
 }

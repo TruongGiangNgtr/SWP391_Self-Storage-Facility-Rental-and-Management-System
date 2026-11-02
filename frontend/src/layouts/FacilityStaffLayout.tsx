@@ -10,8 +10,7 @@ import {
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../auth/auth.context'
-import { BrandLogo } from '../components/BrandLogo'
-import { EmployeePortalFooter } from '../components/EmployeePortalFooter'
+import { EmployeeHeaderBrand } from '../components/EmployeeHeaderBrand'
 import '../styles/staff.css'
 import '../styles/employeeIdentity.css'
 import '../styles/employeeWorkspace.css'
@@ -45,7 +44,7 @@ export function FacilityStaffLayout() {
       <a className="portal-skip-link" href="#staff-main">Skip to content</a>
       <header className="staff-header">
         <div className="staff-brand">
-          <BrandLogo size="small" />
+          <EmployeeHeaderBrand />
           <span className="staff-portal-badge">FACILITY STAFF PORTAL</span>
         </div>
 
@@ -96,33 +95,6 @@ export function FacilityStaffLayout() {
         </main>
       </div>
 
-      <EmployeePortalFooter
-        variant="staff"
-        portalName="Facility Staff"
-        homePath="/staff/work-list"
-        displayName={displayName}
-        description="Daily facility operations, customer visit handling, returns, inspections and assigned support for FStoRent."
-        trustMessage="Secure · Facility-scoped · Role-based access"
-        sections={[
-          {
-            title: 'OPERATIONS',
-            links: [
-              { to: '/staff/work-list', label: 'Daily Work List' },
-              { to: '/staff/contracts', label: 'View Contracts' },
-              { to: '/staff/handle-handover', label: 'Handle Handover' },
-            ],
-          },
-          {
-            title: 'WORKFLOWS',
-            links: [
-              { to: '/staff/access-visits', label: 'Access Visit Processing' },
-              { to: '/staff/returns', label: 'Handle Returns' },
-              { to: '/staff/support', label: 'Support Processing' },
-            ],
-          },
-        ]}
-        onSignOut={logout}
-      />
     </div>
   )
 }

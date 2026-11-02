@@ -57,6 +57,15 @@
         ],
         "createdAt": "2026-10-27T04:59:01.721Z",
         "reason": "Agent: reservation status stripe is an existing semantic cue, paired with labeled status badges; preserve its status mapping, as triaged in the critique."
+      },
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "files": [
+          "src/styles/employeeWorkspace.css"
+        ],
+        "createdAt": "2026-11-02T08:26:50.101Z",
+        "reason": "Agent: owner requested employee header logos match the existing customer header, which uses Plus Jakarta Sans."
       }
     ]
   }
