@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ArrowRight, ImageOff } from 'lucide-react'
-import { PublicStorageSearchForm } from '../components/PublicStorageSearchForm'
-import { FacilityImage } from '../components/FacilityImage'
+import { HomeFacilityMap } from '../components/HomeFacilityMap'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
 import { EmptyState, LoadingState } from '../components/PageStates'
 import { usePublicFacilities } from '../features/catalog/usePublicCatalog'
 import '../styles/home-depth.css'
+import '../styles/home-sage.css'
 
 const STEPS = [
   { title: 'Find your storage', text: 'Choose a facility, storage type, size and rental months.' },
@@ -24,10 +24,86 @@ function HomeImage({ className, src, alt, width, height, priority = false }: {
   </figure>
 }
 
+function HomeHeroBackground() {
+  const sceneRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    const scene = sceneRef.current
+    const video = videoRef.current
+    if (!scene || !video) return
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let visible = false
+    let disposed = false
+
+    function showPoster() { video!.style.opacity = '0' }
+    function playFromStart() {
+      if (disposed || !visible || motion.matches || document.hidden || video!.error) return
+      if (!video!.getAttribute('src')) {
+        video!.src = '/images/home/fstorent-campus-arrival-4s.mp4'
+        video!.load()
+        return
+      }
+      if (video!.readyState < 2) return
+      video!.currentTime = 0
+      video!.muted = true
+      void video!.play().catch(() => { if (!disposed) showPoster() })
+    }
+    function playing() {
+      if (disposed || !visible || motion.matches || document.hidden) video!.pause()
+      else video!.style.opacity = '1'
+    }
+    function motionChanged() {
+      if (motion.matches) {
+        video!.pause()
+        showPoster()
+        video!.removeAttribute('src')
+        video!.load()
+      } else playFromStart()
+    }
+    function visibilityChanged() {
+      if (document.hidden) video!.pause()
+      else if (visible && !motion.matches && !video!.ended && video!.readyState >= 2) {
+        void video!.play().catch(() => { if (!disposed) showPoster() })
+      }
+    }
+
+    video.addEventListener('loadeddata', playFromStart)
+    video.addEventListener('playing', playing)
+    video.addEventListener('error', showPoster)
+    motion.addEventListener('change', motionChanged)
+    document.addEventListener('visibilitychange', visibilityChanged)
+    const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(entries => {
+      if (disposed) return
+      const entered = entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= 0.5)
+      if (entered && !visible) { visible = true; playFromStart() }
+      else if (!entered && visible) { visible = false; video.pause() }
+    }, { threshold: [0, 0.5] })
+    if (observer) observer.observe(scene)
+    else { visible = true; playFromStart() }
+
+    return () => {
+      disposed = true
+      observer?.disconnect()
+      video.removeEventListener('loadeddata', playFromStart)
+      video.removeEventListener('playing', playing)
+      video.removeEventListener('error', showPoster)
+      motion.removeEventListener('change', motionChanged)
+      document.removeEventListener('visibilitychange', visibilityChanged)
+      video.pause()
+    }
+  }, [])
+
+  return <div className="sage-scene" ref={sceneRef} aria-hidden="true">
+    <HomeImage className="sage-scene-photo" src="/images/home/fstorent-campus-arrival-poster.png" alt="" width={1280} height={720} priority />
+    <video className="sage-scene-video" ref={videoRef} muted playsInline preload="none" poster="/images/home/fstorent-campus-arrival-poster.png" tabIndex={-1} />
+  </div>
+}
+
 export function HomePage() {
   const homeRef = useRef<HTMLElement>(null)
   const { hash } = useLocation()
-  const facilities = usePublicFacilities({ page: 1, pageSize: 3, sortBy: 'name', sortDirection: 'asc' })
+  const facilities = usePublicFacilities({ page: 1, pageSize: 100, sortBy: 'name', sortDirection: 'asc' })
 
   useEffect(() => {
     if (hash === '#public-contact') document.getElementById('public-contact')?.scrollIntoView()
@@ -51,21 +127,19 @@ export function HomePage() {
     return () => observer.disconnect()
   }, [])
 
-  return <main ref={homeRef} className="page-container public-home home-editorial">
-    <section className="home-hero" aria-labelledby="home-heading">
+  return <main ref={homeRef} className="page-container public-home home-editorial home-sage">
+    <section className="home-hero sage-hero" aria-labelledby="home-heading">
+      <HomeHeroBackground />
       <div className="home-hero-copy">
+        <div className="sage-eyebrow"><span /> A little space. A new beginning.</div>
         <h1 id="home-heading">Space for<br /><span>what matters.</span></h1>
-        <p>Find the space you need. Reserve online<br className="home-desktop-break" /> and manage your rental with FStoRent.</p>
+        <p>Room for your belongings.<br />Freedom for your next chapter. Find, reserve<br className="home-desktop-break" /> and manage your storage with FStoRent.</p>
         <div className="home-actions">
-          <a className="home-button home-button-primary" href="#home-storage-search">Find Your Storage<ArrowRight size={17} aria-hidden="true" /></a>
-          <Link className="home-button home-button-on-dark" to="/size-guide">Explore Storage Sizes</Link>
+          <Link className="home-button home-button-primary" to="/facilities">Find Your Storage<ArrowRight size={17} aria-hidden="true" /></Link>
+          <Link className="sage-text-link" to="/size-guide">Explore Storage Sizes <ArrowRight size={16} aria-hidden="true" /></Link>
         </div>
       </div>
-      <HomeImage className="home-hero-photo" src="/images/home/fstorent-facility.webp" alt="Illustration of the FStoRent reception building and storage area entrance." width={1536} height={1024} priority />
-    </section>
-
-    <section className="home-search" id="home-storage-search" aria-label="Find a storage space">
-      <div className="home-container home-search-container"><PublicStorageSearchForm embedded /></div>
+      <div className="sage-hero-bottom"><span>SELF-STORAGE, WITH ROOM FOR LIFE.</span></div>
     </section>
 
     <section className="home-storage home-container" aria-labelledby="home-storage-heading" data-home-reveal>
@@ -87,9 +161,10 @@ export function HomePage() {
     </section>
 
     <section className="home-lifestyle" aria-labelledby="home-lifestyle-heading" data-home-reveal>
-      <HomeImage className="home-lifestyle-photo" src="/images/home/fstorent-customer-assistance.webp" alt="Illustration of a FStoRent employee helping a customer with boxes at reception." width={1421} height={1107} />
+      <HomeImage className="home-lifestyle-photo" src="/images/home/fstorent-next-chapter.png" alt="Illustration of thoughtfully stored belongings inside a sunlit FStoRent storage space." width={1672} height={941} />
       <div className="home-lifestyle-copy">
-        <h2 id="home-lifestyle-heading">More room for life’s next chapter.</h2>
+        <span className="home-kicker">ROOM TO MOVE FORWARD</span>
+        <h2 id="home-lifestyle-heading">More room for<br /><span>life’s next chapter.</span></h2>
         <p>Moving, making space at home or storing business supplies? Start by comparing storage options.</p>
         <div className="home-purpose-grid">
           <div><h3>For your home</h3><p>Create space for what matters, whether you’re moving, renovating or simply need more room.</p></div>
@@ -108,15 +183,11 @@ export function HomePage() {
     </section>
 
     <section className="home-facilities home-container" id="public-contact" aria-labelledby="home-facilities-heading" data-home-reveal>
-      <h2 id="home-facilities-heading">Find FStoRent near you</h2>
+      {(facilities.loading || facilities.error || facilities.data?.data.length === 0) && <h2 id="home-facilities-heading">Explore FStoRent in Vietnam</h2>}
       <ApiErrorAlert error={facilities.error} />
       {facilities.loading ? <LoadingState label="Loading facilities…" /> : facilities.data && (facilities.data.data.length === 0
         ? <EmptyState message="No active facilities have been returned. Please check again later." />
-        : <div className="home-facility-list">{facilities.data.data.map(facility => <article className="home-facility" key={facility.facilityId}>
-          <FacilityImage facility={facility} className="home-facility-photo" />
-          <div className="home-facility-copy"><h3>{facility.name}</h3><p>{facility.address}</p></div>
-          <Link className="home-button" to={`/facilities/${encodeURIComponent(facility.facilityId)}`}>View Facility<ArrowRight size={16} aria-hidden="true" /></Link>
-        </article>)}</div>)}
+        : <HomeFacilityMap facilities={facilities.data.data} />)}
     </section>
 
     <section className="home-ready"><div className="home-container home-section-heading"><h2>Ready to find your space?</h2><Link className="home-button home-button-primary" to="/facilities">Find Storage<ArrowRight size={17} aria-hidden="true" /></Link></div></section>
