@@ -62,7 +62,8 @@
 :is(.staff-shell.staff-shell, .manager-shell.manager-shell) .button-secondary:hover:not(:disabled) { color: #173a63; background: #edf2ff; border-color: var(--frms-primary); }
 
 /* All legacy badge renderers consume the same palette and decorative icon. */
-:is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-badge, .mop-status, .physical-status, .handover-ready-badge, .handover-unit-title-row > span, .mwp05-status) {
+:is(.staff-shell.staff-shell, .manager-shell.manager-shell, .bo-shell.bo-shell .mfm-page) :is(.status-badge, .mop-status, .physical-status, .handover-ready-badge, .handover-unit-title-row > span, .mwp05-status) {
+  --employee-status-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3C/svg%3E");
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -70,15 +71,15 @@
   max-width: 100%;
   padding: var(--frms-space-xs) 9px;
   border-radius: var(--frms-radius-pill);
-  color: var(--employee-status-text, #334155);
-  background: var(--employee-status-bg, #f1f5f9);
+  color: var(--employee-status-text, var(--frms-secondary));
+  background: var(--employee-status-bg, var(--frms-canvas));
   font-size: 13px;
   font-weight: 700;
   line-height: 1.3;
   letter-spacing: 0;
   white-space: normal;
 }
-:is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-badge, .mop-status, .physical-status, .handover-ready-badge, .handover-unit-title-row > span, .mwp05-status)::before {
+:is(.staff-shell.staff-shell, .manager-shell.manager-shell, .bo-shell.bo-shell .mfm-page) :is(.status-badge, .mop-status, .physical-status, .handover-ready-badge, .handover-unit-title-row > span, .mwp05-status)::before {
   content: '';
   flex: 0 0 16px;
   width: 16px;
@@ -86,33 +87,33 @@
   background: currentColor;
   mask: var(--employee-status-icon) center / contain no-repeat;
 }
-:is(.staff-shell, .manager-shell) .status-badge .flow-icon { display: none; }
+:is(.staff-shell, .manager-shell, .bo-shell .mfm-page) .status-badge .flow-icon { display: none; }
 
-:is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-active, .mop-status-active, .physical-status-active, .mwp05-status--active, .status-available, .mop-status-available, .physical-status-available, .mwp05-status--available, .status-paid, .mop-status-paid, .physical-status-paid, .mwp05-status--paid, .status-success, .mop-status-success, .physical-status-success, .mwp05-status--success, .status-approved, .mop-status-approved, .physical-status-approved, .mwp05-status--approved, .status-completed, .mop-status-completed, .physical-status-completed, .mwp05-status--completed, .status-checked-out, .mop-status-checked-out, .physical-status-checked-out, .mwp05-status--checked-out, .status-finalized, .mop-status-finalized, .physical-status-finalized, .mwp05-status--finalized, .handover-unit-title-row > span) {
+:is(.staff-shell.staff-shell, .manager-shell.manager-shell, .bo-shell.bo-shell .mfm-page) :is(.status-active, .mop-status-active, .physical-status-active, .mwp05-status--active, .status-available, .mop-status-available, .physical-status-available, .mwp05-status--available, .status-paid, .mop-status-paid, .physical-status-paid, .mwp05-status--paid, .status-success, .mop-status-success, .physical-status-success, .mwp05-status--success, .status-approved, .mop-status-approved, .physical-status-approved, .mwp05-status--approved, .status-completed, .mop-status-completed, .physical-status-completed, .mwp05-status--completed, .status-checked-out, .mop-status-checked-out, .physical-status-checked-out, .mwp05-status--checked-out, .status-finalized, .mop-status-finalized, .physical-status-finalized, .mwp05-status--finalized, .handover-unit-title-row > span) {
   --employee-status-text: var(--frms-success);
   --employee-status-bg: var(--frms-success-soft);
   --employee-status-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%206%209%2017l-5-5%22%2F%3E%3C%2Fsvg%3E");
 }
 
-:is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-checked-in, .mop-status-checked-in, .physical-status-checked-in, .mwp05-status--checked-in, .status-confirmed, .mop-status-confirmed, .physical-status-confirmed, .mwp05-status--confirmed, .status-scheduled, .mop-status-scheduled, .physical-status-scheduled, .mwp05-status--scheduled, .status-pending, .mop-status-pending, .physical-status-pending, .mwp05-status--pending, .status-pending-deposit, .mop-status-pending-deposit, .physical-status-pending-deposit, .mwp05-status--pending-deposit, .status-inspection, .mop-status-inspection, .physical-status-inspection, .mwp05-status--inspection, .status-in-progress, .mop-status-in-progress, .physical-status-in-progress, .mwp05-status--in-progress, .status-open, .mop-status-open, .physical-status-open, .mwp05-status--open, .handover-ready-badge) {
+:is(.staff-shell.staff-shell, .manager-shell.manager-shell, .bo-shell.bo-shell .mfm-page) :is(.status-checked-in, .mop-status-checked-in, .physical-status-checked-in, .mwp05-status--checked-in, .status-confirmed, .mop-status-confirmed, .physical-status-confirmed, .mwp05-status--confirmed, .status-scheduled, .mop-status-scheduled, .physical-status-scheduled, .mwp05-status--scheduled, .status-pending, .mop-status-pending, .physical-status-pending, .mwp05-status--pending, .status-pending-deposit, .mop-status-pending-deposit, .physical-status-pending-deposit, .mwp05-status--pending-deposit, .status-inspection, .mop-status-inspection, .physical-status-inspection, .mwp05-status--inspection, .status-in-progress, .mop-status-in-progress, .physical-status-in-progress, .mwp05-status--in-progress, .status-open, .mop-status-open, .physical-status-open, .mwp05-status--open, .handover-ready-badge) {
   --employee-status-text: var(--frms-warning);
   --employee-status-bg: var(--frms-warning-soft);
   --employee-status-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%208v4l3%202M22%2012a10%2010%200%201%201-20%200%2010%2010%200%200%201%2020%200%22%2F%3E%3C%2Fsvg%3E");
 }
 
-:is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-in-use, .mop-status-in-use, .physical-status-in-use, .mwp05-status--in-use) {
+:is(.staff-shell.staff-shell, .manager-shell.manager-shell, .bo-shell.bo-shell .mfm-page) :is(.status-in-use, .mop-status-in-use, .physical-status-in-use, .mwp05-status--in-use) {
   --employee-status-text: var(--frms-primary-hover);
   --employee-status-bg: var(--frms-primary-soft);
   --employee-status-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2021V3h13v18M9%2012h1M2%2021h20%22%2F%3E%3C%2Fsvg%3E");
 }
 
-:is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-maintenance, .mop-status-maintenance, .physical-status-maintenance, .mwp05-status--maintenance, .status-inactive, .mop-status-inactive, .physical-status-inactive, .mwp05-status--inactive, .status-locked, .mop-status-locked, .physical-status-locked, .mwp05-status--locked, .status-released, .mop-status-released, .physical-status-released, .mwp05-status--released, .status-replaced, .mop-status-replaced, .physical-status-replaced, .mwp05-status--replaced, .status-consumed, .mop-status-consumed, .physical-status-consumed, .mwp05-status--consumed) {
+:is(.staff-shell.staff-shell, .manager-shell.manager-shell, .bo-shell.bo-shell .mfm-page) :is(.status-maintenance, .mop-status-maintenance, .physical-status-maintenance, .mwp05-status--maintenance, .status-inactive, .mop-status-inactive, .physical-status-inactive, .mwp05-status--inactive, .status-locked, .mop-status-locked, .physical-status-locked, .mwp05-status--locked, .status-released, .mop-status-released, .physical-status-released, .mwp05-status--released, .status-replaced, .mop-status-replaced, .physical-status-replaced, .mwp05-status--replaced, .status-consumed, .mop-status-consumed, .physical-status-consumed, .mwp05-status--consumed) {
   --employee-status-text: var(--frms-secondary);
   --employee-status-bg: var(--frms-canvas);
   --employee-status-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M5%205l14%2014M19%205%205%2019%22%2F%3E%3C%2Fsvg%3E");
 }
 
-:is(.staff-shell.staff-shell, .manager-shell.manager-shell) :is(.status-failed, .mop-status-failed, .physical-status-failed, .mwp05-status--failed, .status-overdue, .mop-status-overdue, .physical-status-overdue, .mwp05-status--overdue, .status-cancelled, .mop-status-cancelled, .physical-status-cancelled, .mwp05-status--cancelled, .status-rejected, .mop-status-rejected, .physical-status-rejected, .mwp05-status--rejected, .status-terminated, .mop-status-terminated, .physical-status-terminated, .mwp05-status--terminated, .status-unpaid, .mop-status-unpaid, .physical-status-unpaid, .mwp05-status--unpaid) {
+:is(.staff-shell.staff-shell, .manager-shell.manager-shell, .bo-shell.bo-shell .mfm-page) :is(.status-failed, .mop-status-failed, .physical-status-failed, .mwp05-status--failed, .status-overdue, .mop-status-overdue, .physical-status-overdue, .mwp05-status--overdue, .status-cancelled, .mop-status-cancelled, .physical-status-cancelled, .mwp05-status--cancelled, .status-rejected, .mop-status-rejected, .physical-status-rejected, .mwp05-status--rejected, .status-terminated, .mop-status-terminated, .physical-status-terminated, .mwp05-status--terminated, .status-unpaid, .mop-status-unpaid, .physical-status-unpaid, .mwp05-status--unpaid) {
   --employee-status-text: var(--frms-danger);
   --employee-status-bg: var(--frms-danger-soft);
   --employee-status-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%208v5m0%203h.01M12%203%202%2021h20L12%203%22%2F%3E%3C%2Fsvg%3E");

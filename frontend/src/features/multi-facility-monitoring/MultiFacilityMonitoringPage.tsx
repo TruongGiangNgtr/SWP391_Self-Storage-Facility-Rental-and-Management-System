@@ -1,4 +1,5 @@
 import { EmployeeModal } from '../../components/EmployeeModal'
+import { StatusBadge } from '../../components/StatusBadge'
 import { formatUtcDateTime } from '../../utils/formatters'
 import { employeeContractLabel, employeeMonthRange, employeeUnitLabel, fetchAllEmployeePages } from '../../utils/employeePresentation'
 import type { ReactNode } from 'react'
@@ -162,10 +163,8 @@ function activitySearchText(
 }
 
 function statusBadge(status: string | null | undefined) {
-  const safeStatus = typeof status === 'string' ? status : 'UNKNOWN'
-  return <span className={`mfm-status mfm-status--${safeStatus.toLowerCase().replaceAll('_', '-')}`}>
-    {readableStatus(safeStatus)}
-  </span>
+  const safeStatus = typeof status === 'string' && status.trim() ? status : 'UNKNOWN'
+  return <StatusBadge status={safeStatus} label={readableStatus(safeStatus)} />
 }
 
 function listRecords(tab: ActivityTab, page: number, pageSize: number): Promise<ApiCollectionResponse<ActivityRecord>> {

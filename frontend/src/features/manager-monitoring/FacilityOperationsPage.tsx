@@ -1,4 +1,5 @@
 import { EmployeeModal } from '../../components/EmployeeModal'
+import { StatusBadge } from '../../components/StatusBadge'
 import { formatUtcDateTime } from '../../utils/formatters'
 import { employeeContractLabel, employeeMonthRange, employeeUnitLabel, fetchAllEmployeePages } from '../../utils/employeePresentation'
 import { EmployeeEntityLabel, EmployeeReservationLabel, useEmployeeLabelLookup, type EmployeeLabelKind } from '../../components/EmployeeEntityLabel'
@@ -42,7 +43,10 @@ const errorText = (error: unknown) => {
   return `${e.message}${e.traceId ? ` (Trace: ${e.traceId})` : ''}`
 }
 const pageError = (error: unknown) => errorText(error)
-const status = (value: string) => <span className={`mop-status mop-status-${value.toLowerCase().replace(/_/g, '-')}`}>{value.replace(/_/g, ' ')}</span>
+const status = (value: string | null | undefined) => {
+  const safeStatus = typeof value === 'string' && value.trim() ? value : 'UNKNOWN'
+  return <StatusBadge status={safeStatus} label={safeStatus === 'TERMINATED' ? 'Closed' : safeStatus.replaceAll('_', ' ')} />
+}
 
 function itemId(tab: Tab, item: RecordItem): string {
   switch (tab) {
