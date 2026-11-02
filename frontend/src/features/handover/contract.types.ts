@@ -1,3 +1,20 @@
+export interface ContractExtension {
+  contractExtensionId: string
+  oldEndMonth: string
+  newEndMonth: string
+  appliedMonthlyPrice: number
+  createdAt: string
+}
+
+export interface ContractVisit {
+  visitId: string
+  visitType: 'RESERVATION' | 'ACCESS' | 'RETURN'
+  visitDate: string
+  actualReturnDate: string | null
+  status: 'SCHEDULED' | 'CHECKED_IN' | 'CHECKED_OUT' | 'CANCELLED'
+  employeeId: string | null
+}
+
 export interface HandoverContractDetail {
   contractId: string
   reservationId: string
@@ -23,6 +40,6 @@ export interface HandoverContractDetail {
     unitTypeMode: string
     unitTypeSize: string
   }
-  // Flow 2 does not consume ContractExtension fields; their schema is not invented here.
-  extensions: unknown[]
+  extensions: ContractExtension[]
+  visits: ContractVisit[]
 }

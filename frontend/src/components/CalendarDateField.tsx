@@ -8,6 +8,8 @@ interface CalendarDateFieldProps {
   label: string
   value: string
   initialMonth?: string
+  min?: string
+  max?: string
   showCalendar?: boolean
   disabled?: boolean
   error?: string | null
@@ -20,7 +22,7 @@ function moveMonth(month: string, step: number): string {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`
 }
 
-export function CalendarDateField({ id, label, value, initialMonth, showCalendar = true, disabled = false, error, onChange }: CalendarDateFieldProps) {
+export function CalendarDateField({ id, label, value, initialMonth, min, max, showCalendar = true, disabled = false, error, onChange }: CalendarDateFieldProps) {
   const [month, setMonth] = useState(() => value.slice(0, 7) || initialMonth || getCurrentBusinessMonth())
   const [year, monthNumber] = month.split('-').map(Number)
   const offset = (new Date(Date.UTC(year, monthNumber - 1, 1)).getUTCDay() + 6) % 7
@@ -37,6 +39,8 @@ export function CalendarDateField({ id, label, value, initialMonth, showCalendar
           id={id}
           type="date"
           value={value}
+          min={min}
+          max={max}
           disabled={disabled}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : undefined}
@@ -57,7 +61,7 @@ export function CalendarDateField({ id, label, value, initialMonth, showCalendar
         {Array.from({ length: offset }, (_, index) => <span key={`blank-${index}`} />)}
         {Array.from({ length: days }, (_, index) => {
           const date = `${month}-${String(index + 1).padStart(2, '0')}`
-          return <button key={date} type="button" disabled={disabled} aria-label={`Select ${date}`} aria-pressed={value === date} onClick={() => onChange(date)}>{index + 1}</button>
+          return <button key={date} type="button" disabled={disabled || Boolean(min && date < min) || Boolean(max && date > max)} aria-label={`Select ${date}`} aria-pressed={value === date} onClick={() => onChange(date)}>{index + 1}</button>
         })}
       </div>
       <p className="calendar-selected">Selected Date: <strong>{value || 'Not Selected'}</strong></p></>}

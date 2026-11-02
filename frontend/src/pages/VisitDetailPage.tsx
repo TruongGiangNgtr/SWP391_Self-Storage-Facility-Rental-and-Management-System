@@ -13,6 +13,7 @@ import { CalendarDateField } from '../components/CalendarDateField'
 import { CustomerFieldError } from '../components/CustomerFieldError'
 import type { VisitDetail } from '../features/visits/visit.types'
 import { VisitJourney } from '../components/AccessVisitJourney'
+import { getCurrentBusinessDate } from '../utils/formatters'
 import '../styles/customer-visit-details.css'
 
 const VISIT_NAMES: Record<VisitDetail['visitType'], string> = {
@@ -83,6 +84,10 @@ export function VisitDetailPage() {
     if (loading || actionBusy.current || visit?.status !== 'SCHEDULED') return
     if (!newVisitDate) {
       setFieldErrors({ date: 'Please select a new visit date.' })
+      return
+    }
+    if (newVisitDate < getCurrentBusinessDate()) {
+      setFieldErrors({ date: 'Choose today or a future date (GMT+7).' })
       return
     }
 
@@ -175,7 +180,7 @@ export function VisitDetailPage() {
 
           {visit.status === 'SCHEDULED' && mode === 'reschedule' && (
             <FlowDialog className="visit-reschedule-dialog visits-editorial-dialog" title="Reschedule Visit" subtitle="Choose a new date for this visit." category="" busy={working} trapFocus onClose={() => setMode(null)}><ApiErrorAlert error={error} /><form className="form-grid" onSubmit={handleReschedule}>
-              <CalendarDateField id="newVisitDate" label="New Visit Date" value={newVisitDate} disabled={loading || working} error={fieldErrors.date} onChange={value => { setNewVisitDate(value); setFieldErrors({}) }} />
+              <CalendarDateField id="newVisitDate" label="New Visit Date" value={newVisitDate} min={getCurrentBusinessDate()} disabled={loading || working} error={fieldErrors.date} onChange={value => { setNewVisitDate(value); setFieldErrors({}) }} />
               <p className="visit-detail-edit-hint"><Info size={16} aria-hidden="true" />The new date must follow the policy for this visit.</p>
               <div className="action-row">
                 <button className="button button-secondary" disabled={working} onClick={() => setMode(null)} type="button">

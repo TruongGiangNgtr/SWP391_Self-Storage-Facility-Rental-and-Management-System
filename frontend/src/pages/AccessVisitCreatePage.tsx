@@ -13,7 +13,7 @@ import { contractTitle, contractUnit } from '../utils/customerPresentation'
 import { isUuid } from '../features/handover/handoverValidation'
 import { isCalendarDate } from '../features/visits/accessValidation'
 import { useAccessContract } from '../features/visits/useAccessContract'
-import { formatMonthRange } from '../utils/formatters'
+import { formatMonthRange, getCurrentBusinessDate } from '../utils/formatters'
 import '../styles/guest-customer-remaining.css'
 
 export function AccessVisitCreatePage() {
@@ -26,6 +26,10 @@ export function AccessVisitCreatePage() {
   const submitBusy = useRef(false)
   const active = useRef(false)
   const navigate = useNavigate()
+  const today = getCurrentBusinessDate()
+  const contractStartDate = contract ? `${contract.startMonth}-01` : ''
+  const earliestVisitDate = contractStartDate > today ? contractStartDate : today
+  const contractEndDate = contract ? `${contract.endMonth}-${String(new Date(Date.UTC(Number(contract.endMonth.slice(0, 4)), Number(contract.endMonth.slice(5, 7)), 0)).getUTCDate()).padStart(2, '0')}` : ''
   useEffect(() => {
     active.current = true
     return () => { active.current = false }
@@ -36,6 +40,14 @@ export function AccessVisitCreatePage() {
     if (submitBusy.current || loading || !contract || contract.status !== 'ACTIVE') return
     if (!isCalendarDate(visitDate)) {
       setDateError('Please select a valid visit date.')
+      return
+    }
+    if (visitDate < earliestVisitDate) {
+      setDateError(visitDate < contractStartDate ? 'Choose a date within your contract period.' : 'Choose today or a future date (GMT+7).')
+      return
+    }
+    if (visitDate > contractEndDate) {
+      setDateError('Choose a date within your contract period.')
       return
     }
     submitBusy.current = true
@@ -86,7 +98,7 @@ export function AccessVisitCreatePage() {
         {contract.status === 'ACTIVE' ? <section className="panel stack access-schedule" aria-label="Schedule access visit">
           <div className="remaining-card-heading"><span className="remaining-icon"><CalendarDays size={22} aria-hidden="true" /></span><h2>Visit Date</h2></div>
           <form className="access-visit-form" onSubmit={handleCreate}>
-            <CalendarDateField id="accessVisitDate" label="Access Visit Date (GMT+7)" value={visitDate} disabled={working} error={dateError} onChange={value => { setVisitDate(value); setDateError(null) }} />
+            <CalendarDateField id="accessVisitDate" label="Access Visit Date (GMT+7)" value={visitDate} initialMonth={earliestVisitDate.slice(0, 7)} min={earliestVisitDate} max={contractEndDate} disabled={working} error={dateError} onChange={value => { setVisitDate(value); setDateError(null) }} />
             <div className="remaining-info"><Info size={18} aria-hidden="true" /><p>You cannot schedule a new access visit while a return visit is pending. Your eligibility is checked when you submit.</p></div>
             <p className="remaining-helper">Choose a date to visit your rented unit. This does not create a new reservation or change your rental period.</p>
             <div className="remaining-actions"><Link className="button button-secondary" to="/customer/visits">My Visits</Link><button className="button" type="submit" disabled={working}><CalendarDays size={16} aria-hidden="true" />{working ? 'Scheduling...' : 'Confirm Access Visit'}</button></div>
