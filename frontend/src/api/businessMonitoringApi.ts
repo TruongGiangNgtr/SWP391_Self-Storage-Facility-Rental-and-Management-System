@@ -28,7 +28,7 @@ export const businessMonitoringApi = {
   overview(): Promise<ApiResponse<BusinessOverview>> {
     return httpClient.get('/reports/business/overview')
   },
-  contracts(page = 1, pageSize = 20): Promise<ApiCollectionResponse<BusinessContractSummary>> {
+  contracts(page = 1, pageSize = 10): Promise<ApiCollectionResponse<BusinessContractSummary>> {
     return httpClient.get(`/contracts?page=${page}&pageSize=${pageSize}`)
   },
 }

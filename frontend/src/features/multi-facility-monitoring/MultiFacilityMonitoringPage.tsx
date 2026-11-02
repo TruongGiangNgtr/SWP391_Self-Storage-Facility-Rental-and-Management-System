@@ -32,6 +32,7 @@ type DetailRecord = ReservationDetail | HandoverContractDetail | VisitDetail | I
 interface DetailState { tab: ActivityTab; record: DetailRecord }
 
 const PAGE_SIZE = 20
+const FACILITY_PAGE_SIZE = 20
 const tabs = [
   { id: 'reservations', label: 'Reservations', icon: CalendarDays },
   { id: 'contracts', label: 'Contracts', icon: FileText },
@@ -241,6 +242,7 @@ export function MultiFacilityMonitoringPage() {
   const [facilityId, setFacilityId] = useState('')
   const [facilitySearch, setFacilitySearch] = useState('')
   const [facilityStatus, setFacilityStatus] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL')
+  const [facilityPage, setFacilityPage] = useState(1)
   const [tab, setTab] = useState<ActivityTab>('reservations')
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
@@ -311,6 +313,12 @@ export function MultiFacilityMonitoringPage() {
     (facilityStatus === 'ALL' || item.status === facilityStatus) &&
     `${item.name} ${item.address} ${item.contactInfo ?? ''}`.toLowerCase().includes(facilitySearch.trim().toLowerCase()),
   ), [facilities, facilityStatus, facilitySearch])
+  const facilityTotalPages = Math.max(1, Math.ceil(filteredFacilities.length / FACILITY_PAGE_SIZE))
+  const currentFacilityPage = Math.min(facilityPage, facilityTotalPages)
+  const visibleFacilities = useMemo(
+    () => filteredFacilities.slice((currentFacilityPage - 1) * FACILITY_PAGE_SIZE, currentFacilityPage * FACILITY_PAGE_SIZE),
+    [filteredFacilities, currentFacilityPage],
+  )
   const currentFacility = facilities.find(item => item.facilityId === facilityId)
   const matchingRows = useMemo(() => {
     const needle = search.trim().toLowerCase()
@@ -339,7 +347,7 @@ export function MultiFacilityMonitoringPage() {
     setSearch(''); closeDetail()
     setDetailError('')
   }
-  const refresh = () => { closeDetail(); setRevision(value => value + 1) }
+  const refresh = () => { closeDetail(); setFacilityPage(1); setRevision(value => value + 1) }
   const openRecord = async (item: ActivityRecord, currentTab: ActivityTab = tab) => {
     const requestId = ++detailRequest.current
     setDetailTarget({ tab: currentTab, item })
@@ -406,9 +414,9 @@ export function MultiFacilityMonitoringPage() {
         </div>
         <div className="mfm-toolbar">
           <label className="mfm-search"><Search size={16}/><input type="search" value={facilitySearch}
-            onChange={event => setFacilitySearch(event.target.value)} placeholder="Search Facility name, address or contact" aria-label="Search facilities" /></label>
+            onChange={event => { setFacilitySearch(event.target.value); setFacilityPage(1) }} placeholder="Search Facility name, address or contact" aria-label="Search facilities" /></label>
           <label className="mfm-select-label">Status
-            <select value={facilityStatus} onChange={event => setFacilityStatus(event.target.value as 'ALL' | 'ACTIVE' | 'INACTIVE')}>
+            <select value={facilityStatus} onChange={event => { setFacilityStatus(event.target.value as 'ALL' | 'ACTIVE' | 'INACTIVE'); setFacilityPage(1) }}>
               <option value="ALL">All statuses</option><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option>
             </select>
           </label>
@@ -416,7 +424,7 @@ export function MultiFacilityMonitoringPage() {
         </div>
         {filteredFacilities.length === 0 ? <div className="mfm-message">No Facilities match the selected filters.</div> :
           <div className="mfm-facility-table" aria-label="Facility list">
-            {filteredFacilities.map(facility => <button key={facility.facilityId} type="button"
+            {visibleFacilities.map(facility => <button key={facility.facilityId} type="button"
               className={`mfm-facility-row ${facilityId === facility.facilityId ? 'mfm-facility-row--selected' : ''}`}
               aria-pressed={facilityId === facility.facilityId} onClick={() => chooseFacility(facility.facilityId)}>
               <span className="mfm-facility-icon"><Building2 size={17} /></span>
@@ -426,6 +434,11 @@ export function MultiFacilityMonitoringPage() {
               <span className="mfm-facility-action">{facilityId === facility.facilityId ? 'Selected' : 'Monitor'} <ArrowRight size={15} /></span>
             </button>)}
           </div>}
+        {!facilityLoading && !facilityError && facilityTotalPages > 1 && <div className="mfm-pagination" aria-label="Facility pagination">
+          <span>Page {currentFacilityPage} of {facilityTotalPages}</span>
+          <button type="button" className="mfm-button mfm-button--secondary" disabled={currentFacilityPage <= 1} onClick={() => setFacilityPage(prev => Math.max(1, prev - 1))}>Previous</button>
+          <button type="button" className="mfm-button mfm-button--secondary" disabled={currentFacilityPage >= facilityTotalPages} onClick={() => setFacilityPage(prev => prev + 1)}>Next</button>
+        </div>}
       </>}
     </section>
 
