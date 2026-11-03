@@ -64,7 +64,7 @@ public sealed class ReservationCancellationTests
     }
 
     [TestCase("PAID", true)]
-    [TestCase("UNPAID", false)]
+    [TestCase("CANCELLED", false)]
     public async Task API_RES005_001_ReturnsCanonicalAuthoritativeDetailWithoutRepricing(string depositStatus, bool hasVisit)
     {
         repository.Detail = Detail(depositStatus, hasVisit);

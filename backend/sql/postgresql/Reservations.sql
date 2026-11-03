@@ -71,6 +71,12 @@ BEGIN
  IF EXISTS(SELECT 1 FROM public."Contract" c WHERE c."ReservationId"=p_reservation_id) THEN RAISE EXCEPTION USING ERRCODE='P1204',MESSAGE='RESERVATION_INVALID_STATUS'; END IF;
  UPDATE public."Visit" AS target SET "Status"='CANCELLED' WHERE target."EntityId"=p_reservation_id AND target."VisitType"='RESERVATION' AND target."Status"='SCHEDULED';
  UPDATE public."Reservation" AS target SET "Status"='CANCELLED' WHERE target."ReservationId"=p_reservation_id AND target."Status" IN ('PENDING_DEPOSIT','CONFIRMED');
+ -- Close only an unpaid DEPOSIT Invoice in the SAME transaction as cancellation.
+ -- PAID/previously CANCELLED invoices and their financial snapshots remain untouched.
+ -- Concurrent payOS result application serializes on the Invoice row lock.
+ UPDATE public."Invoice" AS target SET "Status"='CANCELLED'
+ WHERE target."EntityId"=p_reservation_id AND target."InvoiceType"='DEPOSIT'
+   AND target."Status"='UNPAID';
 END $frms$;
 
 CREATE OR REPLACE FUNCTION public."usp_CheckInVisit"(p_visit_id uuid,p_employee_id uuid,p_now_utc timestamptz DEFAULT NULL)
