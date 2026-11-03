@@ -1,0 +1,30 @@
+# Never send local credentials or machine state to Docker build context.
+**/.env
+**/.env.*
+**/secrets.json
+**/appsettings.Local.json
+**/appsettings.*.local.json
+**/appsettings.*.Local.json
+
+# Local IDE/build output.
+**/bin/
+**/obj/
+**/.vs/
+**/.idea/
+**/.vscode/
+**/TestResults/
+**/coverage/
+**/*.user
+**/*.suo
+**/*.bat
+
+# Not needed by the API runtime/build.
+tests/
+sql/
+scripts/
+config/
+.git/
+.gitignore
+compose.postgresql.yml
+README.md
+
