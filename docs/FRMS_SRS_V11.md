@@ -1,6 +1,6 @@
 # FRMS — Software Requirements Specification (SRS)
 
-> **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](FRMS_InApp_Notifications_Review.md). OD-06 proposes in-app notifications independent of SMTP/SENT/SentAt. No FE/BE/DB/SQL/configuration or test-code edits are authorized before documentation and routing/contracts are approved. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
+> **2026-11-03 source evidence (not owner approval):** The 2026-10-29 [OD-06 review](FRMS_InApp_Notifications_Review.md) remains a historical approval record; since then `main` contains `Pg018_InAppNotifications`, `NotificationLog.IsInApp` and SMTP-independent Customer notification reads. Pg017 also implements the OD-09/10 CCCD guard, and Pg019 changes `usp_CancelReservation` to cancel eligible UNPAID Deposit Invoices. Document/approval/test/deployment gates remain open; this observation does not make V11 FINAL or approve unratified business changes.
 
 **Project:** Self-Storage Facility Rental and Management System (FRMS)
 **Document:** Software Requirements Specification + Architecture + Testing Baseline (API contracts maintained separately)
@@ -307,7 +307,7 @@ The **initial V11 reconciliation package** was SRS + API + Data Dictionary docum
 
 ### OD-06 — Customer in-app notifications — replacement REVIEW DRAFT
 
-**Review record:** REV-2026-10-29-INAPP-NOTIFICATIONS, documentation only. The owner narrowed this task to Notifications; authentication/account onboarding and OD-07 Transaction History are unchanged. The old approved revision REV-2026-10-22-CUSTOMER-NOTIFICATIONS-READ described SENT-only email history; source still implements it. The replacement below needs approval before any code or DB change.
+**Review record (historical):** REV-2026-10-29-INAPP-NOTIFICATIONS originally proposed changing SENT-only email history into in-app notices. Current `main` now implements an `IsInApp`-scoped read and Pg018 routing; unlike this earlier review text, source no longer requires SENT/SentAt for in-app visibility. This is an implementation observation, **not proof of owner approval, migration deployment or acceptance tests**. Authentication/account onboarding and OD-07 Transaction History remain outside this change.
 
 - `BR-NOT-APP-01`: an eligible business event and its Customer notice commit/rollback together. After commit the notice is readable independently of SMTP/email delivery state. No-op/failed/rolled-back operations produce no successful-event notification; a GET/Refresh never creates one.
 - `BR-NOT-APP-02`: retain IMPL-CUSACT-01 GET /api/v1/customers/me/notifications for ACTIVE CUSTOMER, own UserAccount only, with scope before count/page. Pagination 1/20, max 100; order createdAt DESC, notificationId DESC. Overview reads the first three from the same API. Proposed DTO: notificationId, notificationType, content, createdAt; sentAt is no longer required for display or eligibility.
@@ -384,6 +384,7 @@ The four topics, in display order, are `reservation-cancellation` (Reservation &
 The Facility Rules item catalogue still has `DRAFT_REQUIRES_LEGAL_AND_BUSINESS_APPROVAL` status and no effective date. The owner's approval of this four-topic structure and local review copy does not mark that source APPROVED or certify production publication. Team review of public copy and applicable GWP-04 acceptance tests remain separate. Article version wording must distinguish the current persisted Policy parameters from the independently edited explanatory copy; configurable numerical thresholds may not be invented or hard-coded into article text.
 
 ## 0.1 Authority Order
+> **Current-main reconciliation register — 2026-11-03 (informational; not a new owner decision).** The code repository contains Pg017 (OD-09/10 CCCD requirement and validation), Pg018 (OD-06 in-app notification provenance, `IsInApp` and worker routing) and Pg019 (RES-005 cancels an `UNPAID` Deposit Invoice atomically with eligible Reservation cancellation). Earlier "implementation pending", "SENT-only current code", and "no code changes" labels in this V11 review document are historical evidence, not current-source statements. Runtime database migration status, generated OpenAPI, security/API/E2E test passes and business approval for any newly observed semantics **remain unverified**. See the dated documentation drift audit before treating any implementation as release accepted.
 
 For implementation, review, testing, and conflict resolution:
 

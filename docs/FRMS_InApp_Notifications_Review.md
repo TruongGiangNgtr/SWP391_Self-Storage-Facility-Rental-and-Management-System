@@ -1,4 +1,5 @@
 # Đề nghị duyệt: Notifications trong ứng dụng độc lập với email
+> **Hậu kiểm source 03/11/2026:** Đây là hồ sơ đề nghị duyệt ngày 29/10, được giữ để truy vết quyết định. `main` hiện đã có Pg018, `IsInApp`, API Notifications 4 field và lọc email worker. Các câu "source chưa đổi"/"chưa tạo migration" bên dưới phản ánh thời điểm soạn bản đề nghị, **không còn là hiện trạng code**. Không suy ra đã duyệt quyết định NOT-D01/02, đã deploy migration hoặc test PASS.
 
 **Mã thay đổi:** REV-2026-10-29-INAPP-NOTIFICATIONS
 **Ngày:** 2026-10-29

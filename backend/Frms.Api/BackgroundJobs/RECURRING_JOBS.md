@@ -1,4 +1,5 @@
 # FRMS Release 1 recurring jobs (V11)
+> **Source evidence update 2026-11-03:** Pg018 (`InAppNotifications.sql`) now excludes `IsInApp` notices and legacy allowlisted business-alert rows from retry-email selection. The 2026-10-29 review warning below is historical; the deployed migration, actual sender configuration and runtime verification remain unverified. No worker activation is asserted by this documentation note.
 
 > **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](../../../docs/FRMS_InApp_Notifications_Review.md). The old notification email job is not an in-app visibility prerequisite. Pending OD-06 requires routing/legacy handling so the worker does not send in-app-only events; no job schedule/flag or other business job changes in this task. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
 

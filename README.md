@@ -6,7 +6,7 @@ Repository gồm frontend React, backend ASP.NET Core, database PostgreSQL và c
 
 ## Tài liệu và trạng thái hiện tại
 
-> **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](docs/FRMS_InApp_Notifications_Review.md). The pending OD-06 proposal separates in-app notices from email delivery. See the review record for scope and approval gates; source is unchanged. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
+> **Source reconciliation 2026-11-03 (code observation, not approval):** [The 2026-10-29 Notifications review](docs/FRMS_InApp_Notifications_Review.md) is historical. Current `main` includes `Pg018_InAppNotifications`, `NotificationLog.IsInApp`, a four-field Customer notification response and an SMTP-independent GET. Final owner approval, deployed migration state, security and runtime tests are not certified. Account onboarding and other email workflows remain separate.
 
 - [AGENTS.md](AGENTS.md): quy tắc làm việc và giới hạn thay đổi repository.
 - [SRS V11](docs/FRMS_SRS_V11.md): luồng nghiệp vụ, quy tắc, quyết định của chủ dự án và các điều kiện nghiệm thu.

@@ -1,6 +1,6 @@
 # FRMS — Data Dictionary & PostgreSQL Persistence Specification (V11 REVIEW CANDIDATE)
 
-> **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](FRMS_InApp_Notifications_Review.md). Only the in-app Notifications read/event-routing target is changing. Existing delivery columns/routines are baseline evidence; table reuse, provenance and legacy visibility require approval. No DDL/migration is changed. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
+> **2026-11-03 source evidence (not schema-deployment certification):** The 2026-10-29 [review](FRMS_InApp_Notifications_Review.md) predates Pg018, which adds `NotificationLog.IsInApp boolean NOT NULL DEFAULT false`, a constrained in-app allowlist/index and email-worker exclusion. Pg017 adds the CCCD reservation guard and Pg019 updates cancellation of UNPAID Deposit Invoices. These migrations exist in source; applied DB state and approval/test gates remain unverified.
 
 **Project:** Self-Storage Facility Rental and Management System (FRMS)  
 **Document:** Entity Dictionary, Lifecycle, PostgreSQL Physical Schema, Stored Routines, Constraints, Audit, Migration and DB Tests  
@@ -575,7 +575,7 @@ Append-only.
 
 ### 4.27 `NotificationLog`
 
-**Current physical purpose:** outbound email queue/history. **Pending OD-06 target:** eligible persisted in-app notices are readable independently of email delivery; reuse/routing/old-row eligibility require NOT-D01/02 approval. No fields, constraints or statuses are changed by this document.
+**Source-observed physical purpose (Pg018, not deployment verified):** the existing `NotificationLog` retains legacy email history and now stores in-app-only business notices distinguished by `IsInApp`. Eligible in-app records are readable after transaction commit independently of SMTP/SENT/SentAt. Existing historical rows default to `IsInApp=false`; no blanket migration/backfill of legacy delivery evidence is inferred. Final approval and runtime DB parity remain separate.
 
 | Attribute | PostgreSQL type | Null | Key / Constraint | Description |
 |---|---|---:|---|---|
@@ -585,9 +585,10 @@ Append-only.
 | `Content` | varchar(1000) | No |  | Notification content. |
 | `Status` | varchar(50) | No | CHECK | `PENDING`, `SENT`. |
 | `SentAt` | timestamptz(3) | Yes |  | Set only when successfully sent. |
+| `IsInApp` | boolean | No | `DEFAULT false`; Pg018 `CK_NotificationLog_InApp` and filtered `IX_NotificationLog_InApp` | Source-observed in-app provenance. True only for approved business event types, `Status=PENDING`, `SentAt IS NULL`; does not indicate email delivery or unread state. |
 | `CreatedAt` | timestamptz(3) | No |  | Creation time. |
 
-Legacy email failure remains PENDING for retry; that state does not delay eligible in-app visibility in the proposed OD-06 replacement. Preserve existing SENT/SentAt evidence and never fabricate it. Exclude in-app-only events from email worker selection, without changing other account-email workflows. Do not publish arbitrary PENDING/internal data.
+Legacy email failure remains PENDING for retry; Pg018 in-app visibility does not depend on delivery state. `usp_RetryPendingNotification` and `usp_MarkNotificationSent` in the Pg018 source exclude `IsInApp` and legacy business-alert types from outbound SMTP processing, preserving SENT/SentAt evidence. Reading Notifications must never publish arbitrary PENDING/internal data. Runtime DB deployment and privacy/worker integration tests are pending.
 
 ---
 
@@ -722,7 +723,7 @@ Physical backend: PostgreSQL with quoted `public."usp_*"` routines (functions/pr
 |---|---|---|---|---:|
 | `usp_CreateReservation` | Validate authenticated Customer saved valid 12-digit CCCD (OD-09/10), active Facility, month range, capacity; snapshot price, Deposit and active Policy; create Reservation + Deposit Invoice. | Customer, Facility, UnitType, Reservation, Policy, Invoice | Missing CCCD: reject without Reservation/hold/Invoice; existing DepositTimeoutHours still defines deadline. | Yes |
 | `usp_ConfirmReservation` | Validate Deposit Invoice/Payment paid; validate chosen handover date; create RESERVATION Visit; set Reservation CONFIRMED. | Reservation, Invoice, Payment, Visit, Policy | `ReservationVisitStartDay`, `ReservationVisitEndDay`. | Yes |
-| `usp_CancelReservation` | Validate cancellation eligibility; cancel Reservation and SCHEDULED reservation Visit; release hold. | Reservation, Visit | Uses captured Reservation Policy if cancellation rules become configurable. | Yes |
+| `usp_CancelReservation` | Validate cancellation eligibility; cancel Reservation and SCHEDULED reservation Visit; release hold. **Pg019 source also cancels matching DEPOSIT Invoice only when UNPAID in the same transaction**. | Reservation, Visit, Invoice | Preserve PAID/CANCELLED financial evidence; migration deployment and payOS concurrency tests pending. | Yes |
 | `usp_CheckInVisit` | Validate Visit SCHEDULED, Staff role/facility and date; set actual actor and CHECKED_IN. | Visit, Employee, Facility | No hard-coded business dates. | Yes |
 | `usp_CancelVisit` | Permit only SCHEDULED -> CANCELLED and enforce type-specific restrictions. | Visit |  | Yes |
 | `usp_CompleteHandover` | Require checked-in Visit and Manager active matching Unit assignment; Staff confirms offline full first-month receipt; create Contract, consume assignment, set Unit IN_USE/Reservation COMPLETED/Visit CHECKED_OUT. **No first-month Invoice or Payment.** | Reservation, Visit, StorageUnit, HandoverUnitAssignment, Contract, Policy, Discount | Contract.PolicyId inherits Reservation.PolicyId; first-month amount is Reservation.LockedRentalPrice without Discount. Pg013 contract trigger consumes active assignment in same transaction; no assignment/mismatch rolls back. | **Yes, mandatory** |
@@ -1861,6 +1862,7 @@ These OD-09 cases are required future test evidence, not executed results. API-C
 **Remaining deployment gates:** compare `__EFMigrationsHistory` and `information_schema`/`pg_catalog` with this mapping; generated Swagger contract parity, ownership/PII authorization tests, live PostgreSQL concurrency/rollback, startup Billing catch-up and delayed execution behavior, real notification delivery integration; approved Release-1 business owner sign-off. Until evidenced, documents are ready for repository review, **not V11 FINAL release certification**.
 
 ## 41. OD-06 in-app Notifications persistence review (2026-10-29)
+> **Source update 2026-11-03:** This section preserves a historical documentation-only request. Since the review, current `main` includes Pg018 and `NotificationLog.IsInApp`. Its earlier statements "no new column/migration/code" and "future worker selection" must not be used as current implementation descriptions. This addendum does not certify owner approval, deployed schema, safe event routing, migration acceptance or tests.
 
 **REVIEW DRAFT / DOCUMENTATION ONLY:** [record and decisions](FRMS_InApp_Notifications_Review.md). Registration, email verification, Employee provisioning, role/facility rules, UserAccount.EmailVerifiedAt and account states remain exactly as before this revision.
 

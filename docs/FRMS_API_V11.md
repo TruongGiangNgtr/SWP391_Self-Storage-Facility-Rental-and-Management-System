@@ -1,6 +1,6 @@
 # FRMS — API Contract & Authorization Specification
 
-> **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](FRMS_InApp_Notifications_Review.md). Only OD-06 / IMPL-CUSACT-01 is being revised. The proposed read DTO and visibility are not implemented; approve contract/routing before coordinated FE/BE changes. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
+> **2026-11-03 current-main source observation (not release acceptance):** Current `CustomerActivityController` returns four notification fields (`notificationId`, `notificationType`, `content`, `createdAt`) and `CustomerActivityRepository` reads `NotificationLog.IsInApp` without requiring email SENT/SentAt. Migration Pg018 implements the field/routing. The 2026-10-29 [review](FRMS_InApp_Notifications_Review.md) is historical; approval and runtime/security tests are not certified. Other account/email flows are unchanged by this documentation note.
 
 **Version:** V11.0 REVIEW CANDIDATE  
 **Public policy topic revision:** 2026-10-29 — `REV-2026-10-29-PUBLIC-POLICY-CONSOLIDATION` (SRS §0.0.11); four Help Center articles replace the former six-topic list; no Policy schema or business-rule change.
@@ -1001,6 +1001,7 @@ RESERVATION_INVALID_STATUS-> 409
 Procedure: `usp_ConfirmReservation`.
 
 ### RES-005 — Cancel Reservation
+> **2026-11-03 observed implementation (pending contract/acceptance review):** Pg019 (`20261103153000_Pg019_ReservationCancellationInvoice`) updates `usp_CancelReservation` so that the same transaction also sets a matching `InvoiceType=DEPOSIT`, `Status=UNPAID` Invoice to `CANCELLED`. Previously PAID/CANCELLED financial evidence is preserved; this is not a new refund workflow. Migration deployment and payOS-concurrency tests remain unverified.
 
 Request:
 
@@ -2149,6 +2150,7 @@ Not every transport is JSON:
 **Owner-approved V11-OD-03 RBAC:** Facility Manager **own Facility only**; BOM and `SYSTEM_ADMINISTRATOR` **system-wide** for **these three read-only timeline GETs only**. No Administrator Unit mutations or other operational/financial access is granted. `month` filtering, missing/partial AuditLog history, scope checks, ordering and no-data behavior require API/SQL/security tests.
 
 ## 13A.3 Customer activity reads (`IMPL-CUSACT-01..02`)
+> **Current-main implementation snapshot 2026-11-03:** The former SENT-only Notifications contract shown in historical text below has been superseded **in source**: `CustomerNotificationResponse` is `notificationId`, `notificationType`, `content`, `createdAt`; `CustomerActivityRepository.ListInAppNotificationsAsync` filters authoritative Customer recipient and `NotificationLog.IsInApp` and does not depend on SMTP/SentAt. Pg018 supplies provenance and worker exclusions. This does not imply owner approval, deployed migration evidence or API/security/E2E PASS. Transaction History OD-07 is unaffected.
 
 **Source:** `backend/Frms.Api/Controllers/CustomerActivityController.cs` and `backend/Frms.Api/DTOs/Responses/CustomerActivityResponses.cs`.
 
@@ -2327,7 +2329,7 @@ This API crosswalk does not authorize any `IMPL-*` API not explicitly approved i
 | `job_MarkOverdueInvoices` | `BillingMaintenanceJob` step 2 | Eligible `Invoice.Status=OVERDUE` | Same `BIL-001`, `BIL-002`, `CON-004` reads |
 | `job_RecalculateOpenLateFees` | `BillingMaintenanceJob` step 3 | Insert/update one `LateFee` per eligible overdue Invoice | `GET /api/v1/contracts/{contractId}/billing` (`CON-004`) |
 | `job_ProcessReservationNoShow` | `ProcessReservationNoShowJob`, startup + 24 hours when enabled | Eligible Reservation/Visit states after Policy window | Existing authorized `RES-002/003`, `VIS-003/004` reads |
-| `job_RetryNotifications` | `RetryNotificationsJob`, startup + 5 minutes when enabled; one pending item/tick | `NotificationLog.SENT/SentAt` **only after provider send succeeds** | Provisional private `GET /api/v1/customers/me/notifications` (only `SENT` records) |
+| `job_RetryNotifications` | `RetryNotificationsJob`, startup + 5 minutes when enabled; one pending item/tick | Legacy email: `NotificationLog.SENT/SentAt` **only after provider send succeeds**; Pg018 excludes `IsInApp` notices from worker selection | Private `GET /api/v1/customers/me/notifications`: source now reads eligible committed `IsInApp` notices independently of email delivery (deployment/tests unverified) |
 
 **Current enabled flags (source default):** `BackgroundJobs:Billing:Enabled = true`; `BackgroundJobs:NoShow:Enabled = false`; `BackgroundJobs:Notifications:Enabled = false`. Existing expiration always runs while the API host is running. Environment overrides use `BackgroundJobs__Billing__Enabled` etc. **Timing is interval-from-start, not fixed local 00:00.** The job is *registered* in `main` but its production execution, database migration state, monitoring and full test suite are not verified here.
 
