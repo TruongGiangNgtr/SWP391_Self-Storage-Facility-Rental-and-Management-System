@@ -112,7 +112,7 @@ export function VisitDetailPage() {
 
   async function handleCancel(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (loading || actionBusy.current || visit?.status !== 'SCHEDULED') return
+    if (loading || actionBusy.current || visit?.status !== 'SCHEDULED' || visit.visitType === 'RESERVATION') return
     if (!cancelReason.trim()) {
       setFieldErrors({ reason: 'Please enter a reason for cancelling the visit.' })
       return
@@ -137,13 +137,14 @@ export function VisitDetailPage() {
     }
   }
 
+  const activeMode = visit?.visitType === 'RESERVATION' && mode === 'cancel' ? null : mode
   const VisitIcon = visit?.visitType === 'RESERVATION' ? PackageCheck : visit?.visitType === 'RETURN' ? Undo2 : DoorOpen
   return (
     <main className="page-container flow-page customer-visit-details">
       <div className="visit-detail-navigation"><Link className="visit-detail-text-link" to="/customer/visits"><ArrowLeft size={16} aria-hidden="true" />Back to My Visits</Link><button className="visit-detail-text-button" type="button" disabled={loading || working} onClick={() => {
         setLoading(true); setError(null); setMode(null); void loadVisit()
       }}><RefreshCw size={14} aria-hidden="true" />{loading ? 'Refreshing…' : 'Refresh Visit'}</button></div>
-      <header className="page-heading visit-detail-heading"><p className="visits-area-label">Your facility appointment</p><h1>Visit Details</h1><p className="muted">Review your facility visit and manage its scheduled date or cancellation.</p></header>
+      <header className="page-heading visit-detail-heading"><p className="visits-area-label">Your facility appointment</p><h1>Visit Details</h1><p className="muted">{visit?.visitType === 'RESERVATION' ? 'Review your handover visit and manage its scheduled date.' : 'Review your facility visit and manage its scheduled date or cancellation.'}</p></header>
       <ApiErrorAlert error={error} />
       {loading && !visit ? <LoadingState label="Loading visit..." /> : visit && <>
         {(visit.visitType === 'ACCESS' || visit.visitType === 'RESERVATION') && <VisitJourney status={visit.status} visitType={visit.visitType} />}
@@ -171,10 +172,10 @@ export function VisitDetailPage() {
             </>
           )}
 
-          {(visit.visitType !== 'RETURN' || (visit.status === 'SCHEDULED' && mode !== 'cancel')) && <footer className="visit-detail-actions">
+          {(visit.visitType !== 'RETURN' || (visit.status === 'SCHEDULED' && activeMode !== 'cancel')) && <footer className="visit-detail-actions">
             {visit.visitType === 'ACCESS' && <Link className="visit-detail-text-link" to={`/customer/contracts/${encodeURIComponent(visit.entityId)}`}>View Contract<ArrowRight size={15} aria-hidden="true" /></Link>}
             {visit.visitType === 'RESERVATION' && <Link className="visit-detail-text-link" to={`/customer/reservations/${visit.entityId}`}>View Reservation<ArrowRight size={15} aria-hidden="true" /></Link>}
-            {visit.status === 'SCHEDULED' && mode !== 'cancel' && <div><button className="button" disabled={loading || working} onClick={() => setMode('reschedule')} type="button"><CalendarClock size={16} aria-hidden="true" />Reschedule</button><button className="button button-danger" disabled={loading || working} onClick={() => setMode('cancel')} type="button"><CircleX size={16} aria-hidden="true" />Cancel Visit</button></div>}
+            {visit.status === 'SCHEDULED' && activeMode !== 'cancel' && <div><button className="button" disabled={loading || working} onClick={() => setMode('reschedule')} type="button"><CalendarClock size={16} aria-hidden="true" />Reschedule</button>{visit.visitType !== 'RESERVATION' && <button className="button button-danger" disabled={loading || working} onClick={() => setMode('cancel')} type="button"><CircleX size={16} aria-hidden="true" />Cancel Visit</button>}</div>}
           </footer>}
         </section>
 
@@ -193,7 +194,7 @@ export function VisitDetailPage() {
             </form></FlowDialog>
           )}
 
-          {visit.status === 'SCHEDULED' && mode === 'cancel' && (
+          {visit.status === 'SCHEDULED' && visit.visitType !== 'RESERVATION' && activeMode === 'cancel' && (
             <FlowDialog className="visits-editorial-dialog visit-cancel-dialog" title="Cancel Visit" subtitle="Tell us why you need to cancel this scheduled visit." category="" busy={working} trapFocus onClose={() => setMode(null)}><ApiErrorAlert error={error} /><form className="form-grid" onSubmit={handleCancel}>
               <div className="form-field">
                 <label htmlFor="visitCancelReason">Cancellation Reason</label>
