@@ -1,10 +1,10 @@
 # FRMS — Software Requirements Specification (SRS)
 
-> **2026-11-03 source evidence (not owner approval):** The 2026-10-29 [OD-06 review](FRMS_InApp_Notifications_Review.md) remains a historical approval record; since then `main` contains `Pg018_InAppNotifications`, `NotificationLog.IsInApp` and SMTP-independent Customer notification reads. Pg017 also implements the OD-09/10 CCCD guard, and Pg019 changes `usp_CancelReservation` to cancel eligible UNPAID Deposit Invoices. Document/approval/test/deployment gates remain open; this observation does not make V11 FINAL or approve unratified business changes.
+> **2026-11-04 main baseline:** The owner approves the scope present in `origin/main` `29a688b` as the documentation baseline. Pg017 implements the OD-09/10 CCCD guard; Pg018 implements SMTP-independent in-app reads; Pg019 cancels an eligible UNPAID Deposit Invoice with its Reservation. Code-absent proposals are outside the current baseline. Source presence does not prove migration deployment, runtime security, concurrency or E2E acceptance.
 
 **Project:** Self-Storage Facility Rental and Management System (FRMS)
 **Document:** Software Requirements Specification + Architecture + Testing Baseline (API contracts maintained separately)
-**Version:** V11.0 REVIEW CANDIDATE
+**Version:** V11.0 MAIN-ALIGNED BASELINE
 **Baseline Date:** 2026-10-02
 **Architecture Revision Date:** 2026-10-04
 **Business Revision Date:** 2026-10-07 — REV-2026-10-07-FM-OFFLINE
@@ -24,12 +24,12 @@
 **Customer CCCD / Operation Continuation Approval:** 2026-10-25 — `REV-2026-10-25-CUSTOMER-CCCD-CONTINUATION`, team approval confirmed by owner; §0.0.9 OD-09 and §14.15 define the approved target, not implementation/release acceptance
 **V11 API Specification:** [`FRMS_API_V11.md`](FRMS_API_V11.md) (HTTP contract companion)  
 **V11 Data Dictionary:** [`FRMS_Data_Dictionary_V11.md`](FRMS_Data_Dictionary_V11.md) (entity, PostgreSQL schema, routines and tests companion)
-**Status:** V11 REVIEW CANDIDATE — owner-approved decisions in §0.0.9 effective for V11 target; full document ratification, technical-architecture sign-off, API-code parity and release tests pending
-**Manager/BOM reporting alignment (2026-10-27):** Source-reviewed implementation-documentation proposal for MWP-06/BWP-07 and REP-RD-01..03; does not assert new owner approval, deployed-code parity or release acceptance.
+**Status:** Current-main scope owner approved for documentation; API-code parity, deployed migrations and release tests remain to be verified.
+**Manager/BOM reporting alignment (2026-10-27):** Implemented MWP-06/BWP-07 reporting and REP-RD-01..03 routes are part of the approved current-main scope; runtime parity and acceptance tests remain separate.
 **Architecture:** 3 Logical Layers + Repository Pattern + Infrastructure Adapters
 **Backend:** ASP.NET Core Web API / C#
 **Frontend:** React + TypeScript
-**Database:** PostgreSQL / Npgsql / EF Core **observed on `main`; V11 architecture approval pending**
+**Database:** PostgreSQL / Npgsql / EF Core **owner-approved implementation baseline (OD-11); deployment and acceptance tests pending**
 **ORM:** Entity Framework Core / Npgsql
 **Unit Testing:** NUnit
 **API Testing:** Postman
@@ -61,11 +61,12 @@
 | **V10 FINAL — 2026-10-10 payment idempotency clarification** | Owner-requested alignment with the approved PAY-001 contract | REV-2026-10-10-PAY-IDEMPOTENCY makes the frontend UUID, required persisted uniqueidentifier, global uniqueness, lifetime retention, retry/concurrency and non-disclosure rules explicit in the SRS and Data Dictionary. No new Payment status, recovery workflow or live-provider authorization. |
 | **V10 FINAL — 2026-10-13 public Guest requirements revision** | Team-approved shared implementation baseline; approval confirmed by project owner | REV-2026-10-13-GUEST defines common public catalog, requested-period availability, sizing/rental-process guidance and public help/policies; permits optional anonymous AI recommendations; defines authentication continuation. Visual design and page/component implementation are excluded. Five business roles, seven flows, 27 entities and existing private-resource/financial lifecycles remain unchanged. Approval does not imply implementation acceptance. |
 | **V10 FINAL — 2026-10-20 Customer profile revision** | Owner-approved profile simplification | `REV-2026-10-20-CUSTOMER-NO-ADDRESS` prohibits Customer physical address, updates AUTH-001/004/005 and defers backend/schema migration. |
-| **V11.0 REVIEW CANDIDATE — 2026-10-20 owner decision update** | **PARTIAL BUSINESS APPROVAL / NOT RELEASE ACCEPTANCE** | Approves optional `Customer.Address` input/persistence; Manager-owned persisted handover assignment and its four-state lifecycle; read-only SYSTEM_ADMINISTRATOR StorageUnit timeline. Records admin deactivation-eligibility as HTTP 501 scaffold and public UnitType `imageUrl`/`videoUrl` as implemented. Other provisional behaviors, PostgreSQL architecture sign-off and testing remain gated. |
-| **V11.0 REVIEW CANDIDATE — 2026-10-21 payment-documentation cleanup** | Editorial only — no business/API/code change | Removes superseded provider-specific historical text and configuration from this SRS. payOS remains the sole active gateway; historical payment preservation and existing release gates remain unchanged. |
-| **V11.0 — 2026-10-22 Customer Transaction History decision** | **TRANSACTION HISTORY REQUIREMENTS APPROVED / IMPLEMENTATION AND TESTS PENDING** | `REV-2026-10-22-CUSTOMER-TRANSACTION-HISTORY-READ` approves ACTIVE Customer own Payment history under OD-07: actual Deposit/subsequent Rental Fee attempts, all three Payment statuses, pagination and View Invoice; no offline-first-month Payment, fabricated deduction/refund/wallet balance, or approval of other pending V11 decisions. |
-| **V11.0 — 2026-10-25 Customer CCCD and continuation decision** | **TEAM-APPROVED REQUIREMENTS / IMPLEMENTATION AND TESTS SEPARATE** | OD-09 keeps CCCD optional at registration and nullable in Customer, requires it for new RES-001, and preserves the pending operation through authentication/profile completion. No LegalName, verification status, new table or endpoint; missing CCCD uses existing HTTP 400 VALIDATION_ERROR with errors.cccd. |
-| **V11.0 — 2026-10-26 CCCD format decision** | **OWNER-APPROVED REQUIREMENTS / BE IMPLEMENTATION PENDING** | OD-10 requires exactly 12 ASCII digits for supplied CCCD and new RES-001; preserves optional registration, nullable varchar(20), leading zeroes, legacy rows and existing continuation. |
+| **V11.0 — 2026-10-20 owner decision update** | **Historical partial approval; later superseded by §0.0.12** | Approved optional `Customer.Address`, persisted handover assignment and read-only Administrator timeline. Current-main scope now also covers implemented supplemental reads and PostgreSQL; tests remain separate. |
+| **V11.0 — 2026-10-21 payment-documentation cleanup** | Editorial only — no business/API/code change | Removes superseded provider-specific historical text and configuration from this SRS. payOS remains the sole active gateway; historical payment preservation and existing release gates remain unchanged. |
+| **V11.0 — 2026-10-22 Customer Transaction History decision** | **IMPLEMENTED SCOPE APPROVED / TESTS PENDING** | `REV-2026-10-22-CUSTOMER-TRANSACTION-HISTORY-READ` covers ACTIVE Customer own Payment history under OD-07: actual Deposit/subsequent Rental Fee attempts, all three Payment statuses, pagination and View Invoice; no offline-first-month Payment or fabricated deduction/refund/wallet balance. |
+| **V11.0 — 2026-10-25 Customer CCCD and continuation decision** | **Pg017/FE SCOPE APPROVED / TESTS PENDING** | OD-09 keeps CCCD optional at registration and nullable in Customer, requires it for new RES-001, and preserves the pending operation through authentication/profile completion. No LegalName, verification status, new table or endpoint; missing CCCD uses existing HTTP 400 VALIDATION_ERROR with errors.cccd. |
+| **V11.0 — 2026-10-26 CCCD format decision** | **Pg017/FE SCOPE APPROVED / TESTS PENDING** | OD-10 requires exactly 12 ASCII digits for supplied CCCD and new RES-001; preserves optional registration, nullable varchar(20), leading zeroes, legacy rows and existing continuation. |
+| **V11.0 — 2026-11-04 main baseline decision** | **CURRENT-MAIN IMPLEMENTED SCOPE APPROVED / RELEASE TESTS OPEN** | `origin/main` `29a688b` is the documentation baseline. Code-absent proposals are excluded; source presence alone does not certify deployment or test results. |
 
 ## V5 Review Summary
 
@@ -94,7 +95,7 @@ V5 performs a consistency review rather than adding a new business flow.
 - Replace ambiguous “recommended” wording with either a mandatory rule, an explicitly equivalent alternative, or a Deferred Decision.
 - Distinguish source-derived rule, SRS technical decision, and unresolved source gap.
 
-> V11 REVIEW CANDIDATE (not yet adopted) retains V10 FINAL; after approval, including the team-approved REV-2026-10-13-GUEST is the current shared implementation baseline. Its normative Guest requirements and contracts are governing requirements; approval does not claim that Guest APIs or functions are implemented or tested. payOS is the sole active online payment gateway. Offline first-month and operational-read semantics remain unchanged.
+> The later §0.0.12 decision adopts current `main` as the V11 implementation-scope baseline. Historical V10 decisions remain provenance where compatible. payOS is the sole active online payment gateway; offline first-month and operational-read semantics remain unchanged. Runtime and release tests are tracked separately.
 
 ---
 
@@ -116,7 +117,7 @@ V5 performs a consistency review rather than adding a new business flow.
 
 **Affected requirements:** Flow 2; BR-HO-02/03; BR-DIS-05; BR-BIL-06; CALC-FIRST-01; CALC-REP-02; DD-13; OPS-004; CWP-08/FWP-03/SSP-06/08; monthly billing, reporting, payment-result scope, DBT-24, E2E-F02/F04 and release gates.
 
-**Authority and scope:** This revision overrides conflicting first-month rules in Data Dictionary V2.1, earlier proposals, DTOs, Swagger, SQL objects and code. Only this SRS is updated in the present task; alignment of those artifacts is a follow-up implementation task. Do not claim the new API/DB behavior is already implemented or synchronized. Architecture, five roles, 27 entities, Deposit flow, subsequent online payments, captured Policy and other approved flows remain unchanged.
+**Historical authority and scope:** The 2026-10-07 revision overrode conflicting first-month rules in Data Dictionary V2.1 and earlier API/SQL material. The later current-main implementation and V11 companions are documented in §0.0.12. Architecture, five roles, Deposit flow, subsequent online payments, captured Policy and other approved flows remain unchanged; the later handover assignment makes the current model 28 entities.
 
 **Historical-data protection:** Do not delete, rewrite or fabricate links for existing first-month Invoice/Payment or unlinked legacy payment rows. Preserve historical evidence; new handovers must not create those records. Require an approved migration/deployment review before changing constraints or replacing old SQL/API behavior. Revenue must not count a historical first-month Invoice/Payment in addition to the Contract-derived amount.
 
@@ -158,7 +159,7 @@ First month remains offline: no first-month Invoice/Payment, PAY-002 remains ret
 
 **Historical approved payment invariant (2026-10-09):** ProviderOrderCode BIGINT NULL; the former SQL Server design used `dbo.ProviderOrderCodeSequence` starting at 1000, increment 1, NO CYCLE. Allocate atomically for new PAYOS attempts; enforce uniqueness; preserve null order codes in pre-existing historical payment rows. Do not generate codes from timestamps or UUID conversions, and do not roll back verified PAYOS/payment evidence.
 
-**V11 PostgreSQL provider mapping (observed, pending technical-baseline approval):** Implement the same order-code allocation/uniqueness/idempotency invariants using the deployed PostgreSQL sequence and unique index. The SQL Server sequence name above is a historical design record, **not** a current executable PostgreSQL object. Do not assume an existing live merchant can safely restart at 1000; verify sequence high-water mark and migration/test evidence.
+**V11 PostgreSQL provider mapping (approved technical baseline under OD-11; deployment/tests pending):** Implement the same order-code allocation/uniqueness/idempotency invariants using the deployed PostgreSQL sequence and unique index. The SQL Server sequence name above is a historical design record, **not** a current executable PostgreSQL object. Do not assume an existing live merchant can safely restart at 1000; verify sequence high-water mark and migration/test evidence.
 PaymentUrl stores checkoutUrl (2048 bounded characters); PaymentUrlExpiresAt UTC stores provider expiry when supplied or explicit request expiry; TransactionCode stores successful webhook reference, not paymentLinkId/orderCode.
 Missing config does not fail startup; PAY-001 raises EXTERNAL_PROVIDER_NOT_CONFIGURED before creation. Secrets are local only; .env ignored and excluded from build/publish.
 PAY-001 is POST /api/v1/invoices/{invoiceId}/payments/payos; PAY-003 unchanged; PAY-004 is anonymous POST /api/v1/payments/payos/webhook. No superseded gateway route is part of the active V11 API contract.
@@ -237,40 +238,40 @@ The owner permits checking the existing FRMS baseline and applying forward EPS-0
 
 ## 0.0.8 Draft Change Register — REV-2026-10-20-V11-CODE-ALIGNMENT
 
-**Status:** REVIEW CANDIDATE. The explicit owner decisions in §0.0.9 are **APPROVED V11 TARGET CHANGES** (not automatically deployed/release-accepted); other new behavior remains proposed until separately authorized. This full document supersedes V10 as a released governing baseline **only after final V11 ratification**. Where the old V10 address prohibition conflicts with the later owner decision, §0.0.9 controls the V11 target.
+**Current status:** The owner approves current `main` implementation scope as the V11 documentation baseline (§0.0.12). Unimplemented proposals are excluded from the current baseline. Deployment, generated API parity and release tests remain separate verification. The later optional-Address decision supersedes the historical V10 prohibition.
 
-**Base and reproducibility:** This review candidate carries forward the locally supplied `FRMS_SRS_V10.2.md` body, incorporates the owner-approved 2026-10-20 Customer profile revision in the `main` SRS, and records implementation evidence from GitHub `main` commit `90a6c5982d42` (2026-10-20). **It is not a certified byte-for-byte rebase of all `docs/FRMS_SRS_V10.md` content**; a complete main-to-V11 diff is a merge prerequisite. The companion API spec has the same source boundary and review status.
+**Base and reproducibility:** The V11 text carries historical V10.2 material and later decisions; the current implementation baseline is GitHub `main` `29a688b06511b34a25308b8752d7c393096a9e8b`. Historical requirements do not add code-absent V11 features to the approved current scope. A full document-to-code parity check and release tests remain open.
 
 ### V11 change register / impact and acceptance
 
 | ID | Code observation / issue | V11 documentation change | Status / gate |
 |---|---|---|---|
-| V11-01 | Runtime `UseNpgsql` / independent PostgreSQL migrations | Align runtime persistence, SQL dialect, tooling and background execution references with PostgreSQL | IMPLEMENTED IN CODE; owner architecture approval / migration test outstanding |
+| V11-01 | Runtime `UseNpgsql` / independent PostgreSQL migrations | Align runtime persistence, SQL dialect, tooling and background execution references with PostgreSQL | OWNER-APPROVED CURRENT BASELINE; migration tests outstanding |
 | V11-02 | `Pg001..Pg013`, PostgreSQL functions/triggers | Add migration inventory and PostgreSQL transaction/concurrency verification | DOCUMENTED; deploy chain/rollback verification outstanding |
 | V11-03 | `Pg013` `HandoverUnitAssignment` + `ACTIVE/REPLACED/CONSUMED/RELEASED` | Add persisted Manager assignment/reassignment/release/consumption lifecycle without modifying Reservation hold | **OWNER APPROVED — §0.0.9; implementation/SQL E2E not verified** |
 | V11-04 | `Pg010` StorageUnit timeline via `AuditLog` | Read-model, partial history, Manager own-Facility / BOM system / Administrator system-wide read-only permission | **ADMIN READ APPROVED — §0.0.9; security tests pending** |
 | V11-05 | `Pg012` optional UnitType `ImageUrl/VideoUrl` | Record actual CAT-003/004/005 public response `imageUrl`/`videoUrl` exposure; nullable length 2048 | **OBSERVED + OWNER ACKNOWLEDGED; media governance/Swagger tests pending** |
 | V11-06 | Customer Activity Controller Notifications/Transactions | Read-only private history endpoints without a new table | **Notifications IMPL-CUSACT-01 APPROVED — OD-06; Transaction History IMPL-CUSACT-02 REQUIREMENTS APPROVED — OD-07. Implementation/integration/security acceptance remains separate.** |
-| V11-07 | Admin/Manager/Staff/BOM supplemental lookup and directory GETs | Provisional API appendix and Facility/ownership scope test matrix | CODE EXISTS; role/privacy review pending |
+| V11-07 | Admin/Manager/Staff/BOM supplemental lookup and directory GETs | Implemented API appendix and Facility/ownership scope test matrix | CURRENT-MAIN SCOPE APPROVED; role/privacy tests pending |
 | V11-08 | V10 profile prohibition subsequently revised by owner | Preserve optional Customer.Address and private AUTH-004 CCCD; OD-09 adds conditional CCCD requirement for new RES-001, not a NOT NULL column | **APPROVED — OD-01/09; AUTH-004 projection observed in source at 2945788; new reservation gate/continuation and runtime acceptance pending** |
-| V11-09 | Complete API §13 embedded in V10 | Extract into `FRMS_API_V11.md` preserving endpoint IDs/contracts | DOCUMENT STRUCTURE DRAFT; Swagger parity not tested |
+| V11-09 | Complete API §13 embedded in V10 | Extract into `FRMS_API_V11.md` preserving endpoint IDs/contracts | CURRENT DOCUMENT STRUCTURE; Swagger parity not tested |
 | V11-10 | Existing historical payOS and first-month offline | Preserve payment semantics and historical evidence, no gateway switch | INVARIANT, regression acceptance pending |
 | V11-11 | Dev-only override for out-of-date Visit check-in | Document non-production opt-in and boundary | CODE EXISTS; verify Production cannot enable |
-| V11-12 | README/TECH_BASELINE/AGENTS refer to older SQL Server paths/stack | Create follow-up alignment tasks rather than silently changing unrelated docs | DOCUMENT DRIFT; not edited here |
+| V11-12 | README/TECH_BASELINE/AGENTS referred to older SQL Server paths/stack | Align current repository guidance to PostgreSQL/payOS | DOCUMENT ALIGNMENT COMPLETED; runtime tests separate |
 | V11-13 | Preliminary V11 draft mixed historical SQL Server names/types with current PostgreSQL mappings | Clarify provider mapping for payment order-code sequence and `Payment.IdempotencyKey`; preserve historic approval/evidence | **EDITORIAL / TRACEABILITY — no financial semantics changed** |
-| V11-14 | Original draft repeated the entire endpoint registry in SRS Appendix D | Keep the normative endpoint inventory only in companion API Spec §13.11 and candidate routes in §13A | **DOCUMENT SPLIT — no route approval** |
-| V11-15 | Original draft had illustrative assignment JSON and stale private notification field label | Correct provisional JSON models from pinned DTO source; add exact schema-source references and acceptance flags | **CODE-OBSERVED; runtime/OpenAPI verification outstanding** |
+| V11-14 | Original draft repeated the entire endpoint registry in SRS Appendix D | Keep the endpoint inventory in companion API Spec §13.11 and implemented additions in §13A | **DOCUMENT SPLIT; current-main routes approved** |
+| V11-15 | Original draft had illustrative assignment JSON and stale private notification field label | Correct JSON models from current DTO source; add exact schema-source references and acceptance flags | **CURRENT-MAIN SCOPE APPROVED; runtime/OpenAPI verification outstanding** |
 | V11-16 | V11 candidate's release checklist used 27-table wording | Maintain V10 historical 27-core provenance; approve `HandoverUnitAssignment` as 28th Release-1 persisted business table and test mapping | **OWNER APPROVED — §0.0.9; V11-G02 tests and V11-G09 final sign-off pending** |
-| V11-17 | Data Dictionary V2.1 retained MoMo, first-month online Payment, SQL Server and 27-table physical assumptions | Split V11 Data Dictionary, align PostgreSQL schema, payment, optional Address, media and approved 28th entity | **DOCUMENT SYNC; owner V11 full ratification and runtime DB tests PENDING** |
+| V11-17 | Data Dictionary V2.1 retained MoMo, first-month online Payment, SQL Server and 27-table physical assumptions | Split V11 Data Dictionary, align PostgreSQL schema, payment, optional Address, media and approved 28th entity | **CURRENT-MAIN SCOPE APPROVED; runtime DB tests PENDING** |
 | V11-18 | `main` `0219f307` contains the newly added recurring jobs, default-on billing, DI and registration-only NUnit test | Record actual hosted services, five new tasks, configuration/ordering, startup intervals and acceptance gaps across SRS/API/Data Dictionary | **CODE REGISTERED; PRODUCTION EXECUTION/INTEGRATION NOT VERIFIED** |
 
 ### Implementation source-of-truth distinction
 
-`Observed in code` does NOT mean `approved business behavior`. V11 distinguishes (1) **owner-approved decision** (specifically §0.0.9), (2) **current implementation observation**, (3) **proposal requiring separate approval**, and (4) **tested/accepted release evidence**. V11-03, Administrator timeline access in V11-04, sent-notification history in OD-06 and own Payment history in OD-07 are approved; supplemental directories in V11-07 remain provisional. Media exposure in V11-05 is **verified + acknowledged**, not a blanket approval of future uploads, arbitrary URLs or content management. No sixth role, eighth business flow, first-month Invoice/Payment, new payment method or second gateway is introduced.
+Per the owner's 2026-11-04 decision, current-main implementation scope is approved for this documentation baseline. This is distinct from **tested/accepted release evidence**: code presence does not prove migration deployment, generated OpenAPI parity, authorization tests or E2E results. Supplemental directories in V11-07 and media fields in V11-05 are within the implemented scope. Unimplemented uploads, arbitrary media URLs, content management, new roles/flows, first-month Invoice/Payment and a second gateway are outside it.
 
 ### Scope/release gate
 
-The **initial V11 reconciliation package** was SRS + API + Data Dictionary documentation drafting only, not a production migration, backend refactor or release certification. The separately owner-approved OD-06 task authorizes the narrow Customer Notifications/Overview frontend read and its SRS/API synchronization. The subsequent OD-07 task approves Transaction History requirements and their SRS/API synchronization only; frontend implementation remains a separate task. Neither decision authorizes other provisional features, backend/database changes, provider activation or GitHub publication without a separate request.
+The initial V11 reconciliation package was documentation only. Later changes on current `main` implement Customer Notifications/Overview, Transaction History and other listed reads. This synchronization approves their implemented scope for documentation; deployment, testing, provider activation and GitHub publication remain separate actions.
 
 ## 0.0.9 Approved Owner Decisions — REV-2026-10-20-V11-OWNER-DECISIONS
 
@@ -298,30 +299,30 @@ The **initial V11 reconciliation package** was SRS + API + Data Dictionary docum
 
 ### OD-04 — Admin deactivation-eligibility endpoint is NOT IMPLEMENTED
 
-- `GET /api/v1/admin/customers/{customerId}/deactivation-eligibility` exists as an Admin-scoped **HTTP 501** scaffold (`ENDPOINT_NOT_IMPLEMENTED`, `UX-RBAC-11`). It is **not** an accepted working endpoint, not an implicit prerequisite to `ADM-004`, and must not be presented to the frontend as available. Actual Customer deactivation guard remains in the existing `ADM-004` service. Future implementation requires a separate feature task and passing tests.
+- `GET /api/v1/admin/customers/{customerId}/deactivation-eligibility` exists as an Admin-scoped **HTTP 501** scaffold (`ENDPOINT_NOT_IMPLEMENTED`, `UX-RBAC-11`). The approved current behavior is the 501 response, not an eligibility decision. It is not a prerequisite to `ADM-004` and must not be presented to the frontend as available. Actual Customer deactivation guard remains in the existing `ADM-004` service.
 
 ### OD-05 — Public UnitType media URLs acknowledged as code-observed
 
 - Public `CAT-003`, `CAT-004` and `CAT-005` response mappings/controllers already contain nullable `imageUrl` and `videoUrl` fields corresponding to Pg012 `UnitType.ImageUrl` / `UnitType.VideoUrl` (`varchar(2048)` nullable). **Record this as implementation fact**, not a speculative future DTO.
 - This acknowledgement does not authorize uploading media, external fetch of untrusted URLs, new media CMS, private asset access or unreviewed link content. URL validation, null serialization, cache/public disclosure and generated Swagger/FE parity remain verification gates.
 
-### OD-06 — Customer in-app notifications — replacement REVIEW DRAFT
+### OD-06 — Customer in-app notifications — approved requirement, implementation observed
 
-**Review record (historical):** REV-2026-10-29-INAPP-NOTIFICATIONS originally proposed changing SENT-only email history into in-app notices. Current `main` now implements an `IsInApp`-scoped read and Pg018 routing; unlike this earlier review text, source no longer requires SENT/SentAt for in-app visibility. This is an implementation observation, **not proof of owner approval, migration deployment or acceptance tests**. Authentication/account onboarding and OD-07 Transaction History remain outside this change.
+**Decision record:** The owner approved SMTP-independent in-app notices in the prior Notifications task and confirmed current `main` as the documentation baseline on 2026-11-04. Pg018 uses `NotificationLog.IsInApp` for eligible new events, excludes them from email retry, and leaves legacy rows unpublished. Deployment and acceptance tests remain separate. Authentication/account onboarding and OD-07 Transaction History remain outside this decision.
 
 - `BR-NOT-APP-01`: an eligible business event and its Customer notice commit/rollback together. After commit the notice is readable independently of SMTP/email delivery state. No-op/failed/rolled-back operations produce no successful-event notification; a GET/Refresh never creates one.
-- `BR-NOT-APP-02`: retain IMPL-CUSACT-01 GET /api/v1/customers/me/notifications for ACTIVE CUSTOMER, own UserAccount only, with scope before count/page. Pagination 1/20, max 100; order createdAt DESC, notificationId DESC. Overview reads the first three from the same API. Proposed DTO: notificationId, notificationType, content, createdAt; sentAt is no longer required for display or eligibility.
+- `BR-NOT-APP-02`: retain IMPL-CUSACT-01 GET /api/v1/customers/me/notifications for ACTIVE CUSTOMER, own UserAccount only, with scope before count/page. Pagination 1/20, max 100; order createdAt DESC, notificationId DESC. Overview reads the first three from the same API. DTO: notificationId, notificationType, content, createdAt; sentAt is not required for display or eligibility.
 - `BR-NOT-APP-03`: retain the existing Reservation/Invoice/Visit/Contract/SupportTicket/finalized-settlement event catalogue in the review record. Actual VisitDate change produces VISIT_RESCHEDULED, same-date save does not. Payment/refund wording must not invent financial outcomes. No near-date reminder or new business transition is added.
-- `BR-NOT-APP-04`: expose approved safe in-app events only, with authoritative recipient/provenance. Do not publish all PENDING/internal data, credentials, verification proof or CCCD; do not fabricate SENT/SentAt. NotificationLog reuse is an option; exact physical routing/schema/constraints and old-row eligibility require NOT-D01/02 approval. No new table/column/status is selected here.
+- `BR-NOT-APP-04`: expose approved safe in-app events only, with authoritative recipient/provenance. Do not publish all PENDING/internal data, credentials, verification proof or CCCD; do not fabricate SENT/SentAt. Pg018 reuses NotificationLog with an IsInApp column, allowlist/check, index and email-worker exclusion; existing rows are not backfilled. NOT-D01/02 are recorded as this selected design, with migration and routing tests still pending.
 - `BR-NOT-APP-05`: these business alerts are in-app only. The legacy sender must not email them, while email requirements of other account workflows remain unchanged. Reading Notifications is not SMTP delivery, account verification, state mutation or a payment command.
 
-Preserve plain text, generic rendering for safe unknown types, UTC/GMT+7, loading/empty/error/forbidden/session-switch states and read retry. No unread badge/count, mark-as-read, resource/action URL inferred from content, realtime/polling or historical backfill is added. Migrate FE types/validator/copy and BE/OpenAPI together after approval; current required sentAt/SENT filters are implementation gaps against this proposed replacement, not permission to edit source now.
+Preserve plain text, generic rendering for safe unknown types, UTC/GMT+7, loading/empty/error/forbidden/session-switch states and read retry. No unread badge/count, mark-as-read, resource/action URL inferred from content, realtime/polling or historical backfill is added. FE/BE source uses the four-field in-app DTO; generated OpenAPI and runtime behavior still require verification.
 
 **Traceability:** IMPL-CUSACT-01 + Overview -> OD-06 / BR-NOT-APP-01..05 -> CustomerActivityService.NotificationsAsync -> CustomerActivityRepository + eligible event recording -> approved NotificationLog reuse/routing -> API-NOTAPP-001, SEC-NOTAPP-001, DBT-NOTAPP-001..002, E2E-NOTAPP-001 -> V11-G16. These are planned acceptance obligations, not implemented/PASS evidence. [Review, decisions and checklist](FRMS_InApp_Notifications_Review.md).
 
 ### OD-07 — Customer Transaction History requirements approved
 
-**Change record:** `REV-2026-10-22-CUSTOMER-TRANSACTION-HISTORY-READ`. On 2026-10-22 the project owner expressly approved the six Transaction History requirements below. `IMPL-CUSACT-02` is **APPROVED**, not provisional. This is a read-only requirement approval and SRS/API update; it does not claim completed frontend implementation or passing backend/database/security/E2E tests. No entity, persisted state, financial formula, payment obligation, business flow or write permission is added.
+**Change record:** `REV-2026-10-22-CUSTOMER-TRANSACTION-HISTORY-READ`. On 2026-10-22 the project owner approved the six Transaction History requirements below. `IMPL-CUSACT-02` is implemented in current BE/FE source. This does not claim passing backend/database/security/E2E tests. No entity, persisted state, financial formula, payment obligation, business flow or write permission is added.
 
 - **Owner-only access:** approve `GET /api/v1/customers/me/transactions` for an authenticated **ACTIVE CUSTOMER**. Derive the Customer from the authenticated account and enforce Payment -> Invoice -> owned Reservation/Contract scope on the server before pagination. No caller-supplied Customer/account ID and no Guest or Employee access to this Customer endpoint.
 - **Actual Payment attempts and statuses:** return existing Payment records for owned Deposit invoices and post-first-month Rental Fee invoices. Include `PENDING`, `SUCCESS` and `FAILED` with distinct, explicit labels. `PENDING` means awaiting a result, not money received. A row represents one Payment attempt, so multiple attempts for one Invoice remain separate; FE must not treat their sum as money collected or infer an Invoice state from this list. An Invoice without a Payment does not create a history row.
@@ -329,10 +330,10 @@ Preserve plain text, generic rendering for safe unknown types, UTC/GMT+7, loadin
 - **Pagination and read-only presentation:** reuse API §13A.3 collection/error conventions, default `page=1&pageSize=20`, maximum `pageSize=100`, ordered `createdAt DESC`, then `paymentId DESC`. Transaction History is the second tab of the shared Notifications & History area. Opening, paging, refreshing and following View Invoice must not initiate payment/retry/refund commands or change business state. FE displays server amounts/statuses without calculating financial totals or transitions; loading, empty, validation, authorization, unexpected-error and safe read-retry states must remain distinct.
 - **Offline first month excluded:** first-month rent collected offline at handover has no first-month Invoice/Payment under the existing approved rule. Do not fabricate a Transaction History row from Contract creation or offline-receipt acknowledgment.
 - **No invented deductions, refunds or wallet:** do not turn Damage, ExtraFee, DepositSettlement amounts or Figma sample content into payment-history rows, refund-transfer confirmations or wallet/deposit balances without the corresponding approved transaction evidence and API contract. Those display extensions are outside OD-07; the existing Fees & Return Tracking read remains separate.
-- **Scope and acceptance:** this decision leaves supplemental directories/RBAC, billing backfill, scheduling, technical-architecture decisions and all other pending matters unchanged for later team discussion. Required verification includes exact DTO/envelope parity; cross-Customer/Guest/Employee/inactive-account denial; pagination/order and empty pages; all three statuses and multiple attempts per Invoice; nullable paid time/GMT+7 display; correct View Invoice targets; no fabricated offline-first-month/refund/balance records; safe loading/errors, account switching and no write side effects. Test results must be recorded separately from this approved requirement status.
+- **Scope and acceptance:** the later §0.0.12 decision approves implemented supplemental directories/RBAC, PostgreSQL and existing startup-relative scheduling; current-month-only billing excludes multi-month backfill. Required verification for Transaction History includes exact DTO/envelope parity; cross-Customer/Guest/Employee/inactive-account denial; pagination/order and empty pages; all three statuses and multiple attempts per Invoice; nullable paid time/GMT+7 display; correct View Invoice targets; no fabricated offline-first-month/refund/balance records; safe loading/errors, account switching and no write side effects. Test results remain separate from scope approval.
 - **Traceability:** Customer Transaction History tab -> OD-07 -> `IMPL-CUSACT-02` (API §13A.3) -> `CustomerActivityService.PaymentsAsync` -> `CustomerActivityRepository.ListPaymentsAsync` -> existing `Payment`/`Invoice` with `Reservation`/`Contract` ownership -> the contract, authorization and UI checks above. View Invoice reuses `BIL-002`; no new persisted model or payment endpoint is required.
 
-**Unchanged decisions:** payOS only for eligible Deposit and post-first-month Rental Fee invoices, offline first-month acknowledgment, policy/price snapshot rules, five roles, seven core flows, ownership guards, and the separate limited live-payment evidence scope. **Pending:** owner architecture ratification of PostgreSQL, supplemental directory proposals, billing backfill/scheduling decisions, AUTH-004 runtime/Swagger parity, OD-09 implementation and release-gate test evidence. Transaction History requirements are approved; implementation/testing is tracked separately.
+**Unchanged decisions:** payOS only for eligible Deposit and post-first-month Rental Fee invoices, offline first-month acknowledgment, policy/price snapshot rules, five roles, seven core flows, ownership guards, and the separate limited live-payment evidence scope. PostgreSQL and implemented supplemental directories are approved current-main scope. Billing remains current-month-only; multi-month backfill is outside scope. AUTH-004 runtime/Swagger parity, OD-09 behavior and release-gate tests still require evidence.
 
 ### OD-08 — Facility Staff read-only Contract list approved (2026-10-25)
 
@@ -344,7 +345,7 @@ Preserve plain text, generic rendering for safe unknown types, UTC/GMT+7, loadin
 
 ### OD-09 — CCCD before new Reservation and interrupted-operation continuation (2026-10-25)
 
-**Change record:** `REV-2026-10-25-CUSTOMER-CCCD-CONTINUATION`. The project owner confirms team approval of the CCCD-only proposal and the in-flow/return-navigation additions. The owner also approves the existing **HTTP 400 `VALIDATION_ERROR` with `errors.cccd`** for missing CCCD. These requirements are effective for this V11 target; this documentation task does not implement or certify them.
+**Change record:** `REV-2026-10-25-CUSTOMER-CCCD-CONTINUATION`. The project owner confirms team approval of CCCD-only entry and in-flow/return-navigation behavior. Missing CCCD uses **HTTP 400 `VALIDATION_ERROR` with `errors.cccd`**. The guard and FE flow are present in current source; runtime, migration and E2E acceptance remain separate.
 
 - **Conditional data, not account activation:** retain the existing Customer name field and nullable/unique `Customer.CCCD` (physical capacity 20 characters; accepted values now governed by OD-10). Do not add `LegalName`, a separate real-name field, a verification status, a table or an identity-approval workflow. AUTH-001 CCCD is optional; registration, login and public browsing do not require it. A supplied CCCD is not proof of verified identity; OD-10 now expressly requires the 12-digit format; no eKYC or identity-verification rule is implied.
 - **New Reservation precondition:** an authenticated ACTIVE Customer must have a saved CCCD matching the OD-10 format and existing uniqueness constraints before RES-001 creates any Reservation, capacity hold or Deposit Invoice (`BR-RES-09`). Resolve the profile from the authenticated account, not client CustomerId or a claimed FE completion flag. Missing or invalid saved CCCD returns the approved validation envelope. Account/role/ownership checks remain mandatory. Apply the new check only to new Reservation creation after implementation deployment; do not cancel/rewrite existing Reservation/Contract/payment history or add this prerequisite to unrelated commands.
@@ -365,15 +366,15 @@ Preserve plain text, generic rendering for safe unknown types, UTC/GMT+7, loadin
 - **Errors / FE:** AUTH-001/005 format/duplicate rejection also uses existing HTTP 400 `VALIDATION_ERROR` + `errors.cccd`; no new error code. Apply the same format rule in registration, ordinary Account Settings and the in-flow completion step. Keep CCCD out of URLs, continuation/browser persistence, logs and other-role projections. Save/read/review never auto-submits a Reservation or Payment.
 - **Persistence:** retain nullable PostgreSQL `varchar(20)` and the existing unique index; 20 is physical storage capacity, not permission to accept a new nonblank value of another format. No table/column/type migration, database CHECK deployment or stored-routine edit is performed by this task. BE must implement service and authoritative creation validation; any later routine/constraint deployment requires its own reviewed migration and legacy-data handling.
 
-**Backend handoff — implementation pending:** align RegisterCustomerRequest/CustomerRegistrationService; CustomerProfilePatchParser/CustomerProfileValidator/CustomerService; stable field-error mapping; ReservationService/repository/authoritative PostgreSQL creation routine; generated OpenAPI. Use the existing layers, preserve nullable/omit/clear and unique semantics, validate only a supplied CCCD on profile PATCH, and do not log values. Backend code, migrations and live data are deliberately unchanged in this FE/documentation task.
+**Historical backend handoff (source now includes Pg017):** RegisterCustomerRequest/CustomerRegistrationService; CustomerProfilePatchParser/CustomerProfileValidator/CustomerService; stable field-error mapping; ReservationService/repository/authoritative PostgreSQL creation routine; generated OpenAPI. Preserve nullable/omit/clear and unique semantics, validate only a supplied CCCD on profile PATCH, and do not log values. Pg017 and related source exist on current `main`; deployed API/DB behavior and generated OpenAPI remain acceptance work.
 
 **Acceptance / traceability:** AUTH-001/005 + RES-001 -> BR-ACC-04 / BR-RES-09 -> existing Business/repository/PostgreSQL boundaries -> `API-CCCD-004`, `DBT-CCCD-003`, `REG-CONT-002` -> V11-G15. Test null/omitted/blank handling, valid leading-zero 12-digit strings, 11/13 digits, letters, internal whitespace, punctuation and non-ASCII digits; duplicate attempts; legacy correction and unrelated PATCH omission; concurrent clear/update; no writes on rejection; unchanged old rentals; own-profile privacy and continuation without auto-submit. Backend/PostgreSQL/Swagger acceptance remains pending until separately executed.
 
 ## 0.0.10 Three-Document V11 Synchronization — 2026-10-20
 
-Three V11 Markdown specifications are maintained as a single **review candidate**: this SRS for approved business/domain requirements; [`FRMS_API_V11.md`](FRMS_API_V11.md) for the full HTTP contract and observed extensions; [`FRMS_Data_Dictionary_V11.md`](FRMS_Data_Dictionary_V11.md) for the 28-entity target dictionary, PostgreSQL types/routines/migrations and DB test matrix. The historical V2.1 Data Dictionary and V10 API §13 are preserved as source provenance, not independently governing V11 changes that contradict later owner approvals.
+Three V11 Markdown specifications describe the **approved current-main baseline**: this SRS for business/domain requirements; [`FRMS_API_V11.md`](FRMS_API_V11.md) for HTTP contracts; [`FRMS_Data_Dictionary_V11.md`](FRMS_Data_Dictionary_V11.md) for the 28-entity dictionary, PostgreSQL types/routines/migrations and DB test matrix. The historical V2.1 Data Dictionary and V10 API §13 remain source provenance.
 
-Document synchronization alone does not approve PostgreSQL architecture, provisional directory APIs, unrelated feature development, production migrations or live bank operations. Customer activity reads remain limited to OD-06/07; OD-09 separately approves conditional CCCD and continuation, not wider personal-data reads. AUTH-004 owner-only CCCD is now observed in source at `2945788`; OD-09's new reservation gate/continuation still require implementation and acceptance. Optional Customer.Address remains approved. No build, NUnit, PostgreSQL E2E, compiled Swagger, Postman or Playwright results are claimed by this documentation update.
+The 2026-10-20 synchronization preceded the implemented PostgreSQL, directory and Customer activity work. The later owner decision in §0.0.12 approves the current-main implementation scope; deployment and tests remain separate. OD-09 does not expand personal-data reads beyond AUTH-004 owner-only CCCD. Pg017 supplies the new reservation guard; runtime behavior and FE continuation still require acceptance. Optional Customer.Address remains approved. This documentation update claims no build, NUnit, PostgreSQL E2E, compiled Swagger, Postman or Playwright results.
 
 ## 0.0.11 Approved Change Record — REV-2026-10-29-PUBLIC-POLICY-CONSOLIDATION
 
@@ -381,24 +382,33 @@ Document synchronization alone does not approve PostgreSQL architecture, provisi
 
 The four topics, in display order, are `reservation-cancellation` (Reservation & Account Requirements, including CCCD and own-account data access), `deposit-payment-refund` (Deposit, Invoices & Refunds), `storage-access-handover-contract` (Storage Rental & Return), and `facility-rules-prohibited-items` (Facility Rules & Prohibited Items). The former `identity-verification` and `account-privacy` articles are consolidated into the first topic; they are no longer separate PUB-POL keys. Existing frontend links to those former Help articles may redirect to the consolidated topic. This does not introduce an identity-verification process or a complete legal privacy notice.
 
-The Facility Rules item catalogue still has `DRAFT_REQUIRES_LEGAL_AND_BUSINESS_APPROVAL` status and no effective date. The owner's approval of this four-topic structure and local review copy does not mark that source APPROVED or certify production publication. Team review of public copy and applicable GWP-04 acceptance tests remain separate. Article version wording must distinguish the current persisted Policy parameters from the independently edited explanatory copy; configurable numerical thresholds may not be invented or hard-coded into article text.
+The four article contents are present in `backend/Frms.Api/Content/PublicPolicies/published.json` on current `main` and are part of the approved implemented Help catalogue. The separate AI item source still has `DRAFT_REQUIRES_LEGAL_AND_BUSINESS_APPROVAL` and no effective date; the published article itself states that limitation. This code metadata is not a pending approval for the four Help routes. Production deployment and GWP-04 runtime tests remain unverified. Article version wording must distinguish persisted Policy parameters from explanatory copy; configurable numerical thresholds may not be invented or hard-coded into article text.
+
+## 0.0.12 Owner-approved main alignment — 2026-11-04
+
+**Decision authority:** The repository owner directed this documentation synchronization against `origin/main` `29a688b`, after merging the CWP-05 frontend correction. PostgreSQL/Npgsql and payOS are the current implementation baseline; the approved HandoverUnitAssignment is the 28th persisted entity. This alignment does not certify a deployed database or make V11 FINAL.
+
+- **Handover Visit cancellation:** A `RESERVATION` Visit cannot be cancelled independently through VIS-006, even while SCHEDULED. The Customer may reschedule an eligible SCHEDULED Handover Visit. Cancellation of an eligible Reservation is handled through RES-005, which also closes its SCHEDULED Visit. SCHEDULED `ACCESS` and `RETURN` Visits remain eligible for VIS-006 under their current business rules; CHECKED_IN/CHECKED_OUT Visits cannot be cancelled by that command. FE hides the Handover cancel action in list/detail and guards a direct `?action=cancel` link; BE remains authoritative.
+- **NoShow activation:** The team chooses automatic NoShow processing. Current source enables `ProcessReservationNoShowJob` by default at startup and every 24 hours unless explicitly disabled. The implemented scope includes the SQL branch that turns an expired CHECKED_IN Handover Visit into CHECKED_OUT and cancels its CONFIRMED Reservation. Its user-facing interpretation, race safety and PostgreSQL behavior require acceptance tests; code presence does not demonstrate those tests passed.
+- **Customer list filters:** My Contracts, My Visits and My Reservations currently fetch authorized pages of 20 and apply search/status/type/date filters to that page only. Their UI labels and tab counts reflect that scope. Account-wide filtering before pagination is outside the current-main baseline. Server-side ownership/Facility scoping before COUNT and pagination remains mandatory and unchanged. Public Facility search and operational report filters retain their separate server-side contracts.
+- **In-app notices:** OD-06 and Pg018's selected NotificationLog/IsInApp routing are the approved current requirements. New eligible in-app notices do not wait for SMTP; old rows are not backfilled. The legacy email retry job is separate and has no configured real sender in source. API, migration, security and event-atomicity acceptance still need evidence.
 
 ## 0.1 Authority Order
-> **Current-main reconciliation register — 2026-11-03 (informational; not a new owner decision).** The code repository contains Pg017 (OD-09/10 CCCD requirement and validation), Pg018 (OD-06 in-app notification provenance, `IsInApp` and worker routing) and Pg019 (RES-005 cancels an `UNPAID` Deposit Invoice atomically with eligible Reservation cancellation). Earlier "implementation pending", "SENT-only current code", and "no code changes" labels in this V11 review document are historical evidence, not current-source statements. Runtime database migration status, generated OpenAPI, security/API/E2E test passes and business approval for any newly observed semantics **remain unverified**. See the dated documentation drift audit before treating any implementation as release accepted.
+> **Current-main reconciliation register — 2026-11-04.** The approved current-main scope contains Pg017 (OD-09/10 CCCD guard), Pg018 (OD-06 in-app provenance and worker routing) and Pg019 (RES-005 atomically cancels an eligible `UNPAID` Deposit Invoice). Earlier pending-implementation labels are historical. Runtime migration status, generated OpenAPI and security/API/E2E test results remain unverified.
 
 For implementation, review, testing, and conflict resolution:
 
-1. **Approved governing SRS (currently V10 FINAL; V11 after owner approval)**
-2. **Companion `FRMS_API_V11.md` for API wire contracts only (after approval)**
-3. **Companion `FRMS_Data_Dictionary_V11.md` for entity/DB rules, within explicit approved SRS limits (after approval)**
+1. **`FRMS_SRS_V11.md` for the approved current-main scope and explicit owner decisions; historical V10 text supplies provenance, not extra code-absent V11 scope**
+2. **Companion `FRMS_API_V11.md` for API wire contracts within approved SRS limits**
+3. **Companion `FRMS_Data_Dictionary_V11.md` for entity/DB rules within approved SRS limits**
 4. **FRMS Scope V8**
-5. Implementation detail (current code is evidence, not authorization)
+5. Current `main` source defines the owner-approved implemented scope; code presence alone is not release-test evidence
 
 Conflict resolution:
 
 ```text
 IF an approved SRS explicitly defines or overrides a business rule
-    FOLLOW the approved SRS (V10 until V11 ratification)
+    FOLLOW the approved rule in V11; use historical V10 only where V11 has not superseded it
 
 ELSE IF a published API-only wire contract applies without business conflict
     FOLLOW the approved companion API specification
@@ -457,7 +467,7 @@ Primary lower-level authority for:
 - actor responsibilities;
 - scope boundaries;
 - business intent;
-- Future Work not superseded later.
+- Code-absent features are excluded from the approved current-main baseline.
 
 ## 0.3 Requirement Classification
 
@@ -631,7 +641,7 @@ Core Demo must prove all seven approved business flows end-to-end. Supporting ca
 
 Release 1 is the completed, hardened, tested implementation of the approved FRMS Release 1 business scope.
 
-Future Work does **not** automatically become Release 1 scope.
+Code-absent features are outside the approved current-main scope.
 
 The optional AI Size Guide is not a Release 1 blocker unless explicitly promoted later.
 
@@ -774,7 +784,6 @@ Internal system responsibilities include:
 
 - **payOS Payment** — Deposit and second-month-onward Rental Fee Invoice payment processing.
 - **Runtime AI service** — optional Size Guide recommendation.
-- **Future Google Identity Provider** — Employee external login only; Future Work.
 
 ## 3.8 Anonymous Visitor / Guest — Public Access Mode
 
@@ -1910,7 +1919,7 @@ Triggers MUST NOT orchestrate Complete Handover or Return finalization.
 
 ## 9.11 Scheduled Jobs — V11 current-source reconciliation (`REV-2026-10-21-BACKGROUNDJOBS`)
 
-**Notifications-only review boundary (2026-10-29):** the pending OD-06 replacement makes in-app notices visible after commit without waiting for this legacy mail pipeline. Worker routing/old-queue treatment require NOT-D01/02 approval; other jobs and account-email behavior are unchanged. No schedule/configuration/SQL is changed by this draft.
+**Notifications boundary (OD-06/OD-11):** eligible in-app notices become readable after commit without waiting for the legacy mail pipeline. Pg018 selects NotificationLog.IsInApp provenance, excludes these notices and legacy business-alert rows from email retry, and does not backfill old rows. Other account-email behavior is outside OD-06; migration deployment and tests remain pending.
 
 All six **business scheduled tasks** are in the V11 scope. The current `main` implementation hosts them in **four .NET background services**, because the three billing tasks share one ordered pipeline. A DI registration or SQL function is not proof of a successful production run.
 
@@ -1920,8 +1929,8 @@ All six **business scheduled tasks** are in the V11 scope. The current `main` im
 | `job_GenerateMonthlyInvoices` | `BillingMaintenanceJob`, stage 1 | `usp_GenerateMonthlyInvoices` → `usp_CreateMonthlyInvoice` | Startup, then every **24 hours** | `BackgroundJobs:Billing:Enabled=true` by default |
 | `job_MarkOverdueInvoices` | `BillingMaintenanceJob`, stage 2 | `usp_MarkOverdueInvoices` | Same run, **after successful stage 1** | Same Billing flag |
 | `job_RecalculateOpenLateFees` | `BillingMaintenanceJob`, stage 3 | `usp_RecalculateOpenLateFees` → `usp_CalculateLateFee` | Same run, **after successful stage 2** | Same Billing flag |
-| `job_ProcessReservationNoShow` | `ProcessReservationNoShowJob` | `usp_ProcessReservationNoShow` | Startup, then every **24 hours** when enabled | `BackgroundJobs:NoShow:Enabled=false` by default |
-| `job_RetryNotifications` | `RetryNotificationsJob` | `usp_RetryPendingNotification` → sender → `usp_MarkNotificationSent` | Startup, then every **5 minutes** when enabled; currently **one queued item/run** | `BackgroundJobs:Notifications:Enabled=false` by default; sender unconfigured |
+| `job_ProcessReservationNoShow` | `ProcessReservationNoShowJob` | `usp_ProcessReservationNoShow` | Startup, then every **24 hours** when enabled | `BackgroundJobs:NoShow:Enabled=true` by default; explicit false disables |
+| `job_RetryNotifications` | `RetryNotificationsJob` | `usp_RetryPendingNotification` → sender → `usp_MarkNotificationSent` | Startup, then every **5 minutes** when enabled; currently **one queued item/run** | `BackgroundJobs:Notifications:Enabled=true` by default; sender unconfigured, so delivery is not operational |
 
 ### 9.11.1 Runtime and ownership boundary
 
@@ -1937,7 +1946,7 @@ All six **business scheduled tasks** are in the V11 scope. The current `main` im
 1. `usp_GenerateMonthlyInvoices` processes the **current business month only** and eligible `ACTIVE` Contracts where `StartMonth < BillingMonth <= EndMonth`. No Invoice/Payment is generated for the offline first month. Existing same-Contract/same-month invoice is reused; historical invoices are not repriced.
 2. `usp_CreateMonthlyInvoice` captures the Reservation locked price or the applicable `ContractExtension` snapshot, the Contract selected Discount, the Contract-captured Policy due day and an initially `UNPAID` invoice.
 3. `usp_MarkOverdueInvoices` applies the captured Policy `OverdueStartDay`; `usp_RecalculateOpenLateFees` calls `usp_CalculateLateFee` for eligible `OVERDUE` rental invoices, **inserting or updating one LateFee row per invoice** rather than creating duplicates.
-4. `usp_ProcessReservationNoShow` is intended to close expired handover windows without cancelling already-completed business; the current SQL includes a checked-in Visit branch. Validate exact Visit/Reservation behavior against approved SRS and concurrency before enabling NoShow.
+4. `usp_ProcessReservationNoShow` is enabled by default under OD-11. Its approved current-main implementation changes an expired CHECKED_IN Visit to CHECKED_OUT and cancels its CONFIRMED Reservation. Validate this behavior and concurrency before release acceptance; enabling the job is not evidence of test success.
 5. `ExpirePendingReservationsJob` cancels only expired unpaid Deposit Reservations using the existing procedure. No extra scheduled first-month charge, payment provider poller, automatic settlement/refund or new approval job is authorized.
 
 ### 9.11.3 Missing execution evidence and decisions (blocking release acceptance)
@@ -1946,10 +1955,10 @@ All six **business scheduled tasks** are in the V11 scope. The current `main` im
 |---|---|---|
 | `JOB-GAP-01` | Run `dotnet build/test`, real PostgreSQL migration/routine integration and time-boundary E2E. `RecurringJobRegistrationTests` verifies **service registrations only**. | NOT VERIFIED |
 | `JOB-GAP-02` | Confirm deployment scheduler ownership, multi-replica safety, startup side effects, monitoring/error alerts and safe pause/rollback (Billing defaults **true**). | NOT VERIFIED |
-| `JOB-GAP-03` | Decide whether automatic **multi-month backfill** is required after a prolonged API outage. Current SQL generator chooses the current month only, so it does **not** fill older missed months. Do not silently introduce retroactive charges. | DECISION PENDING |
+| `JOB-GAP-03` | Current SQL generator creates invoices for the current month only and does not backfill older missed months after a prolonged API outage. Multi-month backfill is outside the current-main baseline. | IMPLEMENTED LIMITATION |
 | `JOB-GAP-04` | Confirm run-at-midnight precision/SLA (current timer is relative to startup), business calendar boundary and whether once every 24 hours is sufficient for invoice due dates/LateFee freshness. | ACCEPTANCE PENDING |
-| `JOB-GAP-05` | Verify NoShow SQL effects on `SCHEDULED` vs `CHECKED_IN` Visits and Facility/Policy ownership before enabling; default remains false. | TESTS / ACTIVATION PENDING |
-| `JOB-GAP-06` | Implement/configure a real Notification sender; test no false `SENT`, retries, at-least-once deduplication, cross-instance lock and one-item-per-run backlog throughput. | PROVIDER NOT IMPLEMENTED |
+| `JOB-GAP-05` | NoShow is enabled by default per OD-11. Verify the approved current SQL effects on `SCHEDULED` vs `CHECKED_IN` Visits, Facility/Policy ownership and concurrency; CHECKED_IN -> CHECKED_OUT plus Reservation CANCELLED is part of the implemented scope. | TESTS PENDING |
+| `JOB-GAP-06` | Legacy email retry job is registered but its sender is unconfigured; no outbound notification delivery is claimed. In-app `IsInApp` reads are independent of this job. | CURRENT-MAIN LIMITATION |
 
 No separate Worker project is required. A separately approved PostgreSQL/external executor MAY be substituted, but MUST follow the same SRS business rules, advisory locking and delivery safety contract. Its production existence has **not** been verified from repository source. Full acceptance gates: §27 V11-G10–G13 and Data Dictionary §27.
 
@@ -2387,13 +2396,13 @@ Acceptance Criteria:
 | `BWP-06` | Multi-Facility Monitoring | Flow 4 / 5 |
 | `BWP-07` | Business Reporting & Export | Flow 4 |
 
-### 11.5.1 Manager/BOM report read-model alignment — implementation review, not new approval
+### 11.5.1 Manager/BOM report read-model alignment — implemented scope
 
-The existing FE layouts are the integration target for MWP-06 (Manager Unit/Revenue tabs) and BWP-07 (BOM Facility/UnitType/Revenue/Rental Status tabs and CSV export). The following **REP-RD-01..03 identifiers are provisional names for already-present backend routes**, not a renumbering of the approved REP-001..004 catalogue. See API V11 §13.22 for response fields and query options.
+The existing FE layouts are the integration target for MWP-06 (Manager Unit/Revenue tabs) and BWP-07 (BOM Facility/UnitType/Revenue/Rental Status tabs and CSV export). **REP-RD-01..03 identify implemented backend routes**, without renumbering REP-001..004. See API V11 §13.22 for response fields and query options.
 
 - **Manager, assigned Facility only:** REP-001 supplies the *current* four-state physical inventory/usage/overdue summary; REP-002 supplies recognized rental revenue for a selected business month (`yyyy-MM`); REP-RD-01 supplies current unit-type utilization, paginated current inventory and **evidence-based** daily status series for a selected month. The selected month MUST NOT cause current UnitType/location/Contract/customer fields to be represented as a historical snapshot. If AuditLog coverage is incomplete, `dailyTrend[].usageRate` is nullable and `unknownUnits` MUST remain visible; historical inventory support remains false.
 - **BOM, system-wide read:** REP-RD-02 groups current physical state and selected-period recognized revenue by `facility`, `unitType` or Facility × UnitType (`status` view), with optional Facility/UnitType filters and paginated rows. REP-RD-03 supplies 12 monthly revenue rows for a selected business year, or three for a selected quarter. Year/quarter affect revenue, **not** the physical snapshot.
-- **BOM export:** REP-004 remains UTF-8 CSV; omitted `view` preserves the existing monthly `revenue` file, while proposed `view=facility|unitType|status` exports the complete filtered grouped report, not just the current UI page. For every view, exported figures and filters MUST agree with the corresponding on-screen report; any text cells MUST be protected from spreadsheet formula injection. No persisted Report table or new financial state is introduced.
+- **BOM export:** REP-004 remains UTF-8 CSV; omitted `view` preserves the existing monthly `revenue` file, while implemented `view=facility|unitType|status` exports the complete filtered grouped report, not just the current UI page. For every view, exported figures and filters MUST agree with the corresponding on-screen report; any text cells MUST be protected from spreadsheet formula injection. No persisted Report table or new financial state is introduced.
 
 **Implementation/release gates (still open):** The FE pages on `main` do not yet consume these additional report routes; the Manager historical inventory cannot be truthfully reconstructed from the current schema. Grouped export in the reviewed backend patch pages its HTTP output but `BusinessBreakdownAsync` computes/materializes all groups before `Skip/Take`, so SRS §18.6 bounded-memory/DB-side-pagination performance acceptance is **NOT MET/NOT DEMONSTRATED** for large reports. Resolve and test that implementation before sign-off; Swagger, RBAC, CSV parity/security, daily AuditLog completeness and real PostgreSQL/API/E2E acceptance are pending.
 
@@ -2528,7 +2537,7 @@ The following rule IDs are canonical for FRMS Release 1:
 
 ### Visit / Handover
 
-- `BR-VIS-01` only SCHEDULED Visit may be cancelled.
+- `BR-VIS-01` VIS-006 may cancel only an eligible SCHEDULED ACCESS or RETURN Visit; a RESERVATION/Handover Visit cannot be cancelled independently. Use RES-005 for eligible Reservation cancellation and its linked SCHEDULED Visit. CHECKED_IN and CHECKED_OUT Visits are ineligible for VIS-006.
 - `BR-VIS-02` RESERVATION Visit references Reservation; ACCESS/RETURN reference Contract.
 - `BR-VIS-03` ACCESS Visit requires ACTIVE Contract.
 - `BR-VIS-04` pending RETURN Visit blocks ACCESS and Renewal.
@@ -2878,13 +2887,13 @@ All executable API definitions are maintained in the **separate companion docume
 It contains the formerly embedded full §13.1–13.27 catalogue: HTTP routes,
 roles, request/response JSON schemas, error envelopes, paging, time formats,
 Swagger rules, security constraints, and the V11 implementation-delta registry.
-The API document is authoritative **only for API wire contracts after owner
-approval** and may not override the business/domain rules of this SRS.
+The API document records the approved current-main HTTP wire contracts and may
+not override the business/domain rules of this SRS.
 
 Legacy references in this SRS to `§13.x` or `section 13.x` mean
 `FRMS_API_V11.md §13.x`; the API annex's `§13A` contains
-**provisional** implementation-derived endpoints and does not grant permissions
-until expressly approved.
+owner-approved current-main implementation-derived endpoints. Authorization
+remains constrained to the implemented roles and server-side checks.
 
 For this release, changes to endpoints and DTOs MUST preserve the usual
 `Controller -> Service -> Repository -> EF Core/PostgreSQL routines` boundary;
@@ -3249,7 +3258,7 @@ Duplicate delivery, second legitimate success and terminal/reference conflicts p
 
 ## 15.3 Notification Processing — pending OD-06 replacement
 
-Proposed in-app path: actual successful business event + eligible Customer notice commit together -> own-Customer GET/Overview -> render createdAt. No SMTP call, delivery worker, SENT state or SentAt timestamp gates this path. Read/Refresh never queues, sends, marks read or changes business state.
+Current in-app path: actual successful business event + eligible Customer notice commit together -> own-Customer GET/Overview -> render createdAt. No SMTP call, delivery worker, SENT state or SentAt timestamp gates this path. Read/Refresh never queues, sends, marks read or changes business state.
 
 Existing PENDING -> SENT and retry-on-failure describe legacy email delivery only. Preserve those historical facts; do not fake send success. NOT-D01/02 must resolve eligible data, legacy visibility and worker exclusion before implementation. Email behavior of registration/Employee provisioning remains unchanged by this Notifications-only revision.
 
@@ -4142,7 +4151,7 @@ EF Core InMemory is not sufficient evidence for those behaviors.
 | `DBT-02` | Reservation on INACTIVE Facility | rejected |
 | `DBT-03` | Confirm Reservation without paid Deposit | rejected |
 | `DBT-04` | Create second RESERVATION Visit | rejected or returns existing idempotently |
-| `DBT-05` | Cancel Visit after CHECKED_IN | rejected |
+| `DBT-05` | VIS-006 on CHECKED_IN Visit and on SCHEDULED RESERVATION/Handover Visit; eligible SCHEDULED ACCESS/RETURN controls | ineligible cases rejected without changes; eligible controls follow existing cancellation rules |
 | `DBT-06` | Two handovers allocate same StorageUnit | exactly one succeeds |
 | `DBT-07` | Contract uses another Customer's Discount | rejected |
 | `DBT-08` | Duplicate Rental Invoice for Contract/BillingMonth | rejected/prevented |
@@ -4351,14 +4360,14 @@ Ownership notation is `FE / BE` where both apply; `System / BE` for internal ser
 | `MWP-03` | Facility Operations Monitoring | Mẫn / Long | UNIT-001, REP-001..002; RES-002..003, CON-001..002/004..005, VIS-003..004, BIL-001..002, PAY-003 | CALC-REP-*; same-Facility reads | DAL/API/SEC | Yes |
 | `MWP-04` | Return, Inspection & Damage Decision | Mẫn / Giang | INS-001..002, INS-009..010, REP-001 | BR-RET-*; BR-DMG-02..03 | API/SEC/CON-DMG/E2E-F06 | Yes |
 | `MWP-05` | Support Staff Assignment | Mẫn / Giang | SUP-002..005 | BR-SUP-01 | UT/API/SEC/E2E-F07 | Yes |
-| `MWP-06` | Facility Reporting | Mẫn / Giang | REP-001..002; REP-RD-01 (provisional implementation route) | CALC-REP-01/02; same-Facility read and honest current-vs-history scope | DAL/API/SEC/ACC; daily AuditLog evidence (pending) | Yes |
+| `MWP-06` | Facility Reporting | Mẫn / Giang | REP-001..002; REP-RD-01 (implemented route) | CALC-REP-01/02; same-Facility read and honest current-vs-history scope | DAL/API/SEC/ACC; daily AuditLog evidence (pending) | Yes |
 | `BWP-01` | Facility Management | Mẫn / Long | BOM-001..005 | BR-FAC-01 | UT/API/SEC | Yes |
 | `BWP-02` | Unit Type Pricing | Mẫn / Long | BOM-006..007 | snapshot rules | UT/API/REG | Yes |
 | `BWP-03` | Policy Version Management | Mẫn / Long | BOM-008..009 | BR-POL-01..02 | DBT-12, CON-POL, API | Yes |
 | `BWP-04` | Discount Management | Mẫn / Long | BOM-010..012 | BR-DIS-01..04 | DBT-07, API | Yes |
 | `BWP-05` | Extra Fee Management | Mẫn / Giang | BOM-013..014 | BR-EXT-01 | API/REG | Yes |
 | `BWP-06` | Multi-Facility Monitoring | Mẫn / Giang | BOM-001, REP-003; RES-002..003, CON-001..002/004..005, VIS-003..004, BIL-001..002, PAY-003 | CALC-REP-*; authorized system-wide reads | DAL/API/SEC | Yes |
-| `BWP-07` | Business Reporting & Export | Mẫn / Giang | REP-003..004; REP-RD-02..03 (provisional implementation routes) | CALC-REP-01/02; all tabs and filtered UTF-8 CSV parity | DAL/API/SEC/ACC; large-export bounded-memory verification (pending) | Yes |
+| `BWP-07` | Business Reporting & Export | Mẫn / Giang | REP-003..004; REP-RD-02..03 (implemented routes) | CALC-REP-01/02; all tabs and filtered UTF-8 CSV parity | DAL/API/SEC/ACC; large-export bounded-memory verification (pending) | Yes |
 | `AWP-01` | User Account Monitoring | Mẫn / Long | ADM-001..002 | BR-ACC-* | API/SEC | Yes |
 | `AWP-02` | Customer Account Status Management | Mẫn / Long | ADM-003..004 | BR-ACC-02 | UT/API/DBT | Yes |
 | `AWP-03` | Employee Account Management | Mẫn / Long | ADM-005..008, ADM-012 | BR-EMP-01; credential provisioning | UT/API/SEC/INT-EMAIL | Yes |
@@ -4691,7 +4700,7 @@ Rationale:
 - It can be opened by Excel/Google Sheets and imported by reporting tools.
 - It does not change business calculations or persisted data.
 
-The export MUST use the same filters/calculations as the corresponding on-screen report. The reviewed implementation-alignment proposal keeps legacy `view=revenue` CSV header/row contract and adds `view=facility|unitType|status` grouped CSV using the matching BOM analysis filters. This documents the existing backend patch target **without certifying** that large exports already satisfy §18.6 (bounded-memory), concurrent-data consistency, or acceptance testing. Formula-like text cells require CSV injection defenses.
+The export MUST use the same filters/calculations as the corresponding on-screen report. The current backend keeps legacy `view=revenue` CSV header/row contract and implements `view=facility|unitType|status` grouped CSV using the matching BOM analysis filters. This documents implemented behavior **without certifying** that large exports satisfy §18.6 (bounded-memory), concurrent-data consistency, or acceptance testing. Formula-like text cells require CSV injection defenses.
 
 Changing Release 1 export to XLSX or another format requires only an API/UI contract revision and does not change domain semantics.
 
@@ -5079,80 +5088,13 @@ V8 preserves the V5 review corrections and additionally resolves the low-impact 
 - stronger TraceId/CancellationToken/shared-client wording;
 - FRMS Release 1 vs document-version terminology.
 
-# 24. Future Work
+# 24. Scope excluded from the current-main baseline
 
+Code-absent feature proposals are excluded from this approved documentation baseline. They require a future owner decision and an implementation change before being added back to the current requirements. The Customer lists currently filter each authorized page; account-wide filtering is not implemented.
 
-## 24.1 Employee Google Login
+# 25. Approved Current-Main Baseline Summary
 
-Future Employee external authentication:
-
-```text
-Google OAuth 2.0 + OpenID Connect
-```
-
-Google login maps to an existing FRMS `UserAccount` and still results in an FRMS JWT.
-
-Not a Release 1 blocker unless explicitly promoted.
-
-## 24.2 Future ExternalLogin Entity
-
-Future-only proposal:
-
-```text
-ExternalLogin
--------------
-ExternalLoginId
-UserAccountId
-Provider
-ProviderSubjectId
-CreatedAt
-```
-
-```text
-UNIQUE(Provider, ProviderSubjectId)
-```
-
-Not part of current 27-entity FRMS Release 1 schema.
-
-## 24.3 Advanced Authentication Security
-
-Potential future work:
-
-- account lock/unlock;
-- automatic lockout;
-- additional external identity providers.
-
-## 24.4 Additional Business Future Work
-
-Source-listed future directions include:
-
-- arbitrary Start Date + rental duration;
-- separate Renewal Fee/payment flow;
-- Staff Schedule / Shift Management;
-- Staff availability/conflict handling;
-- Day-off Management;
-- optional Staff pre-assignment;
-- complex staff assignment optimization;
-- expanded Manager approval/operation for Renewal/Overdue;
-- Facility-level UnitType/size/pricing delegation;
-- expanded configurable rule/policy management;
-- configurable Late/Overdue formula;
-- generalized role reclassification including Customer;
-- Rental Price Range / facility-specific pricing;
-- Fee Waiver;
-- full payment flow for extra charges;
-- detailed refund transaction;
-- detailed compensation/debt collection;
-- legal dispute/enforcement;
-- detailed property recovery;
-- additional compensation when Facility cannot provide reserved unit;
-- business flows outside the seven core flows.
-
-Future Work is not automatically Release 1 scope.
-
-# 25. Approved Baseline Summary and V11 Pending Overrides
-
-Historical V10 FINAL summary (superseded by the explicit V11 candidate technical deltas on owner approval) consolidates the following implementation baseline, including the approved offline-first-month, operational-consistency, payOS and team-approved Guest revisions; V9 decisions not explicitly superseded remain in force. Items 110–115 summarize the approved Guest requirements adopted under section 0.0.6:
+Historical V10 FINAL summary (superseded by the approved current-main V11 baseline where different) consolidates the earlier implementation rules, including offline-first-month, operational-consistency, payOS and Guest revisions. Items 110–115 summarize the Guest requirements adopted under section 0.0.6:
 1. Historical V10 authority order was `SRS V10 FINAL > Data Dictionary V2.1 > Scope V8`; V11 draft/approval rules are in §0.1.
 2. This SRS is the FRMS Release 1 implementation source of truth.
 3. Five roles are fixed: CUSTOMER, FACILITY_STAFF, FACILITY_MANAGER, BUSINESS_OPERATIONS_MANAGER, SYSTEM_ADMINISTRATOR.
@@ -5178,7 +5120,7 @@ Historical V10 FINAL summary (superseded by the explicit V11 candidate technical
 23. Customer self-registration creates role CUSTOMER with ACTIVE account status under the current no-verification Release 1 model.
 24. Authorization is role + Facility + resource ownership + business state.
 25. Administrator privilege does not grant general business-data mutation.
-26. Future Employee Google OAuth 2.0/OIDC remains Future Work.
+26. Employee Google OAuth 2.0/OIDC is absent from current `main` and outside this baseline.
 27. `ILogger<T>` is used for technical logging.
 28. Global Exception Middleware is mandatory.
 29. Every API error response includes TraceId.
@@ -5255,7 +5197,7 @@ Historical V10 FINAL summary (superseded by the explicit V11 candidate technical
 100. Release 1 has no separate Worker project. Application-scheduled execution runs in `Frms.Api/BackgroundJobs` and calls Business services; approved PostgreSQL job scheduler (if separately deployed) may call authoritative PostgreSQL business routines directly.
 101. `Frms.ArchitectureTests` is required to enforce the locked dependency boundaries.
 102. RES-003, CON-002 and VIS-004 allow Customer own detail, Staff/Manager same-Facility detail and BOM system-wide detail. OD-08 additionally grants Staff same-Facility read-only CON-001 list access, not RES-002/VIS-003 list access.
-103. RES-002 and VIS-003 remain Customer-own, Manager-Facility and BOM-system lists; CON-001 additionally allows Staff's assigned-Facility Contract list. All filtering and counting precede pagination; no Staff-controlled FacilityId expands scope.
+103. RES-002 and VIS-003 remain Customer-own, Manager-Facility and BOM-system lists; CON-001 additionally allows Staff's assigned-Facility Contract list. Server authorization-scope filtering and counting precede pagination; no Staff-controlled FacilityId expands scope. OD-11 records page-local Customer UI presentation filters; account-wide filtering is outside the current-main baseline.
 104. OPS-001 Visit work items expose authoritative VisitId/EntityId and minimal Customer identification; non-Visit reference IDs are not interpreted as Visit IDs.
 105. ContractDetail already contains ReservationId; operational locked-price/RESERVATION Visit reads follow RES-003/VIS-004 without new Contract attributes or duplicate fields.
 106. BOM-010 supports own Customer and authorized same-Facility operational Discount reads; BOM-013 supports active operational ExtraFeeType reads. Catalogue mutation roles are unchanged.
@@ -5551,15 +5493,15 @@ Exact SQL numeric error numbers are implementation detail; stable string codes a
 
 # Appendix D — API Endpoint Index (separate companion)
 
-The **only normative HTTP endpoint inventory** for this V11 candidate is
+The **normative HTTP endpoint inventory** for this current-main baseline is
 [`FRMS_API_V11.md` §13.11](FRMS_API_V11.md#1311-endpoint-registry).  
-The **non-approved implementation delta** is maintained in the same file's
-[§13A](FRMS_API_V11.md#13a-v11-implementation-delta--provisional-api-additions).
+The **approved implemented additions** are maintained in the same file's
+[§13A](FRMS_API_V11.md#13a-v11-api-additions--approved-current-main-scope).
 
 This SRS deliberately does not duplicate method/route/role/DTO definitions. Approved core
 IDs (`AUTH`, `CAT`, `PUB-POL`, `AI`, `RES`, `BIL`, `PAY`, `CON`, `VIS`, `OPS`, `INS`,
-`SUP`, `UNIT`, `BOM`, `REP`, `ADM`) remain unchanged; provisional `IMPL-*` identifiers
-have **no** automatic role or release authority. Any API inventory/JSON/Swagger/FE mismatch
+`SUP`, `UNIT`, `BOM`, `REP`, `ADM`) remain unchanged; `IMPL-*` identifiers
+describe approved current-main routes and their implemented roles, without implying release-test success. Any API inventory/JSON/Swagger/FE mismatch
 is a tracked contract drift under V11-G07.
 
 # Appendix E — Test Case Index
@@ -5677,42 +5619,42 @@ E2E-F07  Support
 
 Five roles and seven core flows; Reservation holds Facility+UnitType+month capacity, no Physical Unit ID on Reservation; signed/full offline first-month settlement at atomic handover; later invoice/payOS flow; Payment idempotency and verified webhook; captured Policy and price snapshots; same-Facility authorization; Inspection claim and approved Damage/Settlement; active Contract occupancy; AuditLog immutability and historical payment evidence; public Guest projection/access separation.
 
-## 27.3 Pending owner approvals / blocked DoD
+## 27.3 Approved scope / outstanding verification
 
 | Gate | Requirement | Current status | Required evidence |
 |---|---|---|---|
-| V11-G01 | Approve PostgreSQL as replacement technical baseline | PENDING | Owner ADR/SRS approval + complete schema/SQL migration assurance |
+| V11-G01 | PostgreSQL replacement technical baseline | **OWNER APPROVED (OD-11); DEPLOYMENT/TESTS PENDING** | Verify complete schema/routine migration chain and live database state |
 | V11-G02 | Owner approval for 28th entity, states and Manager handover workflow | **APPROVED — TESTS PENDING** | Verify migration application, index/trigger guards, SQL concurrency/rollback, full handover E2E |
 | V11-G03 | Approve three read-only SYSTEM_ADMINISTRATOR timeline GETs | **APPROVED — SECURITY TESTS PENDING** | Restrict exception to timeline; confirm own-Facility Manager and cross-Facility Admin/BOM reads; 401/403/404 |
-| V11-G04 | Approve Customer activity and supplemental directory APIs | **PARTIAL: IMPL-CUSACT-01/02 REQUIREMENTS APPROVED (OD-06/07); implementation/test acceptance pending; directories still provisional** | Owner-only SENT/Payment history, pagination/API errors and security/integration/UI tests; no unread/derived notification links or fabricated financial records; separate approval for directory reads |
+| V11-G04 | Verify Customer activity and supplemental directory APIs | **CURRENT-MAIN SCOPE APPROVED; RUNTIME TESTS PENDING** | Owner-only in-app/Payment history, directory role/field scope, pagination/API errors and security/integration/UI tests; no unread/derived notification links or fabricated financial records |
 | V11-G05 | Acknowledge public CAT-003/004/005 media URL response fields | **CODE VERIFIED / OWNER ACKNOWLEDGED — TESTS PENDING** | Media governance/URL validation and generated Swagger/FE null/shape parity; future upload/CMS not approved |
 | V11-G06 | Retain optional Customer.Address and align private AUTH-004 CCCD | **APPROVED; OWNER-ONLY CCCD SERIALIZATION NOW OBSERVED AT 2945788; RUNTIME TESTS PENDING** | Regression for AUTH-001/005 optional Address; AUTH-004 null/string own-Customer-only projection and no widened disclosure; generated Swagger/FE tests |
 | V11-G07 | Confirm exact endpoint registry vs running OpenAPI and FE | NOT VERIFIED | Diff generated Swagger against companion API spec |
-| V11-G08 | Test full migration chain Pg001..Pg013 and cross-feature regression | NOT RUN HERE | Restore/build/NUnit/PostgreSQL integration/concurrency/Playwright |
-| V11-G09 | Final SRS/API release-document ratification | **PARTIAL OWNER DECISIONS APPROVED; FINAL PENDING** | Complete main-to-V11 full-text diff, other pending decisions, API/FE parity and controlled repository publication |
-| V11-G10 | Monthly billing / overdue / LateFee recurring pipeline (`JOB-GAP-01/03/04`) | **CODE REGISTERED; BILLING DEFAULT TRUE; TESTS PENDING** | PostgreSQL DBT: no first month Invoice; correct month/price/Discount/Policy; idempotent Invoice and LateFee; outage/backfill decision, UTC/GMT+7 boundary, interval SLA |
-| V11-G11 | No-show cleanup (`JOB-GAP-05`) | **CODE REGISTERED; DEFAULT FALSE** | Prove `SCHEDULED`/`CHECKED_IN` Visit effects and no accidental valid handover cancellation, test concurrency, approve activation |
-| V11-G12 | Notification retry (`JOB-GAP-06`) | **CODE REGISTERED; PROVIDER UNCONFIGURED; DEFAULT FALSE** | Real sender, `PENDING→SENT` after delivery, idempotent provider, crash/retry and multi-instance lock tests, queue throughput |
+| V11-G08 | Test full current migration chain through Pg019 and cross-feature regression | NOT RUN HERE | Restore/build/NUnit/PostgreSQL integration/concurrency/Playwright; verify applied migration history |
+| V11-G09 | Validate SRS/API current-main parity | **IMPLEMENTED SCOPE APPROVED; PARITY TESTS PENDING** | Complete main-to-V11 diff, API/FE parity and controlled repository publication |
+| V11-G10 | Monthly billing / overdue / LateFee recurring pipeline (`JOB-GAP-01/03/04`) | **CODE REGISTERED; BILLING DEFAULT TRUE; TESTS PENDING** | PostgreSQL DBT: no first month Invoice; correct month/price/Discount/Policy; idempotent Invoice and LateFee; verify current-month-only limitation, UTC/GMT+7 boundary and interval behavior |
+| V11-G11 | No-show cleanup (`JOB-GAP-05`) | **CURRENT-MAIN SCOPE APPROVED; DEFAULT TRUE; TESTS PENDING** | Prove `SCHEDULED`/`CHECKED_IN` Visit effects, including CHECKED_IN -> CHECKED_OUT plus Reservation CANCELLED, and concurrency before release acceptance |
+| V11-G12 | Legacy notification retry (`JOB-GAP-06`) | **CODE REGISTERED; DEFAULT TRUE; PROVIDER UNCONFIGURED** | Verify the job does not mark SENT or expose in-app notices as email on provider failure; outbound delivery is not part of the current-main working scope |
 | V11-G13 | Job deploy/operability (`JOB-GAP-01/02`) | **NOT VERIFIED** | Build/NUnit, current PostgreSQL Pg007 functions, deployed scheduler ownership, logs/alerting, safety flags, multi-replica tests, canary and rollback |
-| V11-G14 | OD-09 CCCD before new Reservation and interrupted-operation continuation | **TEAM APPROVED; NEW GATE/CONTINUATION IMPLEMENTATION AND TESTS PENDING** | §14.15.3 API-CCCD/SEC-CCCD/DBT-CCCD/REG-CONT + E2E-F01; 400 errors.cccd; no writes on rejection, atomic/current-profile guard, safe return and no auto-submit, deployed API/Swagger/FE parity |
-| V11-G15 | OD-10 exact 12-digit CCCD | **OWNER APPROVED; FE/DOC UPDATE; BE/DB/OPENAPI ACCEPTANCE PENDING** | API-CCCD-004, DBT-CCCD-003, REG-CONT-002; authenticated atomic format guard, optional/legacy semantics and generated Swagger parity |
-| V11-G16 | OD-06 replacement: SMTP-independent in-app Notifications / Overview | **REVIEW DRAFT; CODE CHANGES NOT AUTHORIZED** | NOT-D01/02 and API/FE DTO approval; API-NOTAPP, SEC-NOTAPP, DBT-NOTAPP, E2E-NOTAPP; SMTP off/failure, correct recipient, atomic events, preserved history and worker exclusion |
+| V11-G14 | OD-09 CCCD before new Reservation and interrupted-operation continuation | **TEAM APPROVED; Pg017/FE SOURCE OBSERVED; TESTS PENDING** | §14.15.3 API-CCCD/SEC-CCCD/DBT-CCCD/REG-CONT + E2E-F01; 400 errors.cccd; no writes on rejection, atomic/current-profile guard, safe return and no auto-submit, deployed API/Swagger/FE parity |
+| V11-G15 | OD-10 exact 12-digit CCCD | **OWNER APPROVED; Pg017/FE SOURCE OBSERVED; BE/DB/OPENAPI ACCEPTANCE PENDING** | API-CCCD-004, DBT-CCCD-003, REG-CONT-002; authenticated atomic format guard, optional/legacy semantics and generated Swagger parity |
+| V11-G16 | OD-06 SMTP-independent in-app Notifications / Overview | **REQUIREMENT APPROVED; Pg018/API SOURCE OBSERVED; TESTS PENDING** | API-NOTAPP, SEC-NOTAPP, DBT-NOTAPP, E2E-NOTAPP; SMTP off/failure, correct recipient, atomic events, preserved history and worker exclusion |
 
-**Job-specific DoD:** All six tasks are present in source but only three Billing operations and Deposit expiration are default-active by current source. NoShow and Notifications require separate activation; the notification sender does not exist as an operational adapter. Do not infer successful execution from hosted-service registration. The 24-hour interval is not a fixed local-midnight cron; the current-month SQL generator does not backfill previous missed months.
+**Job-specific DoD:** All six tasks are present in source. Billing, NoShow and legacy notification retry default to enabled; Deposit expiration also runs. Notification delivery cannot succeed without a configured real sender. Do not infer successful execution from hosted-service registration. The 24-hour interval is not a fixed local-midnight cron; the current-month SQL generator does not backfill previous missed months.
 
-**Definition of Done:** V11 cannot be called `FINAL`, `RELEASE COMPLETE`, or `API CONTRACT VERIFIED` until all applicable gates are positively evidenced. Historical V10's 27-entity scope and the **owner-approved V11 28th entity** are both traceable; approval is not proof Pg013 is deployed or safe. `SYSTEM_ADMINISTRATOR` timeline-only read is explicitly approved (V11-OD-03), but all other role expansion remains prohibited without a change record. A controller, migration or page is not proof of passing integration or security gates.
+**Definition of Done:** The current-main scope is approved for documentation; `RELEASE COMPLETE` and `API CONTRACT VERIFIED` require positive evidence for applicable gates. Historical V10's 27-entity scope and the **owner-approved V11 28th entity** are both traceable; approval is not proof Pg013 is deployed or safe. `SYSTEM_ADMINISTRATOR` timeline-only read is explicitly approved (V11-OD-03); any later role expansion requires a change record. A controller, migration or page is not proof of passing integration or security gates.
 
 ## 27.4 Controlled rollout sequence (documentation only)
 
-1. Record accepted V11-OD-01..07 decisions; implement/verify approved Customer activity reads separately and resolve remaining pending architecture/directory/billing-backfill/media-governance decisions in the appropriate owning tasks.
-2. Produce approved SRS/API V11 release candidate; reconcile full `main`-to-V11 diff.
+1. Verify the owner-approved current-main scope, including Customer activity, directories, reporting and media fields, against generated API contracts and runtime authorization.
+2. Reconcile the full `main`-to-V11 diff and record test evidence.
 3. Review the synchronized companion Data Dictionary V11 (`FRMS_Data_Dictionary_V11.md`); verify its physical schema/routine notes against actual PostgreSQL deployment in the owning implementation tasks only.
 4. Verify actual PostgreSQL migration history, SQL routine behavior, Swagger/TypeScript parity, auth/PII and negative tests, then E2E.
 5. Merge artifacts only through an authorized process; **this output does not modify GitHub**.
 
 
-## V11 PR Publication Note — 2026-10-21
+## V11 Current-Main Documentation Note — 2026-11-04
 
-This document is prepared for controlled GitHub review with companion `FRMS_API_V11.md` and `FRMS_Data_Dictionary_V11.md` at the pinned read-only `main` revision `0219f30734b00b3e5527e3453b19840f08f63639`. The Data Dictionary entity catalogue has been statically normalized to **28 classes / 202 fields** as currently modeled; this does not reauthorize historical or provisional scope. Payment gateway for **new** transactions is payOS only; SRS contains no retired-gateway contract.
+This document and companions `FRMS_API_V11.md` and `FRMS_Data_Dictionary_V11.md` use `main` revision `29a688b06511b34a25308b8752d7c393096a9e8b` as their approved implementation scope. The Data Dictionary entity catalogue has **28 classes / 202 fields** as modeled. Payment gateway for **new** transactions is payOS only; SRS contains no retired-gateway contract.
 
-**PR acceptance gates remain open:** V11-G02/G03/G06–G13, Swagger generated DTO/route parity, PostgreSQL migrations on target database, real Notification sender, scheduling/outage/backfill policy, tests and owner full-document ratification. Document publication is permitted as a **V11 review candidate** but must not be represented as `V11 FINAL`, production validation or completed Definition of Done. No repository or runtime change is part of this documentation package.
+**Release verification remains open:** V11-G02/G03/G06–G13, generated Swagger DTO/route parity, PostgreSQL migrations on the target database, notification email delivery configuration, job scheduling and tests. Current source does not support multi-month billing backfill. Publication of these documents is not evidence of production validation or completed Definition of Done; this task changes no runtime code.

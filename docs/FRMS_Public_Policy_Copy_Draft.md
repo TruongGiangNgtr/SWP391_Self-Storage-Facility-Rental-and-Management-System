@@ -2,9 +2,9 @@
 
 **Ngày soạn:** 2026-10-29
 
-**Baseline:** `origin/main` tại `835bafb`; owner duyệt cấu trúc bốn chủ đề trong `REV-2026-10-29-PUBLIC-POLICY-CONSOLIDATION` (SRS §0.0.11).
+**Baseline:** `origin/main` tại `29a688b`; owner duyệt bốn chủ đề trong `REV-2026-10-29-PUBLIC-POLICY-CONSOLIDATION` (SRS §0.0.11). Nội dung bốn bài đã có trong `backend/Frms.Api/Content/PublicPolicies/published.json`.
 
-**Trạng thái nội bộ:** LOCAL REVIEW. Nội dung đã được đưa vào catalogue để owner test thủ công, chưa được coi là duyệt pháp lý, công bố production hoặc nghiệm thu runtime. Không đổi Policy trong DB, công thức tài chính, luồng đăng ký, quyền truy cập hoặc trạng thái của danh mục AI.
+**Trạng thái hiện hành:** Bốn bài Help Center đã nằm trong catalogue `published.json` trên `main` và thuộc phạm vi nội dung được owner duyệt theo code. Chưa có bằng chứng về triển khai production hoặc nghiệm thu runtime. Danh mục AI riêng vẫn ghi `DRAFT_REQUIRES_LEGAL_AND_BUSINESS_APPROVAL` trong source; việc xuất bản bài Help không tự đổi metadata đó. Không đổi Policy trong DB, công thức tài chính, luồng đăng ký hoặc quyền truy cập.
 
 Bốn bài dưới đây viết bằng tiếng Anh để khớp giao diện Help Center. Chỉ `title`, `summary` và `sections` là nội dung hiển thị cho khách. `policyKey` là khóa API; ghi chú ở đầu và phụ lục dưới đây không được đưa vào thân bài công khai. Hai bài cũ `identity-verification` và `account-privacy` được gom vào bài Reservation & Account Requirements; không giới thiệu eKYC hay một tuyên bố pháp lý đầy đủ về quyền riêng tư.
 

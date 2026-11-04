@@ -6,15 +6,15 @@ Repository gồm frontend React, backend ASP.NET Core, database PostgreSQL và c
 
 ## Tài liệu và trạng thái hiện tại
 
-> **Source reconciliation 2026-11-03 (code observation, not approval):** [The 2026-10-29 Notifications review](docs/FRMS_InApp_Notifications_Review.md) is historical. Current `main` includes `Pg018_InAppNotifications`, `NotificationLog.IsInApp`, a four-field Customer notification response and an SMTP-independent GET. Final owner approval, deployed migration state, security and runtime tests are not certified. Account onboarding and other email workflows remain separate.
+> **Đồng bộ 2026-11-04:** Chủ dự án chọn `main` (`29a688b`) làm mốc cho bộ tài liệu hiện hành. OD-06 dùng thông báo in-app độc lập SMTP; Pg017/Pg018/Pg019 hiện diện trong source. NoShow được bật mặc định, Handover Visit không hủy riêng, và bộ lọc Customer chỉ áp dụng trên từng trang. Trạng thái migration đã triển khai và các bài kiểm thử bảo mật/đồng thời/E2E vẫn phải xác minh riêng.
 
 - [AGENTS.md](AGENTS.md): quy tắc làm việc và giới hạn thay đổi repository.
 - [SRS V11](docs/FRMS_SRS_V11.md): luồng nghiệp vụ, quy tắc, quyết định của chủ dự án và các điều kiện nghiệm thu.
 - [API V11](docs/FRMS_API_V11.md): hợp đồng HTTP/API.
 - [Data Dictionary V11](docs/FRMS_Data_Dictionary_V11.md): mô hình dữ liệu và routine database.
-- [TECH_BASELINE.md](TECH_BASELINE.md): tài liệu kỹ thuật còn chứa nội dung cũ, cần đối chiếu với code và các quyết định được phê duyệt.
+- [TECH_BASELINE.md](TECH_BASELINE.md): nền tảng kỹ thuật PostgreSQL/payOS và ranh giới kiến trúc hiện hành.
 
-**Lưu ý về tính nhất quán:** AGENTS.md chỉ định SRS V11 FINAL tại `project_sources/`, nhưng bộ V11 trong checkout nằm tại `docs/` và còn ghi `REVIEW CANDIDATE`, với một số quyết định đã được duyệt riêng. AGENTS.md/TECH_BASELINE.md còn mô tả SQL Server, trong khi runtime hiện dùng PostgreSQL/Npgsql. README này ghi nhận hiện trạng, không phê duyệt thay đổi kiến trúc hoặc thay thế yêu cầu nghiệp vụ. Các điểm chưa được duyệt cần chủ dự án chốt trước khi triển khai thay đổi liên quan.
+**Trạng thái tài liệu:** Phạm vi đã có trong `main` được chủ dự án duyệt làm baseline cho SRS/API/Data Dictionary V11. Những đề xuất chưa có trong code không thuộc baseline hiện tại. Việc duyệt phạm vi không thay thế kiểm thử, xác nhận migration đã triển khai hoặc nghiệm thu phát hành.
 
 ## Vai trò sử dụng
 
