@@ -2,7 +2,7 @@
 
 Owns repository interfaces/implementations and the 27-table PostgreSQL runtime EF model. Schema, seeds, migrations, triggers and authoritative functions are deployed only by `Frms.Migrations.PostgreSql`. Ordinary queries use EF; critical routines remain atomic database operations. No Service-to-DbContext or Controller-to-Repository dependency is introduced.
 
-`../Frms.Migrations.PostgreSql/Migrations` is the independent chain and snapshot. The runtime source-links that project's canonical model configuration; it compiles no migration classes and discovers no migrations. No circular project reference is introduced. The old SQL Server migration source is preserved verbatim under `../sql/archive/sqlserver-migrations`, outside assembly discovery. PostgreSQL bootstrap uses migrations only, without legacy exports or fabricated migration history.
+`../Frms.Migrations.PostgreSql/Migrations` is the independent chain and snapshot. The runtime source-links that project's canonical model configuration; it compiles no migration classes and discovers no migrations. No circular project reference is introduced. PostgreSQL bootstrap uses migrations only, without legacy exports or fabricated migration history.
 
 `../sql/postgresql` SQL is embedded only by the independent migration project and installed by its owning migration. Treat applied migration resources as immutable; add a new resource and forward migration for changes. Functions keep the approved `usp_*` business names in `public` and return named result rows. `PostgreSqlRoutine` binds typed inputs with named `p_snake_case` arguments and explicit SELECT calls; it never uses Npgsql's CALL behavior for SQL Server-style CommandType.StoredProcedure.
 

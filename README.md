@@ -86,7 +86,6 @@ backend/Frms.Business             Services, Commands/Results, provider interface
 backend/Frms.DataAccess           Entities, repositories, EF Core/Npgsql
 backend/Frms.Infrastructure       Payment, email và các adapter
 backend/Frms.Migrations.PostgreSql Migration/schema deployment độc lập
-backend/sql/archive              Nguồn SQL Server lịch sử
 backend/tests                    Unit, API, integration, architecture tests
 frontend/src                     Các trang, layout theo vai trò, feature và API client
 tests/postman                    Bộ kiểm tra API
