@@ -564,8 +564,8 @@ Khi dựng mỗi trang:
 
 **Kết quả mong muốn:** Người dùng tìm kho trên Guest, đăng nhập và tiếp tục thao tác với cùng lựa chọn, cùng bố cục quen thuộc. Khi vào khu vực quản lý, họ nhận thêm sidebar và dữ liệu cá nhân trong cùng một hệ thống giao diện.
 
-## Notifications — OD-06 sửa đổi, tài liệu chờ duyệt (2026-10-29)
+## Notifications — OD-06, phạm vi đã có trên main
 
-Chỉ thay cơ chế thông báo: in-app sau khi nghiệp vụ commit, không đợi SMTP/SENT/SentAt. DTO đề xuất notificationId/notificationType/content/createdAt; FE sẽ bỏ yêu cầu sentAt và copy “Sent notification history” sau khi contract được duyệt. Overview cùng nguồn, đúng Customer, plain text/GMT+7; không thêm unread/reminder/realtime hoặc tự tạo thông báo từ FE.
+Thông báo in-app đọc được sau khi nghiệp vụ commit, không đợi SMTP/SENT/SentAt. DTO hiện hành gồm notificationId/notificationType/content/createdAt; FE không yêu cầu sentAt hoặc dùng nhãn “Sent notification history”. Overview dùng cùng nguồn, đúng Customer, plain text/GMT+7; không thêm unread/reminder/realtime hoặc tự tạo thông báo từ FE.
 
-Các phần đăng ký, xác nhận email, kích hoạt Employee và role/facility trong hướng dẫn này giữ nguyên baseline, không được thay đổi trong nhiệm vụ Notifications. [Bản tổng hợp chờ duyệt](docs/FRMS_InApp_Notifications_Review.md). Không sửa source trước duyệt.
+Các phần đăng ký, xác nhận email, kích hoạt Employee và role/facility giữ nguyên phạm vi riêng. [Bản review ngày 2026-10-29](FRMS_InApp_Notifications_Review.md) là lịch sử; SRS OD-06 và API V11 mô tả thiết kế đã duyệt theo code `main`. Tình trạng migration đã triển khai và kiểm thử tích hợp cần xác minh riêng.

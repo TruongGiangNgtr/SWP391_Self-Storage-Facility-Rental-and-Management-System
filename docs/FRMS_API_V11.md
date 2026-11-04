@@ -1,14 +1,14 @@
 # FRMS — API Contract & Authorization Specification
 
-> **2026-11-03 current-main source observation (not release acceptance):** Current `CustomerActivityController` returns four notification fields (`notificationId`, `notificationType`, `content`, `createdAt`) and `CustomerActivityRepository` reads `NotificationLog.IsInApp` without requiring email SENT/SentAt. Migration Pg018 implements the field/routing. The 2026-10-29 [review](FRMS_InApp_Notifications_Review.md) is historical; approval and runtime/security tests are not certified. Other account/email flows are unchanged by this documentation note.
+> **2026-11-04 main alignment:** OD-06's four-field in-app notification read and Pg018 `NotificationLog.IsInApp` routing are approved in SRS §0.0.12. Migration deployment, runtime/security tests and release acceptance remain unverified. The 2026-10-29 [review](FRMS_InApp_Notifications_Review.md) is historical; other account/email flows are separate.
 
-**Version:** V11.0 REVIEW CANDIDATE  
+**Version:** V11.0 MAIN-ALIGNED BASELINE
 **Public policy topic revision:** 2026-10-29 — `REV-2026-10-29-PUBLIC-POLICY-CONSOLIDATION` (SRS §0.0.11); four Help Center articles replace the former six-topic list; no Policy schema or business-rule change.
 **Approved CCCD format revision:** 2026-10-26 — `REV-2026-10-26-CCCD-12-DIGITS` (SRS OD-10); exact 12 ASCII digits, existing error envelope; backend/runtime OpenAPI alignment pending.
 **Approved Customer revision:** 2026-10-25 — `REV-2026-10-25-CUSTOMER-CCCD-CONTINUATION` (SRS OD-09), team approval confirmed by owner; existing 400 VALIDATION_ERROR + errors.cccd approved; requirement synchronization only, not runtime acceptance.
 **Date:** 2026-10-22 (Customer Transaction History requirements approval; recurring BackgroundJobs reconciliation dated 2026-10-21)\
 **Source:** `FRMS_SRS_V11.md` **§0.0.9 approved owner decisions**, including Customer activity OD-06/07 dated 2026-10-22; locally supplied V10.2 API §13; historical V10 main profile revision (partially superseded); read-only GitHub `main` source at `0219f30734b0` (BackgroundJobs now registered; initial V11 audit at `90a6c5982d42`); Transaction History controller/DTO/service/repository rechecked at `1ec61d6` for OD-07\
-**Status:** **V11 REVIEW CANDIDATE / PARTIAL OWNER APPROVAL** — optional Customer.Address, persisted Manager handover assignment, Administrator timeline-only reads and Customer sent-notification/Transaction History reads approved in governing SRS §0.0.9; other supplemental routes remain provisional. Implementation and test acceptance are separate from requirement approval. A route existing in code is not by itself a release-test pass.
+**Status:** **CURRENT-MAIN SCOPE OWNER APPROVED** — optional Customer.Address, Manager handover assignment, Administrator timeline reads, Customer in-app Notifications/Transaction History and implemented supplemental reads are in scope. A route existing in code is not by itself a runtime or release-test pass.
 **Repository:** https://github.com/TruongGiangNgtr/SWP391_Self-Storage-Facility-Rental-and-Management-System/tree/main  
 **Companion Data Dictionary:** [`FRMS_Data_Dictionary_V11.md`](FRMS_Data_Dictionary_V11.md) — 28-entity V11 target, PostgreSQL mapping, routines, integrity and DB tests
 
@@ -18,13 +18,13 @@ This file contains the extracted full API contract catalogue formerly embedded i
 
 - Approved business semantics, ownership, lifecycle, money, return, policy and capacity are defined in `FRMS_SRS_V11.md` (subject to owner approval). Database entities and stored invariants are in `FRMS_Data_Dictionary_V11.md` (28 target entities including approved handover assignment). This API document must not grant access or change business rules by itself.
 - When this file differs from the deployed controller, DTO or Swagger, log **CONTRACT DRIFT**; do not silently choose the more permissive behavior.
-- Existing V10 endpoint IDs (`AUTH-*`, `CAT-*`, `OPS-*`, etc.) are retained. `IMPL-*` identifiers are **stable reconciliation labels**, not automatic evidence of release acceptance. `IMPL-HOA-01..03`, SYSTEM_ADMINISTRATOR timeline RBAC and `IMPL-CUSACT-01..02` Customer activity reads are explicitly owner-approved in SRS §0.0.9; other `IMPL-*` scopes remain provisional.
+- Existing V10 endpoint IDs (`AUTH-*`, `CAT-*`, `OPS-*`, etc.) are retained. `IMPL-*` identifiers are **stable reconciliation labels** for implemented routes. The owner approves their current-main scope for documentation; runtime authorization and release tests remain separate evidence.
 - This is a separate, directly reviewable spec; SRS cross-references to historical “§13.x” now resolve to **this file §13.x**.
 - All API responses must remain JSON `camelCase`; UTC timestamps; month `YYYY-MM`; stable `error.code` and `traceId`; authenticated scope and server-side authorization. All mutation commands require authoritative service/repository validation.
 
 ## B. V11 API changes at a glance
 
-| Topic | V10 contract | V11 review treatment |
+| Topic | V10 contract | Current-main treatment |
 |---|---|---|
 | AUTH-001 / AUTH-005 | Historical V10 latest revision removed Customer `address` | **Owner-approved V11 reversal:** retain optional nullable `address` in registration/profile PATCH, current code accepts it; no new use/share by inference |
 | AUTH-004 | Own-profile example primarily Employee | Customer own-profile has `profile.cccd: string | null`; do not project CCCD publicly |
@@ -32,8 +32,8 @@ This file contains the extracted full API contract catalogue formerly embedded i
 | PostgreSQL | SQL Server-specific backend conventions | PostgreSQL/Npgsql transaction, UUID, PL/pgSQL deployment; HTTP contract otherwise unchanged |
 | Persisted Manager assignment | Absent from §13 | **APPROVED §0.0.9:** `IMPL-HOA-01..03` with 28th entity/four statuses; tests pending |
 | Unit status timeline | Absent from §13 | **APPROVED RBAC §0.0.9:** read-only AuditLog-derived; System Administrator allowed these 3 GETs system-wide only |
-| Customer activity | Absent from §13 | `IMPL-CUSACT-01` sent history approved by SRS OD-06; `IMPL-CUSACT-02` own Payment history requirements approved by SRS OD-07; implementation/testing acceptance separate |
-| Facility/BOM directories & lookups | Absent from §13 | `IMPL-RBAC-*` supplementary GETs, reconcile role/PII scopes |
+| Customer activity | Absent from §13 | `IMPL-CUSACT-01` in-app read and `IMPL-CUSACT-02` own Payment history are implemented current-main scope; runtime/security tests separate |
+| Facility/BOM directories & lookups | Absent from §13 | Implemented `IMPL-RBAC-*` supplementary GETs approved for current-main scope; verify role/PII enforcement |
 | UnitType media URLs | Not in canonical JSON | **Observed in public CAT-003/004/005 DTO/controller**: nullable `imageUrl`/`videoUrl` (Pg012); governance/Swagger test pending |
 | BackgroundJobs / billing read | Existing business routines; no scheduler status guarantee | **`main` `0219f307` registers four hosted services for six tasks**; no HTTP job-management API; persisted reads and payOS unchanged; notification sender not operational |
 
@@ -44,9 +44,9 @@ This file contains the extracted full API contract catalogue formerly embedded i
 
 ## 13.1 API Design Status
 
-`V10-APPROVED CORE CONTRACT — V11 REVIEW CANDIDATE`
+`V11 CURRENT-MAIN API BASELINE — RELEASE ACCEPTANCE OPEN`
 
-This companion API specification preserves the approved V10 core API surface for BE–FE implementation and records provisional V11 deltas separately. Endpoints wrap approved business capabilities; they do not introduce additional business lifecycles.
+This companion API specification preserves the core API surface and records implemented V11 additions. Endpoints wrap approved business capabilities; they do not introduce additional business lifecycles. Code-absent proposals are outside this baseline.
 
 Base contract:
 
@@ -151,6 +151,8 @@ Rules:
 - `sortBy` may only reference endpoint-approved fields;
 - `sortDirection` is `asc` or `desc`;
 - unsupported sort field -> `400 VALIDATION_ERROR`.
+
+**OD-11 Customer list scope:** CON-001, VIS-003 and RES-002 currently accept page/pageSize for Customer lists and enforce actor ownership before count/page. The My Contracts, My Visits and My Reservations UI then filters the returned page locally; its search/status/type/date filters are not endpoint query parameters and do not change server `totalItems` or `totalPages`. Account-wide filter results are outside the current-main scope. This does not relax server-side authorization, public CAT-001 filtering or report filtering.
 
 ## 13.8 HTTP Status Mapping
 
@@ -462,7 +464,7 @@ The CAT-001..005 public access/filter/view changes, PUB-POL-001/002 and Anonymou
 | `VIS-003` | `GET` | `/api/v1/visits` | Customer own / Manager Facility / BOM system Visit list | CUSTOMER,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-05/CWP-07/CWP-10 / operational monitoring |
 | `VIS-004` | `GET` | `/api/v1/visits/{visitId}` | Authorized own / Facility / system Visit detail | CUSTOMER,FACILITY_STAFF,FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER | CWP-05/CWP-07/CWP-10 / FWP-02..05 |
 | `VIS-005` | `PATCH` | `/api/v1/visits/{visitId}/schedule` | Reschedule eligible SCHEDULED Visit | CUSTOMER | CWP-05/CWP-07/CWP-10 |
-| `VIS-006` | `POST` | `/api/v1/visits/{visitId}/cancel` | Cancel eligible SCHEDULED Visit | CUSTOMER | CWP-05/CWP-07/CWP-10 |
+| `VIS-006` | `POST` | `/api/v1/visits/{visitId}/cancel` | Cancel eligible SCHEDULED ACCESS/RETURN Visit; Handover Visit cannot be cancelled separately | CUSTOMER | CWP-05/CWP-07/CWP-10 |
 | `OPS-001` | `GET` | `/api/v1/staff/work-items` | Derived daily Staff work list | FACILITY_STAFF | FWP-01 |
 | `OPS-002` | `POST` | `/api/v1/visits/{visitId}/check-in` | Check in Reservation/Access/Return Visit | FACILITY_STAFF | FWP-02/FWP-04/FWP-05 |
 | `OPS-003` | `POST` | `/api/v1/visits/{visitId}/check-out` | Check out eligible non-handover Visit | FACILITY_STAFF | FWP-04 |
@@ -506,10 +508,10 @@ The CAT-001..005 public access/filter/view changes, PUB-POL-001/002 and Anonymou
 | `REP-001` | `GET` | `/api/v1/reports/facilities/{facilityId}/operations` | Facility operations report | FACILITY_MANAGER | MWP-06 |
 | `REP-002` | `GET` | `/api/v1/reports/facilities/{facilityId}/revenue` | Facility revenue report | FACILITY_MANAGER | MWP-06 |
 | `REP-003` | `GET` | `/api/v1/reports/business/overview` | System-wide business overview | BUSINESS_OPERATIONS_MANAGER | BWP-06/BWP-07 |
-| `REP-004` | `GET` | `/api/v1/reports/business/export` | UTF-8 CSV; `view=revenue` default, proposed grouped Facility/UnitType/Status export | BUSINESS_OPERATIONS_MANAGER | BWP-07 |
-| `REP-RD-01` (implementation candidate) | `GET` | `/api/v1/reports/facilities/{facilityId}/units` | Manager unit-type/current inventory + evidence-based daily history | FACILITY_MANAGER | MWP-06 |
-| `REP-RD-02` (implementation candidate) | `GET` | `/api/v1/reports/business/analysis` | BOM grouped facility/unitType/status read | BUSINESS_OPERATIONS_MANAGER | BWP-07 |
-| `REP-RD-03` (implementation candidate) | `GET` | `/api/v1/reports/business/monthly` | BOM monthly recognized revenue | BUSINESS_OPERATIONS_MANAGER | BWP-07 |
+| `REP-004` | `GET` | `/api/v1/reports/business/export` | UTF-8 CSV; `view=revenue` default and implemented grouped Facility/UnitType/Status export | BUSINESS_OPERATIONS_MANAGER | BWP-07 |
+| `REP-RD-01` (implemented) | `GET` | `/api/v1/reports/facilities/{facilityId}/units` | Manager unit-type/current inventory + evidence-based daily history | FACILITY_MANAGER | MWP-06 |
+| `REP-RD-02` (implemented) | `GET` | `/api/v1/reports/business/analysis` | BOM grouped facility/unitType/status read | BUSINESS_OPERATIONS_MANAGER | BWP-07 |
+| `REP-RD-03` (implemented) | `GET` | `/api/v1/reports/business/monthly` | BOM monthly recognized revenue | BUSINESS_OPERATIONS_MANAGER | BWP-07 |
 | `ADM-001` | `GET` | `/api/v1/admin/users` | List user accounts | SYSTEM_ADMINISTRATOR | AWP-01 |
 | `ADM-002` | `GET` | `/api/v1/admin/users/{userAccountId}` | User/account profile detail | SYSTEM_ADMINISTRATOR | AWP-01 |
 | `ADM-003` | `POST` | `/api/v1/admin/customers/{customerId}/activate` | Activate Customer account | SYSTEM_ADMINISTRATOR | AWP-02 |
@@ -1001,7 +1003,7 @@ RESERVATION_INVALID_STATUS-> 409
 Procedure: `usp_ConfirmReservation`.
 
 ### RES-005 — Cancel Reservation
-> **2026-11-03 observed implementation (pending contract/acceptance review):** Pg019 (`20261103153000_Pg019_ReservationCancellationInvoice`) updates `usp_CancelReservation` so that the same transaction also sets a matching `InvoiceType=DEPOSIT`, `Status=UNPAID` Invoice to `CANCELLED`. Previously PAID/CANCELLED financial evidence is preserved; this is not a new refund workflow. Migration deployment and payOS-concurrency tests remain unverified.
+> **2026-11-04 approved current-main scope:** Pg019 (`20261103153000_Pg019_ReservationCancellationInvoice`) updates `usp_CancelReservation` so the same transaction also sets a matching `InvoiceType=DEPOSIT`, `Status=UNPAID` Invoice to `CANCELLED`. Previously PAID/CANCELLED financial evidence is preserved; this is not a new refund workflow. Migration deployment and payOS-concurrency tests remain unverified.
 
 Request:
 
@@ -1185,6 +1187,8 @@ Only `SCHEDULED` Visit may be rescheduled. Type-specific date restrictions still
 
 ### VIS-006 — Cancel Visit
 
+Only an eligible SCHEDULED ACCESS or RETURN Visit may use this command. A RESERVATION/Handover Visit cannot be cancelled independently, even while SCHEDULED; use RES-005 to cancel an eligible Reservation and its linked SCHEDULED Visit. The FE hides Handover cancellation, but the server enforces the rule. CHECKED_IN/CHECKED_OUT Visits remain ineligible.
+
 Request:
 
 ```json
@@ -1197,6 +1201,7 @@ Errors:
 
 ```text
 VISIT_INVALID_STATUS -> 409
+RESERVATION_VISIT_CANCEL_NOT_ALLOWED -> 409
 ```
 
 ## 13.17 Staff / Handover / Return API Contracts
@@ -1836,7 +1841,7 @@ Revenue follows revised CALC-REP-02 (section 12.4.1): Contract-derived first-mon
 
 `GET /api/v1/reports/business/export` requires BUSINESS_OPERATIONS_MANAGER. Successful response is a downloadable **UTF-8 CSV**, not JSON; use `Content-Type: text/csv; charset=utf-8` and `Content-Disposition: attachment`. Error responses still use the standard JSON API error envelope.
 
-| Query | Behavior (implementation review candidate) |
+| Query | Current-main behavior |
 |---|---|
 | `view` | `revenue` (default/backward-compatible), `facility`, `unitType`, `status`; invalid value => HTTP 400 `VALIDATION_ERROR`. |
 | `facilityId`, `unitTypeId` | Optional UUID catalogue filters; absent means all; non-existent filters => 404 `RESOURCE_NOT_FOUND`. |
@@ -1858,7 +1863,7 @@ A grouped `status` row means **Facility × UnitType**, not one row per individua
 
 **Open performance defect in reviewed source:** The current grouped export pages HTTP output but obtains each page from `BusinessBreakdownAsync`, which builds all grouped rows before `Skip/Take`. SRS §18.6 prohibits unbounded report/export materialization. This is **not accepted as fixed** by documentation; implement bounded database-side pagination/streaming and verify correctness under concurrent updates before release. No XLSX format or new database entity is approved.
 
-### REP-RD-01 — Facility Unit Report (implementation route, provisional ID)
+### REP-RD-01 — Facility Unit Report (implemented route)
 
 `GET /api/v1/reports/facilities/{facilityId}/units?month=yyyy-MM&page=1&pageSize=20` requires FACILITY_MANAGER authorized for that Facility. Defaults: current GMT+7 month, `page=1`, `pageSize=20` (maximum 100). Reject future/invalid month with HTTP 400 `VALIDATION_ERROR`; invalid page/pageSize with HTTP 400 `INVALID_PAGINATION`. The `{data}` object has:
 
@@ -1874,13 +1879,13 @@ A grouped `status` row means **Facility × UnitType**, not one row per individua
 
 Where history is incomplete, return `unknownUnits > 0` and `usageRate: null`; NEVER substitute current Unit Status or `0` for unobserved history. A zero-unit Facility has zero current usage, but a historical day with incomplete coverage is **unknown**, not zero. UI must show that distinction.
 
-### REP-RD-02 — BOM Grouped Analysis (implementation route, provisional ID)
+### REP-RD-02 — BOM Grouped Analysis (implemented route)
 
 `GET /api/v1/reports/business/analysis?view=facility&year=2026&page=1&pageSize=20` requires BUSINESS_OPERATIONS_MANAGER. Accepted `view`: `facility` (default), `unitType`, `status`. Optional `facilityId`/`unitTypeId` UUIDs and `year`/`quarter` are validated server-side. Year defaults to current GMT+7 business year (1..9998), quarter 1..4 or omitted. Pagination defaults 1/20; maximum pageSize 100. The `{data}` object contains `view`, `year`, nullable `quarter`, `asOf`, `summary`, `rows[]` and `pagination`.
 
 `summary` contains `facilityCount`, `unitTypeCount`, `totalUnits`, `availableUnits`, `inUseUnits`, `inspectionUnits`, `maintenanceUnits`, `usageRate`, `firstMonthRecognizedRevenue`, `subsequentPaidRentalRevenue`, `rentalRevenue`. Each `rows[]` item contains nullable `facilityId`/`facilityName`, nullable `unitTypeId`/`unitTypeName`/`unitTypeSize`, all four status counts, `totalUnits`, `usageRate`, and the three revenue fields. `view=facility` groups by Facility (including zero-unit catalogue Facilities); `view=unitType` groups by UnitType (including zero-unit catalogue types); `view=status` groups by **Facility × UnitType**. `year`/`quarter` filter revenue; physical counts remain the **CURRENT** state. `pagination` has `{page,pageSize,totalItems,totalPages}`. Use server totals; FE does not recompute global rates from paged rows.
 
-### REP-RD-03 — BOM Monthly Revenue (implementation route, provisional ID)
+### REP-RD-03 — BOM Monthly Revenue (implemented route)
 
 `GET /api/v1/reports/business/monthly?year=2026&quarter=4&facilityId={uuid}&unitTypeId={uuid}` requires BUSINESS_OPERATIONS_MANAGER. Filters and year/quarter defaults match REP-RD-02. The `{data}` object contains `year`, nullable `quarter`, nullable `facilityId`/`unitTypeId`, aggregate `firstMonthRecognizedRevenue`, `subsequentPaidRentalRevenue`, `rentalRevenue`, and `months[]` of `{month: "yyyy-MM", firstMonthRecognizedRevenue, subsequentPaidRentalRevenue, rentalRevenue}`. Exactly 12 month rows for a full year or three for a selected quarter; revenue is calculated from the authoritative server source per CALC-REP-02 and GMT+7 month windows, not FE invoice summation.
 
@@ -1888,7 +1893,7 @@ Where history is incomplete, return `unknownUnits > 0` and `usageRate: null`; NE
 
 All report routes are **read-only** and require authentication. Manager reads MUST be limited to the authenticated Manager's assigned Facility; BOM reads/CSV are system-wide but restricted to BUSINESS_OPERATIONS_MANAGER. Anonymous => 401; wrong role/out-of-Facility => 403; unknown Facility/UnitType => 404; invalid `month`, `view`, `year`, `quarter` => 400 `VALIDATION_ERROR`; invalid pagination => 400 `INVALID_PAGINATION`. Standard JSON errors carry `code`, `message` and `traceId`. CSV exports must not disclose Customer PII.
 
-**Status:** REP-RD-01..03 are labels for backend routes already present on `main`, not newly owner-approved/ratified endpoints. FE Report tabs still contain placeholders. The grouped REP-004 extension is a separate backend patch, not proven deployed; its bounded-memory defect is open. Build, Swagger generation, real DB/data accuracy, RBAC/invalid filters, historical-evidence nullability, CSV injection, file size/pagination and E2E acceptance remain **PENDING**. Do not mark full DoD PASS.
+**Status:** REP-RD-01..03 and grouped REP-004 are implemented backend routes in the owner-approved current-main scope. FE Report tabs and generated OpenAPI parity need separate review. The grouped export's bounded-memory defect remains open. Build, real DB/data accuracy, RBAC/invalid filters, historical-evidence nullability, CSV injection, file size/pagination and E2E acceptance remain **UNVERIFIED**. Do not mark full DoD PASS.
 
 ## 13.23 Administrator API Contracts
 
@@ -2088,9 +2093,9 @@ Not every transport is JSON:
 
 ---
 
-# 13A. V11 API Additions — Approved Scope and Provisional Reads
+# 13A. V11 API Additions — Approved Current-Main Scope
 
-`IMPL-*` is a reconciliation label for endpoints observed in GitHub `main` at the anchored commit. **Approved by SRS §0.0.9:** handover assignment (`IMPL-HOA-01..03`), Administrator read-only RBAC for `IMPL-UNT-01..03` and Customer sent-notification/Payment history (`IMPL-CUSACT-01..02`, OD-06/07). **Observed and acknowledged:** UnitType public media projection and Admin deactivation-eligibility **501 stub**. Other supplemental reads remain provisional pending separate review. No endpoint is release-certified without tests.
+`IMPL-*` labels identify endpoints observed in current GitHub `main`; the owner approves their implemented scope for this documentation baseline. This includes handover assignment (`IMPL-HOA-01..03`), read-only Administrator timeline access (`IMPL-UNT-01..03`), Customer in-app notification/Payment history (`IMPL-CUSACT-01..02`) and supplemental directory reads. Admin deactivation-eligibility is approved only as its current **501 scaffold**, not a functioning eligibility check. No endpoint is release-certified without tests.
 
 ## 13A.1 Owner-approved Manager handover-unit assignment (`IMPL-HOA-01..03`)
 
@@ -2139,7 +2144,7 @@ Not every transport is JSON:
 
 **Source:** `backend/Frms.Api/Controllers/StorageUnitTimelineController.cs` and migration `Pg010_StorageUnitStatusTimelineAudit`.
 
-| Provisional ID | Method / route | Observed controller roles |
+| Current-main ID | Method / route | Controller roles |
 |---|---|---|
 | `IMPL-UNT-01` | `GET /api/v1/facilities/{facilityId}/storage-units/timeline?month=YYYY-MM&page=1&pageSize=20` | FACILITY_MANAGER, BUSINESS_OPERATIONS_MANAGER, SYSTEM_ADMINISTRATOR |
 | `IMPL-UNT-02` | `GET /api/v1/facilities/{facilityId}/storage-units/{storageUnitId}/timeline?month=YYYY-MM` | Same |
@@ -2150,18 +2155,18 @@ Not every transport is JSON:
 **Owner-approved V11-OD-03 RBAC:** Facility Manager **own Facility only**; BOM and `SYSTEM_ADMINISTRATOR` **system-wide** for **these three read-only timeline GETs only**. No Administrator Unit mutations or other operational/financial access is granted. `month` filtering, missing/partial AuditLog history, scope checks, ordering and no-data behavior require API/SQL/security tests.
 
 ## 13A.3 Customer activity reads (`IMPL-CUSACT-01..02`)
-> **Current-main implementation snapshot 2026-11-03:** The former SENT-only Notifications contract shown in historical text below has been superseded **in source**: `CustomerNotificationResponse` is `notificationId`, `notificationType`, `content`, `createdAt`; `CustomerActivityRepository.ListInAppNotificationsAsync` filters authoritative Customer recipient and `NotificationLog.IsInApp` and does not depend on SMTP/SentAt. Pg018 supplies provenance and worker exclusions. This does not imply owner approval, deployed migration evidence or API/security/E2E PASS. Transaction History OD-07 is unaffected.
+> **Current-main alignment 2026-11-04:** OD-06's approved four-field in-app response is `notificationId`, `notificationType`, `content`, `createdAt`. `CustomerActivityRepository.ListInAppNotificationsAsync` filters authoritative Customer recipient and `NotificationLog.IsInApp` without SMTP/SentAt. Pg018 supplies provenance and worker exclusions. Deployed migration evidence and API/security/E2E PASS remain unverified. Transaction History OD-07 is unaffected.
 
 **Source:** `backend/Frms.Api/Controllers/CustomerActivityController.cs` and `backend/Frms.Api/DTOs/Responses/CustomerActivityResponses.cs`.
 
 | ID / approval | Method / route | Access |
 |---|---|---|
-| `IMPL-CUSACT-01` — **OD-06 replacement REVIEW DRAFT; previous SENT-only baseline remains source evidence** | `GET /api/v1/customers/me/notifications?page=1&pageSize=20` | Authenticated ACTIVE CUSTOMER, own UserAccount only |
+| `IMPL-CUSACT-01` — **OD-06 approved in-app read; source implemented, tests pending** | `GET /api/v1/customers/me/notifications?page=1&pageSize=20` | Authenticated ACTIVE CUSTOMER, own UserAccount only |
 | `IMPL-CUSACT-02` — **REQUIREMENTS APPROVED SRS OD-07** | `GET /api/v1/customers/me/transactions?page=1&pageSize=20` | Authenticated ACTIVE CUSTOMER, own Customer's Payment evidence only |
 
-**Notifications replacement contract — REVIEW DRAFT, pending OD-06 approval:** retain GET /api/v1/customers/me/notifications, authenticated ACTIVE CUSTOMER own-account scope, defaults page=1/pageSize=20, maximum 100, data[]/pagination, createdAt DESC then notificationId DESC. Scope/count/page server-side; no caller-supplied recipient. Existing auth/role/inactive/pagination errors and traceId envelopes remain unchanged.
+**Notifications contract — OD-06 approved:** GET /api/v1/customers/me/notifications, authenticated ACTIVE CUSTOMER own-account scope, defaults page=1/pageSize=20, maximum 100, data[]/pagination, createdAt DESC then notificationId DESC. Scope/count/page server-side; no caller-supplied recipient. Existing auth/role/inactive/pagination errors and traceId envelopes remain unchanged.
 
-Proposed item schema:
+Item schema:
 
 ```json
 {
@@ -2172,11 +2177,11 @@ Proposed item schema:
 }
 ```
 
-Return eligible committed in-app notices independently of SMTP, email Status and nullable SentAt; sentAt is not a required field in the proposed DTO. Explicit safe-event/provenance and old-row rules must be approved under NOT-D01/02; removing the SENT filter alone must not expose internal/pending credential data or fabricate send timestamps. Current DTO/controller/repository and FE still require non-null sentAt and SENT, so after approval they must change together with OpenAPI. No code is changed now.
+Return eligible committed in-app notices independently of SMTP, email Status and nullable SentAt. `sentAt` is absent from the four-field response. Pg018 marks new eligible notices with `IsInApp`, restricts event types and excludes them from email retry; old rows are not backfilled. The server must not expose internal/credential data or fabricate send timestamps. Generated OpenAPI and runtime security still require verification.
 
 Overview reads the first three notices from this same source; Notifications uses pageSize 20. Empty and beyond-last-page responses retain actual totals and requested pagination. Render plain text and createdAt in GMT+7; no unread/status fields, mark-as-read, resource IDs/action URLs, content-inferred links, reminders or realtime transport are added. GET/Refresh cannot send email, create events or change business/account/payment state. Reschedule only produces a notice for a committed actual date change.
 
-Tests after approval: API-NOTAPP-001, SEC-NOTAPP-001, DBT-NOTAPP-001..002 and E2E-NOTAPP-001 cover SMTP off/failure, sentAt null, owner denial, pagination/count/order, atomic/no-op/rollback, safe legacy visibility, worker exclusion and FE/BE parity. Test source and deployment remain unchanged. [Review record](FRMS_InApp_Notifications_Review.md).
+Pending acceptance: API-NOTAPP-001, SEC-NOTAPP-001, DBT-NOTAPP-001..002 and E2E-NOTAPP-001 cover SMTP off/failure, sentAt null, owner denial, pagination/count/order, atomic/no-op/rollback, safe legacy visibility, worker exclusion and FE/BE parity. [Historical review record](FRMS_InApp_Notifications_Review.md).
 
 **Approved Transaction History contract — `REV-2026-10-22-CUSTOMER-TRANSACTION-HISTORY-READ`:** SRS §0.0.9 OD-07 approves `IMPL-CUSACT-02` as an own-history GET, not a payment command, wallet or settlement ledger. The endpoint takes only standard pagination parameters; derive the ACTIVE Customer from the authenticated account, never from a caller-supplied Customer/account ID. Scope before counting/paging through Payment -> Invoice -> the actor's Reservation (`DEPOSIT`) or Contract (`RENTAL_FEE`, after the offline first month). No Guest/Employee access to this Customer endpoint is introduced.
 
@@ -2186,7 +2191,7 @@ Tests after approval: API-NOTAPP-001, SEC-NOTAPP-001, DBT-NOTAPP-001..002 and E2
 - FE shows purpose/type, amount, method, explicit status, creation/paid time and **View Invoice** using the returned `invoiceId`, via `/customer/invoices/{invoiceId}` and existing owner-protected `BIL-002`. Payment/Invoice IDs are internal keys/targets, not primary display labels. Opening/paging/refreshing the shared Transaction History tab or following View Invoice must not create a payment, retry a failed attempt, mark paid, transfer a refund or change business state.
 - Do not synthesize first-month Invoice/Payment records from offline handover or Contract creation. Do not project Damage/ExtraFee/DepositSettlement deductions, refund-transfer claims, wallet balances or Figma sample amounts as transactions without an approved matching transaction-evidence/API contract. The current response has no deduction/refund/balance fields; Fees & Return Tracking remains a separate read.
 
-**Requirement approval is complete for this read.** Frontend implementation, generated OpenAPI parity, live ownership/security tests and real database integration remain separately tracked acceptance work. Supplemental directories/RBAC, billing backfill/scheduling, providers and other pending decisions are unchanged by OD-07. This documentation task changes no controller/DTO, frontend model, database or financial routine.
+**Current-main scope is approved for this read.** The Transaction History frontend and supplemental directories are present on current `main`; generated OpenAPI parity, live ownership/security tests and real database integration remain separately tracked acceptance work. Multi-month billing backfill is outside the implemented scope; provider delivery and job scheduling are documented as current behavior. This documentation task changes no controller/DTO, frontend model, database or financial routine.
 
 **Observed response DTO examples (values illustrative, actual field names from pinned source):**
 
@@ -2197,8 +2202,7 @@ Tests after approval: API-NOTAPP-001, SEC-NOTAPP-001, DBT-NOTAPP-001..002 and E2
       "notificationId": "00000000-0000-0000-0000-000000000005",
       "notificationType": "PAYMENT_RESULT",
       "content": "string",
-      "createdAt": "2026-10-20T03:00:00Z",
-      "sentAt": "2026-10-20T03:00:01Z"
+      "createdAt": "2026-10-20T03:00:00Z"
     }
   ],
   "pagination": {"page": 1, "pageSize": 20, "totalItems": 1, "totalPages": 1}
@@ -2222,13 +2226,13 @@ The example above is for `/notifications`. `/transactions` has the same collecti
 
 Example values do not assert that these exact records exist; they illustrate the observed DTO properties. The runtime OpenAPI, authorization and actual database result remain unverified.
 
-The controller comment predates OD-06/07 and still describes both reads as proposals. **Documentation/code-comment drift only:** Notifications requirements are approved under OD-06 and Transaction History requirements under OD-07. Runtime OpenAPI, live database output, ownership/security and delivery tests remain unverified by these approvals. OD-07 is a scoped requirements-documentation decision, not completed frontend implementation, backend modification or provider activation.
+The controller comment predates OD-06/07 and still describes both reads as proposals. **Documentation/code-comment drift only:** Notifications requirements are approved under OD-06 and Transaction History requirements under OD-07. Both Customer views are observed in current frontend source; runtime OpenAPI, live database output, ownership/security and delivery tests remain unverified. OD-07 did not authorize a new payment command or provider activation.
 
 ## 13A.4 Supplemental RBAC directories / operational lookup
 
-**Verified controller routes from `main`; roles listed are controller-level observations, not approval of expanded business scope:**
+**Verified controller routes from `main`; the owner approves their current implemented read scope. Server authorization and field-level privacy remain acceptance-test obligations:**
 
-| Provisional ID | Method / route | Observed role / concern |
+| Current-main ID | Method / route | Role / concern |
 |---|---|---|
 | `IMPL-RBAC-01` | `GET /api/v1/admin/facilities/lookup` | Admin facility assignment read; verify minimal scope |
 | `IMPL-RBAC-02` | `GET /api/v1/admin/customers/{customerId}/deactivation-eligibility` | **NOT IMPLEMENTED**: route exists under Administrator guard but returns HTTP **501** `ENDPOINT_NOT_IMPLEMENTED` (`UX-RBAC-11`) |
@@ -2240,9 +2244,9 @@ The controller comment predates OD-06/07 and still describes both reads as propo
 | `IMPL-RBAC-16A` | `GET /api/v1/business/employees?page=1&pageSize=20` | BUSINESS_OPERATIONS_MANAGER, minimal Employee directory |
 | `IMPL-RBAC-16B` | `GET /api/v1/business/employees/{employeeId}` | BUSINESS_OPERATIONS_MANAGER, minimal Employee detail |
 
-**Admin deactivation-eligibility status:** `IMPL-RBAC-02` is a **scaffold**, not a functioning API. `AdminSupplementController.CustomerDeactivationEligibility()` calls `ScaffoldNotImplemented("UX-RBAC-11")`, which returns HTTP 501 with stable code `ENDPOINT_NOT_IMPLEMENTED`. Frontend MUST NOT depend on this endpoint or label it implemented; existing `ADM-004` deactivation guard is independent. A separate feature task is required to implement it.
+**Admin deactivation-eligibility status:** `IMPL-RBAC-02` is a **scaffold**, not a functioning eligibility API. `AdminSupplementController.CustomerDeactivationEligibility()` calls `ScaffoldNotImplemented("UX-RBAC-11")`, which returns HTTP 501 with stable code `ENDPOINT_NOT_IMPLEMENTED`. That 501 response is the approved current-main behavior. Frontend MUST NOT depend on an eligibility decision from this route; existing `ADM-004` deactivation guard is independent.
 
-Required acceptance for other candidate reads: RBAC 401/403/404, Facility/owner enforcement at repository level before pagination, no credentials/password hashes, no cross-facility leakage, no forbidden CCCD projection, query limits, ordering/pagination and Swagger/FE contract parity. Administrator ability to view the *timeline exception* does not grant BOM Facility-management command access.
+Required acceptance for implemented reads: RBAC 401/403/404, Facility/owner enforcement at repository level before pagination, no credentials/password hashes, no cross-facility leakage, no forbidden CCCD projection, query limits, ordering/pagination and Swagger/FE contract parity. Administrator ability to view the *timeline exception* does not grant BOM Facility-management command access.
 
 ## 13A.5 UnitType media projection (`IMPL-MEDIA-01`)
 
@@ -2258,10 +2262,10 @@ VideoUrl: varchar(2048) NULL
 ## 13A.6 Release acceptance checklist for API V11
 
 - [x] Owner approved `IMPL-HOA-01..03` roles, 28th entity/four states, and Administrator read-only `IMPL-UNT-01..03` scope (SRS §0.0.9; **documentation decision only**, not testing).
-- [x] Owner approved `IMPL-CUSACT-01..02` Customer sent-notification/Payment-history requirements (SRS OD-06/07); this checks requirement approval only, not implementation/tests.
+- [x] Owner approved implemented `IMPL-CUSACT-01..02` Customer in-app notification/Payment-history scope (SRS OD-06/07); runtime tests remain separate.
 - [x] Team approval confirmed by owner for OD-09 conditional CCCD + safe interrupted-operation return, including existing 400 VALIDATION_ERROR + errors.cccd; requirement approval only.
 - [ ] OD-09 AUTH-001/004/005 + RES-001 and FE continuation pass SRS §14.15.3 API-CCCD/SEC-CCCD/DBT-CCCD/REG-CONT/E2E-F01 acceptance; no writes on missing CCCD, no duplicate automatic submission or PII leakage; generated Swagger matches this contract.
-- [ ] Resolve remaining provisional `IMPL-*` directory scopes; verify public media and Admin 501 notes remain accurate.
+- [ ] Verify approved implemented `IMPL-*` directory roles/fields, public media and Admin 501 notes against generated OpenAPI and runtime security tests.
 - [ ] Verify approved Customer activity DTO/pagination/order, account/owner guards, nullable paid time, View Invoice, UI states and absence of fabricated financial records or write side effects against implementation and real integration/security tests.
 - [ ] Confirm `notificationId` (not `notificationLogId`) and full HandoverUnitAssignment DTO fields against generated OpenAPI, not illustrative guesses.
 - [ ] Every listed route matches actual current controller attributes and generated OpenAPI.
@@ -2287,15 +2291,15 @@ VideoUrl: varchar(2048) NULL
 
 | Concern | Owner source within this V11 package | Acceptance boundary |
 |---|---|---|
-| Business actors/financial and lifecycle invariants | `FRMS_SRS_V11.md` §§9–12, 17 and 27 | V10 approval remains in force until V11 ratification |
-| Exact HTTP routes/method/roles and request/response wire format | This API file §13.11–13.27 and §13A | Existing V10 contract retained; §13A scopes are approved only where expressly recorded in SRS §0.0.9, including OD-06/07 for Customer activity |
-| Schema/migrations/SQL implementation | [`FRMS_Data_Dictionary_V11.md`](FRMS_Data_Dictionary_V11.md) + source at `main` current review HEAD `0219f30734b0` (earlier V11 baseline `90a6c5982d42`) | V11 data target and implementation evidence; no deploy/DBT pass claimed |
+| Business actors/financial and lifecycle invariants | `FRMS_SRS_V11.md` §§9–12, 17 and 27 | Current-main scope approved under §0.0.12; historical V10 rules retained where compatible |
+| Exact HTTP routes/method/roles and request/response wire format | This API file §13.11–13.27 and §13A | Implemented §13A scopes approved; runtime authorization and generated OpenAPI still need verification |
+| Schema/migrations/SQL implementation | [`FRMS_Data_Dictionary_V11.md`](FRMS_Data_Dictionary_V11.md) + `main` `29a688b` | V11 implemented schema/routines approved; no deploy/DBT pass claimed |
 | Optional Customer.Address | **Latest owner decision SRS §0.0.9 supersedes historical V10 §0.0.7** | AUTH-001/005 optional input/persistence unchanged; own AUTH-004 CCCD now observed in source at 2945788, not runtime-certified |
-| CCCD before new Reservation / interrupted-operation return | SRS OD-09, BR-RES-09 / BR-PUB-05 / §14.15 | TEAM APPROVED; 400 VALIDATION_ERROR + errors.cccd, in-flow completion and safe return; new guard/UI/integration evidence pending, not a schema or endpoint expansion |
+| CCCD before new Reservation / interrupted-operation return | SRS OD-09, BR-RES-09 / BR-PUB-05 / §14.15 | Pg017 guard and FE flow are current-main scope; 400 VALIDATION_ERROR + errors.cccd; deployed DB/integration evidence pending |
 | Handover assignment | This file §13A.1; SRS §§0.0.9, 9.2A | **Owner-approved** 28th entity and 3 APIs; PostgreSQL/E2E tests pending |
 | Unit timeline and Admin scope | This file §13A.2; SRS §§0.0.9, 11A | **Owner-approved** read-only Administrator timeline; negative auth tests pending |
-| Customer activity | This file §13A.3 | Notifications requirements approved by SRS OD-06; Transaction History requirements approved by OD-07; implementation/testing separate; controller comment drift; no read/unread inbox or fabricated financial ledger implied |
-| Admin deactivation-eligibility | This file §13A.4 | **NOT IMPLEMENTED** (HTTP 501) despite existing route; separate feature required |
+| Customer activity | This file §13A.3 | Notifications and Transaction History implemented scope approved; tests separate; no unread inbox or fabricated financial ledger implied |
+| Admin deactivation-eligibility | This file §13A.4 | Approved current behavior is HTTP 501 scaffold; no eligibility decision is implemented |
 | Public UnitType media URL | This file §13A.5 | **Already emitted in public DTO mapping**, owner acknowledged; validation/Swagger/FE tests pending |
 
 **No implied parity:** These three documents were editorially synchronized and checked for self-consistency. They were **not** generated from a running Swagger endpoint and do **not** certify controller/DTO coverage, NUnit, SQL migrations or Playwright tests. See SRS V11-G07–G09.
@@ -2307,7 +2311,7 @@ VideoUrl: varchar(2048) NULL
 |---|---|---|
 | AUTH-001, AUTH-005 | §4.3 Customer.Address nullable varchar(1000), Customer.CCCD unique when present; §12.4 | Owner-approved optional address, backend request accepted; negative PII tests not run |
 | AUTH-004 | §4.3 nullable CCCD; §12.4 | Own-Customer null/string serialization observed at 2945788; runtime/Swagger/FE acceptance remains pending |
-| AUTH-005 + RES-001 (OD-09) | §4.3/12.4, BR-RES-09, §22 transaction matrix, DBT-CCCD-001/002 | No new column; CCCD-only save preserves omitted fields; current authoritative CCCD required for new create; 400 errors.cccd and no creation writes on rejection; implementation/tests pending |
+| AUTH-005 + RES-001 (OD-09) | §4.3/12.4, BR-RES-09, §22 transaction matrix, DBT-CCCD-001/002 | No new column; CCCD-only save preserves omitted fields; Pg017 requires current CCCD for new create; 400 errors.cccd and no creation writes on rejection; runtime/tests pending |
 | IMPL-HOA-01..03; OPS-004 | §4.28, §6–8, §29, §32 Pg013 | Owner-approved Manager assignment/read/release + Staff atomic consume; DB concurrency tests pending |
 | IMPL-UNT-01..03 | §29 Pg010; §37 roles | Owner-approved Admin/BOM system-wide + Manager Facility read-only; no synthetic history |
 | CAT-003/004/005 | §4.6, §32 Pg012 | Public nullable media DTOs observed; Swagger/URL governance validation pending |
@@ -2331,13 +2335,13 @@ This API crosswalk does not authorize any `IMPL-*` API not explicitly approved i
 | `job_ProcessReservationNoShow` | `ProcessReservationNoShowJob`, startup + 24 hours when enabled | Eligible Reservation/Visit states after Policy window | Existing authorized `RES-002/003`, `VIS-003/004` reads |
 | `job_RetryNotifications` | `RetryNotificationsJob`, startup + 5 minutes when enabled; one pending item/tick | Legacy email: `NotificationLog.SENT/SentAt` **only after provider send succeeds**; Pg018 excludes `IsInApp` notices from worker selection | Private `GET /api/v1/customers/me/notifications`: source now reads eligible committed `IsInApp` notices independently of email delivery (deployment/tests unverified) |
 
-**Current enabled flags (source default):** `BackgroundJobs:Billing:Enabled = true`; `BackgroundJobs:NoShow:Enabled = false`; `BackgroundJobs:Notifications:Enabled = false`. Existing expiration always runs while the API host is running. Environment overrides use `BackgroundJobs__Billing__Enabled` etc. **Timing is interval-from-start, not fixed local 00:00.** The job is *registered* in `main` but its production execution, database migration state, monitoring and full test suite are not verified here.
+**Current enabled flags (source default):** `BackgroundJobs:Billing:Enabled = true`; `BackgroundJobs:NoShow:Enabled = true`; `BackgroundJobs:Notifications:Enabled = true`. Existing expiration always runs while the API host is running. Environment overrides use `BackgroundJobs__Billing__Enabled` etc. **Timing is interval-from-start, not fixed local 00:00.** The legacy notification sender is unconfigured, so enabled retry does not prove email delivery. Production execution, database migration state, monitoring and full tests remain unverified.
 
 **Billing/customer behavior:** Scheduled creation never produces an Invoice for `Contract.StartMonth`: first month is an offline Staff acknowledgment under OPS-004. New `RENTAL_FEE` invoices are payable by **existing** `POST /api/v1/invoices/{invoiceId}/payments/payos` (`PAY-001`) with the same ownership, idempotency and verified webhook constraints as any other eligible invoice. Job execution MUST NOT silently initiate payment, set Invoice `PAID` or invent Provider references. Customer UI must display persisted state; `CON-004` does not create/reprice an Invoice merely because it is read.
 
-**Notification/API boundary:** PostgreSQL `usp_RetryPendingNotification` selects one queued `PENDING` notification, while a configured `INotificationSender.SendAsync` must actually deliver it. `usp_MarkNotificationSent` is called only after success. Current `UnconfiguredNotificationSender` does not deliver, so the notification job is not operational out of the box. The existing Customer notification GET must neither expose pending unsent content nor provide a public retry endpoint. Preserve Customer authorization/ownership and avoid logging PII.
+**Notification/API boundary:** PostgreSQL `usp_RetryPendingNotification` selects one eligible email `PENDING` row, excluding `IsInApp` and legacy business-alert rows. A configured `INotificationSender.SendAsync` must deliver before `usp_MarkNotificationSent` marks SENT. Current `UnconfiguredNotificationSender` does not deliver, so email retry is not operational out of the box. The Customer GET reads only authorized `IsInApp` notices, which may remain PENDING for email delivery; it must not expose unrelated internal/email queue rows or provide a public retry endpoint. Preserve Customer authorization/ownership and avoid logging PII.
 
-**Acceptance / known gaps:** (1) generated Swagger route/DTO parity NOT VERIFIED; (2) BackgroundJob registration-only NUnit test does not prove execution; (3) real PostgreSQL first/subsequent month, policy threshold, idempotency and multi-instance DBT NOT RUN; (4) current-month generator does not auto-backfill past missed months; (5) 24-hour schedule and alerting/SLA require validation; (6) NoShow default-off with unchecked boundary conditions; (7) delivery provider and retry/deduplication tests pending. See SRS `V11-G10..G13` and Data Dictionary §§27.1–27.4.
+**Acceptance / known gaps:** (1) generated Swagger route/DTO parity NOT VERIFIED; (2) BackgroundJob registration-only NUnit test does not prove execution; (3) real PostgreSQL first/subsequent month, policy threshold, idempotency and multi-instance DBT NOT RUN; (4) current-month generator does not auto-backfill past missed months; (5) 24-hour schedule and alerting/SLA require validation; (6) NoShow defaults on per OD-11, with its approved implemented CHECKED_IN branch requiring runtime tests; (7) notification retry defaults on but has no configured real delivery provider, so outbound delivery is outside the working current-main scope. See SRS `V11-G10..G13` and Data Dictionary §§27.1–27.4.
 
 **Source anchors:**
 
@@ -2350,9 +2354,9 @@ This API crosswalk does not authorize any `IMPL-*` API not explicitly approved i
 
 ## 13A.11 V11 GitHub review and model consistency — 2026-10-21
 
-- Publication set: `FRMS_SRS_V11.md` (business authority), `FRMS_API_V11.md` (HTTP wire), `FRMS_Data_Dictionary_V11.md` (28-entity physical mapping). All three are review-candidate documents; their filenames and relative links are synchronized.
+- Publication set: `FRMS_SRS_V11.md` (business authority), `FRMS_API_V11.md` (HTTP wire), `FRMS_Data_Dictionary_V11.md` (28-entity physical mapping). All three describe the owner-approved current-main scope; their filenames and relative links are synchronized.
 - The historical DB-model comparison covers **28 entity classes and 202 fields**, not 202 public API properties or new CRUD endpoints. Customer.Cccd maps to column CCCD. The former private AUTH-004 projection gap is resolved in source at 2945788 (CurrentCustomerProfileResponse/AuthenticationMapping), with runtime/OpenAPI acceptance still pending. OD-09 changes the new-Reservation precondition and continuation only; it does not add a persisted field.
 - `PAY-001` creates new `PAYOS` payment attempts only; permitted legacy payment-method codes in database storage/PAY-003 reads do not enable non-payOS checkout endpoints.
 - `GET /api/v1/admin/customers/{customerId}/deactivation-eligibility` is still a 501 scaffold. `SYSTEM_ADMINISTRATOR` has no write expansion outside expressly approved endpoints.
 - BackgroundJobs are internal hosted services (four services/six tasks; billing default ON), not HTTP endpoints; notification sender remains unconfigured.
-- Publication verification excludes running Swagger generation, .NET/NUnit, PostgreSQL migration history/integration/concurrency tests, browser E2E and final owner approval. Mark any such acceptance gate `PENDING` until its own tests and reviews pass.
+- Publication verification excludes running Swagger generation, .NET/NUnit, PostgreSQL migration history/integration/concurrency tests and browser E2E. Owner scope approval is recorded; mark runtime acceptance gates `PENDING` until their tests pass.

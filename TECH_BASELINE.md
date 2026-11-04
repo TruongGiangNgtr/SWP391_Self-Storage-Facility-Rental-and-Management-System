@@ -2,7 +2,7 @@
 
 ## 1. Purpose and authority
 
-This document converts **FRMS SRS V10 FINAL** into a concise engineering baseline. The sole governing SRS is `project_sources/02-FRMS_SRS_V10.md`. Earlier SRS versions are obsolete and must not be used as implementation authority. This document does not replace the SRS. If they conflict, the SRS wins. A semantic change becomes authoritative only through an approved SRS revision with its associated change record.
+This document summarizes the owner-approved current `main` engineering baseline under `docs/FRMS_SRS_V11.md`. Code-present scope is approved for documentation; code-absent proposals are outside the current baseline. Release tests and deployed database state remain separate evidence. Earlier SRS versions provide history where V11 has not superseded them. This document does not replace the SRS. A new semantic change still requires an approved SRS revision with its associated change record.
 
 Exact framework/runtime versions are not specified by the SRS. They must be selected deliberately, recorded in project manifests and lockfiles, and supported consistently across Development, Testing, and Production. A dependency upgrade must not change business semantics implicitly.
 
@@ -12,9 +12,9 @@ Exact framework/runtime versions are not specified by the SRS. They must be sele
 |---|---|---|
 | Frontend | React + TypeScript | Role-based web portals and typed API client |
 | Backend | ASP.NET Core Web API + C# | REST API, authentication/authorization, services |
-| Persistence | SQL Server | Authoritative relational state and transactions |
+| Persistence | PostgreSQL | Authoritative relational state and transactions |
 | ORM | Entity Framework Core | Mapping, repositories, migrations, ordinary queries |
-| Critical database operations | SQL Server stored procedures | Atomic multi-table lifecycle and concurrency control |
+| Critical database operations | PostgreSQL routines | Atomic multi-table lifecycle and concurrency control |
 | Backend tests | NUnit | Unit, controller, repository, integration, and security suites |
 | API tests | Postman | Functional and regression contract testing |
 | Browser E2E | Playwright | Seven end-to-end business journeys |
@@ -34,11 +34,11 @@ Browser (React + TypeScript)
         v
 ASP.NET Core Web API
         |
-        | EF Core + stored procedures
+        | EF Core + PostgreSQL routines
         v
-SQL Server
+PostgreSQL
 
-External adapters: MoMo Sandbox, email, notification delivery, optional AI
+External adapters: payOS, email, notification delivery, optional AI
 ```
 
 FRMS retains three logical application layers. `Frms.Infrastructure` is a supporting adapter assembly, not an additional business layer. Release 1 has no separate Worker project.
@@ -60,8 +60,8 @@ Authorization is the intersection of authenticated identity, active account, rol
 ### 4.1 Dependency direction
 
 ```text
-HTTP:      Frms.Api -> Frms.Business -> Frms.DataAccess -> SQL Server
-Scheduled: Frms.Api/BackgroundJobs -> Frms.Business -> Frms.DataAccess -> SQL Server
+HTTP:      Frms.Api -> Frms.Business -> Frms.DataAccess -> PostgreSQL
+Scheduled: Frms.Api/BackgroundJobs -> Frms.Business -> Frms.DataAccess -> PostgreSQL
 External:  Frms.Infrastructure -> Frms.Business provider interfaces
 ```
 
@@ -72,7 +72,7 @@ Controller -> Service
 Api BackgroundJob -> Service
 Service -> Repository
 Repository -> EF Core / DbContext
-Repository -> Stored Procedure access
+Repository -> PostgreSQL routine access
 Infrastructure adapter -> Business provider interface
 ```
 
@@ -162,7 +162,7 @@ tests/
 Critical operations use this boundary:
 
 ```text
-Service -> Repository -> Stored Procedure -> SQL Server transaction
+Service -> Repository -> PostgreSQL routine -> transaction
 ```
 
 Simple reads and CRUD may use repository/EF Core. Internal events are allowed only for hooks such as audit, notification, logging, cache invalidation, or post-transaction activity.
@@ -255,7 +255,7 @@ Any API change is one atomic contract change across:
 
 ## 8. Data and lifecycle baseline
 
-Release 1 has exactly 27 persisted entities as listed in SRS section 9.2. The model intentionally has no separate Booking, FacilityAssignment, MonthlyRentalFee, ReturnProcess, Renewal, Refund, DamageFee, DailyTask, Report, DiscountRedemption, or Maintenance table.
+Release 1 has exactly 28 persisted entities: the historical 27 plus the approved HandoverUnitAssignment in SRS section 9.2A. The model intentionally has no separate Booking, MonthlyRentalFee, ReturnProcess, Renewal, Refund, DamageFee, DailyTask, Report, DiscountRedemption, or Maintenance table.
 
 Important state rules:
 
@@ -296,16 +296,16 @@ Triggers enforce bounded invariants and legal transitions. They must not orchest
 | Technical log | `ILogger<T>` |
 | Business/security audit | `AuditLog` |
 
-Business calendar rules use GMT+7; month-only values are not timestamp conversions. Configuration owns policy/provider settings and environment-specific token lifetime. Passwords, hashes, JWT signing keys, database credentials, MoMo secrets, AI keys, notification credentials, access tokens, and binary evidence must never be committed or logged.
+Business calendar rules use GMT+7; month-only values are not timestamp conversions. Configuration owns policy/provider settings and environment-specific token lifetime. Passwords, hashes, JWT signing keys, database credentials, payOS secrets, AI keys, notification credentials, access tokens, and binary evidence must never be committed or logged.
 
 ## 10. External integration boundaries
 
 | Integration | Interface boundary | Failure rule |
 |---|---|---|
-| MoMo Sandbox | `IPaymentGateway` | Provider failure never marks an invoice paid; callback application is idempotent |
+| payOS | `IPaymentGateway` | Provider failure never marks an invoice paid; callback application is idempotent |
 | AI Size Guide | `IAiRecommendationProvider` | Optional and non-authoritative; failure does not block manual flow |
 | Initial employee credential email | `IEmailService` | Failure leaves account inactive; plaintext is not stored or logged |
-| Notifications — OD-06 replacement under review | Internal business event -> persistence -> own-Customer read | Proposed in-app visibility follows commit independently of SMTP/SENT/SentAt. Legacy email worker must exclude in-app-only events after NOT-D01/02 approval. Other email flows unchanged. |
+| Notifications — OD-06 approved | Internal business event -> NotificationLog.IsInApp -> own-Customer read | In-app visibility follows commit independently of SMTP/SENT/SentAt. Pg018 excludes in-app-only events from the legacy email worker. Other email flows are separate; deployment/tests pending. |
 
 Adapter wire DTOs do not leak into domain contracts. Use controlled 502/503 behavior for provider failures where applicable.
 
@@ -348,7 +348,7 @@ Database -> integrity, uniqueness, transaction, concurrency invariants
 | `E2E-*` | Playwright | Seven business journeys |
 | `REG-*`, `ACC-*` | Regression/acceptance | Whole-system confidence |
 
-Real SQL Server is mandatory for stored procedure, trigger, filtered-index, locking, isolation, and concurrency evidence. EF Core InMemory is insufficient for these claims.
+Real PostgreSQL is mandatory for routine, trigger, partial-index, locking, isolation, and concurrency evidence. EF Core InMemory is insufficient for these claims.
 
 `Frms.ArchitectureTests` must reject Controller/Api BackgroundJob access to Repository or DbContext, Business references to Api/Infrastructure implementations, and service contracts that expose API DTOs or EF entities.
 
@@ -356,13 +356,13 @@ Critical blockers include the `DBT-01..25` baseline, capacity races, same-unit h
 
 ## 13. Build and delivery gates
 
-The repository is currently documentation/scaffold stage, so executable commands must be added when solution and package manifests exist. Once scaffolded, CI must at least:
+The repository contains backend projects, frontend package manifests and implemented routes. Build and delivery verification uses the existing solution and package scripts. CI and release evidence should cover:
 
 1. restore and build the backend;
 2. install from the frontend lockfile and build/type-check the frontend;
 3. run unit and controller tests;
 4. run `Frms.ArchitectureTests`;
-5. provision real SQL Server and run DAL/DBT/CON/SEC suites;
+5. provision real PostgreSQL and run DAL/DBT/CON/SEC suites;
 6. verify clean-database migration and seed;
 7. run Postman regression and Playwright `E2E-F01..F07` where the gate requires them;
 8. verify Swagger/TypeScript synchronization;
@@ -371,16 +371,14 @@ The repository is currently documentation/scaffold stage, so executable commands
 
 A feature is Done only when code, contracts, authorization, validation, error behavior, logging/audit, migrations/seed, traceability, and applicable automated tests agree.
 
-## 14. Version-selection decisions still required
+## 14. Manifest versions and deployment configuration
 
-The SRS locks technologies but not exact versions or several operational choices. Record these before production implementation rather than guessing:
+Use the existing project manifests and lockfiles for selected runtime and library versions. Current repository source does not establish production deployment configuration. Verify the deployed choices for:
 
-- .NET SDK/ASP.NET Core target version;
-- Node.js, package manager, React, TypeScript, and Playwright versions;
-- SQL Server edition/version and migration deployment mechanism;
-- frontend build tool and lint/format configuration;
+- .NET SDK and Node.js runtime compatibility with committed project manifests;
+- PostgreSQL server version and applied migration history;
 - CI provider and environment topology;
-- concrete email, notification, and optional AI providers;
+- actual configured email, notification, and optional AI adapters;
 - production secret store, observability backend, and hosting platform.
 
-These choices may refine implementation but must not alter the locked business model or contracts without an approved SRS revision.
+Deployment configuration must preserve the approved current-main business model and API contracts.

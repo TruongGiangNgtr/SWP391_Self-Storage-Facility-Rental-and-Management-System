@@ -6,22 +6,22 @@ This file defines how coding agents and contributors must work in this repositor
 
 FRMS is the **Self-Storage Facility Rental and Management System**. It supports five business roles and seven end-to-end flows for reservation, handover, rental operation, billing, facility operation, renewal/return, and support.
 
-The implementation target is a React + TypeScript frontend, an ASP.NET Core Web API backend, and SQL Server persistence through Entity Framework Core and authoritative stored procedures.
+The implementation target is a React + TypeScript frontend, an ASP.NET Core Web API backend, and PostgreSQL persistence through Entity Framework Core/Npgsql and authoritative database routines.
 
 ## 2. Source-of-truth order
 
 Use this order when requirements conflict:
 
-1. `project_sources/FRMS_SRS_V11.md`
-2. `project_sources/FRMS_Data_Dictionary_V11.md`
-3. `project_sources/FRMS_API_V11.md`
+1. `docs/FRMS_SRS_V11.md`, including explicit owner-approved changes
+2. `docs/FRMS_API_V11.md` for approved HTTP wire contracts
+3. `docs/FRMS_Data_Dictionary_V11.md` for approved database rules
 4. FRMS Scope V8, when added to the repository
 5. Approved ADRs and implementation decisions that do not change SRS semantics
 6. Existing implementation details
 
-`project_sources/01-Topic.pdf` is a scope summary, not a replacement for the SRS.
+The scope summary is not a replacement for the SRS.
 
-FRMS SRS V11 FINAL at `project_sources/FRMS_SRS_V11.md` is the sole governing SRS and implementation baseline. Earlier SRS versions must not be used as implementation authority.
+The V11 documents in `docs/` describe the owner-approved current `main` implementation scope. A feature present in that source is approved for documentation; a proposal absent from source is outside the current baseline. Do not call runtime or release tests passed without evidence. Earlier versions provide historical context where V11 does not supersede them.
 
 An ADR or change record alone does not override the SRS. A semantic change becomes authoritative only after it is incorporated into an approved SRS revision. Record ambiguity and request an approved clarification instead of resolving it only in code or an ADR.
 
@@ -49,8 +49,8 @@ When the SRS is silent on business semantics, stop at the interface/configuratio
 Allowed dependency direction:
 
 ```text
-HTTP:      React -> Controller -> Business Service -> Repository -> EF/SP -> SQL Server
-Scheduled: Api BackgroundJob -> Business Service -> Repository -> EF/SP -> SQL Server
+HTTP:      React -> Controller -> Business Service -> Repository -> EF/routine -> PostgreSQL
+Scheduled: Api BackgroundJob -> Business Service -> Repository -> EF/routine -> PostgreSQL
 External:  Infrastructure Adapter -> Business-owned provider interface
 ```
 
@@ -59,19 +59,20 @@ Responsibilities:
 - **Presentation (`Frms.Api`)**: HTTP, request/response DTOs, authentication, authorization policies, middleware, status mapping, API versioning.
 - **Business (`Frms.Business`)**: orchestration, Commands/Results, lifecycle and ownership validation, calculations, provider interfaces, `IClock`.
 - **Data Access (`Frms.DataAccess`)**: repositories, EF Core, `FrmsDbContext`, entity configuration, stored-procedure calls, migrations.
-- **Supporting adapters (`Frms.Infrastructure`)**: MoMo, email, notification and optional AI implementations behind Business interfaces.
-- **Scheduled execution (`Frms.Api/BackgroundJobs`)**: in-process jobs that call Business services only; SQL Server Agent may call authoritative stored procedures directly.
+- **Supporting adapters (`Frms.Infrastructure`)**: payOS, email, notification and optional AI implementations behind Business interfaces.
+- **Scheduled execution (`Frms.Api/BackgroundJobs`)**: in-process jobs that call Business services only; an approved external PostgreSQL scheduler may call authoritative routines directly.
 - **Frontend**: role-specific UI and typed API consumption; it is never authoritative for capacity, money, payment status, authorization, or lifecycle state.
 
 Controllers must be thin. Repositories must not decide business transitions. Request/Response DTOs, Business Commands/Results and persistence entities must remain separate types. DTO mapping belongs to `Frms.Api`; Business service contracts must not reference API DTOs or expose EF entities.
 
 `Frms.Api/Program.cs` may reference DataAccess and Infrastructure registration extensions only as the dependency-injection composition root. Controllers, middleware, handlers and Api BackgroundJobs must not call Repository, DbContext or Stored Procedures directly.
 
-Critical multi-table lifecycles must use the authoritative stored procedure and SQL Server transaction identified by the SRS. Delegates or internal events may run post-transaction hooks but must not hide critical transactions.
+Critical multi-table lifecycles must use the authoritative PostgreSQL routine and transaction identified by the SRS. Delegates or internal events may run post-transaction hooks but must not hide critical transactions.
 
 ## 5. Business invariants to preserve
 
 - Reservations hold capacity by `Facility + UnitType + month range`; a physical unit is chosen only during handover.
+- A RESERVATION/Handover Visit cannot be cancelled independently through VIS-006; eligible Reservation cancellation uses RES-005. SCHEDULED ACCESS/RETURN Visits retain their own cancellation path.
 - A customer may own multiple contracts when all business rules permit it.
 - Policy rows and `ContractExtension`, `LoginHistory`, and `AuditLog` history are append-only where specified.
 - Captured prices, issued invoice values, reservation values, and historical policy values are immutable snapshots.
@@ -80,6 +81,7 @@ Critical multi-table lifecycles must use the authoritative stored procedure and 
 - The first-month Rental Fee does not use the Contract Discount; eligible later invoices may use it.
 - Payment callbacks, invoice generation, return confirmation/finalization, claims, and scheduled jobs must be retry-safe or idempotent as specified.
 - Facility and resource ownership checks are server-side requirements, not UI filters.
+- My Contracts, My Visits and My Reservations currently apply presentation filters to each authorized page. Account-wide filtering is outside the current-main scope; this never replaces server-side ownership filtering before count/pagination.
 - `SYSTEM_ADMINISTRATOR` does not automatically receive business-data mutation authority.
 
 Before changing a lifecycle, consult the state-transition, business-rule, API, stored-procedure, and test sections of the SRS together.
@@ -117,12 +119,12 @@ Before changing a lifecycle, consult the state-transition, business-rule, API, s
 - Evaluate business calendar-day rules and display timestamps in `Asia/Ho_Chi_Minh` (GMT+7).
 - Inject `IClock` for time-dependent application logic; do not scatter `DateTime.Now`.
 - Use `decimal` for currency. Do not use floating-point types for money.
-- Keep MoMo behind `IPaymentGateway`, AI behind `IAiRecommendationProvider`, initial credential email behind `IEmailService`, and notification delivery behind `INotificationSender`.
+- Keep payOS behind `IPaymentGateway`, AI behind its Business-owned provider interface, initial credential email behind `IEmailService`, and notification delivery behind `INotificationSender`.
 - External failures must not fabricate successful domain state. AI failure must not block manual reservation, and notification failure must remain retryable.
 
 ## 9. Database rules
 
-The Release 1 model contains the 27 persisted entities enumerated in SRS section 9.2. Do not add a table for concepts intentionally excluded there.
+The V11 model contains 28 persisted entities: the historical 27 plus owner-approved `HandoverUnitAssignment` (§9.2A). Do not add other tables without an approved SRS change.
 
 Schema changes must:
 
@@ -130,9 +132,9 @@ Schema changes must:
 2. include an EF Core migration and any required SQL object changes;
 3. preserve the ability to create an empty database from migrations plus seed;
 4. include rollback/redeploy reasoning;
-5. update real SQL Server integration tests for affected constraints, triggers, stored procedures, locking, or transitions.
+5. update real PostgreSQL integration tests for affected constraints, triggers, routines, locking, or transitions.
 
-Do not treat EF Core InMemory tests as evidence for SQL Server behavior. Triggers protect invariants but must not orchestrate handover or return finalization.
+Do not treat EF Core InMemory tests as evidence for PostgreSQL behavior. Triggers protect invariants but must not orchestrate handover or return finalization.
 
 ## 10. Expected repository layout
 
@@ -182,7 +184,7 @@ Before handoff:
 - build affected backend and frontend projects;
 - run changed-module unit tests;
 - run applicable contract, integration, DBT, concurrency, security, Postman, job/integration, and Playwright tests;
-- apply migrations to a clean SQL Server database when schema changed;
+- apply migrations to a clean PostgreSQL database when schema changed;
 - verify Swagger and TypeScript synchronization for API changes;
 - run architecture-boundary tests when project references or cross-layer dependencies change;
 - state exactly what was verified and what could not be run.
@@ -198,7 +200,7 @@ UT-*   CTL-*  DAL-*  DBT-*  CON-*
 SEC-*  API-*  INT-*  JOB-*  E2E-*  REG-*  ACC-*
 ```
 
-Changes to critical paths must run their corresponding real SQL Server and concurrency suites. The minimum database baseline is `DBT-01` through `DBT-25`; the seven browser journeys are `E2E-F01` through `E2E-F07`.
+Changes to critical paths must run their corresponding real PostgreSQL and concurrency suites. The minimum database baseline is `DBT-01` through `DBT-25`; the seven browser journeys are `E2E-F01` through `E2E-F07`.
 
 ## 13. Documentation discipline
 

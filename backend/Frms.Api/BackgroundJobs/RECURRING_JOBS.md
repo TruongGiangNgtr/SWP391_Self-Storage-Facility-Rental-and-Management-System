@@ -1,9 +1,9 @@
 # FRMS Release 1 recurring jobs (V11)
-> **Source evidence update 2026-11-03:** Pg018 (`InAppNotifications.sql`) now excludes `IsInApp` notices and legacy allowlisted business-alert rows from retry-email selection. The 2026-10-29 review warning below is historical; the deployed migration, actual sender configuration and runtime verification remain unverified. No worker activation is asserted by this documentation note.
+> **Source evidence update 2026-11-03:** Pg018 (`InAppNotifications.sql`) excludes `IsInApp` notices and legacy allowlisted business-alert rows from retry-email selection. The 2026-10-29 review warning below is historical; the deployed migration, actual sender configuration and runtime verification remain unverified. Current source defaults the worker ON, but no successful delivery is asserted.
 
-> **2026-10-29 — Notifications-only review, NOT approved for implementation.** [REV-2026-10-29-INAPP-NOTIFICATIONS](../../../docs/FRMS_InApp_Notifications_Review.md). The old notification email job is not an in-app visibility prerequisite. Pending OD-06 requires routing/legacy handling so the worker does not send in-app-only events; no job schedule/flag or other business job changes in this task. Account registration, email verification, Employee provisioning and role/Facility rules are unchanged.
+> **2026-11-04 alignment:** OD-06 in-app routing through Pg018 is the approved current design. The legacy email retry job is separate from in-app visibility. Its sender remains unconfigured; runtime/deployment tests are pending. Account registration, email verification, Employee provisioning and role/Facility rules are outside OD-06.
 
-Patch baseline: GitHub `main` commit `8ca520300fae904ec86e282aa977a591062b6f6c`.
+Source baseline: GitHub `main` commit `29a688b`.
 
 ## Operations and schedule
 
@@ -14,18 +14,16 @@ Patch baseline: GitHub `main` commit `8ca520300fae904ec86e282aa977a591062b6f6c`.
 | `ProcessReservationNoShowJob` | `usp_ProcessReservationNoShow` | Startup and every 24 hours | `BackgroundJobs:NoShow:Enabled` |
 | `RetryNotificationsJob` | Claim one pending notification, send through `INotificationSender`, then `usp_MarkNotificationSent` | Startup and every 5 minutes | `BackgroundJobs:Notifications:Enabled` |
 
-Default behavior if the settings are absent: **Billing=true**, **NoShow=false**, **Notifications=false**. Billing starts processing immediately when the API starts and then every 24 hours; ensure Pg007/Pg001-Pg013 are deployed, validate the financial routines, and check no external scheduler already duplicates the work before deployment. An explicit `false` still disables Billing.
+Default behavior if the settings are absent: **Billing=true**, **NoShow=true**, **Notifications=true**, as set by the three `EnabledByDefault` overrides. The owner chose automatic NoShow processing under SRS OD-11. Startup executes each enabled job immediately, followed by its configured interval. Notification retry cannot deliver through the unconfigured sender. Check deployed migrations and external schedulers before claiming successful execution; explicit `false` disables the corresponding job after restart.
 
 ```sh
-# Explicit overrides; omitting Billing flag has the same enabled result.
+# Optional explicit overrides; all three jobs default to enabled.
 BackgroundJobs__Billing__Enabled=true
-BackgroundJobs__NoShow__Enabled=false
-# DO NOT enable notifications until a real INotificationSender adapter
-# is configured and tested; DI still registers UnconfiguredNotificationSender.
-BackgroundJobs__Notifications__Enabled=false
+BackgroundJobs__NoShow__Enabled=true
+BackgroundJobs__Notifications__Enabled=true
 ```
 
-For emergency pause use `BackgroundJobs__Billing__Enabled=false` and restart the API.
+To pause a specific job, set its `BackgroundJobs__...__Enabled=false` override and restart the API. A real `INotificationSender` adapter remains required for delivery.
 
 The cadence is interval-from-start, not a fixed midnight cron. `usp_GenerateMonthlyInvoices()` derives the current month in `Asia/Ho_Chi_Minh` at invocation time, so a restart or later run repairs missing current-month invoices. SQL prevents billing Contract.StartMonth or out-of-range months and deduplicates invoices.
 
@@ -42,9 +40,9 @@ The cadence is interval-from-start, not a fixed midnight cron. `usp_GenerateMont
 ## Required validation (not performed by patch generation)
 
 1. `dotnet build backend/Frms.slnx` and `dotnet test backend/Frms.slnx`.
-2. PostgreSQL integration: Pg001-Pg013 migration deployed; verify the five new routine invocations. Avoid disposable database assumptions that might affect production data.
+2. PostgreSQL integration: verify the full forward migration chain through Pg019 is applied; verify the job routine invocations. Avoid disposable database assumptions that might affect production data.
 3. Billing: first month offline, no invoice; generate only active contracts within StartMonth/EndMonth, honor renewal price and captured Discount, create one `RENTAL_FEE` invoice per month on retries and concurrent runners.
 4. Overdue + LateFee: use each Contract's captured Policy and GMT+7 thresholds; retry-safe current LateFee only.
 5. No-show: do not close completed contracts or valid visits; verify policy window and concurrency.
 6. Notification: fake sender success/failure tests; `PENDING` preserved on provider failure; `SENT` only after acknowledgement; two replicas must not send same row concurrently; crash may redeliver, requiring provider idempotency.
-7. Explicitly approve and monitor flag activation; verify production scheduler is not already calling these functions to avoid duplicate work.
+7. Monitor the default-enabled flags and verify a production scheduler is not already calling these functions to avoid duplicate work.
