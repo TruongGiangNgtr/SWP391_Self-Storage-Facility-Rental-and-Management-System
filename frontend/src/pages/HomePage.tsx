@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { ArrowRight, ImageOff } from 'lucide-react'
 import { HomeFacilityMap } from '../components/HomeFacilityMap'
 import { ApiErrorAlert } from '../components/ApiErrorAlert'
-import { EmptyState, LoadingState } from '../components/PageStates'
 import { usePublicFacilities } from '../features/catalog/usePublicCatalog'
 import '../styles/home-depth.css'
 import '../styles/home-sage.css'
@@ -183,11 +182,8 @@ export function HomePage() {
     </section>
 
     <section className="home-facilities home-container" id="public-contact" aria-labelledby="home-facilities-heading" data-home-reveal>
-      {(facilities.loading || facilities.error || facilities.data?.data.length === 0) && <h2 id="home-facilities-heading">Explore FStoRent in Vietnam</h2>}
       <ApiErrorAlert error={facilities.error} />
-      {facilities.loading ? <LoadingState label="Loading facilities…" /> : facilities.data && (facilities.data.data.length === 0
-        ? <EmptyState message="No active facilities have been returned. Please check again later." />
-        : <HomeFacilityMap facilities={facilities.data.data} />)}
+      <HomeFacilityMap facilities={facilities.data?.data ?? []} />
     </section>
 
     <section className="home-ready"><div className="home-container home-section-heading"><h2>Ready to find your space?</h2><Link className="home-button home-button-primary" to="/facilities">Find Storage<ArrowRight size={17} aria-hidden="true" /></Link></div></section>
