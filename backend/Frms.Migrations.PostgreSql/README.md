@@ -1,6 +1,6 @@
 # Independent PostgreSQL migrations
 
-Owner-approved migration-only deliverable based on `9871565c9049e197d611e11bb54b238d5ef5838a`. This standalone EF tooling project creates a fresh PostgreSQL database without depending on or changing API/runtime repositories, tests or CI. It reuses the original 27 entity definitions and seed IDs through linked source files; its PostgreSQL model, factory, migrations and snapshot belong to this assembly. Historical SQL Server sources are preserved in the runtime working tree under `backend/sql/archive/sqlserver-migrations`; they cannot be discovered by either PostgreSQL context.
+Owner-approved migration-only deliverable based on `9871565c9049e197d611e11bb54b238d5ef5838a`. This standalone EF tooling project creates a fresh PostgreSQL database without depending on or changing API/runtime repositories, tests or CI. It reuses the original 27 entity definitions and seed IDs through linked source files; its PostgreSQL model, factory, migrations and snapshot belong to this assembly.
 
 Requirements: .NET SDK 10.0.401, pinned EF tool 10.0.12, an empty UTF-8 PostgreSQL database with ICU support. The complete Pg001–Pg009 chain is verified on PostgreSQL 17.11 and 18.6. Provision the database/server and configure real connection values before applying migrations. No existing business data is imported.
 
