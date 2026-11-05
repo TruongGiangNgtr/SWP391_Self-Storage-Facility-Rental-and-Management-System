@@ -1,6 +1,6 @@
 import { GuestPageHero } from '../components/GuestPageHero'
 import { useId, useMemo, useState } from 'react'
-import { ArrowUpRight, Search } from 'lucide-react'
+import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { PublicStorageSearchForm } from '../components/PublicStorageSearchForm'
 import { BookingJourney } from '../components/BookingJourney'
@@ -44,7 +44,6 @@ function PublicSearchResults() {
       </aside>
       <section className="booking-search-results" aria-label="Storage search results">
     {dirty && hasPeriod && <p className="notice">Filters changed. Select Find Storage to update these results before reserving.</p>}
-    {!hasPeriod && !query.error && <section className="panel public-search-start booking-search-start" aria-labelledby="search-start-heading"><Search className="booking-start-icon" size={30} strokeWidth={1.5} aria-hidden="true" /><div><h2 id="search-start-heading">Your next space starts here.</h2><p>Choose your rental months and select Find Storage to see matching facilities. Your results will reflect availability for the full period.</p><ol><li>Choose a location and storage preferences.</li><li>Compare available spaces and monthly rent.</li><li>Review your selection before reserving.</li></ol></div></section>}
     {hasPeriod && !query.error && <section className="public-results-toolbar" aria-label="Search results controls"><div><h2>Storage Search Results</h2>{results.data && <span className="result-count">{results.data.pagination.totalItems} matching {results.data.pagination.totalItems === 1 ? 'facility' : 'facilities'}</span>}</div><div className="form-field"><label htmlFor="facility-sort">Sort Facilities</label><select id="facility-sort" value={query.sortDirection} onChange={event => navigate(url({ page: 1, sortDirection: event.target.value as 'asc' | 'desc' }))}><option value="asc">Name A–Z</option><option value="desc">Name Z–A</option></select></div></section>}
     <ApiErrorAlert error={query.error ? presentValidationError(query.error) : results.error} />
     {!query.error && results.error && <button className="button button-secondary" type="button" onClick={results.refresh}>Retry Search</button>}
@@ -52,7 +51,15 @@ function PublicSearchResults() {
       {results.data.data.length === 0 ? <EmptyState message="No facilities match this search. Try a different location, storage size or rental period." /> : results.data.data.map((facility, index) => <FacilitySearchGroup key={facility.facilityId} facility={facility} filters={filters} search={search} dirty={dirty} initiallyOpen={index === 0} />)}
       <PaginationControls pagination={results.data.pagination} disabled={results.loading} onPageChange={page => navigate(url({ page }))} />
     </>}
-    <section className="notice public-booking-note"><div><strong>How reservations work</strong><p>Choose a storage type and period, then sign in to create a reservation. Pay the deposit and select a handover date; the specific unit is chosen at handover.</p></div><Link to="/how-it-works">Learn How It Works →</Link></section>
+    <section className="public-booking-note" aria-labelledby="reservation-guide-heading">
+      <div className="public-booking-note-copy">
+        <span className="guest-kicker">YOUR NEXT STEP</span>
+        <h2 id="reservation-guide-heading">{hasPeriod ? 'How reservations work' : 'Your next space starts here.'}</h2>
+        <p>Choose your location, storage preferences and rental months, then select Find Storage to compare availability and monthly rent for the full period. Review your selection and sign in to reserve.</p>
+        <p>Pay the deposit and select a handover date. Your specific unit is chosen at handover.</p>
+      </div>
+      <Link className="button button-secondary" to="/how-it-works">Learn How It Works<ArrowRight size={16} aria-hidden="true" /></Link>
+    </section>
       </section>
     </div>
   </main>
