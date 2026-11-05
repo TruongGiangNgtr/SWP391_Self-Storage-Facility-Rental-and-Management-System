@@ -3,6 +3,7 @@ using System.Net.Mail;
 using System.Net.Sockets;
 using System.Text;
 using Frms.Business.Exceptions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Frms.Infrastructure.Email;
@@ -15,7 +16,9 @@ public interface ISmtpEmailTransport
         CancellationToken cancellationToken);
 }
 
-public sealed class SmtpEmailTransport(IOptions<SmtpEmailOptions> options) : ISmtpEmailTransport
+public sealed class SmtpEmailTransport(
+    IOptions<SmtpEmailOptions> options,
+    ILogger<SmtpEmailTransport> logger) : ISmtpEmailTransport
 {
     public void EnsureConfigured()
     {
@@ -63,26 +66,40 @@ public sealed class SmtpEmailTransport(IOptions<SmtpEmailOptions> options) : ISm
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
+            logger.LogWarning("SMTP submission timed out after {TimeoutSeconds} seconds.",
+                config.TimeoutSeconds);
             throw Unavailable();
         }
-        catch (SmtpException)
+        catch (SmtpException ex)
         {
+            // Do not log ex.Message/ex.ToString(): server replies can include sensitive content.
+            var socketError = ex.InnerException is SocketException socket
+                ? socket.SocketErrorCode.ToString()
+                : "None";
+            logger.LogWarning(
+                "SMTP submission failed. Status={SmtpStatus}, InnerType={InnerType}, SocketError={SocketError}.",
+                ex.StatusCode, ex.InnerException?.GetType().Name ?? "None", socketError);
             throw Unavailable();
         }
         catch (IOException)
         {
+            logger.LogWarning("SMTP submission failed: network I/O error.");
             throw Unavailable();
         }
-        catch (SocketException)
+        catch (SocketException ex)
         {
+            logger.LogWarning("SMTP submission failed: socket error {SocketError}.",
+                ex.SocketErrorCode);
             throw Unavailable();
         }
         catch (System.Security.Authentication.AuthenticationException)
         {
+            logger.LogWarning("SMTP submission failed: TLS authentication error.");
             throw Unavailable();
         }
         catch (InvalidOperationException)
         {
+            logger.LogWarning("SMTP submission failed: invalid SMTP client operation.");
             throw Unavailable();
         }
     }

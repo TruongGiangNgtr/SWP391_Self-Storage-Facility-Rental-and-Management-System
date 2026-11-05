@@ -3,6 +3,7 @@ using Frms.Infrastructure.DependencyInjection;
 using Frms.Infrastructure.Email;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace Frms.UnitTests;
@@ -85,7 +86,7 @@ public sealed class SmtpEmailServiceTests
     [Test]
     public void Transport_RejectsHeaderInjectionBeforeAnyNetworkSend()
     {
-        var transport = new SmtpEmailTransport(Options.Create(ValidOptions()));
+        var transport = new SmtpEmailTransport(Options.Create(ValidOptions()), NullLogger<SmtpEmailTransport>.Instance);
         Assert.ThrowsAsync<Frms.Business.Exceptions.BusinessException>(async () =>
             await transport.SendAsync("victim@example.test\r\nBcc:attacker@example.test",
                 "FRMS notice", "Body", CancellationToken.None));
@@ -97,7 +98,7 @@ public sealed class SmtpEmailServiceTests
     [Test]
     public void Transport_RejectsMissingConfigurationWithoutNetworkSend()
     {
-        var transport = new SmtpEmailTransport(Options.Create(new SmtpEmailOptions()));
+        var transport = new SmtpEmailTransport(Options.Create(new SmtpEmailOptions()), NullLogger<SmtpEmailTransport>.Instance);
         Assert.Throws<Frms.Business.Exceptions.BusinessException>(() => transport.EnsureConfigured());
     }
 
