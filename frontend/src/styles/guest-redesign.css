@@ -107,7 +107,24 @@
 .frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .flow-facility-heading:hover .facility-thumbnail { transform: none; box-shadow: none; }
 .frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .public-facility-heading-text h2 { font-size: 27px; }
 .frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .public-unit-card { border: 1px solid #d5e2f3; border-radius: 18px; background: #f6f9fe; box-shadow: none; }
-.frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .public-booking-note { background: #eff6fc; border: 1px solid #d5e2f3; border-radius: 20px; }
+.frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .public-booking-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 28px 36px;
+  margin-top: 32px;
+  padding: clamp(24px, 3vw, 40px);
+  background: linear-gradient(120deg, #f7faff, #edf4fc);
+  border: 1px solid #d5e2f3;
+  border-radius: 24px;
+}
+.frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .public-booking-note-copy { flex: 1 1 320px; min-width: 0; }
+.frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .public-booking-note .guest-kicker { display: block; margin-bottom: 16px; font-size: 10px; letter-spacing: .16em; color: #526c88; }
+.frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .public-booking-note h2 { margin: 0 0 14px; font-size: clamp(26px, 2.5vw, 34px); font-weight: 400; line-height: 1.16; color: #102f50; }
+.frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .public-booking-note p { margin: 0; max-width: 65ch; font-size: 14px; line-height: 1.8; color: #526c88; }
+.frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .public-booking-note p + p { margin-top: 10px; }
+.frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .public-booking-note > a { flex: 0 0 auto; max-width: 100%; gap: 12px; padding: 12px 20px; font-size: 13px; white-space: normal; }
 .frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .guest-facility-hero { position: relative; isolation: isolate; min-height: 530px; overflow: hidden; padding: 30px max(48px,calc((100vw - 1224px)/2)) 60px; background: #eff6fc; }
 .frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .guest-facility-hero-image { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; border: 0; border-radius: 0; margin: 0; }
 .frms-customer.customer-shell.guest-editorial-shell.guest-redesign-shell .guest-facility-hero-image img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
