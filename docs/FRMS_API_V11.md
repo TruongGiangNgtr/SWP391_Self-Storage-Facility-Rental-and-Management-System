@@ -1530,12 +1530,15 @@ Errors:
 RETURN_ALREADY_FINALIZED  -> 409
 INSPECTION_INVALID_STATUS -> 409
 DAMAGE_DECISION_PENDING   -> 409
+VISIT_INVALID_STATUS      -> 409 for a stale linked RETURN Visit at finalization
 VALIDATION_ERROR          -> 400 for a missing/invalid storageUnitStatus
 ```
 
 storageUnitStatus is a required non-persisted command parameter with allowed values AVAILABLE or MAINTENANCE; it is moved from INS-007, not copied into Inspection/Contract as an intermediate field. Authorized Staff selects the final operational state at finalization. The response reports the actual committed Unit state, not an optimistic echo.
 
 The authoritative transaction requires the related completed Inspection, no pending Damage decision, the related Unit still INSPECTION and the valid active Contract/return linkage. It creates one DepositSettlement, sets Contract COMPLETED/TERMINATED according to return classification and changes Unit INSPECTION -> the requested AVAILABLE/MAINTENANCE atomically. Before commit, no new handover may use that Unit. A validation/settlement/concurrency failure rolls back all effects and leaves the Unit INSPECTION. UNIT-005 cannot bypass this return workflow; the pending Contract and incomplete settlement must not be bypassed by another status command.
+
+When the completed Inspection references a physical RETURN Visit, the same transaction MUST set its status from CHECKED_IN to CHECKED_OUT, with matching Contract and a recorded ActualReturnDate. External recovery without a Visit does not create a synthetic checkout. A failed Visit transition rolls back the settlement, terminal Contract and Unit release. This command keeps its existing response shape; VIS-004 exposes the committed Visit status after success.
 
 Retry preserves the canonical original settlement/Contract/Unit outcome or returns controlled RETURN_ALREADY_FINALIZED; a different target in a retried request must not mutate an already-finalized Unit.
 

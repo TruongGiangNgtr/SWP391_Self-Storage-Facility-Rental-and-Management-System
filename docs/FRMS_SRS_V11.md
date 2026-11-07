@@ -3855,7 +3855,10 @@ FUNCTION FinalizeReturn(contractId, storageUnitStatus):
         create one DepositSettlement(FINALIZED)
         Contract.Status = terminalStatus
         StorageUnit.Status = storageUnitStatus
-        // Settlement, terminal Contract and Unit release commit together.
+        IF completedInspection.VisitId IS NOT NULL:
+            REQUIRE linked RETURN Visit is CHECKED_IN with ActualReturnDate recorded
+            Visit.Status = CHECKED_OUT
+        // Settlement, Contract, Unit release and linked Visit checkout commit together.
 
     COMMIT
 ```

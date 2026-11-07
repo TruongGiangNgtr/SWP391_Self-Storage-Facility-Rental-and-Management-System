@@ -707,6 +707,8 @@ These rules cannot be expressed as a single ordinary FK and are validated by sto
 
 Normal versus Early Return is determined by `ActualReturnDate`, not scheduled `VisitDate`.
 
+At `usp_FinalizeReturn`, when the completed Inspection references a physical RETURN Visit, that Visit must atomically transition `CHECKED_IN -> CHECKED_OUT` together with settlement, terminal Contract and Unit release. External recovery with `Inspection.VisitId = NULL` has no Visit checkout; a failed linked Visit transition rolls back the full finalization.
+
 ### Capacity release note
 
 On Actual Return/Recovery the Contract stops holding future contractual capacity under approved rules; the StorageUnit enters `INSPECTION` and does **not** become AVAILABLE at Complete Inspection. Only **Finalize Return** may release it to `AVAILABLE` or `MAINTENANCE` after settlement and pending-damage guards. Capacity planning and physical availability must be kept distinct; this paragraph supersedes conflicting legacy `CompleteInspection` wording elsewhere in the historical dictionary.
