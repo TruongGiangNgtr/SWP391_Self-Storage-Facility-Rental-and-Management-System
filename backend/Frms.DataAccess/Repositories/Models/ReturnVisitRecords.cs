@@ -1,6 +1,6 @@
 namespace Frms.DataAccess.Repositories.Models;
 
-public sealed record ReturnContractRecord(Guid ContractId, Guid CustomerId, Guid FacilityId, string Status);
+public sealed record ReturnContractRecord(Guid ContractId, Guid CustomerId, Guid FacilityId, string Status, DateOnly EndMonth);
 public sealed record ReturnVisitRecord(Guid VisitId, Guid EntityId, Guid? EmployeeId, string VisitType,
     DateOnly VisitDate, DateTime? ActualReturnDate, string Status);
 public sealed record ReturnInspectionRecord(Guid InspectionId, string Status, string? ConditionNote, DateTime? CompletedAt);

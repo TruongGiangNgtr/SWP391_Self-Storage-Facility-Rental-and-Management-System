@@ -13,7 +13,7 @@ internal sealed class ReturnVisitRepository(FrmsDbContext db) : IReturnVisitRepo
 {
     public Task<ReturnContractRecord?> GetContractAsync(Guid id, CancellationToken ct) =>
         db.Contracts.AsNoTracking().Where(x => x.ContractId == id)
-            .Select(x => new ReturnContractRecord(x.ContractId, x.CustomerId, x.FacilityId, x.Status)).SingleOrDefaultAsync(ct);
+            .Select(x => new ReturnContractRecord(x.ContractId, x.CustomerId, x.FacilityId, x.Status, x.EndMonth)).SingleOrDefaultAsync(ct);
 
     public Task<ReturnVisitRecord?> GetOwnedVisitAsync(Guid owner, Guid id, CancellationToken ct) =>
         (from v in db.Visits.AsNoTracking()
