@@ -147,7 +147,7 @@ public sealed class PayOsPaymentGateway(HttpClient http, IOptions<PayOsOptions> 
                 || Text(data, "reference") is not { } reference || reference.Length is 0 or > 150
                 || reference.Any(c => c < 33 || c > 126)
                 || !DateTime.TryParseExact(Text(data, "transactionDateTime"), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture,
-                    DateTimeStyles.None, out var providerTime)) return Task.FromResult(Rejected("fields"));
+                    DateTimeStyles.None, out var providerTime)) return Task.FromResult(Rejected("fields:" + FailedField(root, data)));
             var paidAt = new DateTimeOffset(DateTime.SpecifyKind(providerTime, DateTimeKind.Unspecified), ProviderOffset).ToUniversalTime();
             return Task.FromResult(new PaymentGatewayCallbackResult(Guid.Empty, amount, reference, PaymentGatewayCallbackOutcome.Success, paidAt, orderCode));
         }
@@ -189,6 +189,18 @@ public sealed class PayOsPaymentGateway(HttpClient http, IOptions<PayOsOptions> 
     private static long? Number(JsonElement data, string key) => data.ValueKind == JsonValueKind.Object
         && data.TryGetProperty(key, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out var number) ? number : null;
     private static PaymentGatewayCreationResult Unknown() => new(PaymentGatewayCreationOutcome.Unknown, null, null);
+    // Diagnostic only: names the first field that fails the checks above; never returns values.
+    private static string FailedField(JsonElement root, JsonElement data) =>
+        Text(root, "code") != "00" ? "root.code"
+        : !root.TryGetProperty("success", out var s) || s.ValueKind != JsonValueKind.True ? "root.success"
+        : Text(data, "code") != "00" ? "data.code"
+        : Text(data, "currency") != "VND" ? "data.currency"
+        : Number(data, "orderCode") is not > 0 ? "data.orderCode"
+        : Number(data, "amount") is not > 0 ? "data.amount"
+        : Text(data, "reference") is not { Length: > 0 and <= 150 } r ? "data.reference.length"
+        : r.Any(c => c < 33 || c > 126) ? "data.reference.chars"
+        : "data.transactionDateTime";
+
     private PaymentGatewayCallbackResult Rejected(string reason)
     {
         // Reason only: never log the payload, signature or key.
