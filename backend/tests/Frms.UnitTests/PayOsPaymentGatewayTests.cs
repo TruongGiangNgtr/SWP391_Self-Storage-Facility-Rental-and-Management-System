@@ -153,12 +153,20 @@ public sealed class PayOsPaymentGatewayTests
     [TestCase("\"amount\":12500", "\"amount\":12501")]
     [TestCase("\"orderCode\":1000", "\"orderCode\":1001")]
     [TestCase("a5532507", "b5532507")]
-    [TestCase("\"code\":\"00\",\"success\":true", "\"code\":\"99\",\"success\":true")]
-    [TestCase("\"success\":true", "\"success\":false")]
     public async Task UT_PAYOS_TamperedOrNonSuccessWebhookRejectedWithoutHttp(string original, string replacement)
     {
         var result = await gateway.VerifyAndNormalizeCallbackAsync(new(Webhook().Replace(original, replacement, StringComparison.Ordinal)), default);
         Assert.That(result.Status, Is.EqualTo(PaymentGatewayCallbackOutcome.Unverified));
+        Assert.That(handler.Calls, Is.Zero);
+    }
+
+    // Signature covers only "data", so these stay verified; they must be acknowledged without applying a payment.
+    [TestCase("\"code\":\"00\",\"success\":true", "\"code\":\"99\",\"success\":true")]
+    [TestCase("\"success\":true", "\"success\":false")]
+    public async Task UT_PAYOS_SignedNonSuccessWebhookIsAcknowledgedWithoutPayment(string original, string replacement)
+    {
+        var result = await gateway.VerifyAndNormalizeCallbackAsync(new(Webhook().Replace(original, replacement, StringComparison.Ordinal)), default);
+        Assert.That(result.Status, Is.EqualTo(PaymentGatewayCallbackOutcome.Pending));
         Assert.That(handler.Calls, Is.Zero);
     }
 
@@ -214,7 +222,8 @@ public sealed class PayOsPaymentGatewayTests
         var data = "{" + string.Join(',', fields.Select(p => "\"" + p.Key + "\":" + p.Value.Raw)) + "}";
         var payload = "{\"code\":\"00\",\"success\":true,\"data\":" + data + ",\"signature\":\"" + Sign(canonical) + "\"}";
         var result = await gateway.VerifyAndNormalizeCallbackAsync(new(payload), default);
-        Assert.That(result.Status, Is.EqualTo(PaymentGatewayCallbackOutcome.Unverified));
+        // A signed data.code other than 00 is a verified non-success: acknowledged, not applied.
+        Assert.That(result.Status, Is.EqualTo(field == "code" ? PaymentGatewayCallbackOutcome.Pending : PaymentGatewayCallbackOutcome.Unverified));
         Assert.That(result.Amount, Is.Null);
         Assert.That(result.PaidAt, Is.Null);
         Assert.That(handler.Calls, Is.Zero);
