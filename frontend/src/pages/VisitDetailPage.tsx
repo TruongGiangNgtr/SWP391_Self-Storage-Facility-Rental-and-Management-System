@@ -147,7 +147,7 @@ export function VisitDetailPage() {
       <header className="page-heading visit-detail-heading"><p className="visits-area-label">Your facility appointment</p><h1>Visit Details</h1><p className="muted">{visit?.visitType === 'RESERVATION' ? 'Review your handover visit and manage its scheduled date.' : 'Review your facility visit and manage its scheduled date or cancellation.'}</p></header>
       <ApiErrorAlert error={error} />
       {loading && !visit ? <LoadingState label="Loading visit..." /> : visit && <>
-        {(visit.visitType === 'ACCESS' || visit.visitType === 'RESERVATION') && <VisitJourney status={visit.status} visitType={visit.visitType} />}
+        <VisitJourney status={visit.status} visitType={visit.visitType} />
         <section className={`panel visit-detail-card visit-detail-${visit.status.toLowerCase().replaceAll('_', '-')}`} aria-label="Visit information">
           <header className="visit-detail-card-heading"><span className="visit-detail-icon"><VisitIcon size={25} aria-hidden="true" /></span><div><h2>{VISIT_NAMES[visit.visitType]}</h2><p>Facility visit</p></div><StatusBadge status={visit.status} /></header>
           <dl className={`visit-detail-facts${visit.visitType === 'RETURN' ? ' visit-detail-return-facts' : ''}`}>
