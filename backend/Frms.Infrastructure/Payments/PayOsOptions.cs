@@ -9,8 +9,8 @@ public sealed class PayOsOptions
     [JsonIgnore] public string ApiKey { get; set; } = string.Empty;
     [JsonIgnore] public string ChecksumKey { get; set; } = string.Empty;
     public string ApiBaseUrl { get; set; } = "https://api-merchant.payos.vn";
-    public string ReturnUrl { get; set; } = "Payment__PayOS__ReturnUrl";
-    public string CancelUrl { get; set; } = "Payment__PayOS__CancelUrl";
+    public string ReturnUrl { get; set; } = "https://swp-391-self-storage-facility-renta.vercel.app/customer/payments/result";
+    public string CancelUrl { get; set; } = "https://swp-391-self-storage-facility-renta.vercel.app/customer/payments/result";
     public string WebhookUrl { get; set; } = "https://swp391-self-storage-facility-rental-and.onrender.com/api/v1/payments/payos/webhook";
     public int ExpiryMinutes { get; set; } = 15;
     public override string ToString() => nameof(PayOsOptions);
