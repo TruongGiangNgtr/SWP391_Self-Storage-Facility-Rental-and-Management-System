@@ -119,6 +119,7 @@ internal sealed class ReturnVisitService(IReturnVisitRepository repository, IVis
     {
         "RETURN_VISIT_PENDING" => "A pending RETURN Visit already exists.",
         "VISIT_DATE_IN_PAST" => "Visit date cannot be before today in the business time zone.",
+        "RETURN_VISIT_DATE_OUTSIDE_CONTRACT" => "RETURN Visit date must be within the Contract period.",
         "CONTRACT_NOT_ACTIVE" => "RETURN Visit requires an active Contract.",
         "VISIT_INVALID_STATUS" => "Only a scheduled RETURN Visit may be changed.",
         "RESOURCE_NOT_FOUND" => "The requested resource was not found.",
@@ -131,7 +132,7 @@ internal sealed class ReturnVisitService(IReturnVisitRepository repository, IVis
         "UNAUTHORIZED" => 401,
         "ACCOUNT_INACTIVE" or "FORBIDDEN" => 403,
         "RESOURCE_NOT_FOUND" => 404,
-        "VALIDATION_ERROR" or "VISIT_DATE_IN_PAST" => 400,
+        "VALIDATION_ERROR" or "VISIT_DATE_IN_PAST" or "RETURN_VISIT_DATE_OUTSIDE_CONTRACT" => 400,
         _ => 409
     });
 }

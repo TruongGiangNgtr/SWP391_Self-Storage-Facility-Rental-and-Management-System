@@ -39,6 +39,7 @@ BEGIN
  IF v_contract."Status"<>'ACTIVE' THEN RAISE EXCEPTION USING ERRCODE='P1304',MESSAGE='CONTRACT_NOT_ACTIVE'; END IF;
  IF p_visit_date IS NULL THEN RAISE EXCEPTION USING ERRCODE='P1308',MESSAGE='VALIDATION_ERROR'; END IF;
  IF p_visit_date<(v_now AT TIME ZONE 'Asia/Ho_Chi_Minh')::date THEN RAISE EXCEPTION USING ERRCODE='P1306',MESSAGE='VISIT_DATE_IN_PAST'; END IF;
+ IF p_visit_date>(v_contract."EndMonth"+interval '1 month - 1 day')::date THEN RAISE EXCEPTION USING ERRCODE='P1309',MESSAGE='RETURN_VISIT_DATE_OUTSIDE_CONTRACT'; END IF;
  IF EXISTS(SELECT 1 FROM public."Visit" v WHERE v."EntityId"=p_contract_id AND v."VisitType"='RETURN' AND v."Status" IN ('SCHEDULED','CHECKED_IN')) THEN RAISE EXCEPTION USING ERRCODE='P1305',MESSAGE='RETURN_VISIT_PENDING'; END IF;
  INSERT INTO public."Visit"("VisitId","EntityId","EmployeeId","VisitType","VisitDate","ActualReturnDate","Status") VALUES(v_visit,p_contract_id,NULL,'RETURN',p_visit_date,NULL,'SCHEDULED');
  RETURN QUERY SELECT v.* FROM public."Visit" v WHERE v."VisitId"=v_visit;
@@ -62,6 +63,7 @@ BEGIN
  IF v_contract."Status"<>'ACTIVE' THEN RAISE EXCEPTION USING ERRCODE='P1304',MESSAGE='CONTRACT_NOT_ACTIVE'; END IF;
  IF p_visit_date IS NULL THEN RAISE EXCEPTION USING ERRCODE='P1308',MESSAGE='VALIDATION_ERROR'; END IF;
  IF p_visit_date<(v_now AT TIME ZONE 'Asia/Ho_Chi_Minh')::date THEN RAISE EXCEPTION USING ERRCODE='P1306',MESSAGE='VISIT_DATE_IN_PAST'; END IF;
+ IF p_visit_date>(v_contract."EndMonth"+interval '1 month - 1 day')::date THEN RAISE EXCEPTION USING ERRCODE='P1309',MESSAGE='RETURN_VISIT_DATE_OUTSIDE_CONTRACT'; END IF;
  UPDATE public."Visit" AS target SET "VisitDate"=p_visit_date WHERE target."VisitId"=p_visit_id;
  RETURN QUERY SELECT v.* FROM public."Visit" v WHERE v."VisitId"=p_visit_id;
 END $frms$;
