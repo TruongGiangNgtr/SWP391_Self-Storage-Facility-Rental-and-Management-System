@@ -153,7 +153,7 @@ public sealed class PayOsPaymentGateway(HttpClient http, IOptions<PayOsOptions> 
         }
         catch (Exception ex) when (ex is JsonException or FormatException or InvalidOperationException or OverflowException or ArgumentOutOfRangeException)
         {
-            return Task.FromResult(Rejected());
+            return Task.FromResult(Rejected("parse:" + ex.GetType().Name));
         }
     }
 
