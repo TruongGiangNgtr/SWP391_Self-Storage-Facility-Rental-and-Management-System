@@ -58,7 +58,7 @@ internal sealed class ReturnVisitRepository(FrmsDbContext db) : IReturnVisitRepo
                 reader.IsDBNull(reader.GetOrdinal("ActualReturnDate")) ? null : reader.GetDateTime(reader.GetOrdinal("ActualReturnDate")),
                 reader.GetString(reader.GetOrdinal("Status")));
         }
-        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) is >= 51301 and <= 51308)
+        catch (PostgresException ex) when (PostgreSqlErrors.Number(ex) is >= 51301 and <= 51309)
         {
             var code = PostgreSqlErrors.Number(ex) switch
             {
@@ -69,6 +69,7 @@ internal sealed class ReturnVisitRepository(FrmsDbContext db) : IReturnVisitRepo
                 51305 => "RETURN_VISIT_PENDING",
                 51306 => "VISIT_DATE_IN_PAST",
                 51307 => "VISIT_INVALID_STATUS",
+                51309 => "RETURN_VISIT_DATE_OUTSIDE_CONTRACT",
                 _ => "VALIDATION_ERROR"
             };
             throw new StoredProcedureBusinessException(code, code);
