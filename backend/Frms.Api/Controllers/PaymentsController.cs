@@ -83,6 +83,7 @@ public sealed class PaymentsController(IPaymentService service) : ControllerBase
                 PaymentApplicationOutcome.Applied or PaymentApplicationOutcome.Duplicate or PaymentApplicationOutcome.TerminalConflict
                     => Ok(new PayOsWebhookResponse("ACKNOWLEDGED")),
                 PaymentApplicationOutcome.NotFound => Ok(new PayOsWebhookResponse("IGNORED_UNKNOWN_ORDER")),
+                PaymentApplicationOutcome.Unresolved => Ok(new PayOsWebhookResponse("IGNORED_NOT_SUCCESS")),
                 PaymentApplicationOutcome.AmountMismatch => Conflict(new ApiErrorResponse("AMOUNT_MISMATCH", "The payment amount does not match.", HttpContext.TraceIdentifier)),
                 PaymentApplicationOutcome.ReferenceConflict => Conflict(new ApiErrorResponse("REFERENCE_CONFLICT", "The payment reference conflicts.", HttpContext.TraceIdentifier)),
                 _ => BadRequest(new ApiErrorResponse("PAYMENT_CALLBACK_INVALID", "The payment callback could not be verified.", HttpContext.TraceIdentifier))

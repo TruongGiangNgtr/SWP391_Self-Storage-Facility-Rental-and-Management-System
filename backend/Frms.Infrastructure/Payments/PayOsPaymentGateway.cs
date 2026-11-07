@@ -140,14 +140,17 @@ public sealed class PayOsPaymentGateway(HttpClient http, IOptions<PayOsOptions> 
             PayOsSignature.RejectDuplicates(root);
             if (!root.TryGetProperty("data", out var data)
                 || !PayOsSignature.Verify(data, Text(root, "signature"), config.ChecksumKey)) return Task.FromResult(Rejected("signature"));
+            // Signed but not a successful payment (e.g. payOS webhook-URL test ping): acknowledge, never mutate.
             if (Text(root, "code") != "00" || !root.TryGetProperty("success", out var success) || success.ValueKind != JsonValueKind.True
-                || Text(data, "code") != "00" || Text(data, "currency") != "VND"
+                || Text(data, "code") != "00")
+                return Task.FromResult(new PaymentGatewayCallbackResult(Guid.Empty, null, null, PaymentGatewayCallbackOutcome.Pending, null));
+            if (Text(data, "currency") != "VND"
                 || Number(data, "orderCode") is not { } orderCode || orderCode <= 0
                 || Number(data, "amount") is not { } amount || amount <= 0
                 || Text(data, "reference") is not { } reference || reference.Length is 0 or > 150
                 || reference.Any(c => c < 33 || c > 126)
                 || !DateTime.TryParseExact(Text(data, "transactionDateTime"), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture,
-                    DateTimeStyles.None, out var providerTime)) return Task.FromResult(Rejected("fields:" + FailedField(root, data)));
+                    DateTimeStyles.None, out var providerTime)) return Task.FromResult(Rejected("fields:" + FailedField(data)));
             var paidAt = new DateTimeOffset(DateTime.SpecifyKind(providerTime, DateTimeKind.Unspecified), ProviderOffset).ToUniversalTime();
             return Task.FromResult(new PaymentGatewayCallbackResult(Guid.Empty, amount, reference, PaymentGatewayCallbackOutcome.Success, paidAt, orderCode));
         }
@@ -190,11 +193,8 @@ public sealed class PayOsPaymentGateway(HttpClient http, IOptions<PayOsOptions> 
         && data.TryGetProperty(key, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out var number) ? number : null;
     private static PaymentGatewayCreationResult Unknown() => new(PaymentGatewayCreationOutcome.Unknown, null, null);
     // Diagnostic only: names the first field that fails the checks above; never returns values.
-    private static string FailedField(JsonElement root, JsonElement data) =>
-        Text(root, "code") != "00" ? "root.code"
-        : !root.TryGetProperty("success", out var s) || s.ValueKind != JsonValueKind.True ? "root.success"
-        : Text(data, "code") != "00" ? "data.code"
-        : Text(data, "currency") != "VND" ? "data.currency"
+    private static string FailedField(JsonElement data) =>
+        Text(data, "currency") != "VND" ? "data.currency"
         : Number(data, "orderCode") is not > 0 ? "data.orderCode"
         : Number(data, "amount") is not > 0 ? "data.amount"
         : Text(data, "reference") is not { Length: > 0 and <= 150 } r ? "data.reference.length"
