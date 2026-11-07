@@ -17,7 +17,7 @@ internal sealed class ReturnVisitService(IReturnVisitRepository repository, IVis
         var actor = await CustomerAsync(ct);
         var contract = await OwnedContractAsync(contractId, actor.CustomerId!.Value, ct);
         EnsureActive(contract);
-        ValidateDate(visitDate);
+        ValidateDate(visitDate, contract.EndMonth);
         try
         {
             return Map(await repository.CreateAsync(actor.UserAccountId, actor.CustomerId.Value,
@@ -30,8 +30,9 @@ internal sealed class ReturnVisitService(IReturnVisitRepository repository, IVis
     {
         var actor = await CustomerAsync(ct);
         var visit = await ScheduledOwnedAsync(actor.CustomerId!.Value, visitId, ct);
-        EnsureActive(await OwnedContractAsync(visit.EntityId, actor.CustomerId.Value, ct));
-        ValidateDate(visitDate);
+        var contract = await OwnedContractAsync(visit.EntityId, actor.CustomerId.Value, ct);
+        EnsureActive(contract);
+        ValidateDate(visitDate, contract.EndMonth);
         try
         {
             return Map(await repository.RescheduleAsync(actor.UserAccountId, actor.CustomerId.Value,
@@ -107,10 +108,12 @@ internal sealed class ReturnVisitService(IReturnVisitRepository repository, IVis
     {
         if (contract.Status != "ACTIVE") throw Error("CONTRACT_NOT_ACTIVE");
     }
-    private void ValidateDate(DateOnly date)
+    private void ValidateDate(DateOnly date, DateOnly contractEndMonth)
     {
         if (date == default) throw Error("VALIDATION_ERROR");
         if (date < DateOnly.FromDateTime(clock.ToBusinessTime(clock.UtcNow).DateTime)) throw Error("VISIT_DATE_IN_PAST");
+        // The Visit may fall on any day of the last Contract month (same rule as ACCESS Visits).
+        if (date > new DateOnly(contractEndMonth.Year, contractEndMonth.Month, DateTime.DaysInMonth(contractEndMonth.Year, contractEndMonth.Month))) throw Error("RETURN_VISIT_DATE_OUTSIDE_CONTRACT");
     }
     private static VisitResult Map(ReturnVisitRecord x) => new(x.VisitId, x.EntityId, x.EmployeeId,
         x.VisitType, x.VisitDate, x.ActualReturnDate, x.Status);
