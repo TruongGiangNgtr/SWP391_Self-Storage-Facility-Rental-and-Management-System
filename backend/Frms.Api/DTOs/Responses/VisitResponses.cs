@@ -67,4 +67,5 @@ public sealed record ConfirmActualReturnResponse(
 public sealed record StaffWorkItemCustomerResponse(
     Guid CustomerId,
     string FullName,
-    string PhoneNumber);
+    string PhoneNumber,
+    string? Cccd = null);

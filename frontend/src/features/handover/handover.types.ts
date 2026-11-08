@@ -13,6 +13,7 @@ export interface StaffWorkItemCustomer {
   customerId: string
   fullName: string
   phoneNumber: string
+  cccd?: string | null
 }
 
 export interface ReservationWorkItem extends StaffWorkItem {

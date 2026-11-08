@@ -160,6 +160,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
         item.scheduledDate,
         item.customer?.fullName ?? '',
         item.customer?.phoneNumber ?? '',
+        item.customer?.cccd ?? '',
         lookupLabel('contract', item.entityId),
         lookupLabel('contractUnit', item.entityId),
       ].some((value) => value.toLowerCase().includes(needle))
@@ -372,6 +373,7 @@ export function StaffWorkItemsPage({ mode = 'daily' }: StaffWorkItemsPageProps) 
                           <div className="fwp-customer-cell">
                             <strong>{item.customer.fullName}</strong>
                             <span className="fwp-phone-tag">{item.customer.phoneNumber}</span>
+                            {item.customer.cccd && <span className="fwp-phone-tag">CCCD: {item.customer.cccd}</span>}
                           </div>
                         ) : <span className="fwp-muted">Derived work item</span>}
                       </td>

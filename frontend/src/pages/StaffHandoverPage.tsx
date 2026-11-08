@@ -75,8 +75,18 @@ export function StaffHandoverPage() {
         <>
           <section className="panel stack" aria-label="Reservation and customer">
             <div className="card-heading-row"><h2>{employeeText(customer?.fullName, 'Reservation Details')}</h2><StatusBadge status={context.reservation.status} /></div>
-            {customer ? <p className="muted">{customer.phoneNumber}</p> : <p className="notice">Customer identification is not in the current work-list page. Return to Work List to review the customer; a missing work item is not evidence of a different reservation.</p>}
+            {customer ? (
+              <p className="muted">
+                Phone: <strong>{customer.phoneNumber}</strong>
+                {customer.cccd ? (
+                  <> · Citizen ID (CCCD): <strong>{customer.cccd}</strong></>
+                ) : (
+                  <> · Citizen ID (CCCD): <em>Not recorded</em></>
+                )}
+              </p>
+            ) : <p className="notice">Customer identification is not in the current work-list page. Return to Work List to review the customer; a missing work item is not evidence of a different reservation.</p>}
             <dl className="detail-list">
+              <div><dt>Citizen ID (CCCD)</dt><dd><strong style={{ letterSpacing: '0.05em' }}>{customer?.cccd ?? '—'}</strong></dd></div>
               <div><dt>Reservation</dt><dd><EmployeeReservationLabel customerId={context.reservation.customerId} customerName={customer?.fullName} startMonth={context.reservation.startMonth} endMonth={context.reservation.endMonth} visitDate={context.visit.visitDate} /></dd></div>
               <div><dt>Rental Period</dt><dd>{formatMonthRange(context.reservation.startMonth, context.reservation.endMonth)}</dd></div>
               <div><dt>Facility</dt><dd><EmployeeEntityLabel kind="facility" id={context.reservation.facilityId} /></dd></div>

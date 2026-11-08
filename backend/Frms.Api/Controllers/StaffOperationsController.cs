@@ -40,7 +40,8 @@ public sealed class StaffOperationsController(IHandoverService handoverService,I
                     ? new StaffWorkItemCustomerResponse(
                         x.CustomerId.Value,
                         x.CustomerName!,
-                        x.CustomerPhone!)
+                        x.CustomerPhone!,
+                        x.CustomerCccd)
                     : null,
                 x.ActualReturnDate,
                 x.InspectionId

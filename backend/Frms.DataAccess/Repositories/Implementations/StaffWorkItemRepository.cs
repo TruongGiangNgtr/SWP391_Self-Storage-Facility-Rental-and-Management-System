@@ -51,7 +51,8 @@ internal sealed class StaffWorkItemRepository(
                 Status = visit.Status,
                 CustomerId = (Guid?)customer.CustomerId,
                 CustomerName = (string?)customer.FullName,
-                CustomerPhone = (string?)account.PhoneNumber
+                CustomerPhone = (string?)account.PhoneNumber,
+                CustomerCccd = (string?)customer.Cccd
             };
 
         var contractVisits =
@@ -74,7 +75,8 @@ internal sealed class StaffWorkItemRepository(
                 Status = visit.Status,
                 CustomerId = (Guid?)customer.CustomerId,
                 CustomerName = (string?)customer.FullName,
-                CustomerPhone = (string?)account.PhoneNumber
+                CustomerPhone = (string?)account.PhoneNumber,
+                CustomerCccd = (string?)customer.Cccd
             };
 
         var inspections =
@@ -92,7 +94,8 @@ internal sealed class StaffWorkItemRepository(
                 Status = inspection.Status,
                 CustomerId = (Guid?)null,
                 CustomerName = (string?)null,
-                CustomerPhone = (string?)null
+                CustomerPhone = (string?)null,
+                CustomerCccd = (string?)null
             };
 
         var tickets =
@@ -110,7 +113,8 @@ internal sealed class StaffWorkItemRepository(
                 Status = ticket.Status,
                 CustomerId = (Guid?)null,
                 CustomerName = (string?)null,
-                CustomerPhone = (string?)null
+                CustomerPhone = (string?)null,
+                CustomerCccd = (string?)null
             };
 
         var allItems = reservationVisits.Concat(contractVisits)
@@ -129,7 +133,7 @@ internal sealed class StaffWorkItemRepository(
             .Take(pageSize)
             .Select(x => new StaffWorkItemRecord(
                 x.WorkType, x.ReferenceId, x.EntityId, x.ScheduledDate, x.Status,
-                x.CustomerId, x.CustomerName, x.CustomerPhone, null, null))
+                x.CustomerId, x.CustomerName, x.CustomerPhone, null, null, x.CustomerCccd))
             .ToArrayAsync(cancellationToken);
 
         // Batch-enrich only the physical RETURN visits in the paged result.

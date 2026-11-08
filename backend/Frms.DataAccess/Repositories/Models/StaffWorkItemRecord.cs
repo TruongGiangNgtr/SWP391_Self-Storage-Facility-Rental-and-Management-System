@@ -10,4 +10,5 @@ public sealed record StaffWorkItemRecord(
     string? CustomerName,
     string? CustomerPhone,
     DateTime? ActualReturnDate,
-    Guid? InspectionId);
+    Guid? InspectionId,
+    string? CustomerCccd = null);

@@ -81,7 +81,8 @@ internal sealed class StaffWorkItemService(
                 x.CustomerName,
                 x.CustomerPhone,
                 x.ActualReturnDate.HasValue ? DateOnly.FromDateTime(x.ActualReturnDate.Value) : null,
-                x.InspectionId
+                x.InspectionId,
+                x.CustomerCccd
             )).ToArray(),
             page,
             pageSize,

@@ -10,7 +10,8 @@ public sealed record StaffWorkItemResult(
     string? CustomerName,
     string? CustomerPhone,
     DateOnly? ActualReturnDate,
-    Guid? InspectionId);
+    Guid? InspectionId,
+    string? CustomerCccd = null);
 
 public sealed record StaffWorkItemPageResult(
     IReadOnlyList<StaffWorkItemResult> Items,

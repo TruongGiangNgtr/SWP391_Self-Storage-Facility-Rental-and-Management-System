@@ -26,9 +26,22 @@ export function StaffAccessVisitPage() {
       {loading ? <LoadingState label="Loading access visit and contract..." /> : context && <>
         <section className="panel stack" aria-label="Access visit and customer">
           <div className="card-heading-row"><h2>Access Visit</h2><StatusBadge status={employeeText(context.visit.status)} /></div>
-          {context.workItem ? <p><strong>{context.workItem.customer.fullName}</strong><br /><span className="muted">{context.workItem.customer.phoneNumber}</span></p>
-            : <p className="notice">Customer identification is not in this work-list page. Return to Work List to verify the arriving customer; no customer details are inferred from URL IDs.</p>}
+          {context.workItem ? (
+            <p>
+              <strong>{context.workItem.customer.fullName}</strong>
+              <br />
+              <span className="muted">
+                Phone: <strong>{context.workItem.customer.phoneNumber}</strong>
+                {context.workItem.customer.cccd ? (
+                  <> · Citizen ID (CCCD): <strong>{context.workItem.customer.cccd}</strong></>
+                ) : (
+                  <> · Citizen ID (CCCD): <em>Not recorded</em></>
+                )}
+              </span>
+            </p>
+          ) : <p className="notice">Customer identification is not in this work-list page. Return to Work List to verify the arriving customer; no customer details are inferred from URL IDs.</p>}
           <dl className="detail-list">
+            <div><dt>Citizen ID (CCCD)</dt><dd><strong style={{ letterSpacing: '0.05em' }}>{context.workItem?.customer.cccd ?? '—'}</strong></dd></div>
             <div><dt>Visit</dt><dd>Access visit · {context.visit.visitDate}</dd></div>
             <div><dt>Visit Date (GMT+7)</dt><dd>{context.visit.visitDate}</dd></div>
             <div><dt>Handling Staff</dt><dd><EmployeeEntityLabel kind="employee" id={context.visit.employeeId} empty={'Not Recorded'} /></dd></div>
