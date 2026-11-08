@@ -140,9 +140,16 @@ function snapshotFields(value: unknown): ReactNode {
   if (typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(value)) return 'Related record'
   return String(value ?? '—')
 }
-function prettySnapshot(value: string | null): ReactNode {
+function prettySnapshot(value: string | null, action: string): ReactNode {
   if (!value) return null
-  try { return snapshotFields(JSON.parse(value)) } catch { return snapshotFields(value) }
+  let snapshot: unknown
+  try { snapshot = JSON.parse(value) } catch { snapshot = value }
+  if (action === 'CHANGE_STORAGE_UNIT_STATUS' && snapshot && !Array.isArray(snapshot)
+    && typeof snapshot === 'object' && Object.keys(snapshot).length === 1
+    && 'status' in snapshot && typeof snapshot.status === 'string') {
+    return <span className="awp07-snapshot-status">{formatCode(snapshot.status)}</span>
+  }
+  return snapshotFields(snapshot)
 }
 function AuditResource({ entry }: { entry: AdminAuditLogEntry }) {
   if (entry.entityType === 'USER_ACCOUNT') return <EmployeeEntityLabel kind="account" id={entry.entityId} />
@@ -192,8 +199,8 @@ function AuditLogDetailDrawer({
   entry: AdminAuditLogEntry
   onClose: () => void
 }) {
-  const oldValue = prettySnapshot(entry.oldValue)
-  const newValue = prettySnapshot(entry.newValue)
+  const oldValue = prettySnapshot(entry.oldValue, entry.action)
+  const newValue = prettySnapshot(entry.newValue, entry.action)
 
   return (
     <aside className="awp07-drawer" aria-labelledby="awp07-drawer-title">
