@@ -17,6 +17,7 @@ const MESSAGES: Record<string, string> = {
   DEPOSIT_NOT_PAID: 'Your deposit is not confirmed as paid yet. Check the deposit invoice before continuing. If you have already paid, check its status before making another payment.',
   VISIT_DATE_OUT_OF_POLICY: 'Choose a handover date within the allowed reservation visit window. Review your reservation and try another date.',
   ACCESS_VISIT_DATE_OUTSIDE_CONTRACT: 'Choose an access visit date within your contract period. Review the start and end months on your contract.',
+  RETURN_VISIT_DATE_OUTSIDE_CONTRACT: 'Choose a return visit date on or before the last day of your contract end month. Review your contract and select another date.',
   VISIT_DATE_IN_PAST: 'Choose today or a future date for your visit (GMT+7).',
   RESERVATION_INVALID_STATUS: 'Your reservation has changed and this action is no longer available. Refresh the reservation to see what you can do next.',
   CONTRACT_NOT_ACTIVE: 'This action is only available for an active contract. Open My Contracts to check the latest status.',

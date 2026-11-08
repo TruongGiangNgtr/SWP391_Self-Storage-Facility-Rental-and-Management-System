@@ -27,6 +27,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   DEPOSIT_NOT_PAID: 'The deposit has not been recorded as paid.',
   VISIT_DATE_OUT_OF_POLICY:
     'The visit date is outside the allowed reservation policy window.',
+  RETURN_VISIT_DATE_OUTSIDE_CONTRACT: 'The return visit date must be on or before the last day of the contract end month. Choose another date.',
   RESERVATION_INVALID_STATUS: 'The current reservation status does not allow this action.',
   CONTRACT_NOT_ACTIVE: 'This contract is no longer active. Refresh its details before continuing.',
   RETURN_VISIT_PENDING: 'A return visit is pending for this contract. New access visits and contract renewal are blocked.',
