@@ -182,7 +182,7 @@ export function VisitDetailPage() {
           {visit.status === 'SCHEDULED' && mode === 'reschedule' && (
             <FlowDialog className="visit-reschedule-dialog visits-editorial-dialog" title="Reschedule Visit" subtitle="Choose a new date for this visit." category="" busy={working} trapFocus onClose={() => setMode(null)}><ApiErrorAlert error={error} /><form className="form-grid" onSubmit={handleReschedule}>
               <CalendarDateField id="newVisitDate" label="New Visit Date" value={newVisitDate} min={getCurrentBusinessDate()} disabled={loading || working} error={fieldErrors.date} onChange={value => { setNewVisitDate(value); setFieldErrors({}) }} />
-              <p className="visit-detail-edit-hint"><Info size={16} aria-hidden="true" />The new date must follow the policy for this visit.</p>
+              <p className="visit-detail-edit-hint"><Info size={16} aria-hidden="true" />{visit.visitType === 'RETURN' ? 'Choose today or a future date (GMT+7), no later than the last day of your contract end month. Your contract must be active. Open View Contract to check its current end month.' : 'The new date must follow the policy for this visit.'}</p>
               <div className="action-row">
                 <button className="button button-secondary" disabled={working} onClick={() => setMode(null)} type="button">
                   Close
