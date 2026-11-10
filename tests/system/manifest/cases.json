@@ -70,12 +70,12 @@
     "name": "Customer Login: alternate flow with incorrect password.",
     "sourceKey": "Khánh:MOD01_Auth:TC6",
     "technique": "Use Case Testing (source section: USE CASE TESTING)",
-    "expectedUI": "The sign-in form remains open and shows \"Incorrect sign-in details.\" The customer portal is not opened.",
+    "expectedUI": "Customer Sign In remains open. The customer-facing error alert says \"The phone number or password is incorrect. Check both and try signing in again.\" No customer portal opens.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/auth-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0007",
@@ -109,12 +109,12 @@
     "name": "Check Phone Number: valid 10-digit number with standard prefix.",
     "sourceKey": "Khánh:MOD01_Auth:TC9",
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
-    "expectedUI": "The valid phone value is accepted for submission when all other registration fields are valid; there is no phone-number validation message. A successful complete registration goes to Sign In.",
+    "expectedUI": "The ten-digit phone input remains valid in the registration frontend (no inline phone-number error). This client-side case deliberately blocks submission with another invalid field; server registration is not asserted.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/auth-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09: client-side acceptance only. Another required field is deliberately invalid to prevent account creation in remote/shared Testing database. Backend acceptance and successful registration remain unverified."
   },
   {
     "id": "FRMS-ST-0010",
@@ -148,12 +148,12 @@
     "name": "Check Email Address: valid RFC format.",
     "sourceKey": "Khánh:MOD01_Auth:TC12",
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
-    "expectedUI": "The email-format input is accepted without an inline email-format error when the rest of the registration data is valid.",
+    "expectedUI": "The RFC-formatted email passes the frontend email-format check without an inline email error. An unrelated required field is left invalid to prevent account creation.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/auth-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09: client-side acceptance only. Another required field is deliberately invalid to prevent account creation in remote/shared Testing database. Backend acceptance and successful registration remain unverified."
   },
   {
     "id": "FRMS-ST-0013",
@@ -174,12 +174,12 @@
     "name": "Check National ID / CCCD: valid 12-digit number.",
     "sourceKey": "Khánh:MOD01_Auth:TC14",
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
-    "expectedUI": "A 12-digit National ID / CCCD is accepted by the optional profile-information field with no CCCD format error.",
+    "expectedUI": "A 12-digit National ID / CCCD passes the optional frontend format check without CCCD feedback. An unrelated required field prevents any registration request.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/auth-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09: client-side acceptance only. Another required field is deliberately invalid to prevent account creation in remote/shared Testing database. Backend acceptance and successful registration remain unverified."
   },
   {
     "id": "FRMS-ST-0015",
@@ -213,12 +213,12 @@
     "name": "Check Password length: Lower bound L(Password) = 8 characters.",
     "sourceKey": "Khánh:MOD01_Auth:TC17",
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
-    "expectedUI": "The eight-character password passes client-side length validation; other required inputs must also be valid before submission.",
+    "expectedUI": "An eight-character password passes the frontend 8–64 character/72-byte check without a Password field error; another invalid required field blocks registration.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/auth-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09: client-side acceptance only. Another required field is deliberately invalid to prevent account creation in remote/shared Testing database. Backend acceptance and successful registration remain unverified."
   },
   {
     "id": "FRMS-ST-0018",
@@ -226,12 +226,12 @@
     "name": "Check Password length: Upper bound U(Password) = 64 characters.",
     "sourceKey": "Khánh:MOD01_Auth:TC18",
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
-    "expectedUI": "A 64-character password passes the client-side length check; the form may proceed when the remaining inputs are valid.",
+    "expectedUI": "A 64-character ASCII password passes the frontend 8–64 character/72-byte check without a Password field error; another invalid required field blocks registration.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/auth-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09: client-side acceptance only. Another required field is deliberately invalid to prevent account creation in remote/shared Testing database. Backend acceptance and successful registration remain unverified."
   },
   {
     "id": "FRMS-ST-0019",
@@ -239,12 +239,12 @@
     "name": "Check Password length: Upper bound U(Password) + 1 = 65 characters.",
     "sourceKey": "Khánh:MOD01_Auth:TC19",
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
-    "expectedUI": "The Password field displays \"Password must contain 8 to 64 characters.\" and the form is not submitted.",
+    "expectedUI": "The registration Password input has maxLength=64. A 65th normally typed character is not accepted, so the submit-time 65-character validation message is not reachable through ordinary typing.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/auth-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0020",
@@ -332,10 +332,10 @@
     "technique": "Use Case Testing (source section: USE CASE TESTING)",
     "expectedUI": "After customer sign-in, the customer portal/profile shows the signed-in customer's information. The direct /auth/me response fields are not rendered by this UI test step.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/auth-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0148",
@@ -345,10 +345,10 @@
     "technique": "Use Case Testing (source section: USE CASE TESTING)",
     "expectedUI": "After employee sign-in, the role-specific employee portal opens with the employee's permitted work area. The raw /auth/me response is not a frontend output.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/auth-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0149",
@@ -371,10 +371,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "Not applicable to the current frontend: This procedure mutates an authorization token and calls an endpoint; there is no corresponding UI state to assert. No user-visible Expected Output can be established for this procedure; redesign it as a UI scenario or retain it as a separate API/system test.",
     "channel": "API",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/api-security-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0150-B",
@@ -436,10 +436,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "Opening the Staff Work List as a customer is blocked by route authorization and shows the Forbidden page or redirects to the applicable sign-in route; no staff work items are displayed.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/auth-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0154",
@@ -449,10 +449,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "Opening System Administrator pages as Facility Staff is blocked by route authorization; no admin user management data is displayed.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/auth-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0155",
@@ -499,12 +499,12 @@
     "name": "Customer sign-in rejects an incorrect password.",
     "sourceKey": "Mẫn:Module 1:AUTH-TC-02",
     "technique": "Use Case Testing (source section: Customer login)",
-    "expectedUI": "The form stays on Customer Sign In and shows \"Incorrect sign-in details.\" No authenticated customer page opens.",
+    "expectedUI": "Customer Sign In remains open. The customer-facing error alert says \"The phone number or password is incorrect. Check both and try signing in again.\" No customer portal opens.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/auth-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0199",
@@ -553,10 +553,10 @@
     "technique": "Use Case Testing (source section: Employee login)",
     "expectedUI": "Employee Sign In displays \"Incorrect sign-in details.\" and does not navigate to the staff portal.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/auth-next.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0203",
@@ -709,10 +709,10 @@
     "technique": "Use Case Testing (source section: USE CASE TESTING)",
     "expectedUI": "The public facility detail page shows facility identity/details and a Storage Types Offered or Available Storage Options section with storage-type cards.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/catalog.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0030",
@@ -839,10 +839,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "An eligible unit card displays its available capacity for the chosen period and an enabled \"Create Reservation\" action.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/catalog.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0040",
@@ -878,10 +878,10 @@
     "technique": "Use Case Testing / Validation (source section: Search and selection)",
     "expectedUI": "The calendar disallows check-in during the current month. When submitted through an invalid state, the form shows \"The check-in month must be after the current month.\"",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/catalog.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0209",
@@ -891,10 +891,10 @@
     "technique": "Use Case Testing / Validation (source section: Search and selection)",
     "expectedUI": "Earlier Check-out Months are unavailable to select; invalid direct input is rejected with \"The check-out month cannot be before the check-in month.\"",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/catalog.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0210",
@@ -904,10 +904,10 @@
     "technique": "Use Case Testing / Validation (source section: Search and selection)",
     "expectedUI": "The results show only facility/storage-type cards matching the selected location, mode, size and period, or \"No facilities match this search. Try a different location, storage size or rental period.\"",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/catalog.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0041",
@@ -1112,10 +1112,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "The \"Sign in to continue\" dialog opens, showing the selected unit, period and monthly price plus \"Sign In to Continue\" and \"Create Customer Account\" actions. No reservation is created at this stage.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/reservation-guest.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0211",
@@ -1125,10 +1125,10 @@
     "technique": "Use Case Testing / Validation (source section: Create reservation)",
     "expectedUI": "The \"Sign in to continue\" dialog opens and retains the selected storage information. It states that the selection does not hold capacity or create a deposit.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/reservation-guest.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 09. Test uses the actual frontend/API; no registration, reservation, payment, or status mutation. Runtime pass and SRS approval remain pending."
   },
   {
     "id": "FRMS-ST-0212",

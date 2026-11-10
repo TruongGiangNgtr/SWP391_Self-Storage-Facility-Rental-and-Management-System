@@ -5,6 +5,10 @@ import { ROOT, REPORTS, loadManifest, parseArgs, selectCases, safeRunId, assertS
 import { normalize } from './normalize-results.mjs'
 
 const options = parseArgs()
+const workers = Number(process.env.FRMS_PLAYWRIGHT_WORKERS ?? '4')
+const retries = Number(process.env.FRMS_PLAYWRIGHT_RETRIES ?? '1')
+if (!Number.isInteger(workers) || workers < 1 || workers > 16) throw new Error('FRMS_PLAYWRIGHT_WORKERS must be an integer in [1, 16].')
+if (!Number.isInteger(retries) || retries < 0 || retries > 3) throw new Error('FRMS_PLAYWRIGHT_RETRIES must be an integer in [0, 3].')
 const manifest = loadManifest()
 const selection = selectCases(manifest, options)
 const runnable = selection.filter(item => item.automation === 'IMPLEMENTED')
@@ -48,7 +52,7 @@ if (runnable.length) {
       exitCode = 2
     } else {
       exitCode = await execute(process.execPath, [playwrightCli, 'test', 'tests/frms', '--grep', grep,
-        '--reporter=json', '--retries=1', '--workers=1', '--output', path.join(runDir, 'artifacts')], {
+        '--reporter=json', `--retries=${retries}`, `--workers=${workers}`, '--output', path.join(runDir, 'artifacts')], {
         PLAYWRIGHT_JSON_OUTPUT_FILE: path.join(runDir, 'playwright-results.json'),
         FRMS_API_URL: process.env.FRMS_API_URL ?? 'http://127.0.0.1:5164',
         FRMS_UI_URL: process.env.FRMS_UI_URL ?? 'http://127.0.0.1:4173',

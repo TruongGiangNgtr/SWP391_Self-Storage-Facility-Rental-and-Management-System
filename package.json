@@ -11,6 +11,7 @@
     "test:frms:preflight": "node tests/system/scripts/preflight.mjs",
     "test:frms:all": "node tests/system/scripts/run.mjs",
     "test:frms:case": "node tests/system/scripts/run.mjs",
-    "test:frms:jira": "node tests/system/scripts/export-jira-defects.mjs"
+    "test:frms:jira": "node tests/system/scripts/export-jira-defects.mjs",
+    "test:frms:catalog-probe": "node tests/system/scripts/probe-catalog.mjs"
   }
 }
