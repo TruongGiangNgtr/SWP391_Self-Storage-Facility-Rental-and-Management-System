@@ -68,3 +68,4 @@ Last reviewed: **2026-11-11**, against branch head `145e9f965f3a` before adding 
 
 - [BATCH14_COVERAGE_PASS_AND_ST0091_ST0092_20261111.md](BATCH14_COVERAGE_PASS_AND_ST0091_ST0092_20261111.md): post-fix coverage validation PASS and two new Billing targeted PASS runs (Batch14 8/15).
 
+- [BATCH14_COVERAGE281_ST0094_PASS_ST0243_SKIPPED_20261111.md](BATCH14_COVERAGE281_ST0094_PASS_ST0243_SKIPPED_20261111.md): 281-case coverage PASS, ST-0094 PASS, ST-0243 SKIPPED and fixture diagnostics.
