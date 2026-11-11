@@ -6,6 +6,9 @@ const REGISTER = '/auth/customer/register'
 const CUSTOMER_LOGIN = '/auth/customer/login'
 const STAFF_LOGIN = '/auth/employee/login'
 test.setTimeout(90_000)
+// File-level override: trace is worker-scoped and cannot be configured inside describe.
+// This file handles demo credentials and a signed JWT; do not capture them in traces.
+test.use({ trace: 'off' })
 
 const PASSWORD = process.env.FRMS_TEST_CUSTOMER_1_PASSWORD ?? '11111111'
 const STAFF_PASSWORD = process.env.FRMS_TEST_STAFF_PASSWORD ?? '11111111'
@@ -179,10 +182,8 @@ test('FRMS-ST-0154 - Facility staff is forbidden from administrator pages', asyn
   await expect(page.getByRole('heading', { name: /403.*Access Denied/ })).toBeVisible()
 })
 
-// This block handles signed JWTs. Disable traces to prevent storing credentials
-// in artifacts; Playwright retains the usual text error context on failures.
+// Signed-JWT route tests reuse the file-level trace policy above.
 test.describe('Authenticated Customer route boundaries', () => {
-  test.use({ trace: 'off' })
 
   test('FRMS-ST-0147 - Customer identity is shown in own account settings', async ({ page }) => {
     await openAuthenticatedCustomerRoute(page, '/customer/account-settings')

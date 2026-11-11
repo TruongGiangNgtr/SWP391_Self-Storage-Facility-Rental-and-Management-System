@@ -167,6 +167,13 @@ function Setup-TestEnvironment {
     Set-DefaultEnv 'FRMS_TEST_CUSTOMER_1_PASSWORD' '11111111'
     Set-DefaultEnv 'FRMS_TEST_STAFF_01_EMAIL' 'staff.f01@example.com'
     Set-DefaultEnv 'FRMS_TEST_STAFF_PASSWORD' '11111111'
+    Set-DefaultEnv 'FRMS_TEST_CUSTOMER_2_PASSWORD' '11111111'
+    Set-DefaultEnv 'FRMS_TEST_MANAGER_01_EMAIL' 'manager.f01@example.com'
+    Set-DefaultEnv 'FRMS_TEST_MANAGER_PASSWORD' '11111111'
+    Set-DefaultEnv 'FRMS_TEST_BOM_EMAIL' 'bom@example.com'
+    Set-DefaultEnv 'FRMS_TEST_BOM_PASSWORD' '11111111'
+    Set-DefaultEnv 'FRMS_TEST_ADMIN_EMAIL' 'admin@example.com'
+    Set-DefaultEnv 'FRMS_TEST_ADMIN_PASSWORD' '11111111'
 
     # Reference unit type. A valid ACTIVE facility and positive capacity must
     # still be established before the catalog fixture is considered complete.
@@ -251,6 +258,37 @@ function Resolve-CatalogFixture {
     Remove-Item Env:FRMS_TEST_ACTIVE_FACILITY_NAME -ErrorAction SilentlyContinue
 }
 
+function Resolve-Batch12Fixtures {
+    $scriptFile = Join-Path $Repo 'tests\system\scripts\batch12-discover.mjs'
+    if (-not (Test-Path -LiteralPath $scriptFile)) {
+        Write-Warning 'Batch 12 fixture discovery script not found; missing fixtures remain blocked.'
+        return
+    }
+    try {
+        $rawJson = & node $scriptFile
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($rawJson)) { throw 'Node discovery failed.' }
+        $result = $rawJson | ConvertFrom-Json
+        $count = 0
+        foreach ($item in $result.fixtures.PSObject.Properties) {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($item.Name, 'Process'))) {
+                [Environment]::SetEnvironmentVariable($item.Name, [string]$item.Value, 'Process')
+                $count++
+            }
+        }
+        Write-Host "Batch 12 fixture discovery: $count verified value(s) supplied to this launcher process."
+        foreach ($item in $result.roles.PSObject.Properties) {
+            $state = if ($item.Value) { "verified" } else { "unavailable" }
+            Write-Host "  $($item.Name): $state"
+        }
+        foreach ($note in @($result.notes)) { Write-Warning "Batch 12 fixture: $note" }
+        & node (Join-Path $Repo 'tests\system\scripts\batch12-env-audit.mjs') | Out-Host
+        if ($LASTEXITCODE -ne 0) { throw 'Batch 12 mandatory environment audit failed.' }
+    } catch {
+        Write-Warning ("Batch 12 fixture discovery unavailable: " + $_.Exception.Message)
+        Write-Warning 'Unresolved fixtures remain SKIPPED/Blocked, not PASS.'
+    }
+}
+
 try {
     Set-Location -LiteralPath $Repo
     Assert-Prerequisites
@@ -268,6 +306,7 @@ try {
         if (-not $SkipCatalogDiscovery -and $Mode -in @('all','case','area')) {
             Resolve-CatalogFixture
         }
+        if ($Mode -in @('all','case','area')) { Resolve-Batch12Fixtures }
         if ($InstallBrowser) {
             $browser = Run-Pnpm @('--dir','tests/e2e/playwright','exec','playwright','install','chromium')
             if ($browser -ne 0) { throw 'Playwright Chromium installation failed.' }

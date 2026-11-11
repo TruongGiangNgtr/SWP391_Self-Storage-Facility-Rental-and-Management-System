@@ -319,10 +319,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "A staff account must use Employee Sign In. If a staff account is returned through Customer Sign In, the frontend logs out and navigates to the Forbidden page instead of the customer portal.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-auth-search.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0147",
@@ -514,10 +514,10 @@
     "technique": "Use Case Testing (source section: Customer login)",
     "expectedUI": "The form stays on Customer Sign In and shows \"Incorrect sign-in details.\" No account-existence hint is presented.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-auth-search.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0200",
@@ -566,10 +566,10 @@
     "technique": "Use Case Testing (source section: Employee login)",
     "expectedUI": "Employee Sign In displays \"Incorrect sign-in details.\" and does not disclose whether the email is registered.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-auth-search.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0204",
@@ -735,10 +735,10 @@
     "technique": "Use Case Testing (source section: USE CASE TESTING)",
     "expectedUI": "The optional AI assistant displays an error alert and \"Your description has been kept. Submit again when you are ready, or compare storage types manually.\" The storage-size catalogue remains usable.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-auth-search.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0032",
@@ -865,10 +865,10 @@
     "technique": "Use Case Testing / Validation (source section: Search and selection)",
     "expectedUI": "The Ha Noi facility and the matching storage-type offer appear on the public results page with its listed monthly rent and available capacity, provided that current catalog data contains a match.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-auth-search.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0208",
@@ -917,10 +917,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "The reservation review page displays facility, address, storage type and size, selected rental months, current listed rent and \"Confirm Reservation\". It explains that locked rent/deposit appear only after creation; it does not show a fixed deposit or terms checkbox here.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0042",
@@ -995,10 +995,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "The reservation review remains available, and \"Confirm Reservation\" can submit without opening \"Complete Your Profile\" when the saved National ID is valid.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0048",
@@ -1008,10 +1008,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "The reservation page opens \"Complete Your Profile\" for missing CCCD and displays \"Add your National ID\" guidance. Reservation confirmation remains unavailable until a valid 12-digit ID is saved.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0049",
@@ -1021,10 +1021,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "Reservation Details displays the server-returned \"Deposit Amount\" alongside the \"Locked Monthly Rent\". Compare the displayed values; do not assert a hard-coded 2,000,000 VND fixture without matching catalog data.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0050",
@@ -1164,10 +1164,10 @@
     "technique": "Use Case Testing / Validation (source section: Reservation validation)",
     "expectedUI": "The \"Complete Your Profile\" dialog asks for National ID / CCCD and prevents reservation creation until a valid 12-digit ID is supplied.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0215",
@@ -1190,10 +1190,10 @@
     "technique": "Use Case Testing / Validation (source section: Reservation validation)",
     "expectedUI": "The other customer's reservation is not rendered; the page shows its customer-facing unavailable/access-denied alert or navigates away to the permitted customer area.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0057",
@@ -1203,10 +1203,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "The Facility Staff Work List displays reservation visit rows for the selected date, including customer, visit state, and an action such as \"Open Check-in\" or \"Open Handover\" as appropriate.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-staff.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0058",
@@ -1216,10 +1216,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "The Facility Manager \"Select Handover Unit\" page shows checked-in reservations and a list of \"Available Matching Units\". The selection flow is a dedicated page, not a guaranteed modal.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-staff.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0059",
@@ -1281,10 +1281,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "An AVAILABLE unit matching the facility and reserved unit type can be selected and saved by the manager; its code is visible in the saved assignment.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-staff.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0064",
@@ -1320,10 +1320,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "The matching AVAILABLE unit is selectable and its code is shown as the manager-saved handover assignment.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-staff.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0066",
@@ -1346,10 +1346,10 @@
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
     "expectedUI": "The Complete Handover section is not shown while the visit remains SCHEDULED. The page instead provides \"Check In Customer\" and check-in guidance.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-staff.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0068",
@@ -1580,10 +1580,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "The Facility Staff Work List shows stage tabs, date filter, customer details, visit status, and action links such as \"Open Check-in\", \"Open Handover\", or \"View Visit\" for eligible items.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-staff.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0165",
@@ -1593,10 +1593,10 @@
     "technique": "Use Case Testing (source section: USE CASE TESTING)",
     "expectedUI": "The Work List shows visits scoped to the signed-in staff facility. A cross-facility visit is absent or inaccessible; its customer details are not rendered.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-staff.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0166",
@@ -1710,10 +1710,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "The \"Schedule Access Visit\" page displays Selected Contract details, an \"Access Visit Date (GMT+7)\" date picker, and \"Confirm Access Visit\". There is no time-slot selector.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0073",
@@ -1788,10 +1788,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "A completed contract displays \"You can only schedule access visits for an active contract. Open My Contracts to check its latest status.\" The submit form is absent.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0078-B",
@@ -1801,10 +1801,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "A terminated contract displays \"You can only schedule access visits for an active contract. Open My Contracts to check its latest status.\" The submit form is absent.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0079",
@@ -1814,10 +1814,10 @@
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
     "expectedUI": "A selected date of today or later within the ACTIVE contract dates is accepted by the date picker. There is no time-of-day slot to test in the current frontend.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0080",
@@ -1840,10 +1840,10 @@
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
     "expectedUI": "The calendar prevents selection after the contract end date; invalid direct input shows \"Choose a date within your contract period.\" and does not navigate to a newly created visit.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0082",
@@ -1892,10 +1892,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "The form shows the selected contract, rented unit, start/end months and one date-only picker labeled \"Access Visit Date (GMT+7)\", plus \"Confirm Access Visit\" and My Visits navigation. No time-slot dropdown exists.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0157",
@@ -1931,10 +1931,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "When contract status is not ACTIVE, the creation page displays a notice that access visits are available only for active contracts and does not show the submission form.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0160",
@@ -1944,10 +1944,10 @@
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
     "expectedUI": "Past dates cannot be selected; invalid direct input shows \"Choose today or a future date (GMT+7).\" No new Visit Details page opens.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0160-B",
@@ -2038,10 +2038,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "The customer \"Deposit & Invoices\" page includes \"All Invoices\" with invoice type/status filters and an invoice table showing label, payment deadline, amount and status; eligible invoices link to Invoice Details for payment.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0086",
@@ -2116,10 +2116,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "Invoice Details displays the Paid status and \"This invoice is recorded as paid.\" No new Pay with payOS action is offered for the paid invoice.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0091",
@@ -2207,10 +2207,10 @@
     "technique": "Use Case Testing / Integration (source section: Invoice view)",
     "expectedUI": "\"Deposit & Invoices\" shows the customer's \"Reservation Deposit\" invoice; Invoice Details displays Amount Breakdown, Amount Due, status and billing context for the selected invoice.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0228",
@@ -2220,10 +2220,10 @@
     "technique": "Use Case Testing / Integration (source section: Invoice view)",
     "expectedUI": "Another customer's invoice is not rendered in the customer's Invoice Details view; the application displays its access/not-found alert without exposing amount or payment details.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0229",
@@ -2298,10 +2298,10 @@
     "technique": "Use Case Testing / Integration (source section: Payment protection)",
     "expectedUI": "\"Fees & Return Tracking\" states \"First-month rent is handled offline at handover and is not included in this invoice list.\" The All Invoices view does not list an online first-month rent record if none was issued.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0235",
@@ -2337,10 +2337,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "The customer sees \"Extend Contract Duration\" with current contract, Current End Month, Select New Check-out Month, Extension Summary and the renewal submit action. The form is a page, not an invoice/payment modal.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0098",
@@ -2389,10 +2389,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "The month selector excludes the existing end month. Invalid direct input produces \"The new end month must be after the current contract end month.\" No extension confirmation appears.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0101-B",
@@ -2402,10 +2402,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "A month earlier than the current contract end is unavailable in the selector; invalid direct input produces \"The new end month must be after the current contract end month.\"",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0102",
@@ -2545,10 +2545,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "\"Request Storage Return\" shows the selected active contract, \"Requested Return Date (GMT+7)\", Normal Return/Early Return policy summaries, and the return-visit submission action. It warns that scheduling does not end the contract or confirm a refund.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0109",
@@ -2558,10 +2558,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "\"Handle Returns\" includes inspection work, Condition note, Evidence upload, Damage records, Extra Fees, and \"Complete Inspection\"/\"Finalize Return\" controls subject to status.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-staff.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0110",
@@ -2831,10 +2831,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "The \"Create Support Ticket\" page shows Contract, Category and Description fields with \"Submit Support Ticket\". It has no Title field, attachment upload or creation modal.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0124",
@@ -2909,10 +2909,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "Inline Description feedback reads \"Describe the issue.\" and the request remains on the creation form; no ticket is created.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0130",
@@ -3068,10 +3068,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "Whitespace-only Description is rejected by the customer form with \"Describe the issue.\" No Support Ticket Details page opens.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0178",
@@ -3135,10 +3135,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "A ticket owned by a different customer is not displayed; the user's Support Ticket Details page shows an access/item-not-found message rather than private ticket fields.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-customer.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0180-B",
@@ -3161,10 +3161,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "The System Administrator workspace shows account/user management tables with search, filters, role/status and account actions; each permitted screen has its own management controls.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-administration.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0136",
@@ -3213,10 +3213,10 @@
     "technique": "Use Case Testing (source section: USE CASE TESTING)",
     "expectedUI": "The \"Activity log management\" table displays recorded activity matching the requested actor/action/time/entity filters; entries have a details view. No event codes need be shown as test output.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-administration.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0140",
@@ -3239,10 +3239,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "The employee provisioning role selector excludes CUSTOMER; an attempt outside the allowed role set cannot be committed through the visible form.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-administration.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0144",
@@ -3278,10 +3278,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "Opening an administrator route as a Customer shows the application's Forbidden page or navigates to a permitted login/portal; the admin data table is not rendered.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-administration.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0189",
@@ -3291,10 +3291,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "The admin account management screen displays searchable/filterable account rows with identity, role/status and actions; pagination and empty-state messages reflect the current filter.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-administration.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0190",
@@ -3421,10 +3421,10 @@
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
     "expectedUI": "A nonnegative price lower than 100,000 is not rejected by the frontend's minimum check; the form only rejects values below zero. If the service rejects it, the form displays the returned validation feedback.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-pricing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0181",
@@ -3434,10 +3434,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "The \"Unit Type Pricing\" page shows the global unit-type registry, names, Private/Public mode, size and price with a \"Update Rental Price\" editor containing \"New Monthly Rental Price\", Cancel and Save Price.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-pricing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0182",
@@ -3460,10 +3460,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "A nonnumeric value is invalid for the numeric price input. Direct invalid data shows \"Rental price must be a valid number.\" when it reaches form validation; no successful price update is displayed.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-pricing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0183-B",
@@ -3486,10 +3486,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "Leaving New Monthly Rental Price blank shows \"Rental price is required.\" and the edit dialog stays open.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-pricing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0184",
@@ -3564,10 +3564,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "A role without permission to Unit Type Pricing cannot access the editor; the UI shows \"You do not have permission to access Unit Type Pricing.\" or the route guard blocks entry.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch12-pricing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 12: executable source-derived UI/API assertion. Environment and seeded entity preconditions must be satisfied. Browser/runtime PASS and SRS approval remain pending. Do not export as Jira defect without independent confirmation."
   },
   {
     "id": "FRMS-ST-0188",
