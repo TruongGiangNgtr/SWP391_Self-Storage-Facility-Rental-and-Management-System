@@ -568,7 +568,7 @@
     "batch14": {
       "date": "2026-11-11",
       "implementation": "SOURCE_ONLY",
-      "runtime": "PARTIAL_TARGETED_9_RUNS_8_DISTINCT_PASS",
+      "runtime": "PARTIAL_TARGETED_10_RUNS_9_DISTINCT_PASS_1_SKIPPED",
       "selected_source_ref": "8808adc8c56e3affe412b9f4be71cf4b93608eb6",
       "case_count": 15,
       "registered": 275,
@@ -605,7 +605,8 @@
         "FRMS-ST-0093",
         "FRMS-ST-0134",
         "FRMS-ST-0091",
-        "FRMS-ST-0092"
+        "FRMS-ST-0092",
+        "FRMS-ST-0094"
       ],
       "user_console_targeted_failed_ids": [],
       "ST_0061_repair_status": "USER_CONSOLE_TARGETED_PASS_AFTER_FIX",
@@ -617,16 +618,25 @@
         "FRMS-ST-0093": "20261111T122312270Z",
         "FRMS-ST-0134": "20261111T122412231Z",
         "FRMS-ST-0091": "20261111T125511933Z",
-        "FRMS-ST-0092": "20261111T125616085Z"
+        "FRMS-ST-0092": "20261111T125616085Z",
+        "FRMS-ST-0094": "20261111T135631438Z",
+        "FRMS-ST-0243": "20261111T140148408Z"
       },
       "targeted_run_branch": "TEST_SWT",
       "report": "test/handoff/BATCH14_TARGETED_RUNS_20261111.md",
       "ST_0061_previous_failed_run_id": "20261111T115025397Z",
       "postfix_report": "test/handoff/BATCH14_ST0061_PASS_20261111T120242294Z.md",
-      "user_console_targeted_unique_pass_count": 8,
-      "pending_targeted_runtime_case_count": 7,
+      "user_console_targeted_unique_pass_count": 9,
+      "pending_targeted_runtime_case_count": 5,
       "targeted_run_evidence": "USER_REPORTED_RUNTIME_CONSOLE",
-      "latest_targeted_evidence_report": "test/handoff/BATCH14_COVERAGE_PASS_AND_ST0091_ST0092_20261111.md"
+      "latest_targeted_evidence_report": "test/handoff/BATCH14_COVERAGE281_ST0094_PASS_ST0243_SKIPPED_20261111.md",
+      "user_console_targeted_skipped_case_ids": [
+        "FRMS-ST-0243"
+      ],
+      "user_console_pending_case_count": 5,
+      "ST_0243_status": "SKIPPED_EXIT2_REASON_NOT_IN_CONSOLE_REQUIRE_LOCAL_REPORT",
+      "ST_0243_possible_precondition": "COMPLETED inspection with NULL settlement for Customer 1 or 2",
+      "ST_0243_reason_confirmed": false
     },
     "registry_update_after_batch14_run": {
       "commit": "de68e3b1f2f9ba02d9701b93c6d33dbdfa8cfa2f",
@@ -674,7 +684,19 @@
       "patch_validated_supplemental": 4,
       "patch_validated_implemented": 153,
       "patch_validated_review": 8,
-      "patch_validated_outstanding": 118
+      "patch_validated_outstanding": 118,
+      "latest_user_console_validation": {
+        "registry_registered": 281,
+        "unique": 281,
+        "implemented": 153,
+        "not_implemented": 120,
+        "review": 8,
+        "baseline": 275,
+        "supplemental": 6,
+        "wrapper_exit_code": 0,
+        "evidence": "USER_REPORTED_CMD_CONSOLE",
+        "runtime_app_test": false
+      }
     }
   },
   "coverage": {
@@ -846,7 +868,8 @@
     "User provided 4 Batch14 targeted console runs, three PASS (0103,0104,0194), 0061 strict-locator failure; locator source repaired but not rerun. No new product/Jira defect.",
     "ST0061 1/1 PASS in user console run 20261111T120242294Z after fb5f216 (4 distinct Batch14 targeted PASS). Unrelated ST0276 NOT_IMPLEMENTED added after run; current registry 153/276, historical 275-case full run unchanged.",
     "2026-11-11: 0093 and 0134 both 1/1 PASS per user console; Batch14 6/15 targeted PASS. Old validator coverage exit3 under 276 registry; source patch to accept 275 baseline plus four latest supplemental cases is not yet runtime-run. Current registered 279; old full run 95/275 PASS unchanged.",
-    "2026-11-11 successful coverage validation on 279-case registry (275 baseline +4 supplemental), exit 0, separate from later supplemental additions. ST0091 and ST0092 each 1/1 targeted PASS from user console, Batch14 8/15; original day-7/day-8 fee-calculation SRS oracles still unapproved; no full-run update."
+    "2026-11-11 successful coverage validation on 279-case registry (275 baseline +4 supplemental), exit 0, separate from later supplemental additions. ST0091 and ST0092 each 1/1 targeted PASS from user console, Batch14 8/15; original day-7/day-8 fee-calculation SRS oracles still unapproved; no full-run update.",
+    "2026-11-11 coverage passed 281-case manifest (275 baseline plus 6 supplemental). ST0094 1/1 PASS run 20261111T135631438Z; ST0243 1 SKIPPED exit2 run 20261111T140148408Z, exact skip reason unverified without report. Batch14 9/15 targeted PASS, 1 skipped, 5 pending; original full run 95 Pass remains immutable."
   ],
   "tools": [
     {
