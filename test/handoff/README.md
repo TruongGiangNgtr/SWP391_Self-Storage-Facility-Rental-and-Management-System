@@ -41,3 +41,6 @@ This directory is **`test/handoff/` (singular)** as requested. Executable tests 
 Last reviewed: **2026-11-11**, against branch head `145e9f965f3a` before adding these handoff files.
 
 - [BATCH13_COVERAGE.md](BATCH13_COVERAGE.md): 37 new Playwright mappings, 50.18% implementation coverage, safety and remaining runtime gates.
+
+- [RUN_20261111T085924993Z.md](RUN_20261111T085924993Z.md): full-run summary, area triage, failure and blocker IDs.
+- [RUN_20261111T085924993Z.json](RUN_20261111T085924993Z.json): all 275 case statuses with report provenance and Blocked classification.

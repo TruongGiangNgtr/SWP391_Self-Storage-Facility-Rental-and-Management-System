@@ -85,3 +85,16 @@ git pull --ff-only origin TEST_SWT
 ```
 
 Read the new report rather than reusing `20261111T084456202Z`. If it passes, test the other four Batch 13 Pricing cases individually (some require unavailable isolated fixtures) and only then proceed to a broader read-only run. Missing fixture is Blocked/Skipped; new failures must be diagnosed before Jira.
+
+## Full-run Batch 13 evidence — 2026-11-11
+
+**Run `20261111T085924993Z`**, user-pasted `summary.md` content: 275 selected/registered, 138 implemented mappings executed, **95 Pass, 7 Flaky, 18 Blocked (14 PLAYWRIGHT_SKIPPED, 4 TEST_FIXTURE_OR_INFRA), 18 UnconfirmedFailure, 8 Review, 129 Not Run**. Stable PASS among implemented = **68.84%**; implementation coverage remains **50.18%**. Evidence level `USER_REPORTED_SUMMARY_TEXT`, not independently `REPORT_VERIFIED`; the actual `results.json` and local HEAD were not supplied. See `test/handoff/RUN_20261111T085924993Z.md` and the machine-readable JSON for complete per-ID classifications. **Zero confirmed Jira product defects from this evidence.** Do not merge historical 51/51 or individual earlier runs into these counts. Neither tests nor application/DB changed.
+
+
+### P0 — investigate the current full run before code patches
+
+1. Inspect `results.json` and `error-context.md` for `UnconfirmedFailure` (18) and `Flaky` (7); match each to the existing fixture and SRS oracle, checking the original local HEAD.
+2. Diagnose shared-root-cause groups in order: Access Visits (0072, 0081, 0156, 0160), Handover (0067, 0071, 0220, 0225), Billing (0085, 0235, 0236), then remaining domains.
+3. Investigate Flaky 0155, 0036, 0101-B, 0145, 0183-B, 0184 and 0184-B separately; retry success is not stable PASS. Never reclassify the historical run.
+4. Resolve only legitimate fixture dependencies for 18 Blocked; preserve isolated DB gates for 0077/0080 and foreign-facility positive controls.
+5. Keep 8 Review pending SRS decision. Jira CSV remains limited to defects reproduced with approved oracle and valid non-mutating fixture.

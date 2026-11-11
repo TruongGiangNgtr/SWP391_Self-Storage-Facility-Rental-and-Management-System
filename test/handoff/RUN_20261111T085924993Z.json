@@ -1,0 +1,1513 @@
+{
+  "schema_version": 1,
+  "run_id": "20261111T085924993Z",
+  "observed_date": "2026-11-11",
+  "branch": "TEST_SWT",
+  "executing_local_head": null,
+  "source_commit_at_documentation": "54905be56c96fcc9e6a148e32a678197c60f1447",
+  "source": "USER_REPORTED_SUMMARY_TEXT",
+  "report_files_independently_verified": false,
+  "notes": "This is a transcription of the user's provided summary and complete 275-case status list, with 95 Pass inferred as complement after explicit non-Pass statuses and registry reconciliation; not an independently retrieved results.json.",
+  "counts": {
+    "selected": 275,
+    "registered": 275,
+    "mapped_executed": 138,
+    "Pass": 95,
+    "Flaky": 7,
+    "Blocked": 18,
+    "UnconfirmedFailure": 18,
+    "Review": 8,
+    "Not Run": 129
+  },
+  "stable_pass_rate_among_implemented_pct": 68.84,
+  "implementation_coverage_pct": 50.18,
+  "jira_confirmed_product_defects": 0,
+  "jira_export_authorized": false,
+  "classification_guidance": {
+    "Flaky": "Inconsistent execution result; investigate environment, timing, fixture stability, and retry evidence; not stable PASS.",
+    "Blocked": "Prerequisite missing or execution intentionally skipped; not PASS or product defect.",
+    "UnconfirmedFailure": "Requires full error-context, approved oracle, valid fixture, independent reproduction before a defect can be confirmed.",
+    "Review": "Requires SRS/implementation oracle decision; not executed acceptance outcome.",
+    "Not Run": "Case not implemented and not run."
+  },
+  "by_area": [
+    {
+      "area": "Authentication & Security",
+      "Pass": 38,
+      "Not Run": 12,
+      "Flaky": 1
+    },
+    {
+      "area": "Storage Search & AI Size Guide",
+      "Pass": 11,
+      "Blocked": 1,
+      "Not Run": 4,
+      "UnconfirmedFailure": 2,
+      "Flaky": 1
+    },
+    {
+      "area": "Reservation",
+      "Pass": 6,
+      "Not Run": 14,
+      "Blocked": 2
+    },
+    {
+      "area": "Handover",
+      "Pass": 9,
+      "Not Run": 12,
+      "Blocked": 4,
+      "UnconfirmedFailure": 4
+    },
+    {
+      "area": "Facility Operations",
+      "Pass": 5,
+      "Not Run": 4,
+      "Blocked": 1
+    },
+    {
+      "area": "Access Visits",
+      "UnconfirmedFailure": 4,
+      "Not Run": 9,
+      "Blocked": 6,
+      "Pass": 3,
+      "Review": 3
+    },
+    {
+      "area": "Billing & Payments",
+      "UnconfirmedFailure": 3,
+      "Pass": 5,
+      "Not Run": 13,
+      "Blocked": 2
+    },
+    {
+      "area": "Renewal",
+      "UnconfirmedFailure": 1,
+      "Not Run": 13,
+      "Blocked": 1,
+      "Flaky": 1
+    },
+    {
+      "area": "Return & Settlement",
+      "Pass": 1,
+      "UnconfirmedFailure": 1,
+      "Not Run": 20
+    },
+    {
+      "area": "Support Tickets",
+      "Pass": 6,
+      "Not Run": 12,
+      "Review": 5,
+      "UnconfirmedFailure": 1,
+      "Blocked": 1
+    },
+    {
+      "area": "Administration",
+      "Pass": 5,
+      "Not Run": 12,
+      "UnconfirmedFailure": 1,
+      "Flaky": 1
+    },
+    {
+      "area": "Pricing & Reference Data",
+      "Not Run": 4,
+      "Pass": 6,
+      "Flaky": 3,
+      "UnconfirmedFailure": 1
+    }
+  ],
+  "cases": [
+    {
+      "id": "FRMS-ST-0001",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0002",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0003",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0004",
+      "area": "Authentication & Security",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0005",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0006",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0007",
+      "area": "Authentication & Security",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0008",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0009",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0010",
+      "area": "Authentication & Security",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0011",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0012",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0013",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0014",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0015",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0016",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0017",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0018",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0019",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0020",
+      "area": "Authentication & Security",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0021",
+      "area": "Authentication & Security",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0022",
+      "area": "Authentication & Security",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0023",
+      "area": "Authentication & Security",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0024",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0025",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0147",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0148",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0149",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0150",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0150-B",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0151",
+      "area": "Authentication & Security",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0151-B",
+      "area": "Authentication & Security",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0152",
+      "area": "Authentication & Security",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0153",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0154",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0155",
+      "area": "Authentication & Security",
+      "status": "Flaky"
+    },
+    {
+      "id": "FRMS-ST-0155-B",
+      "area": "Authentication & Security",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0197",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0198",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0199",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0200",
+      "area": "Authentication & Security",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0201",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0202",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0203",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0204",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0204-B",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0204-C",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0204-D",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0204-E",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0205",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0206",
+      "area": "Authentication & Security",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0026",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0027",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0028",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Blocked",
+      "reason": "TEST_FIXTURE_OR_INFRA"
+    },
+    {
+      "id": "FRMS-ST-0029",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0030",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0031",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0032",
+      "area": "Storage Search & AI Size Guide",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0033",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0034",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0035",
+      "area": "Storage Search & AI Size Guide",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0036",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Flaky"
+    },
+    {
+      "id": "FRMS-ST-0037",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0038",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0039",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0040",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0207",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0208",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0209",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0210",
+      "area": "Storage Search & AI Size Guide",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0041",
+      "area": "Reservation",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0042",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0043",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0044",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0045",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0046",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0047",
+      "area": "Reservation",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0048",
+      "area": "Reservation",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0049",
+      "area": "Reservation",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0050",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0051",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0052",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0053",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0054",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0055",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0056",
+      "area": "Reservation",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0211",
+      "area": "Reservation",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0212",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0213",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0214",
+      "area": "Reservation",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0215",
+      "area": "Reservation",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0216",
+      "area": "Reservation",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0057",
+      "area": "Handover",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0058",
+      "area": "Handover",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0059",
+      "area": "Handover",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0060",
+      "area": "Handover",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0061",
+      "area": "Handover",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0062",
+      "area": "Handover",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0063",
+      "area": "Handover",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0064",
+      "area": "Handover",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0064-B",
+      "area": "Handover",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0065",
+      "area": "Handover",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0066",
+      "area": "Handover",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0067",
+      "area": "Handover",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0068",
+      "area": "Handover",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0069",
+      "area": "Handover",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0070",
+      "area": "Handover",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0071",
+      "area": "Handover",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0217",
+      "area": "Handover",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0218",
+      "area": "Handover",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0219",
+      "area": "Handover",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0220",
+      "area": "Handover",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0221",
+      "area": "Handover",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0222",
+      "area": "Handover",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0223",
+      "area": "Handover",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0223-B",
+      "area": "Handover",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0223-C",
+      "area": "Handover",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0224",
+      "area": "Handover",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0224-B",
+      "area": "Handover",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0225",
+      "area": "Handover",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0226",
+      "area": "Handover",
+      "status": "Blocked",
+      "reason": "TEST_FIXTURE_OR_INFRA"
+    },
+    {
+      "id": "FRMS-ST-0164",
+      "area": "Facility Operations",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0165",
+      "area": "Facility Operations",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0166",
+      "area": "Facility Operations",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0167",
+      "area": "Facility Operations",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0168",
+      "area": "Facility Operations",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0169",
+      "area": "Facility Operations",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0170",
+      "area": "Facility Operations",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0171",
+      "area": "Facility Operations",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0172",
+      "area": "Facility Operations",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0172-B",
+      "area": "Facility Operations",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0072",
+      "area": "Access Visits",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0073",
+      "area": "Access Visits",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0074",
+      "area": "Access Visits",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0075",
+      "area": "Access Visits",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0076",
+      "area": "Access Visits",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0077",
+      "area": "Access Visits",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0078",
+      "area": "Access Visits",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0078-B",
+      "area": "Access Visits",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0079",
+      "area": "Access Visits",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0080",
+      "area": "Access Visits",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0081",
+      "area": "Access Visits",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0082",
+      "area": "Access Visits",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0083",
+      "area": "Access Visits",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0084",
+      "area": "Access Visits",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0156",
+      "area": "Access Visits",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0157",
+      "area": "Access Visits",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0158",
+      "area": "Access Visits",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0159",
+      "area": "Access Visits",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0160",
+      "area": "Access Visits",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0160-B",
+      "area": "Access Visits",
+      "status": "Review"
+    },
+    {
+      "id": "FRMS-ST-0161",
+      "area": "Access Visits",
+      "status": "Review"
+    },
+    {
+      "id": "FRMS-ST-0161-B",
+      "area": "Access Visits",
+      "status": "Review"
+    },
+    {
+      "id": "FRMS-ST-0162",
+      "area": "Access Visits",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0162-B",
+      "area": "Access Visits",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0163",
+      "area": "Access Visits",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0085",
+      "area": "Billing & Payments",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0086",
+      "area": "Billing & Payments",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0087",
+      "area": "Billing & Payments",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0088",
+      "area": "Billing & Payments",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0089",
+      "area": "Billing & Payments",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0089-B",
+      "area": "Billing & Payments",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0090",
+      "area": "Billing & Payments",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0091",
+      "area": "Billing & Payments",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0092",
+      "area": "Billing & Payments",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0093",
+      "area": "Billing & Payments",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0094",
+      "area": "Billing & Payments",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0095",
+      "area": "Billing & Payments",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0096",
+      "area": "Billing & Payments",
+      "status": "Blocked",
+      "reason": "PLAYWRIGHT_SKIPPED"
+    },
+    {
+      "id": "FRMS-ST-0227",
+      "area": "Billing & Payments",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0228",
+      "area": "Billing & Payments",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0229",
+      "area": "Billing & Payments",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0230",
+      "area": "Billing & Payments",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0231",
+      "area": "Billing & Payments",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0232",
+      "area": "Billing & Payments",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0233",
+      "area": "Billing & Payments",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0234",
+      "area": "Billing & Payments",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0235",
+      "area": "Billing & Payments",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0236",
+      "area": "Billing & Payments",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0097",
+      "area": "Renewal",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0098",
+      "area": "Renewal",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0099",
+      "area": "Renewal",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0100",
+      "area": "Renewal",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0101",
+      "area": "Renewal",
+      "status": "Blocked",
+      "reason": "TEST_FIXTURE_OR_INFRA"
+    },
+    {
+      "id": "FRMS-ST-0101-B",
+      "area": "Renewal",
+      "status": "Flaky"
+    },
+    {
+      "id": "FRMS-ST-0102",
+      "area": "Renewal",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0103",
+      "area": "Renewal",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0104",
+      "area": "Renewal",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0105",
+      "area": "Renewal",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0106",
+      "area": "Renewal",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0107",
+      "area": "Renewal",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0237",
+      "area": "Renewal",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0238",
+      "area": "Renewal",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0239",
+      "area": "Renewal",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0240",
+      "area": "Renewal",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0108",
+      "area": "Return & Settlement",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0109",
+      "area": "Return & Settlement",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0110",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0111",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0112",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0113",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0114",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0115",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0116",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0117",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0118",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0119",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0120",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0121",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0122",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0241",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0242",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0243",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0244",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0245",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0245-B",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0246",
+      "area": "Return & Settlement",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0123",
+      "area": "Support Tickets",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0124",
+      "area": "Support Tickets",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0125",
+      "area": "Support Tickets",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0126",
+      "area": "Support Tickets",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0127",
+      "area": "Support Tickets",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0128",
+      "area": "Support Tickets",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0129",
+      "area": "Support Tickets",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0130",
+      "area": "Support Tickets",
+      "status": "Review"
+    },
+    {
+      "id": "FRMS-ST-0131",
+      "area": "Support Tickets",
+      "status": "Review"
+    },
+    {
+      "id": "FRMS-ST-0132",
+      "area": "Support Tickets",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0133",
+      "area": "Support Tickets",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0134",
+      "area": "Support Tickets",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0173",
+      "area": "Support Tickets",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0174",
+      "area": "Support Tickets",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0175",
+      "area": "Support Tickets",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0175-B",
+      "area": "Support Tickets",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0176",
+      "area": "Support Tickets",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0177",
+      "area": "Support Tickets",
+      "status": "Review"
+    },
+    {
+      "id": "FRMS-ST-0177-B",
+      "area": "Support Tickets",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0178",
+      "area": "Support Tickets",
+      "status": "Review"
+    },
+    {
+      "id": "FRMS-ST-0178-B",
+      "area": "Support Tickets",
+      "status": "Review"
+    },
+    {
+      "id": "FRMS-ST-0179",
+      "area": "Support Tickets",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0179-B",
+      "area": "Support Tickets",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0180",
+      "area": "Support Tickets",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0180-B",
+      "area": "Support Tickets",
+      "status": "Blocked",
+      "reason": "TEST_FIXTURE_OR_INFRA"
+    },
+    {
+      "id": "FRMS-ST-0135",
+      "area": "Administration",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0136",
+      "area": "Administration",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0137",
+      "area": "Administration",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0138",
+      "area": "Administration",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0139",
+      "area": "Administration",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0140",
+      "area": "Administration",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0141",
+      "area": "Administration",
+      "status": "UnconfirmedFailure"
+    },
+    {
+      "id": "FRMS-ST-0144",
+      "area": "Administration",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0145",
+      "area": "Administration",
+      "status": "Flaky"
+    },
+    {
+      "id": "FRMS-ST-0146",
+      "area": "Administration",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0189",
+      "area": "Administration",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0190",
+      "area": "Administration",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0191",
+      "area": "Administration",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0192",
+      "area": "Administration",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0193",
+      "area": "Administration",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0194",
+      "area": "Administration",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0194-B",
+      "area": "Administration",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0195",
+      "area": "Administration",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0196",
+      "area": "Administration",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0142",
+      "area": "Pricing & Reference Data",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0143",
+      "area": "Pricing & Reference Data",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0181",
+      "area": "Pricing & Reference Data",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0182",
+      "area": "Pricing & Reference Data",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0183",
+      "area": "Pricing & Reference Data",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0183-B",
+      "area": "Pricing & Reference Data",
+      "status": "Flaky"
+    },
+    {
+      "id": "FRMS-ST-0183-C",
+      "area": "Pricing & Reference Data",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0184",
+      "area": "Pricing & Reference Data",
+      "status": "Flaky"
+    },
+    {
+      "id": "FRMS-ST-0184-B",
+      "area": "Pricing & Reference Data",
+      "status": "Flaky"
+    },
+    {
+      "id": "FRMS-ST-0185",
+      "area": "Pricing & Reference Data",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0186",
+      "area": "Pricing & Reference Data",
+      "status": "Not Run"
+    },
+    {
+      "id": "FRMS-ST-0187",
+      "area": "Pricing & Reference Data",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0187-B",
+      "area": "Pricing & Reference Data",
+      "status": "Pass"
+    },
+    {
+      "id": "FRMS-ST-0188",
+      "area": "Pricing & Reference Data",
+      "status": "UnconfirmedFailure"
+    }
+  ]
+}
