@@ -53,7 +53,7 @@ async function completedHandover(request:APIRequestContext,page:Page){
   const complete=all.find(r=>r.facilityId===facility&&r.status==='COMPLETED'&&r.reservationVisit?.visitId)
   precondition(complete,'COMPLETED reservation with Visit owned by F01')
   await staffHandover(page,complete.reservationId,complete.reservationVisit!.visitId)
-  await expect(page.getByText('This reservation is already completed. No additional first-month payment or handover action is required.')).toBeVisible({timeout:45000})
+  await expect(page.getByText('This reservation is already completed. No additional first-month payment or handover action is required.')).toBeVisible({timeout:45_000})
   await expect(page.getByRole('button',{name:'Complete Handover',exact:true})).toHaveCount(0)
 }
 
@@ -82,16 +82,28 @@ test('FRMS-ST-0071 - checked in reservation without ACTIVE assignment cannot han
     if(!assignment||assignment.status!=='ACTIVE'){found=candidate;break}
   }
   precondition(found,'genuine checked-in CONFIRMED F01 Reservation lacking ACTIVE assignment')
+  const staffVisit=await getAs(request,'FACILITY_STAFF','/api/v1/visits/'+found.reservationVisit!.visitId)
+  precondition(staffVisit.status()===200,'selected CHECKED_IN unassigned Visit is readable by F01 Staff')
+  const current=(await staffVisit.json() as {data?:{visitId?:string,status?:string,entityId?:string}}).data
+  precondition(current?.visitId===found.reservationVisit!.visitId&&current.status==='CHECKED_IN'&&
+    current.entityId===found.reservationId,'Staff Visit detail matches unassigned reservation')
   await staffHandover(page,found.reservationId,found.reservationVisit!.visitId)
-  await expect(page.getByText('No valid active assignment. Ask the Manager to save a unit, then refresh details.')).toBeVisible()
+  await expect(page.getByRole('region',{name:'Reservation visit'})).toContainText(/CHECKED_IN|Checked In/i,{timeout:45_000})
+  await expect(page.getByText('No valid active assignment. Ask the Manager to save a unit, then refresh details.')).toBeVisible({timeout:45_000})
   await expect(page.getByRole('button',{name:'Complete Handover',exact:true})).toBeDisabled()
 })
 test('FRMS-ST-0220 - checked in Visit has no duplicate check-in action',async({request,page})=>{
   const {reservation,visitId}=await readStaffReservation(request)
   precondition(reservation.status==='CONFIRMED'&&reservation.reservationVisit?.status==='CHECKED_IN',
     'F01 Reservation Visit must be CHECKED_IN')
+  const staffVisit=await getAs(request,'FACILITY_STAFF','/api/v1/visits/'+visitId)
+  precondition(staffVisit.status()===200,'F01 can read the target CHECKED_IN Visit')
+  const current=(await staffVisit.json() as {data?:{visitId?:string,status?:string,entityId?:string}}).data
+  precondition(current?.visitId===visitId&&current.status==='CHECKED_IN'&&current.entityId===reservation.reservationId,
+    'Staff Visit remains CHECKED_IN and belongs to nominated F01 reservation')
   await staffHandover(page,reservation.reservationId,visitId)
-  await expect(page.getByText('The customer is checked in. Continue with the Manager-selected unit and offline receipt.')).toBeVisible()
+  await expect(page.getByRole('region',{name:'Reservation visit'})).toContainText(/CHECKED_IN|Checked In/i,{timeout:45_000})
+  await expect(page.getByText('The customer is checked in. Continue with the Manager-selected unit and offline receipt.')).toBeVisible({timeout:45_000})
   await expect(page.getByRole('button',{name:'Check In Customer'})).toHaveCount(0)
 })
 test('FRMS-ST-0223 - IN_USE unit cannot be used to start manager handover selection',async({request,page})=>{

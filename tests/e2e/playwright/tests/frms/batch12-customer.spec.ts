@@ -78,7 +78,7 @@ test('FRMS-ST-0216 - Customer cannot read a different customer reservation',asyn
 test('FRMS-ST-0072 - Access booking page exposes contract and date-only controls',async({page})=>{
   await activeContractPage(page,'/access-visits/new')
   await waitForHeading(page,'Schedule Access Visit')
-  await expect(page.getByRole('heading',{name:'Selected Contract'})).toBeVisible()
+  await expect(page.getByRole('heading',{name:'Selected Contract',exact:true})).toBeVisible({timeout:45_000})
   await expect(page.getByLabel('Access Visit Date (GMT+7)')).toHaveAttribute('type','date')
   await expect(page.getByRole('button',{name:'Confirm Access Visit'})).toBeVisible()
 })
@@ -104,7 +104,8 @@ test('FRMS-ST-0081 - Date after contract end cannot be selected',async({page})=>
   const contract=await activeContractPage(page,'/access-visits/new')
   const date=monthOffset(contract.endMonth,1)+'-01'
   const max=await page.locator('#accessVisitDate').getAttribute('max')
-  expect(max,'access date range must end with contract period').toBeLessThan(date)
+  expect(max,'access date range must end with contract period').toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  expect(Date.parse(max!),'end date must precede the first date after the contract').toBeLessThan(Date.parse(date))
   // CalendarDateField renders month buttons and disables dates beyond max.
   // Move to the first day AFTER the contract instead of conditionally ignoring an absent button.
   const initialMonth=(await page.locator('#accessVisitDate').getAttribute('min'))!.slice(0,7)
@@ -120,7 +121,7 @@ test('FRMS-ST-0156 - Access form has date picker and no timeslot',async({page})=
   await expect(page.getByText('Storage Unit',{exact:true})).toBeVisible({timeout:45000})
   await expect(page.getByText('Rental Period',{exact:true})).toBeVisible()
   await expect(page.locator('#accessVisitDate')).toHaveAttribute('type','date')
-  await expect(page.getByRole('link',{name:'My Visits'})).toBeVisible()
+  await expect(page.getByRole('region',{name:'Schedule access visit'}).getByRole('link',{name:'My Visits',exact:true})).toBeVisible({timeout:45_000})
   await expect(page.getByLabel(/time slot/i)).toHaveCount(0)
 })
 test('FRMS-ST-0159 - Non-active contract shows access prohibition notice',async({page})=>{
@@ -130,7 +131,8 @@ test('FRMS-ST-0159 - Non-active contract shows access prohibition notice',async(
 test('FRMS-ST-0160 - Past access dates are excluded by Vietnam-date bound',async({page})=>{
   await activeContractPage(page,'/access-visits/new')
   const minimum=await page.locator('#accessVisitDate').getAttribute('min')
-  expect(minimum).toBeTruthy();expect(minimum!).toBeGreaterThanOrEqual(vnToday())
+  expect(minimum).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  expect(Date.parse(minimum!)).toBeGreaterThanOrEqual(Date.parse(vnToday()))
 })
 
 // Billing read paths and role protections.
@@ -140,7 +142,7 @@ test('FRMS-ST-0085 - Customer invoices list shows filters and columns',async({pa
   await expect(page.getByRole('tab',{name:'All Invoices'})).toBeVisible()
   for(const label of ['Invoice Type','Status'])await expect(page.getByLabel(label,{exact:true})).toBeVisible()
   const id=fixture('FRMS_TEST_OWN_DEPOSIT_INVOICE_ID')
-  await expect(page.getByRole('table',{name:'Invoice records'})).toBeVisible({timeout:45000})
+  await expect(page.getByRole('region',{name:'Invoice records'}).getByRole('table')).toBeVisible({timeout:45000})
   for(const column of ['Invoice','Payment Deadline','Amount Due','Status'])await expect(page.getByRole('columnheader',{name:column})).toBeVisible()
   expect(id).toBeTruthy()
 })

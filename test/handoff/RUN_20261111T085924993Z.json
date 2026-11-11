@@ -5,9 +5,9 @@
   "branch": "TEST_SWT",
   "executing_local_head": null,
   "source_commit_at_documentation": "54905be56c96fcc9e6a148e32a678197c60f1447",
-  "source": "USER_REPORTED_SUMMARY_TEXT",
+  "source": "USER_UPLOADED_RESULTS_JSON",
   "report_files_independently_verified": false,
-  "notes": "This is a transcription of the user's provided summary and complete 275-case status list, with 95 Pass inferred as complement after explicit non-Pass statuses and registry reconciliation; not an independently retrieved results.json.",
+  "notes": "All 275 per-case statuses/counts reconciled against the user-uploaded results(1).json, which supplies execution SHA, per-case attempts, actual error messages and artifact paths. Error-context.md/trace.zip not uploaded; no new runtime has been executed after source fixes.",
   "counts": {
     "selected": 275,
     "registered": 275,
@@ -1509,5 +1509,8 @@
       "area": "Pricing & Reference Data",
       "status": "UnconfirmedFailure"
     }
-  ]
+  ],
+  "execution_sha_from_upload": "54905be56c96fcc9e6a148e32a678197c60f1447",
+  "user_uploaded_results_json_validated": true,
+  "error_context_files_accessible": false
 }

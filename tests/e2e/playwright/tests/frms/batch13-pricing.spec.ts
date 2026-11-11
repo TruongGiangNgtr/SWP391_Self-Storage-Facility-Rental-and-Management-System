@@ -6,14 +6,14 @@ test.setTimeout(120_000)
 test.use({trace:'off'})
 
 async function priceEditor(page:Page){
-  const name=fixture('FRMS_TEST_PRICING_UNIT_TYPE_NAME')
   await visitAs(page,'BUSINESS_OPERATIONS_MANAGER','/business/unit-types')
   await expect(page.getByRole('heading',{name:'Unit Type Pricing',exact:true,level:1})).toBeVisible({timeout:45000})
   const table=page.getByRole('table',{name:'Unit type pricing registry'})
   await expect(table).toBeVisible()
-  await page.getByRole('searchbox',{name:'Search unit types by name, size or description'}).fill(name)
-  const row=table.getByRole('row').filter({hasText:name})
-  await expect(row).toHaveCount(1)
+  // Nonnegative price validation is independent of a particular seeded UnitType.
+  // Use an actual currently rendered editable row, not a stale name snapshot.
+  const row=table.getByRole('row').filter({has:page.getByRole('button',{name:'Update Price',exact:true})}).first()
+  await expect(row).toBeVisible({timeout:45_000})
   await row.getByRole('button',{name:'Update Price'}).click()
   await expect(page.getByRole('heading',{name:'Update Rental Price'})).toBeVisible()
   const input=page.locator('#unit-type-rental-price')
@@ -56,9 +56,11 @@ test('FRMS-ST-0187 - business editor permission is not implicitly System Admin p
 })
 test('FRMS-ST-0188 - Staff inspection Damage Type dropdown reflects ACTIVE API types',async({request,page})=>{
   const id=fixture('FRMS_TEST_STAFF_IN_PROGRESS_INSPECTION_ID')
-  const inspection=await read<{inspectionId:string,status:string}>(request,'FACILITY_STAFF','/inspections/'+id)
-  precondition(inspection.inspectionId===id&&inspection.status==='IN_PROGRESS',
-    'assigned IN_PROGRESS inspection for Staff')
+  const inspection=await read<{inspectionId:string,status:string,employeeId?:string|null}>(request,'FACILITY_STAFF','/inspections/'+id)
+  const me=await read<{profile?:{employeeId?:string|null}}>(request,'FACILITY_STAFF','/auth/me')
+  precondition(inspection.inspectionId===id&&inspection.status==='IN_PROGRESS'&&
+    Boolean(inspection.employeeId)&&inspection.employeeId===me.profile?.employeeId,
+    'IN_PROGRESS inspection must be claimed by this signed-in Staff; other Staff inspections are read-only')
   const types=await read<Array<{damageTypeId:string,name:string,status:string}>>(
     request,'FACILITY_STAFF','/damage-types')
   const active=types.filter(x=>x.status==='ACTIVE')

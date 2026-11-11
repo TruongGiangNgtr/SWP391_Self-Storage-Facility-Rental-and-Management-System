@@ -203,7 +203,7 @@
       "not_implemented_total": 129,
       "coverage_percent": 50.18,
       "evidence": "REPO_VERIFIED_SOURCE_MAPPING_ONLY",
-      "runtime": "USER_REPORTED_FULL_RUN_SUMMARY_95_PASS_7_FLAKY_18_BLOCKED_18_UNCONFIRMED",
+      "runtime": "USER_UPLOADED_RESULTS_JSON_95_PASS_7_FLAKY_18_BLOCKED_18_UNCONFIRMED; SOURCE_FIX_PENDING_RERUN",
       "oracle": "PENDING_SRS_REVIEW",
       "isolated_write_only": [
         "FRMS-ST-0077",
@@ -248,9 +248,9 @@
     "full_run_20261111T085924993Z": {
       "run_id": "20261111T085924993Z",
       "date": "2026-11-11",
-      "evidence": "USER_REPORTED_SUMMARY_TEXT",
+      "evidence": "USER_UPLOADED_RESULTS_JSON",
       "summary_content_user_supplied": true,
-      "source_sha": null,
+      "source_sha": "54905be56c96fcc9e6a148e32a678197c60f1447",
       "report_json_verified": false,
       "counts": {
         "selected": 275,
@@ -268,7 +268,30 @@
       "jira_confirmed_defects": 0,
       "triage_doc": "test/handoff/RUN_20261111T085924993Z.md",
       "case_status_json": "test/handoff/RUN_20261111T085924993Z.json",
-      "change_scope": "documentation only"
+      "change_scope": "documentation only",
+      "report_json_verified_from_user_upload": true,
+      "code_repair_doc": "test/handoff/FIX_RUN_20261111T085924993Z.md",
+      "repair_case_ids": [
+        "FRMS-ST-0072",
+        "FRMS-ST-0081",
+        "FRMS-ST-0156",
+        "FRMS-ST-0160",
+        "FRMS-ST-0085",
+        "FRMS-ST-0235",
+        "FRMS-ST-0236",
+        "FRMS-ST-0141",
+        "FRMS-ST-0183-B",
+        "FRMS-ST-0184",
+        "FRMS-ST-0184-B",
+        "FRMS-ST-0067",
+        "FRMS-ST-0071",
+        "FRMS-ST-0220",
+        "FRMS-ST-0109",
+        "FRMS-ST-0188",
+        "FRMS-ST-0176"
+      ],
+      "post_patch_runtime": "NOT_RUN",
+      "historical_results_immutable": true
     }
   },
   "coverage": {
@@ -422,7 +445,8 @@
     "2026-11-11: ST-0065 & ST-0165 separately PASS in supplied console logs; local HEAD and report artifacts still pending; do not combine with historical 51/51.",
     "Batch 13: 37 new implementation mappings with no new runtime PASS; TypeScript compilation and Playwright execution pending.",
     "Batch 13 coverage mode PASS (user console). ST-0183-B run 20261111T084456202Z failed selector strictness; no product defect, no runtime PASS after fix.",
-    "2026-11-11 full run 20261111T085924993Z: 95 Pass, 7 Flaky, 18 Blocked, 18 UnconfirmedFailure, 8 Review, 129 Not Run; 275 selected/138 mapped executed. From user text, not independently retrieved results.json; no product defects confirmed."
+    "2026-11-11 full run 20261111T085924993Z: 95 Pass, 7 Flaky, 18 Blocked, 18 UnconfirmedFailure, 8 Review, 129 Not Run; 275 selected/138 mapped executed. From user text, not independently retrieved results.json; no product defects confirmed.",
+    "Source-only fix of 17 testcase IDs from uploaded full-run results.json (sha 54905be), new runtime not run. Existing 95 Pass and other historical classifications unchanged."
   ],
   "tools": [
     {

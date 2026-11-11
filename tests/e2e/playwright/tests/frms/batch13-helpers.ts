@@ -14,6 +14,7 @@ export function precondition(ok:unknown,why:string):asserts ok{
 }
 export async function read<T>(request:APIRequestContext,actor:Actor,path:string):Promise<T>{
   const r=await getAs(request,actor,'/api/v1'+path)
+  if(r.status()>=500)throw new Error('FRMS_INFRA_UNAVAILABLE: '+actor+' GET '+path+' HTTP '+r.status())
   precondition(r.status()===200,actor+' GET '+path+' HTTP '+r.status())
   const data=(await r.json() as {data?:T}).data
   precondition(data!==undefined&&data!==null,'missing API data for '+path)
@@ -27,6 +28,7 @@ export async function list<T>(request:APIRequestContext,actor:Actor,path:string,
     const response=await request.get(API+'/api/v1'+path+separator+'page='+page+'&pageSize=100',{
       headers:{Authorization:'Bearer '+token},timeout:30000
     })
+    if(response.status()>=500)throw new Error('FRMS_INFRA_UNAVAILABLE: paginated '+path+' HTTP '+response.status())
     precondition(response.status()===200,'paginated '+path+' HTTP '+response.status())
     const body=await response.json() as {data?:T[],pagination?:{totalPages?:number}}
     const total=body.pagination?.totalPages

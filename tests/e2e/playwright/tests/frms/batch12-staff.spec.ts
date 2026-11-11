@@ -89,7 +89,15 @@ test('FRMS-ST-0065 - Matching physical unit and reservation unit type are verifi
 })
 
 test('FRMS-ST-0067 - Handover is gated before staff check-in',async({page})=>{
+  const reservationId=fixture('FRMS_TEST_STAFF_HANDOVER_RESERVATION_ID')
+  const visitId=fixture('FRMS_TEST_STAFF_HANDOVER_VISIT_ID')
+  const response=await getAs(page.request,'FACILITY_STAFF',`/api/v1/visits/${visitId}`)
+  if(response.status()!==200)throw new Error(`FRMS_VISIT_PREFLIGHT_FAILED: Staff Visit GET HTTP ${response.status()}.`)
+  const visit=(await response.json() as {data?:{visitId?:string,visitType?:string,entityId?:string,status?:string}}).data
+  test.skip(visit?.visitId!==visitId||visit.entityId!==reservationId||visit.visitType!=='RESERVATION'||visit.status!=='SCHEDULED',
+    'FRMS_FIXTURE_MISSING: ST-0067 requires an actual Staff-accessible SCHEDULED reservation Visit; the CHECKED_IN handover fixture is not interchangeable.')
   await openHandover(page)
+  await expect(page.getByRole('region',{name:'Reservation visit'})).toContainText('SCHEDULED',{timeout:45_000})
   await expect(page.getByRole('button',{name:'Check In Customer'})).toBeVisible({timeout:45000})
   await expect(page.getByRole('button',{name:'Complete Handover',exact:true})).toHaveCount(0)
 })
@@ -170,12 +178,23 @@ test('FRMS-ST-0165 - Staff work list excludes references from another facility',
 
 test('FRMS-ST-0109 - Return inspection has evidence, damage, fee and completion controls',async({page})=>{
   const inspection=fixture('FRMS_TEST_STAFF_IN_PROGRESS_INSPECTION_ID')
+  const [detailResponse,meResponse]=await Promise.all([
+    getAs(page.request,'FACILITY_STAFF',`/api/v1/inspections/${inspection}`),
+    getAs(page.request,'FACILITY_STAFF','/api/v1/auth/me')
+  ])
+  if(detailResponse.status()!==200||meResponse.status()!==200)
+    throw new Error(`FRMS_INSPECTION_PREFLIGHT_FAILED: inspection=${detailResponse.status()} actor=${meResponse.status()}.`)
+  const detail=(await detailResponse.json() as {data?:{inspectionId?:string,status?:string,employeeId?:string|null}}).data
+  const user=(await meResponse.json() as {data?:{profile?:{employeeId?:string|null}}}).data
+  test.skip(detail?.inspectionId!==inspection||detail.status!=='IN_PROGRESS'||!detail.employeeId||
+    detail.employeeId!==user?.profile?.employeeId,
+    'FRMS_FIXTURE_MISSING: inspection editing controls require IN_PROGRESS status and ownership by signed-in Facility Staff.')
   await visitAs(page,'FACILITY_STAFF',`/staff/returns?tab=inspection&inspectionId=${inspection}`)
   await waitForHeading(page,'Handle Returns')
   await expect(page.getByRole('heading',{name:'Inspection findings'})).toBeVisible({timeout:45000})
   await expect(page.getByLabel('Evidence type')).toBeVisible()
   await expect(page.getByLabel('Evidence file')).toBeVisible()
-  await expect(page.getByLabel('Damage type',{exact:true})).toBeVisible()
+  await expect(page.getByLabel('Damage type',{exact:true})).toBeVisible({timeout:45_000})
   await expect(page.getByLabel('Extra fee type')).toBeVisible()
   await expect(page.getByLabel('Condition note')).toBeVisible()
   await expect(page.getByRole('button',{name:/Complete Inspection/i})).toBeVisible()

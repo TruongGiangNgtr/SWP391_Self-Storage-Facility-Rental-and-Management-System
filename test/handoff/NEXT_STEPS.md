@@ -98,3 +98,11 @@ Read the new report rather than reusing `20261111T084456202Z`. If it passes, tes
 3. Investigate Flaky 0155, 0036, 0101-B, 0145, 0183-B, 0184 and 0184-B separately; retry success is not stable PASS. Never reclassify the historical run.
 4. Resolve only legitimate fixture dependencies for 18 Blocked; preserve isolated DB gates for 0077/0080 and foreign-facility positive controls.
 5. Keep 8 Review pending SRS decision. Jira CSV remains limited to defects reproduced with approved oracle and valid non-mutating fixture.
+
+## Automation repairs from uploaded full-run results — 2026-11-11
+
+Received and parsed **user-uploaded `results(1).json`** for `20261111T085924993Z`. It reports exact execution SHA `54905be56c96fcc9e6a148e32a678197c60f1447`, environment Testing and historical **95 Pass / 7 Flaky / 18 Blocked / 18 UnconfirmedFailure / 8 Review / 129 Not Run**. The source-only repair touches **17 testcase IDs**, adds Staff/Inspection positive fixture controls, fixes deterministic selectors/type assertions and reduces repeated in-scenario auth verification. Details: `test/handoff/FIX_RUN_20261111T085924993Z.md`. **New runtime: NOT RUN; all old statuses unchanged**. API /facilities 500, /health 503, login 500/timeouts and missing state fixtures remain unresolved. No Jira product defect confirmed; 138/275 IMPLEMENTED remains 50.18%.
+
+### Next action after source patch
+
+Use `test/handoff/FIX_RUN_20261111T085924993Z.md` for the read-only targeted rerun commands. Verify the exact TEST_SWT HEAD locally and collect new report files. Keep 18 Blocked and remaining 5xx/timeouts separate from deterministic test defects; no fixture seeding on shared Supabase.

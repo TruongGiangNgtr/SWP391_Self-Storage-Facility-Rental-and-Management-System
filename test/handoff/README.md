@@ -44,3 +44,5 @@ Last reviewed: **2026-11-11**, against branch head `145e9f965f3a` before adding 
 
 - [RUN_20261111T085924993Z.md](RUN_20261111T085924993Z.md): full-run summary, area triage, failure and blocker IDs.
 - [RUN_20261111T085924993Z.json](RUN_20261111T085924993Z.json): all 275 case statuses with report provenance and Blocked classification.
+
+- [FIX_RUN_20261111T085924993Z.md](FIX_RUN_20261111T085924993Z.md): 17 testcase automation repairs grounded in uploaded `results.json`; safe targeted rerun procedure and unresolved infrastructure/fixture cases.

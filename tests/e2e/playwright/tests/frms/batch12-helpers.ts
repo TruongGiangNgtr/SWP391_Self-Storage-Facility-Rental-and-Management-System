@@ -44,7 +44,14 @@ const actors: Record<Actor,{login:'customer'|'employee', key:string, fallback:st
   BUSINESS_OPERATIONS_MANAGER:{login:'employee',key:'FRMS_TEST_BOM_EMAIL',fallback:'bom@example.com',password:'FRMS_TEST_BOM_PASSWORD'},
   SYSTEM_ADMINISTRATOR:{login:'employee',key:'FRMS_TEST_ADMIN_EMAIL',fallback:'admin@example.com',password:'FRMS_TEST_ADMIN_PASSWORD'},
 }
+// Cache verified JWT only within the current Playwright API request context.
+// Avoid repeated login + /auth/me calls during one read-only test, which
+// overloaded the shared API in the 275-case run. Never cache across tests.
+const verifiedTokens = new WeakMap<APIRequestContext, Map<Actor, {token:string,until:number}>>()
+
 export async function bearer(request: APIRequestContext, actor: Actor): Promise<string> {
+  const cached = verifiedTokens.get(request)?.get(actor)
+  if (cached && Date.now() < cached.until) return cached.token
   const config = actors[actor]
   // Only Customer 1 and Staff 01 have documented demo identities in profile.md.
   // Do not guess Manager/BOM/Admin accounts or assume a shared password.
@@ -65,6 +72,11 @@ export async function bearer(request: APIRequestContext, actor: Actor): Promise<
   const account = await me.json() as {data?:{role?:string,status?:string}}
   const expected = actor === 'CUSTOMER_2' ? 'CUSTOMER' : actor === 'FACILITY_STAFF_FOREIGN' ? 'FACILITY_STAFF' : actor
   if (account.data?.role !== expected || account.data?.status !== 'ACTIVE') throw new Error(`FRMS_FIXTURE_MISSING: required ACTIVE ${expected} actor, received role=${account.data?.role || 'unknown'} status=${account.data?.status || 'unknown'}.`)
+  const tokens=verifiedTokens.get(request) ?? new Map<Actor,{token:string,until:number}>()
+  // Conservative 30-second TTL: short enough not to substitute for expiry checks,
+  // long enough to prevent repeated token verification within one scenario.
+  tokens.set(actor,{token,until:Date.now()+30_000})
+  verifiedTokens.set(request,tokens)
   return token
 }
 export async function visitAs(page: Page, actor: Actor, path: string): Promise<void> {
