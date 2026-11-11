@@ -449,6 +449,32 @@
       "distinct_repaired_ids_with_post_patch_targeted_pass": 8,
       "repaired_ids_still_without_successful_targeted_rerun": 9,
       "evidence_doc": "test/handoff/TARGETED_RERUN_FRMS-ST-0141_20261111T101339028Z.md"
+    },
+    "testcase_reverification_20261111": {
+      "audited_sha": "d84eb3db2e8259f58e6b0da1763bfa804baff797",
+      "review_date": "2026-11-11",
+      "scope": "275 registry records, 138 mapped executable titles, 17 repaired cases source/oracle review",
+      "evidence": "STATIC_SOURCE_REVIEW_PLUS_USER_CONSOLE_TARGETED_RUNS",
+      "registry_unique_ids": 275,
+      "implemented_titles_mapped_unique": 138,
+      "implementation_files": 16,
+      "all_srs_oracles_pending": 275,
+      "source_key_trailing_backtick_records": 53,
+      "repaired_cases": 17,
+      "distinct_repaired_targeted_pass": 8,
+      "repaired_pending_targeted_success": 9,
+      "expected_output_changed": false,
+      "test_source_changed": false,
+      "runtime_executed_during_review": false,
+      "historical_full_run_pass_unchanged": 95,
+      "report": "test/handoff/TESTCASE_REVERIFICATION_20261111.md",
+      "recommendations": [
+        "Require approved SRS decisions for original 100000 price minimum vs current >=0 implementation",
+        "Original VIS time slot vs current date-only design requires explicit supersession",
+        "Invoice mutation and category negative API need isolated testing",
+        "Do not infer requirement coverage from a partial UI assertion",
+        "Do not edit sourceKey before traceability review"
+      ]
     }
   },
   "coverage": {
@@ -606,7 +632,8 @@
     "Source-only fix of 17 testcase IDs from uploaded full-run results.json (sha 54905be), new runtime not run. Existing 95 Pass and other historical classifications unchanged.",
     "Four user-console confirmed targeted 1/1 PASS runs after commit 8826f5e for 0081/0156/0235/0183-B. No per-run JSON supplied and no updated full-run count; original 95/138 PASS unchanged.",
     "After 1547d67 targeted runs: ST-0160, ST-0085, ST-0184 1/1 PASS; ST-0141 0/1 automation locator FAIL; ST-0141 source patched but no rerun. Historical full-run 95 PASS unchanged.",
-    "ST-0141 20261111T101339028Z targeted 1/1 PASS per user console; executing SHA and results.json unverified; old full-run 95 PASS unaffected."
+    "ST-0141 20261111T101339028Z targeted 1/1 PASS per user console; executing SHA and results.json unverified; old full-run 95 PASS unaffected.",
+    "Static 2026-11-11 audit: all 138 executable mappings present, but 275 SRS oracles pending, 53 malformed sourceKeys, and several source-vs-oracle scope gaps. No full-run status changed."
   ],
   "tools": [
     {

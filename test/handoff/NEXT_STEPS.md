@@ -131,3 +131,9 @@ Immediate verification: rerun FRMS-ST-0141 with -Mode case -Workers 1 -Retries 0
 ### ST-0141 fix verified by targeted console run
 
 The new run `20261111T101339028Z` reports 1/1 PASS after the selector source patch. Do not rerun this solely to clear the old historical failure. Prioritize the nine repaired cases without successful post-patch targeted evidence, separately diagnose backend 500/503/timeouts, then collect a new full run with one worker and zero retries. Preserve read-only shared database policy.
+
+## Static re-verification audit — 2026-11-11
+
+At `TEST_SWT` commit `d84eb3d`, all **275 manifest IDs are unique** and all **138 IMPLEMENTED** cases have exactly one matching executable Playwright title across 16 declared specs (no unmapped titles). Registered: 138 IMPLEMENTED / 129 NOT_IMPLEMENTED / 8 REVIEW; coverage still **50.18%**. **All 275 SRS oracles remain PENDING_SRS_REVIEW**; 53 sourceKey values contain trailing backticks (traceability cleanup pending). Of the 17 previously repaired cases, 8 have distinct user-console targeted PASS and 9 still lack successful new runs. Static source/original-workbook comparison flags **oracle/traceability gaps** in invoice snapshot/payment, invalid ticket category API, legacy price minimum, old access time-slot behavior, and several partial UI assertions. **No tests or registry expectations were modified and no new runtime PASS was claimed.** See `test/handoff/TESTCASE_REVERIFICATION_20261111.md` for the 17-case matrix and approved-SRS decisions needed. Historical full run remains 95 PASS.
+
+Next P0: obtain approved SRS decisions for pricing threshold, legacy time-slot rules, persisted invoice snapshot/payment mutation and invalid-category API behavior before asserting full requirement coverage. Keep the nine unverified repaired cases PENDING_RUNTIME; run read-only targeted cases first, isolate all write-sensitive tests, and preserve original full-run statuses.

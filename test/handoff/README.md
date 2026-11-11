@@ -52,3 +52,5 @@ Last reviewed: **2026-11-11**, against branch head `145e9f965f3a` before adding 
 - [TARGETED_RERUNS_20261111_AFTER_1547d67.md](TARGETED_RERUNS_20261111_AFTER_1547d67.md): 3 PASS, 1 ST-0141 locator FAIL, repair pending new runtime.
 
 - [TARGETED_RERUN_FRMS-ST-0141_20261111T101339028Z.md](TARGETED_RERUN_FRMS-ST-0141_20261111T101339028Z.md): post-selector-patch targeted PASS, run ID and provenance caveats.
+
+- [TESTCASE_REVERIFICATION_20261111.md](TESTCASE_REVERIFICATION_20261111.md): static 275-case registry audit, 138 executable mappings, 17-case source/oracle matrix and SRS blockers.
