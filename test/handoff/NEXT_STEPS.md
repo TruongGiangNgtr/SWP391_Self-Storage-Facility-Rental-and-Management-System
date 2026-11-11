@@ -123,3 +123,11 @@ Historical full run remains 95 Pass / 7 Flaky / 18 Blocked / 18 UnconfirmedFailu
 
 
 Immediate verification: rerun FRMS-ST-0141 with -Mode case -Workers 1 -Retries 0 -SkipCatalogDiscovery after pulling TEST_SWT. Inspect new summary.md and results.json; do not rewrite historical runs or seed shared Supabase.
+
+## FRMS-ST-0141 targeted rerun PASS — 2026-11-11
+
+**USER_REPORTED_RUNTIME_CONSOLE:** `FRMS-ST-0141` run `20261111T101339028Z` reports **1 selected, 1 executed, 1 PASS (7.6s)** with one worker, zero retries and launcher/wrapper exit code 0. This is separate from the prior `20261111T100152311Z` automation FAIL and from full-run `20261111T085924993Z`. The actual executing SHA and results.json are not supplied. **Eight distinct repaired case IDs now have individual targeted PASS evidence; nine of 17 still lack a fresh successful targeted rerun.** No Jira defects confirmed. Historical full run remains 95 PASS, and registry coverage remains 138/275 (50.18%). See `test/handoff/TARGETED_RERUN_FRMS-ST-0141_20261111T101339028Z.md`.
+
+### ST-0141 fix verified by targeted console run
+
+The new run `20261111T101339028Z` reports 1/1 PASS after the selector source patch. Do not rerun this solely to clear the old historical failure. Prioritize the nine repaired cases without successful post-patch targeted evidence, separately diagnose backend 500/503/timeouts, then collect a new full run with one worker and zero retries. Preserve read-only shared database policy.

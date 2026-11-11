@@ -420,11 +420,35 @@
         "result": "FAIL_AUTOMATION_LOCATOR",
         "cause": "Compound Facility label not matched by exact:true",
         "source_fix": "Dialog-scoped Facility combobox accessible name regex; ensure absent for global role",
-        "post_fix_runtime": "NOT_RUN"
+        "post_fix_runtime": "USER_REPORTED_TARGETED_PASS_RUN_20261111T101339028Z"
       },
       "historical_full_run_unchanged": true,
       "report": "test/handoff/TARGETED_RERUNS_20261111_AFTER_1547d67.md",
       "jira_confirmed_defects": 0
+    },
+    "targeted_rerun_st0141_after_ce04e3": {
+      "date": "2026-11-11",
+      "evidence": "USER_REPORTED_RUNTIME_CONSOLE",
+      "run_id": "20261111T101339028Z",
+      "case_id": "FRMS-ST-0141",
+      "result": "PASS",
+      "selected": 1,
+      "executed": 1,
+      "passed": 1,
+      "seconds": 7.6,
+      "workers": 1,
+      "retries": 0,
+      "launcher_exit_code": 0,
+      "wrapper_exit_code": 0,
+      "intended_source_patch_sha": "ce04e333c0c08ab5ec963ef0402badbebc453a7d",
+      "actual_executing_sha_verified": false,
+      "result_json_verified": false,
+      "independently_confirmed_jira_defects": 0,
+      "historical_failed_run_retained": "20261111T100152311Z",
+      "historic_full_run_unchanged": true,
+      "distinct_repaired_ids_with_post_patch_targeted_pass": 8,
+      "repaired_ids_still_without_successful_targeted_rerun": 9,
+      "evidence_doc": "test/handoff/TARGETED_RERUN_FRMS-ST-0141_20261111T101339028Z.md"
     }
   },
   "coverage": {
@@ -581,7 +605,8 @@
     "2026-11-11 full run 20261111T085924993Z: 95 Pass, 7 Flaky, 18 Blocked, 18 UnconfirmedFailure, 8 Review, 129 Not Run; 275 selected/138 mapped executed. From user text, not independently retrieved results.json; no product defects confirmed.",
     "Source-only fix of 17 testcase IDs from uploaded full-run results.json (sha 54905be), new runtime not run. Existing 95 Pass and other historical classifications unchanged.",
     "Four user-console confirmed targeted 1/1 PASS runs after commit 8826f5e for 0081/0156/0235/0183-B. No per-run JSON supplied and no updated full-run count; original 95/138 PASS unchanged.",
-    "After 1547d67 targeted runs: ST-0160, ST-0085, ST-0184 1/1 PASS; ST-0141 0/1 automation locator FAIL; ST-0141 source patched but no rerun. Historical full-run 95 PASS unchanged."
+    "After 1547d67 targeted runs: ST-0160, ST-0085, ST-0184 1/1 PASS; ST-0141 0/1 automation locator FAIL; ST-0141 source patched but no rerun. Historical full-run 95 PASS unchanged.",
+    "ST-0141 20261111T101339028Z targeted 1/1 PASS per user console; executing SHA and results.json unverified; old full-run 95 PASS unaffected."
   ],
   "tools": [
     {

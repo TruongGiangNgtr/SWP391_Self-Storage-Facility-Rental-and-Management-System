@@ -50,3 +50,5 @@ Last reviewed: **2026-11-11**, against branch head `145e9f965f3a` before adding 
 - [TARGETED_RERUNS_20261111_AFTER_8826f5e.md](TARGETED_RERUNS_20261111_AFTER_8826f5e.md): four independent post-patch 1/1 PASS runs (console-provenance), coverage check and next validation steps.
 
 - [TARGETED_RERUNS_20261111_AFTER_1547d67.md](TARGETED_RERUNS_20261111_AFTER_1547d67.md): 3 PASS, 1 ST-0141 locator FAIL, repair pending new runtime.
+
+- [TARGETED_RERUN_FRMS-ST-0141_20261111T101339028Z.md](TARGETED_RERUN_FRMS-ST-0141_20261111T101339028Z.md): post-selector-patch targeted PASS, run ID and provenance caveats.
