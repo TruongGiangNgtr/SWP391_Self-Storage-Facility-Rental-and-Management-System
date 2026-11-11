@@ -1,47 +1,105 @@
-# FRMS system automation — staged implementation
+# FRMS System Test Automation — TEST_SWT
 
-Source basis: `main` commit `c89b417c50a985bad29cc82f7d4b46f3e9c6d549`; applied to existing `TEST_SWT` commit `45e94710477f9a9085ca22dbc69523c914de4d62`; testcase file `FRMS_Testcase_Final(2).md`.
+**Last documentation consolidation:** 2026-11-11. This is the canonical guide for automated system tests on branch `TEST_SWT`. The repository-root `README.md` describes the application, not the test patch history.
 
-The registry contains **275 unique cases across 12 areas**. This patch series provides **30 executable Playwright cases** (19 authentication/registration, 8 catalogue/month validation, 3 security/health API). It does **not** contain test implementations, verified fixtures or approved oracles for the remaining cases. There are 8 known test design gaps (REVIEW) and 237 outstanding cases. A registry entry alone does not execute a case.
+## Current scope and evidence
 
-## Safety requirements
+- Registry: **275 unique test cases**, across 12 functional areas; source of truth: [manifest/cases.json](manifest/cases.json).
+- Registry mapping: **101 IMPLEMENTED**, **166 NOT_IMPLEMENTED**, **8 REVIEW** (verified against the committed manifest).
+- Historical runtime evidence: **51 implemented cases reported PASS** in run `20261110T151721934Z`, after Patch 11. The additional **50 Batch 12 cases have not been shown to pass as a complete run**.
+- Registry `IMPLEMENTED` means executable code is mapped, **not** that a test passed. Each test oracle still requires SRS review.
+- An unresolved fixture, missing API or wrong permission is **Blocked/Skipped**, not PASS or a confirmed software defect. An unconfirmed assertion failure is **not** automatically a Jira defect.
 
-- Use a dedicated local **Testing** backend and PostgreSQL test database; never run against a live/shared environment. The preflight refuses non-loopback API/UI URLs and non-Testing configuration.
-- Before any authenticated test, seed and verify an ACTIVE customer and an ACTIVE Facility Staff; the runner does not create or mutate accounts. Login identifiers default to Customer 1 phone `0901000001` and Staff 01 email `staff.f01@example.com`. Secrets are read from environment, not source. Authenticated tests are marked Blocked if required password variables are absent. Catalog card tests also require `FRMS_TEST_ACTIVE_FACILITY_NAME`, `FRMS_TEST_AVAILABLE_UNIT_NAME`, `FRMS_TEST_AVAILABLE_UNIT_SIZE`, `FRMS_TEST_AVAILABLE_UNIT_MODE`, and `FRMS_TEST_AVAILABLE_UNIT_RENT_VND` for an actually available unit in the selected next-month period.
-- Browser run is headless; frontend starts using the existing Playwright `webServer` on port 4173. Start the test API on port 5164 yourself. The webServer's `reuseExistingServer` is disabled when `CI=true`.
-- API security tests use independent HTTP requests and check status, error-code and trace-id; they do not treat HTTP status as frontend output.
-- Code-derived assertions do not imply an approved SRS oracle. Every case records `oracleApproval: PENDING_SRS_REVIEW`; automated failures are candidates only. There is no automatic Jira defect creation by merely failing an assertion.
+## Repository layout
 
-## Usage — PowerShell from repository root
+| Path | Purpose |
+| --- | --- |
+| `RUN_FRMS_TESTS.cmd`, `RUN_FRMS_TESTS.ps1` | Preferred Windows entrypoint; configures test process and snapshot-based fixture defaults |
+| `run-frms-tests.ps1` | Underlying launcher, preflight, catalogue/fixture discovery and report execution |
+| `tests/e2e/playwright/tests/frms/` | Playwright test specifications and helpers |
+| `tests/system/manifest/cases.json` | Testcase registry and implementation mapping |
+| `tests/system/scripts/` | Coverage, preflight, discovery, execution and Jira report scripts |
+| `tests/system/reports/` | Generated evidence; excluded from Git |
+| `profile.md` | Historical environment and test-data notes; **some earlier coverage/run claims are outdated** |
+| `FRMS_DB_PROFILE_EXPORT/README.md` | Separate, read-only PostgreSQL profile export procedure |
+| [PATCH_HISTORY.md](PATCH_HISTORY.md) | Historical patch details and resolved launch/locator bugs |
 
-```powershell
+The patch installers in `FRMS_BATCH12_*/` retain their own READMEs because they document optional versioned changes. **Do not re-run old installers just because the directory exists.**
+
+## Windows CMD — first checks
+
+Run at the repository root:
+
+```bat
+git branch --show-current
+git status --short
 pnpm install --frozen-lockfile
-pnpm --dir tests/e2e/playwright run install:browsers
-
-# Start backend and dedicated PostgreSQL Testing environment separately.
-$env:FRMS_ENVIRONMENT = 'Testing'
-$env:FRMS_API_URL = 'http://127.0.0.1:5164'
-$env:FRMS_UI_URL = 'http://127.0.0.1:4173'
-# Set these securely for ACTIVE seeded fixture accounts:
-# $env:FRMS_TEST_CUSTOMER_1_PASSWORD = <from secret manager>
-# $env:FRMS_TEST_STAFF_PASSWORD = <from secret manager>
-
-pnpm run test:frms:coverage
-pnpm run test:frms:preflight
-pnpm run test:frms:case -- --id FRMS-ST-0002
-pnpm run test:frms:case -- --area 'Authentication & Security'
-pnpm run test:frms:all
+pnpm --dir tests/e2e/playwright exec playwright install chromium
 ```
 
-For no existing authorized users, start with registration negatives and API-only tests; other cases remain Blocked rather than Pass. Some runners exit nonzero until all 275 are implemented, approved and executed. A full-run exit code 3 with Not Run/Review cases is expected at this stage.
+The branch must be `TEST_SWT`. Do **not** switch, reset, reapply old patches or pull automatically if the worktree has uncommitted changes.
 
-Reports are at `tests/system/reports/<run-id>/{results.json,summary.md,report.html,jira_defects.csv,artifacts/}`. The CSV has headers only unless **independent confirmation** attaches the exact required `confirmation` evidence to a `ConfirmedProductDefect` row. The current runner does not infer confirmation from retries, since persistent script/fixture errors can mimic defects.
+The preferred runner uses the local testing endpoints:
 
-## Next batches
+```text
+FRMS_ENVIRONMENT=Testing
+FRMS_API_URL=http://127.0.0.1:5164
+FRMS_UI_URL=http://127.0.0.1:4173
+VITE_API_PROXY_TARGET=http://127.0.0.1:5164
+```
 
-1. Implement isolated data factory and fixtures for registration and existing users, role/status and data-dependent public catalog assertions.
-2. Reservation capacity, concurrency, deposit payment with signed callbacks, and handover with Playwright + NUnit/integration DB invariants.
-3. Visits, billing, renewal, return, support tickets, administration, pricing and reference data.
-4. Run all 275, approve oracle traceability, CI orchestration, normalise NUnit/Postman evidence, confirm defects and only then import Jira CSV.
+Demo logins use **phone for CUSTOMER** (`0901000001`, `0901000002`, `0901000003`) and **email for employees** (`staff.f01@example.com`, `staff.f32@example.com`, `manager.f01@example.com`, `bom@example.com`, `admin@example.com`). Store passwords in the local process/secret manager; do not commit real credentials. Verify account ACTIVE status, ownership, role and facility before relying on any fixture.
 
-Do not mark `NOT_IMPLEMENTED` cases as skipped Playwright tests or manufacture a pass. The manifest deliberately retains every unimplemented case as `Not Run` in the report.
+## Commands
+
+Use the *existing* test backend on port 5164 by default. Check `http://127.0.0.1:5164/health`; health does not prove DB isolation.
+
+```bat
+rem Local process-variable and fixture inventory only (not API health):
+.\RUN_FRMS_TESTS.cmd -AuditOnly
+
+rem Registry and implementation validation:
+.\RUN_FRMS_TESTS.cmd -Mode coverage
+
+rem All implemented automation:
+.\RUN_FRMS_TESTS.cmd -Mode all -Workers 4 -Retries 1
+
+rem A selected testcase:
+.\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0165 -Workers 1 -Retries 0
+
+rem A selected functional area:
+.\RUN_FRMS_TESTS.cmd -Mode area -Area "Authentication & Security" -Workers 2 -Retries 0
+```
+
+If `RUN_FRMS_TESTS.cmd` is unavailable, use the underlying `run-frms-tests.ps1` **only after checking that the environment and safety switches are equivalent**. Wrapper `-StartBackend` is an explicit opt-in and should **not** be used with a shared Supabase database unless the impact of scheduled jobs is approved.
+
+The wrapper supplies the Testing process variables, read-only test flags, worker/retry defaults and snapshot-based fixture candidates. The underlying launcher performs API preflight and further discovery. **An environment-audit warning before discovery is not final runtime fixture evidence.**
+
+## Fixtures and current known blockers
+
+- Snapshot baseline: sanitized PostgreSQL export at `2026-11-11T04:40:10Z` (UTC); identifiers and statuses can change after the snapshot. Validate them against the **current** API and the authenticated role.
+- `FRMS_TEST_OTHER_FACILITY_REFERENCE_ID`: cross-facility Visit ID `33a922ce-416f-4757-87f5-8f85aba047ef`, associated with Facility 32 and Staff f32. For `FRMS-ST-0165`, independently verify F32 authorized access and F01 denied access. `referenceId` is a Visit ID for a `RESERVATION_VISIT` work item, **not** a Facility ID.
+- `FRMS_TEST_ASSIGNABLE_RESERVATION_ID`: **do not set** from the 2026-11-11 snapshot. No Facility 01 Reservation simultaneously met `CONFIRMED`, Reservation Visit `CHECKED_IN`, and a matching `AVAILABLE` physical unit. `FRMS-ST-0065` remains Blocked/Skipped until real, isolated eligible data exists and is verified.
+- `FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE` / `FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL`: need proof of absence in the entire Admin user directory. The sanitized DB export excludes phone/email and **cannot** establish this. A negative-fixture preflight script exists among the patch materials, but verify it is installed and invoked before treating these keys as configured. Account creation or a coincidental login error is not proof of absence.
+- Other IDs (contracts, invoices, reservations, inspections, catalogue unit types) are **candidate** values and must be revalidated for status, facility and ownership. Never insert invented UUIDs to force an audit to show zero missing.
+
+See the `FRMS_BATCH12_FINAL2_FIX/README.md` and `FRMS_DB_PROFILE_EXPORT/README.md` for optional diagnostic workflows. A patch directory being tracked does not prove its installer was applied to the active launcher.
+
+## Safety: shared database
+
+The previous backend environment used a remote/shared Supabase PostgreSQL database. `ASPNETCORE_ENVIRONMENT=Testing` and `FRMS_TEST_DB_ISOLATED=false` do **not** make it isolated. The current batch is intended for read-only queries, authentication and negative UI validation. Login can still write `LoginHistory`.
+
+`BackgroundJobs__Billing__Enabled=false`, `BackgroundJobs__NoShow__Enabled=false` and `BackgroundJobs__Notifications__Enabled=false` do **not** disable the Reservation Expiration job. Prefer an already-running, explicitly authorized backend. Never run state-changing reservation, handover, renewal, payment, inspection, user-admin or database migration tests against shared data without an isolated disposable DB, authorized fixtures, and cleanup/rollback.
+
+## Reports and Jira
+
+The system runner writes `tests/system/reports/<run-id>/`, including `summary.md`, `results.json`, and `jira_defects.csv` when generated. Review the per-case result, the console's Playwright counts and fixture warnings; overall exit code `3` can result from unimplemented/Review/Blocked registry entries even when executed assertions pass.
+
+Only independently confirmed, reproducible product defects with an accepted expected result belong in the Jira CSV. Never import Blocked, fixture failures or unconfirmed Playwright failures as defects.
+
+## References
+
+- Root [README.md](../../README.md): application overview and developer setup.
+- [SRS](../../docs/FRMS_SRS_V11.md), [API](../../docs/FRMS_API_V11.md), [Data Dictionary](../../docs/FRMS_Data_Dictionary_V11.md): normative requirements and implementation contracts.
+- [PATCH_HISTORY.md](PATCH_HISTORY.md): collapsed history of Patch 01–12 and launcher refinements.
+- `profile.md`: older environment notes; the registry and latest independently observed runtime logs take precedence for coverage and PASS counts.
