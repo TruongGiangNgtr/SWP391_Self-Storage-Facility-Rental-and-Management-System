@@ -3593,7 +3593,7 @@
     "automation": "NOT_IMPLEMENTED",
     "implementation": null,
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "Steps: 1. Authenticate as Facility Staff F01; 2. Select an accessible inspection; 3. POST multipart/form-data with EvidenceType=PHOTO; 4. Omit File; 5. Check HTTP 400 validation response and no evidence created. Actual observed 2026-11-11: HTTP 500 INTERNAL_SERVER_ERROR, traceId 0HNPVOOMV653E:00000001. Defect FRMS-DEF-001. Reproduced manually; automation not implemented. Use isolated test DB."
+    "notes": "Steps: 1. Authenticate as Facility Staff F01; 2. Select an accessible inspection; 3. POST multipart/form-data with EvidenceType=PHOTO; 4. Omit File; 5. Check HTTP 400 validation response and no evidence created. Actual observed 2026-11-11: HTTP 500 INTERNAL_SERVER_ERROR, traceId 0HNPVOOMV653E:00000001. Defect FRMS-DEF-001. Reproduced manually; automation not implemented. Use isolated test DB. Execution record (2026-11-11): TESTED MANUALLY; observed FAIL — multipart upload without File returned HTTP 500 INTERNAL_SERVER_ERROR instead of expected validation rejection. Reported defect FRMS-DEF-001. Automation remains NOT_IMPLEMENTED; SRS oracle review pending."
   },
   {
     "id": "FRMS-ST-0277",
@@ -3606,32 +3606,32 @@
     "automation": "NOT_IMPLEMENTED",
     "implementation": null,
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "Procedure: 1. Login as Facility Staff; 2. Open an IN_PROGRESS inspection; 3. Select Photo (IMAGE); 4. Choose a .md file; 5. Click Upload; 6. Verify validation error and unchanged evidence list. Observed via tester screenshot 2026-11-11: .md file appeared as IMAGE evidence (FRMS-DEF-002). Verify SRS file-type rule and use an isolated test environment; upload mutates data."
+    "notes": "Procedure: 1. Login as Facility Staff; 2. Open an IN_PROGRESS inspection; 3. Select Photo (IMAGE); 4. Choose a .md file; 5. Click Upload; 6. Verify validation error and unchanged evidence list. Observed via tester screenshot 2026-11-11: .md file appeared as IMAGE evidence (FRMS-DEF-002). Verify SRS file-type rule and use an isolated test environment; upload mutates data. Execution record (2026-11-11): TESTED VIA GUI; observed FAIL against proposed file-type validation oracle — .md file uploaded while Photo (IMAGE) selected and appeared as IMAGE evidence. Reported defect FRMS-DEF-002. Requirement/oracle review pending; automation remains NOT_IMPLEMENTED."
   },
   {
     "id": "FRMS-ST-0278",
     "area": "Return Inspection",
     "name": "Reject oversized evidence files and restore the upload form to an actionable state.",
-    "sourceKey": "Supplemental:UI-CAND-01:FRMS-DEF-003-PENDING",
+    "sourceKey": "Supplemental:UI-CAND-01:OVERSIZE-UPLOAD-PENDING",
     "technique": "Boundary Value Analysis / Negative Testing / UI Error Recovery",
     "expectedUI": "For a file of 9,000,001 bytes, the system must reject the upload with an understandable size-limit error, create no evidence record, and restore the Upload button and form to an actionable state after the request finishes.",
     "channel": "UI",
     "automation": "NOT_IMPLEMENTED",
     "implementation": null,
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "Procedure: 1. Login as Facility Staff; 2. Open an IN_PROGRESS inspection; 3. Select Photo (IMAGE); 4. Choose a test file of 9,000,001 bytes; 5. Click Upload; 6. Verify size rejection, no evidence created, and form not stuck on Uploading; 7. Inspect Network status/timing if stuck. Tester reported UI 'bị đứng' for file over 9 MB; exact HTTP status, timing and UI behavior remain unverified. FRMS-DEF-003 is a candidate, not a confirmed defect. Avoid shared DB mutation."
+    "notes": "Procedure: 1. Login as Facility Staff; 2. Open an IN_PROGRESS inspection; 3. Select Photo (IMAGE); 4. Choose a test file of 9,000,001 bytes; 5. Click Upload; 6. Verify size rejection, no evidence created, and form not stuck on Uploading; 7. Inspect Network status/timing if stuck. Tester reported UI 'bị đứng' for file over 9 MB; exact HTTP status, timing and UI behavior remain unverified. Oversized-upload behavior is a separate candidate (UI-CAND-01), not FRMS-DEF-003; its failure mode remains unverified. Avoid shared DB mutation."
   },
   {
     "id": "FRMS-ST-0279",
     "area": "Access Visits",
     "name": "Verify customer CCCD is displayed on the Staff Access Visit Check-in page.",
-    "sourceKey": "Supplemental:Staff-Access-Visit-CCCD-GUI",
+    "sourceKey": "Supplemental:FRMS-DEF-003",
     "technique": "GUI Testing / Data Display Verification",
     "expectedUI": "When an authorized Facility Staff member opens the Check In Customer screen for a scheduled ACCESS visit whose customer has a recorded CCCD, the customer CCCD field is visible and displays the correct permitted value (or an explicitly required masked representation); it must not be silently blank. Confirm visibility/masking rules against requirements.",
     "channel": "UI",
     "automation": "NOT_IMPLEMENTED",
     "implementation": null,
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "Procedure: 1. Sign in through the GUI as Facility Staff assigned to the visit's facility; 2. Navigate to Staff Access Visit Processing; 3. Open a SCHEDULED ACCESS visit for a customer with a known CCCD in an isolated test fixture; 4. Inspect the Check In Customer screen; 5. Verify the CCCD label/value is rendered according to authorized display rules, without invoking check-in APIs directly. Tester-reported actual: CCCD is not displayed on Check In Customer page (2026-11-11). Related FRMS-ST-0074 and FRMS-ST-0158. GUI-only assertion; no direct API mutation. Defect candidate pending requirement and reproduction verification."
+    "notes": "Procedure: 1. Sign in through the GUI as Facility Staff assigned to the visit's facility; 2. Navigate to Staff Access Visit Processing; 3. Open a SCHEDULED ACCESS visit for a customer with a known CCCD in an isolated test fixture; 4. Inspect the Check In Customer screen; 5. Verify the CCCD label/value is rendered according to authorized display rules, without invoking check-in APIs directly. Tester-reported actual: CCCD is not displayed on Check In Customer page (2026-11-11). Related FRMS-ST-0074 and FRMS-ST-0158. GUI-only assertion; no direct API mutation. Defect candidate pending requirement and reproduction verification. Execution record (2026-11-11): TESTED VIA GUI; user-reported FAIL — customer CCCD not displayed to Staff on Access Visit Check In Customer page. Reported defect FRMS-DEF-003. CCCD visibility/masking policy still requires SRS confirmation; automation remains NOT_IMPLEMENTED."
   }
 ]
