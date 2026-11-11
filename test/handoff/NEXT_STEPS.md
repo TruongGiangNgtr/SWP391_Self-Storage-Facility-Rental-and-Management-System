@@ -32,3 +32,14 @@ Actions are prioritized. **Do not mark an action done until new source or runtim
 - Current runner/fixture preflight and results are recorded with evidence levels.
 - Missing fixtures remain Blocked, not silently assigned.
 - User can hand this directory to another AI and reproduce the run commands safely.
+
+## Source audit follow-up — 2026-11-11
+
+The F32/foreign-date oracle and discovery hardening are now implemented in canonical active files, without running an old installer. Run the targeted cases from an authorized, already-running Testing API, without `-StartBackend`:
+
+```bat
+.\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0065 -Workers 1 -Retries 0 -SkipCatalogDiscovery
+.\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0165 -Workers 1 -Retries 0 -SkipCatalogDiscovery
+```
+
+Inspect each `tests/system/reports/<run-id>/summary.md` and `results.json`. For ST-0165, positive F32 and own-F01 preconditions are required; a missing/stale Visit is Blocked. For ST-0065, the Manager UI must show the **saved Unit code**, not just a heading. **Neither test has a new runtime PASS from this source-only patch.** Confirm local worktree status independently before pulling.

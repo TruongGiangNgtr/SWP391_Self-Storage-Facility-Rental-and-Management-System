@@ -48,3 +48,11 @@ The old `FRMS_TEST_STAFF_HANDOVER_VISIT_ID` is now CHECKED_IN. Remaining four sc
 ## User-confirmed targeted test results — 2026-11-11
 
 The user explicitly reported **FRMS-ST-0199 PASS** and **FRMS-ST-0203 PASS** after the negative-account discovery integration and launcher parser fix. Evidence category: `USER_REPORTED_RUNTIME`, not `REPORT_VERIFIED`. No run ID, `summary.md`, `results.json`, screenshot, or Playwright trace has been supplied for either run. This does not change the separate historical `51/51` regression result or prove all 50 newly mapped Batch 12 cases passed.
+
+## Static test-oracle hardening — 2026-11-11 (runtime pending)
+
+On `TEST_SWT`, `FRMS-ST-0165` now has an actual F32 Staff positive control: ACTIVE F01/F32 accounts must belong to distinct Facilities, F32 must read the nominated RESERVATION Visit and see it in F32 work items on `FRMS_TEST_OTHER_FACILITY_SCOPE_DATE`, F01 must see its own work item, and only then F01 is asserted to exclude the F32 Visit on **that same foreign date** and reject foreign Visit detail (403/404). The discovery code uses `FRMS_TEST_FOREIGN_STAFF_EMAIL` (F32, not the outdated F02), searches own/foreign dates independently and does not replace explicit snapshot overrides. Missing/stale preconditions are `FRMS_FIXTURE_MISSING`, not PASS or Jira defects.
+
+`FRMS-ST-0065` retains its GET-only checks for the pre-existing ACTIVE assignment and now also selects the matching Reservation **in the Manager UI** and confirms the saved Unit code and `Saved` state. No save/release click or data mutation is introduced.
+
+**Evidence:** REPO_VERIFIED static source review only. Local Playwright, authenticated API, and database runtime are not accessible through the GitHub connector; `FRMS-ST-0065` and `FRMS-ST-0165` remain **PENDING_RUNTIME / Not Run** for this change. Historical 51/51 user-reported PASS and two separately reported negative-login PASS remain unchanged. No application, DB, or `main` changes.

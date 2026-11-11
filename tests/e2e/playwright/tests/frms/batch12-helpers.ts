@@ -1,7 +1,7 @@
 import { expect, test, type Page, type APIRequestContext } from '@playwright/test'
 
 /** Batch 12: source-backed, not mock-backed. No demo secrets in logs or traces. */
-export type Actor = 'CUSTOMER' | 'CUSTOMER_2' | 'FACILITY_STAFF' | 'FACILITY_MANAGER' | 'BUSINESS_OPERATIONS_MANAGER' | 'SYSTEM_ADMINISTRATOR'
+export type Actor = 'CUSTOMER' | 'CUSTOMER_2' | 'FACILITY_STAFF' | 'FACILITY_STAFF_FOREIGN' | 'FACILITY_MANAGER' | 'BUSINESS_OPERATIONS_MANAGER' | 'SYSTEM_ADMINISTRATOR'
 export const API = (process.env.FRMS_API_URL ?? 'http://127.0.0.1:5164').replace(/\/$/, '')
 
 export function fixture(name: string): string {
@@ -39,6 +39,7 @@ const actors: Record<Actor,{login:'customer'|'employee', key:string, fallback:st
   CUSTOMER:{login:'customer',key:'FRMS_TEST_CUSTOMER_1_PHONE',fallback:'0901000001',password:'FRMS_TEST_CUSTOMER_1_PASSWORD'},
   CUSTOMER_2:{login:'customer',key:'FRMS_TEST_CUSTOMER_2_PHONE',fallback:'0901000002',password:'FRMS_TEST_CUSTOMER_2_PASSWORD'},
   FACILITY_STAFF:{login:'employee',key:'FRMS_TEST_STAFF_01_EMAIL',fallback:'staff.f01@example.com',password:'FRMS_TEST_STAFF_PASSWORD'},
+  FACILITY_STAFF_FOREIGN:{login:'employee',key:'FRMS_TEST_FOREIGN_STAFF_EMAIL',fallback:'',password:'FRMS_TEST_FOREIGN_STAFF_PASSWORD'},
   FACILITY_MANAGER:{login:'employee',key:'FRMS_TEST_MANAGER_01_EMAIL',fallback:'manager.f01@example.com',password:'FRMS_TEST_MANAGER_PASSWORD'},
   BUSINESS_OPERATIONS_MANAGER:{login:'employee',key:'FRMS_TEST_BOM_EMAIL',fallback:'bom@example.com',password:'FRMS_TEST_BOM_PASSWORD'},
   SYSTEM_ADMINISTRATOR:{login:'employee',key:'FRMS_TEST_ADMIN_EMAIL',fallback:'admin@example.com',password:'FRMS_TEST_ADMIN_PASSWORD'},
@@ -47,7 +48,7 @@ export async function bearer(request: APIRequestContext, actor: Actor): Promise<
   const config = actors[actor]
   // Only Customer 1 and Staff 01 have documented demo identities in profile.md.
   // Do not guess Manager/BOM/Admin accounts or assume a shared password.
-  const explicitRole = ['FACILITY_MANAGER','BUSINESS_OPERATIONS_MANAGER','SYSTEM_ADMINISTRATOR','CUSTOMER_2'].includes(actor)
+  const explicitRole = ['FACILITY_MANAGER','BUSINESS_OPERATIONS_MANAGER','SYSTEM_ADMINISTRATOR','CUSTOMER_2','FACILITY_STAFF_FOREIGN'].includes(actor)
   const identifier = process.env[config.key]?.trim() || (explicitRole ? '' : config.fallback)
   const password = process.env[config.password] || process.env.FRMS_TEST_DEMO_PASSWORD ||
     (!explicitRole && process.env.FRMS_ENVIRONMENT === 'Testing' ? '11111111' : '')
@@ -62,7 +63,7 @@ export async function bearer(request: APIRequestContext, actor: Actor): Promise<
   const me = await request.get(`${API}/api/v1/auth/me`,{headers:{Authorization:`Bearer ${token}`},timeout:30_000})
   if (me.status() !== 200) throw new Error(`FRMS_FIXTURE_MISSING: ${actor} /auth/me returned ${me.status()}.`)
   const account = await me.json() as {data?:{role?:string,status?:string}}
-  const expected = actor === 'CUSTOMER_2' ? 'CUSTOMER' : actor
+  const expected = actor === 'CUSTOMER_2' ? 'CUSTOMER' : actor === 'FACILITY_STAFF_FOREIGN' ? 'FACILITY_STAFF' : actor
   if (account.data?.role !== expected || account.data?.status !== 'ACTIVE') throw new Error(`FRMS_FIXTURE_MISSING: required ACTIVE ${expected} actor, received role=${account.data?.role || 'unknown'} status=${account.data?.status || 'unknown'}.`)
   return token
 }

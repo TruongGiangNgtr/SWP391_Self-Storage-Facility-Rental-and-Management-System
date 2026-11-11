@@ -256,3 +256,11 @@ Use the already-running authorized API, then run from the repository root:
 ```
 
 Only the actual targeted runs invoke Admin verification. The verifier may generate normal LoginHistory records through authentication. Success log: `Verified negative login fixtures: phone and email absent from N complete Admin account records`. If verification fails, both variables are cleared from the test child process and the cases must remain Blocked. `-AuditOnly` still lists these keys as unconfigured because it does not contact the API. In a non-negative targeted case (e.g. FRMS-ST-0065) the two keys are excluded from its applicable fixture audit. Reports: `tests/system/reports/<run-id>/`.
+
+## Static test-oracle hardening — 2026-11-11 (runtime pending)
+
+On `TEST_SWT`, `FRMS-ST-0165` now has an actual F32 Staff positive control: ACTIVE F01/F32 accounts must belong to distinct Facilities, F32 must read the nominated RESERVATION Visit and see it in F32 work items on `FRMS_TEST_OTHER_FACILITY_SCOPE_DATE`, F01 must see its own work item, and only then F01 is asserted to exclude the F32 Visit on **that same foreign date** and reject foreign Visit detail (403/404). The discovery code uses `FRMS_TEST_FOREIGN_STAFF_EMAIL` (F32, not the outdated F02), searches own/foreign dates independently and does not replace explicit snapshot overrides. Missing/stale preconditions are `FRMS_FIXTURE_MISSING`, not PASS or Jira defects.
+
+`FRMS-ST-0065` retains its GET-only checks for the pre-existing ACTIVE assignment and now also selects the matching Reservation **in the Manager UI** and confirms the saved Unit code and `Saved` state. No save/release click or data mutation is introduced.
+
+**Evidence:** REPO_VERIFIED static source review only. Local Playwright, authenticated API, and database runtime are not accessible through the GitHub connector; `FRMS-ST-0065` and `FRMS-ST-0165` remain **PENDING_RUNTIME / Not Run** for this change. Historical 51/51 user-reported PASS and two separately reported negative-login PASS remain unchanged. No application, DB, or `main` changes.

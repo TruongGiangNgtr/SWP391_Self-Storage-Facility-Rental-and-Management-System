@@ -148,16 +148,17 @@ let handoverFound = false;
 let foreignFound = false;
 if (staff) {
   const today = ymd();
-  const otherStaff = await login('FACILITY_STAFF', env.FRMS_TEST_STAFF_02_EMAIL || 'staff.f02@example.com',
-    env.FRMS_TEST_STAFF_02_PASSWORD || env.FRMS_TEST_STAFF_PASSWORD || defaultPass);
+  const otherStaff = await login('FACILITY_STAFF', env.FRMS_TEST_FOREIGN_STAFF_EMAIL || 'staff.f32@example.com',
+    env.FRMS_TEST_FOREIGN_STAFF_PASSWORD || env.FRMS_TEST_STAFF_PASSWORD || defaultPass);
   const sameFacility = !uuid(staff.user.profile?.facilityId) ||
     !uuid(otherStaff?.user.profile?.facilityId) ||
     otherStaff.user.profile.facilityId === staff.user.profile.facilityId;
   if (!otherStaff) err('Staff cross-facility: second Staff login unavailable');
   else if (sameFacility) err('Staff cross-facility: distinct authenticated Facility IDs not confirmed');
 
-  for (const offset of checkedDates) {
-    const date = addDate(today, offset);
+  const ownDates = [...new Set([env.FRMS_TEST_STAFF_SCOPE_DATE, ...checkedDates.map(offset => addDate(today, offset))])]
+    .filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date || ''));
+  for (const date of ownDates) {
     const rows = await list(`/staff/work-items?date=${date}`, staff.token, 15);
     if (!rows) continue;
     const own = rows.find(x => uuid(x.referenceId));
@@ -176,22 +177,39 @@ if (staff) {
         handoverFound = true;
       }
     }
-    // Cross-facility fixture MUST be a real other-facility reference on the SAME DATE.
-    // The previous implementation only checked the first home Staff date.
-    if (own && otherStaff && !sameFacility && !foreignFound) {
-      const otherRows = await list(`/staff/work-items?date=${date}`, otherStaff.token, 15);
-      const currentIds = new Set(rows.map(x => x.referenceId));
-      const foreign = otherRows?.find(x => uuid(x.referenceId) && !currentIds.has(x.referenceId));
-      if (foreign) {
-        // Align both positive/negative fixtures to the same date used by ST-0165.
-        workDate = date; workList = rows;
-        set('FRMS_TEST_STAFF_SCOPE_DATE', date);
-        set('FRMS_TEST_STAFF_OWN_REFERENCE_ID', own.referenceId);
-        set('FRMS_TEST_OTHER_FACILITY_REFERENCE_ID', foreign.referenceId);
+    if (handoverFound) break;
+  }
+
+
+  // Own and foreign fixtures can have different dates. Require a positive F32
+  // Staff work-list and Visit detail, not a coincidental F01 absence.
+  if (otherStaff && !sameFacility) {
+    const foreignDates = [...new Set([
+      env.FRMS_TEST_OTHER_FACILITY_SCOPE_DATE,
+      ...checkedDates.map(offset => addDate(today, offset)),
+    ])].filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date || ''));
+    for (const date of foreignDates) {
+      const rows = await list(`/staff/work-items?date=${date}`, otherStaff.token, 15);
+      for (const item of rows || []) {
+        if (item.workType !== 'RESERVATION_VISIT' ||
+            !['SCHEDULED','CHECKED_IN'].includes(item.status) || !uuid(item.referenceId)) continue;
+        // If a user/snapshot override is supplied, only validate that exact
+        // candidate; never silently switch the target to a different Visit.
+        if (env.FRMS_TEST_OTHER_FACILITY_REFERENCE_ID &&
+            env.FRMS_TEST_OTHER_FACILITY_REFERENCE_ID !== item.referenceId) continue;
+        if (env.FRMS_TEST_OTHER_FACILITY_SCOPE_DATE &&
+            env.FRMS_TEST_OTHER_FACILITY_SCOPE_DATE !== date) continue;
+        const visit = await http(`/visits/${item.referenceId}`, otherStaff.token);
+        if (visit.status !== 200 || visit.payload?.data?.visitId !== item.referenceId ||
+            visit.payload.data.visitDate !== date ||
+            visit.payload.data.visitType !== 'RESERVATION') continue;
+        set('FRMS_TEST_OTHER_FACILITY_REFERENCE_ID', item.referenceId);
+        set('FRMS_TEST_OTHER_FACILITY_SCOPE_DATE', date);
         foreignFound = true;
+        break;
       }
+      if (foreignFound) break;
     }
-    if (handoverFound && foreignFound) break;
   }
 
   // A scheduled visit outside the date offsets may still exist. The Manager may list
