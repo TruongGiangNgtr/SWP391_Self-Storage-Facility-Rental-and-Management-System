@@ -7,13 +7,9 @@ It reads `backend/Frms.Api/.env` locally for `ConnectionStrings__Frms` / `Connec
 ## Run on Windows CMD
 
 1. The tracked exporter lives in `test/tools/FRMS_DB_PROFILE_EXPORT/` beneath the repository. From the **repository root**, run the commands below. The exporter finds `backend/Frms.Api` by walking up its parent directories.
-2. Install the single Python dependency:
+2. Run the exporter from the repo root. `RUN_EXPORT.cmd` automatically creates `%TEMP%\frms-db-profile-export-venv`, repairs pip inside that environment when possible, and installs `psycopg[binary]` on first use. **Do not use global `py -3 -m pip install`**, as the system pip may be broken.
 
-   ```bat
-   py -3 -m pip install "psycopg[binary]"
-   ```
-
-3. Run the exporter from the repo root:
+3. Run:
 
    ```bat
    .\test\tools\FRMS_DB_PROFILE_EXPORT\RUN_EXPORT.cmd
@@ -41,12 +37,10 @@ These are **candidates only**. Final tests must verify actual roles, ownership, 
 ## Failure scenarios
 
 - `Cannot locate backend/Frms.Api`: keep the exporter inside this repository's directory tree, under `test/tools/`.
-- `Missing dependency`: run the installation command above; no need to modify .NET project dependencies.
+- `Missing dependency`: the CMD launcher should install `psycopg[binary]` automatically in its own venv. If installation fails, inspect network access or the venv's pip; do not use system pip.
 - `Missing ConnectionStrings`: ensure the backend `.env` exists in your local repo (do not upload it).
 - `PostgreSQL connection/export failed`: check Supabase/PG network access, TLS, or DB permissions on your own machine. Do not paste credentials.
 
 Do **not commit** the resulting ZIP or JSON to Git. The default output folder now lives under `test/reports/db-profile/` and is excluded from Git by `test/reports/.gitignore`. This is a protection against accidental tracking, not a substitute for reviewing sensitive IDs before sharing.
 
-**Windows Python pip repair:** The tracked `RUN_EXPORT.cmd` uses system `py -3`; if its pip is broken, do not alter project dependencies. Create a separate virtual environment (for example `%TEMP%\frms-profile-export-venv`), install `psycopg[binary]` inside it and invoke `export_frms_profile.py` with that environment's `python.exe`. The absolute `__file__` lookup makes this work from any current working directory.
-
-If `pip` is broken and a virtual environment is required, pass `--out ".\test\reports\db-profile"` in the direct Python invocation to use the same report folder.
+**Windows Python pip fix:** The CMD launcher does not import pip from your system Python. It creates and reuses `%TEMP%\frms-db-profile-export-venv` and installs the dependency within that environment. If the isolated environment itself is damaged, close sessions using it, remove **only** that temporary venv (after reviewing its path), and rerun the launcher. You can still run Python directly using `--out ".\test\reports\db-profile"`; direct Python execution requires you to use the venv interpreter yourself.

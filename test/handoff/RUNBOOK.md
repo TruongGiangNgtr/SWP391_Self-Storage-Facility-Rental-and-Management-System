@@ -101,7 +101,7 @@ Exit code `3` may indicate unimplemented/review/blocked registry entries; read t
 
 ## 8. Read-only PostgreSQL profile refresh
 
-The repository includes `test/tools/FRMS_DB_PROFILE_EXPORT/` (Python + psycopg). The **tracked** `RUN_EXPORT.cmd` may be the older version that requires functioning system pip. On Windows Python 3.14 with broken pip, use a dedicated virtual environment if needed; consult the exporter README and actual script before execution.
+The repository includes `test/tools/FRMS_DB_PROFILE_EXPORT/` (Python + psycopg). The current `RUN_EXPORT.cmd` creates/reuses an isolated venv at `%TEMP%\frms-db-profile-export-venv` and installs `psycopg[binary]` on first use, avoiding the broken system Python 3.14 pip. If venv creation or package download fails, the script exits without attempting a database export; see the exporter README.
 
 Never push `.env`, database connections, raw dumps, emails/phones, credentials, JWTs or exported snapshot ZIPs. Sanitized snapshots still contain business IDs and should be shared only with authorized reviewers.
 

@@ -30,13 +30,7 @@ git status --short
 
 The exporter walks parent directories to find `backend/Frms.Api/.env`, so the new nested location works without editing the Python database connection logic. Its default output is in the Git-ignored repository directory `test/reports/db-profile/` (ZIP and summary JSON). Review the sanitized output before sharing; identifiers still merit restricted access.
 
-**Python dependency caveat:** This tracked `RUN_EXPORT.cmd` calls `py -3` and expects `psycopg[binary]`. If global Python 3.14 `pip` is broken, use an isolated virtual environment rather than changing project dependencies:
-
-```bat
-py -3 -m venv "%TEMP%\frms-profile-export-venv"
-"%TEMP%\frms-profile-export-venv\Scripts\python.exe" -m pip install "psycopg[binary]"
-"%TEMP%\frms-profile-export-venv\Scripts\python.exe" ".\test\tools\FRMS_DB_PROFILE_EXPORT\export_frms_profile.py" --out ".\test\reports\db-profile"
-```
+**Python dependency handling:** `RUN_EXPORT.cmd` automatically creates/reuses `%TEMP%\frms-db-profile-export-venv`, installs `psycopg[binary]` there when missing, and runs the exporter from that venv. The broken system Python 3.14 pip is not used. No manual global pip installation is needed. This setup needs working `py -3 -m venv` and network access to install the package the first time.
 
 ## Historical patch entrypoints — reference only
 
