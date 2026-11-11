@@ -1255,10 +1255,10 @@
     "technique": "Use Case Testing (source section: USE CASE TESTING)",
     "expectedUI": "The staff handover page provides an offline first-month payment acknowledgment. It does not open a payOS checkout for this first-month settlement; handover remains gated on required acknowledgments.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-handover-support-admin.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0062",
@@ -2129,10 +2129,10 @@
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
     "expectedUI": "If the billing service records no late fee at the selected deadline, \"Fees & Return Tracking\" displays no late-fee record or the recorded zero amount. The frontend has no independent seven-day calculation.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-billing-renewal.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0092",
@@ -2142,10 +2142,10 @@
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
     "expectedUI": "After refreshing recorded billing data, \"Fees & Return Tracking\" displays any returned Late Fee Records and My Contracts displays the returned contract status. No frontend eight-day late-fee formula is implemented.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-billing-renewal.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0093",
@@ -2155,10 +2155,10 @@
     "technique": "State Transition Testing (source section: STATE TRANSITION TESTING)",
     "expectedUI": "The invoice status badge changes as returned in the Invoice Detail/All Invoices view; after confirmed payment it displays PAID. The frontend itself does not advance invoice status on the due date.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-billing-renewal.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0094",
@@ -2168,10 +2168,10 @@
     "technique": "State Transition Testing (source section: STATE TRANSITION TESTING)",
     "expectedUI": "The rental invoice shows the applicable UNPAID, OVERDUE or PAID status after service processing/refresh. The linked contract continues to show a supported contract status from the service; the frontend does not create an OVERDUE contract state.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-billing-renewal.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0095",
@@ -2428,10 +2428,10 @@
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
     "expectedUI": "The Extension Summary shows the selected five-month extension duration and estimate from the current price. No unconditional 6-month discount threshold is visible in this frontend.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-billing-renewal.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0104",
@@ -2441,10 +2441,10 @@
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
     "expectedUI": "The Extension Summary shows the selected six-month extension duration and price estimate; the frontend does not promise an automatic 10% discount at six months.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-billing-renewal.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0105",
@@ -2649,10 +2649,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "With pending damage decisions, \"Finalize Return\" is disabled and the page shows \"Damage decision(s) are still PENDING. Manager resolution is required.\"",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-return.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0117",
@@ -2662,10 +2662,10 @@
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
     "expectedUI": "The settlement result displays Total Deduction, Refund Amount and Additional Amount Due using the values recorded by the service; a positive refundable amount is shown under Refund Amount.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-return.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0118",
@@ -2675,10 +2675,10 @@
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
     "expectedUI": "\"Return Finalized\" displays the service-recorded Additional Amount Due if deductions exceed the deposit; it does not claim that collection has occurred.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-return.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0119",
@@ -2727,10 +2727,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "With at least one PENDING damage decision, the Finalize Return button is disabled and the warning asks for Manager resolution; the return has no new \"Return Finalized\" card.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-return.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0241",
@@ -2766,10 +2766,10 @@
     "technique": "Use Case Testing / State Verification (source section: Inspection and finalization)",
     "expectedUI": "Inspection Progress shows COMPLETED but Fees & Return Tracking still states that inspection completion alone does not finalize a return. No Deposit Settlement is shown until finalization is recorded.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-return.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0244",
@@ -2779,10 +2779,10 @@
     "technique": "Use Case Testing / State Verification (source section: Inspection and finalization)",
     "expectedUI": "The staff screen shows a warning for pending damage decision(s), and \"Finalize Return\" is disabled; customer tracking also warns that the manager's decision is pending.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-return.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0245",
@@ -2976,10 +2976,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "The customer does not see another customer's contract as an eligible choice. A direct request is blocked and the UI displays an access/unavailable notice; no other customer's ticket details appear.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-handover-support-admin.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0173",
@@ -3356,10 +3356,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "The employee facility selector offers valid facilities, not an arbitrary missing ID; a nonexistent facility cannot be chosen through that control.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch14-handover-support-admin.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Batch14: source-backed read-only Playwright scenario; dynamic positive fixtures required, missing partitions SKIP/Blocked, SRS oracle approval remains pending. No state-changing request."
   },
   {
     "id": "FRMS-ST-0194-B",

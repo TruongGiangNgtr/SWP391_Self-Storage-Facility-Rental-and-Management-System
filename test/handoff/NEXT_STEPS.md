@@ -146,3 +146,12 @@ Next P0: obtain approved SRS decisions for pricing threshold, legacy time-slot r
 ### Remaining repaired-case runtime checks after 13/17 targeted PASS
 
 `FRMS-ST-0067`: legitimate Staff-accessible SCHEDULED Reservation Visit required, currently absent; do not re-use CHECKED_IN fixture. `FRMS-ST-0071`: CHECKED_IN reservation with no ACTIVE assignment required. `FRMS-ST-0109` and `FRMS-ST-0188`: signed-in Staff must own an IN_PROGRESS Inspection. Preserve Blocked for missing genuine fixtures and do not modify shared Supabase. SRS/negative API oracle gaps remain open even after five new targeted UI passes. A fresh full regression should be taken only after fixture/backend issues are addressed.
+
+## Batch 14: 15 read-only Playwright mappings — 2026-11-11
+
+Added **15** source-backed system tests across Billing (0091-0094), Renewal preview (0103-0104), Return/Settlement (0116-0118, 0122, 0243-0244), Handover offline acknowledgment (0061), cross-customer Support (0134), and Admin Facility selection (0194). Manifest is now **275 registered, 153 IMPLEMENTED, 114 NOT_IMPLEMENTED, 8 REVIEW** (**55.64% implementation mapping**). All 15 new cases are **PENDING_RUNTIME**, not PASS, and all 275 SRS oracles remain pending approval. Specs use authenticated GET-backed positive fixtures and no business-state write operations; missing real state must SKIP/Blocked. Historical full run 20261111T085924993Z remains 95 PASS and 13 distinct repaired-case targeted PASS remain separate. Environment uses existing Testing API/UI, Customer1/2, Staff F01, Manager F01 and Admin credentials + existing profile fixture IDs; **no new required environment keys**. Shared Supabase remains nonisolated; no write enables or startup flags. See `test/handoff/BATCH14_IMPLEMENTATION_20261111.md`, `BATCH14_ENVIRONMENT_20261111.md`, and `BLOCKED_FIXTURES_0067_0071_0109_0188.md`.
+
+
+### Batch 14 targeted validation (new source, not runtime verified)
+
+Check clean `TEST_SWT` worktree, pull, existing API health, `-AuditOnly` and `-Mode coverage` first. Use `-Mode case -CaseId FRMS-ST-0103 -Workers 1 -Retries 0 -SkipCatalogDiscovery`, then `0104`, `0194`, `0061`, `0093`, `0134`. Remaining Batch 14 cases require genuine matching financial/inspection fixtures; if missing, record `Blocked`, do not insert into shared Supabase. Preserve the four deferred fixture IDs `0067/0071/0109/0188` for future authorized fixture verification; none became PASS from Batch 14. Confirm TypeScript and Playwright runtime locally before Jira or merge claims.
