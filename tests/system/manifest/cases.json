@@ -3619,7 +3619,7 @@
     "automation": "NOT_IMPLEMENTED",
     "implementation": null,
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "Procedure: 1. Login as Facility Staff; 2. Open an IN_PROGRESS inspection; 3. Select Photo (IMAGE); 4. Choose a test file of 9,000,001 bytes; 5. Click Upload; 6. Verify size rejection, no evidence created, and form not stuck on Uploading; 7. Inspect Network status/timing if stuck. Tester reported UI 'bị đứng' for file over 9 MB; exact HTTP status, timing and UI behavior remain unverified. Oversized-upload behavior is a separate candidate (UI-CAND-01), not FRMS-DEF-003; its failure mode remains unverified. Avoid shared DB mutation."
+    "notes": "Procedure: 1. Login as Facility Staff; 2. Open an IN_PROGRESS inspection; 3. Select Photo (IMAGE); 4. Choose a test file of 9,000,001 bytes; 5. Click Upload; 6. Verify size rejection, no evidence created, and form not stuck on Uploading; 7. Inspect Network status/timing if stuck. Tester reported UI 'bị đứng' for file over 9 MB; exact HTTP status, timing and UI behavior remain unverified. Oversized-upload behavior is a separate candidate (UI-CAND-01), not FRMS-DEF-003; its failure mode remains unverified. Avoid shared DB mutation. Execution record (2026-11-11): TESTED VIA GUI; user-observed FAIL — uploading an Evidence file larger than 9,000,000 bytes leaves the Upload action stuck/unresponsive and shows no error notification. HTTP status and root cause not yet verified. Defect candidate UI-CAND-01; automation remains NOT_IMPLEMENTED."
   },
   {
     "id": "FRMS-ST-0279",
