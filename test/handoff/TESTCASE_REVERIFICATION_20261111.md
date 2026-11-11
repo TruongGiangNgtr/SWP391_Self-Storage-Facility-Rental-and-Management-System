@@ -54,3 +54,8 @@
 Prioritize safe, read-only targeted reruns for `FRMS-ST-0220`, `FRMS-ST-0184-B`, `FRMS-ST-0236`, `FRMS-ST-0072`, and `FRMS-ST-0176`, with one worker and zero retries; do not interpret PASS as approval for the incomplete normative oracle. `FRMS-ST-0067` needs an actual SCHEDULED Staff Reservation Visit; `0071` needs an actually unassigned CHECKED_IN Visit; `0109` and `0188` need a Staff-owned IN_PROGRESS inspection. Treat absent fixtures as Blocked, not PASS or software defects. Do not seed or modify shared Supabase to satisfy them. Full state-mutating verification of billing prices, invoice payment and forced-invalid API payloads requires a genuinely isolated database and approved test data.
 
 **No testcase code, manifest Expected Output, sourceKey, application code, main branch or DB was changed by this review.** Follow the v2.0 principle: preserve the original requirement claim and disclose implementation mismatch until an authoritative SRS decision exists.
+
+
+## Post-audit evidence addendum — five targeted runs (2026-11-11)
+
+Subsequent user-supplied Windows console logs report **1/1 PASS** for `FRMS-ST-0220` (`20261111T103359756Z`), `FRMS-ST-0184-B` (`20261111T103506500Z`), `FRMS-ST-0236` (`20261111T103603990Z`), `FRMS-ST-0072` (`20261111T103705001Z`) and `FRMS-ST-0176` (`20261111T103912045Z`). This supplements, but does not retroactively change, the 8/17 snapshot above: the newest cumulative evidence is **13/17 distinct targeted PASS**, with `0067/0071/0109/0188` awaiting successful new execution. The partial/contradictory normative oracles identified above remain **UNRESOLVED**, including for the newly passing `0184-B`, `0236`, and `0176`. Historical full-run Pass remains 95. Source: `test/handoff/TARGETED_RERUNS_20261111_FIVE_PASS.md`.

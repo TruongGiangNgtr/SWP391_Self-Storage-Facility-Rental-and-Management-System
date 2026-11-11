@@ -54,3 +54,5 @@ Last reviewed: **2026-11-11**, against branch head `145e9f965f3a` before adding 
 - [TARGETED_RERUN_FRMS-ST-0141_20261111T101339028Z.md](TARGETED_RERUN_FRMS-ST-0141_20261111T101339028Z.md): post-selector-patch targeted PASS, run ID and provenance caveats.
 
 - [TESTCASE_REVERIFICATION_20261111.md](TESTCASE_REVERIFICATION_20261111.md): static 275-case registry audit, 138 executable mappings, 17-case source/oracle matrix and SRS blockers.
+
+- [TARGETED_RERUNS_20261111_FIVE_PASS.md](TARGETED_RERUNS_20261111_FIVE_PASS.md): five distinct targeted PASS runs and continuing source/oracle limitations; 13/17 repaired IDs with targeted PASS.
