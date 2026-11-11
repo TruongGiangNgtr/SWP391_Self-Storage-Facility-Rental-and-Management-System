@@ -1,0 +1,170 @@
+{
+  "schema_version": "1.0.0",
+  "snapshot_utc": "2026-11-11T04:40:10Z",
+  "source": "RUN_FRMS_TESTS.ps1 snapshot fixture defaults; source snapshot separately user-supplied",
+  "usage": "Read-only candidate metadata. Reverify role, owner, facility, type, status and current availability before using. Never commit passwords or raw DB exports.",
+  "items": [
+    {
+      "name": "FRMS_TEST_ACTIVE_CONTRACT_ID",
+      "value": "91000000-0000-0000-0000-000000000001",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_ASSIGNABLE_RESERVATION_ID",
+      "value": null,
+      "evidence": "no_eligible_f01_reservation_visit_unit_tuple_in_snapshot",
+      "runtime_verified": false,
+      "state": "BLOCKED"
+    },
+    {
+      "name": "FRMS_TEST_AVAILABLE_PHYSICAL_UNIT_ID",
+      "value": "fa72ca32-22d6-496c-aca2-20e64c040de7",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_COMPLETED_CONTRACT_ID",
+      "value": null,
+      "evidence": "no_completed_contract_from_snapshot_contract_statuses",
+      "runtime_verified": false,
+      "state": "UNVERIFIED"
+    },
+    {
+      "name": "FRMS_TEST_CUSTOMER_2_INVOICE_ID",
+      "value": "83000000-0000-0000-0000-000000000003",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_CUSTOMER_2_RESERVATION_ID",
+      "value": "81000000-0000-0000-0000-000000000002",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_CUSTOMER_2_SUPPORT_TICKET_ID",
+      "value": "ffcfa55e-9512-4f62-9f83-34ba8c15b98d",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_HANOI_FACILITY_ID",
+      "value": "f0000000-0000-0000-0000-000000000001",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_HANOI_FACILITY_NAME",
+      "value": "FRMS Facility - Hà Nội",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_NO_CCCD_PASSWORD",
+      "value": null,
+      "evidence": "no_eligible_account_established",
+      "runtime_verified": false,
+      "state": "UNVERIFIED"
+    },
+    {
+      "name": "FRMS_TEST_NO_CCCD_PHONE",
+      "value": null,
+      "evidence": "no_eligible_account_established",
+      "runtime_verified": false,
+      "state": "UNVERIFIED"
+    },
+    {
+      "name": "FRMS_TEST_OTHER_FACILITY_REFERENCE_ID",
+      "value": "33a922ce-416f-4757-87f5-8f85aba047ef",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_OTHER_FACILITY_SCOPE_DATE",
+      "value": "2026-12-05",
+      "evidence": "visit_date_from_snapshot",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_OWN_DEPOSIT_INVOICE_ID",
+      "value": "2383e8b2-2f51-43c7-88cb-def8a359fe2b",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_OWN_PAID_INVOICE_ID",
+      "value": "83000000-0000-0000-0000-000000000001",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_OWN_RESERVATION_ID",
+      "value": "b370c765-adb7-4e16-aa19-54caf7d5b788",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_PRICING_UNIT_TYPE_NAME",
+      "value": "Medium Private (5x10)",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_STAFF_HANDOVER_RESERVATION_ID",
+      "value": "f1112fee-e99f-4094-879a-563ddd1f8f81",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_STAFF_HANDOVER_VISIT_ID",
+      "value": "6855fba5-942c-40a4-bf22-5658ca3be00c",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_STAFF_IN_PROGRESS_INSPECTION_ID",
+      "value": "8284175e-729e-4070-931e-3d44deb21ec0",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_STAFF_OWN_REFERENCE_ID",
+      "value": "0c5eb20c-ec50-4e2f-a633-e0cea07eeadf",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_STAFF_SCOPE_DATE",
+      "value": "2026-12-01",
+      "evidence": "snapshot_default_in_committed_runner",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_TERMINATED_CONTRACT_ID",
+      "value": "b2447e82-3493-44e7-8678-cd9255ea8d72",
+      "evidence": "contract_status_terminated_in_snapshot",
+      "runtime_verified": false
+    },
+    {
+      "name": "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE",
+      "value": null,
+      "evidence": "sanitized_export_excludes_phone; must_check_complete_admin_directory",
+      "runtime_verified": false,
+      "state": "UNVERIFIED"
+    },
+    {
+      "name": "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL",
+      "value": null,
+      "evidence": "sanitized_export_excludes_email; must_check_complete_admin_directory",
+      "runtime_verified": false,
+      "state": "UNVERIFIED"
+    }
+  ],
+  "rules": {
+    "FRMS_TEST_ASSIGNABLE_RESERVATION_ID": "CONFIRMED reservation in Manager F01 scope AND RESERVATION Visit CHECKED_IN AND AVAILABLE physical unit in same facility with same UnitTypeId; no current snapshot match.",
+    "FRMS_TEST_OTHER_FACILITY_REFERENCE_ID": "Visit ID of Facility32, not facility ID; verify F32 allow/F01 deny under authenticated API and work-item boundaries.",
+    "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE": "verify syntactically valid, absent from *every page* of Admin directory immediately before test; don't create account.",
+    "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL": "verify syntactically valid, absent from *every page* of Admin directory immediately before test; don't create account."
+  }
+}

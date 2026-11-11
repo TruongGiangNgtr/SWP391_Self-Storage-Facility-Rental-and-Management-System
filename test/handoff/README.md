@@ -1,0 +1,39 @@
+# FRMS — AI-ready test handoff (TEST_SWT)
+
+**Start here when moving to a new ChatGPT conversation or another AI coding session.**
+
+This directory is **`test/handoff/` (singular)** as requested. Executable tests remain in `tests/` (plural). Files here are documentation and machine-readable context only; no runtime file has been changed.
+
+## Read order
+
+1. [HANDOFF.md](HANDOFF.md) — self-contained project handoff and current state
+2. [context.json](context.json) — exact coverage, environment, repository and safety metadata
+3. [fixtures.json](fixtures.json) — fixture name/value/status catalogue with evidence levels
+4. [EVIDENCE.md](EVIDENCE.md) — verified snapshot facts, historical test execution and open discrepancies
+5. [RUNBOOK.md](RUNBOOK.md) — exact Windows CMD commands, CI/runner behavior, reports and safe diagnostics
+6. [NEXT_STEPS.md](NEXT_STEPS.md) — prioritized backlog and acceptance gates
+
+## Canonical source files (do not duplicate or overwrite)
+
+- `tests/system/manifest/cases.json`: **275** testcase IDs and implementation mappings
+- `tests/system/README.md`: canonical current automation guide
+- `tests/system/PATCH_HISTORY.md`: consolidated patch history
+- `RUN_FRMS_TESTS.cmd` + `RUN_FRMS_TESTS.ps1`: one-command test entrypoint
+- `run-frms-tests.ps1`: underlying launcher
+- `tests/system/scripts/`: discovery, coverage, preflight, result normalization and Jira export
+- `tests/e2e/playwright/tests/frms/`: executable specs
+- `profile.md`: historical notes; portions of its embedded statistics are outdated
+- `FRMS_DB_PROFILE_EXPORT/`: sanitized PostgreSQL export tool. **Do not commit its data output.**
+
+## AI usage and evidence rules
+
+- Prefer `context.json` and `fixtures.json` for structured retrieval; inspect source code before proposing changes.
+- A registry item marked `IMPLEMENTED` does **not** mean it passed.
+- `SNAPSHOT_CANDIDATE` does **not** mean a current API has authorized or verified it.
+- Never invent a fixture UUID, missing account identity, API error text, PASS status, Jira defect or successful role authorization.
+- Do not run database writes, migrations, test-data generation, payment callbacks or destructive commands on shared Supabase.
+- Do not treat optional patch folders as applied code.
+- Work on `TEST_SWT` only; do not touch `main`. For a related change batch, create **one commit**, not one commit per file.
+- For a new live run, demand `summary.md`/`results.json` evidence before updating counts.
+
+Last reviewed: **2026-11-11**, against branch head `145e9f965f3a` before adding these handoff files.

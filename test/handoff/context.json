@@ -1,0 +1,179 @@
+{
+  "schema_version": "1.0.0",
+  "generated_date": "2026-11-11",
+  "language": "en",
+  "data_classification": "internal-test-metadata; no raw DB export or credentials",
+  "project": "FRMS — Self-Storage Facility Rental and Management System",
+  "repository": {
+    "owner": "TruongGiangNgtr",
+    "name": "SWP391_Self-Storage-Facility-Rental-and-Management-System",
+    "branch": "TEST_SWT",
+    "reviewed_head": "145e9f965f3acd607f884ebb69567218af1a8147",
+    "handoff_root": "test/handoff",
+    "tests_root": "tests",
+    "root_readme": "README.md"
+  },
+  "state": {
+    "branch_protection_note": "Never modify main; retain only one commit per coherent batch",
+    "main_divergence_at_review": {
+      "behind": 22
+    },
+    "snapshot_at_utc": "2026-11-11T04:40:10Z",
+    "snapshot_mode": "read-only sanitized metadata; not current runtime",
+    "historical_pass": {
+      "passed": 51,
+      "executed": 51,
+      "run_id": "20261110T151721934Z",
+      "reported_by": "user; historical"
+    },
+    "batch12": {
+      "additional_mapped_cases": 50,
+      "entire_batch_runtime_confirmed": false
+    }
+  },
+  "coverage": {
+    "registered": 275,
+    "implemented": 101,
+    "not_implemented": 166,
+    "review": 8,
+    "automation_coverage_percent": 36.73,
+    "by_area": [
+      {
+        "area": "Authentication & Security",
+        "total": 51,
+        "implemented": 39,
+        "not_implemented": 12,
+        "review": 0
+      },
+      {
+        "area": "Storage Search & AI Size Guide",
+        "total": 19,
+        "implemented": 15,
+        "not_implemented": 4,
+        "review": 0
+      },
+      {
+        "area": "Reservation",
+        "total": 22,
+        "implemented": 8,
+        "not_implemented": 14,
+        "review": 0
+      },
+      {
+        "area": "Handover",
+        "total": 29,
+        "implemented": 5,
+        "not_implemented": 24,
+        "review": 0
+      },
+      {
+        "area": "Facility Operations",
+        "total": 10,
+        "implemented": 2,
+        "not_implemented": 8,
+        "review": 0
+      },
+      {
+        "area": "Access Visits",
+        "total": 25,
+        "implemented": 8,
+        "not_implemented": 14,
+        "review": 3
+      },
+      {
+        "area": "Billing & Payments",
+        "total": 23,
+        "implemented": 5,
+        "not_implemented": 18,
+        "review": 0
+      },
+      {
+        "area": "Renewal",
+        "total": 16,
+        "implemented": 3,
+        "not_implemented": 13,
+        "review": 0
+      },
+      {
+        "area": "Return & Settlement",
+        "total": 22,
+        "implemented": 2,
+        "not_implemented": 20,
+        "review": 0
+      },
+      {
+        "area": "Support Tickets",
+        "total": 25,
+        "implemented": 4,
+        "not_implemented": 16,
+        "review": 5
+      },
+      {
+        "area": "Administration",
+        "total": 19,
+        "implemented": 5,
+        "not_implemented": 14,
+        "review": 0
+      },
+      {
+        "area": "Pricing & Reference Data",
+        "total": 14,
+        "implemented": 5,
+        "not_implemented": 9,
+        "review": 0
+      }
+    ],
+    "approved_oracles": "pending SRS review in case registry",
+    "pass_count_for_new_50": null
+  },
+  "environment": {
+    "backend_url": "http://127.0.0.1:5164",
+    "frontend_url": "http://127.0.0.1:4173",
+    "runtime_environment": "Testing",
+    "working_os": "Windows",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "target_db": "shared/remote Supabase was used; isolated DB not confirmed",
+    "playwright_workers_default": 4,
+    "retries_default": 1
+  },
+  "test_execution": {
+    "preferred_cmd": "RUN_FRMS_TESTS.cmd",
+    "wrapper": "RUN_FRMS_TESTS.ps1",
+    "inner_launcher": "run-frms-tests.ps1",
+    "coverage_manifest": "tests/system/manifest/cases.json",
+    "report_root": "tests/system/reports",
+    "jira_defect_policy": "independently confirmed product defects only"
+  },
+  "safety": {
+    "mode": "no application-state writes",
+    "browser_navigation_and_negative_tests": true,
+    "auth_login_may_write_login_history": true,
+    "disabled_env": {
+      "FRMS_TEST_DB_ISOLATED": "false",
+      "FRMS_ALLOW_STATE_CHANGES": "NO",
+      "FRMS_ALLOW_AI_CALLS": "NO"
+    },
+    "danger": "Starting backend may activate Reservation Expiration background job; use already-running authorized API and no -StartBackend by default"
+  },
+  "known_blockers": [
+    "FRMS_TEST_ASSIGNABLE_RESERVATION_ID",
+    "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE",
+    "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL"
+  ],
+  "verified_source_paths": [
+    "tests/system/README.md",
+    "tests/system/PATCH_HISTORY.md",
+    "tests/system/manifest/cases.json",
+    "RUN_FRMS_TESTS.ps1",
+    "run-frms-tests.ps1",
+    "tests/system/scripts/batch12-discover.mjs",
+    "FRMS_DB_PROFILE_EXPORT/README.md",
+    "profile.md"
+  ],
+  "caveats": [
+    "The branch profile.md predates the Nov 11 sanitized DB snapshot; use handoff evidence for newer facts.",
+    "Optional patch folders are not evidence their installers have run.",
+    "The committed discovery currently defaults to Staff F02 rather than the configured F32 test actor.",
+    "The committed wrapper does not contain the dedicated negative-fixture installer hook."
+  ]
+}
