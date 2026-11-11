@@ -2613,7 +2613,7 @@
     "automation": "NOT_IMPLEMENTED",
     "implementation": null,
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle. Execution record (2026-11-11): PARTIAL GUI TEST / user-observed discrepancy: entering Damage Amount 0.1 VND produces displayed amount 0 in the Damage Records section. This fails exact fractional-value display expectation but the currency rounding/display policy is not yet verified; determine whether persisted decimal remains 0.1 or is rounded/truncated. UI-CAND-02. This observation does not establish completion or PASS/FAIL of the full manager-approval/finalization scenario; automation remains NOT_IMPLEMENTED."
+    "notes": "No automated defect creation until runtime verification and approved oracle. Execution record (2026-11-11): PARTIAL GUI TEST / user-observed discrepancy: entering Damage Amount 0.1 VND produces displayed amount 0 in the Damage Records section. This fails exact fractional-value display expectation but the currency rounding/display policy is not yet verified; determine whether persisted decimal remains 0.1 or is rounded/truncated. FRMS-DEF-004 (reported GUI display defect; numeric display policy and persistence remain under investigation). This observation does not establish completion or PASS/FAIL of the full manager-approval/finalization scenario; automation remains NOT_IMPLEMENTED."
   },
   {
     "id": "FRMS-ST-0114",
