@@ -30,7 +30,9 @@ test('FRMS-ST-0061 - first-month rent is acknowledged offline before staff hando
   await expect(complete).toBeDisabled()
   await ack.check()
   await expect(complete).toBeEnabled()
-  await expect(page.getByText('No separate first-month invoice or online payment is created.',{exact:false})).toBeVisible()
+  // Scope to the unique in-form note: FirstMonthHandoverInfo also renders this sentence.
+  await expect(page.locator('.handover-operation form > p.muted')).toContainText(
+    'No separate first-month invoice or online payment is created.')
   await expect(page.getByRole('button',{name:/Pay with payOS/i})).toHaveCount(0)
   // Never click Complete Handover: this is a shared database.
 })

@@ -568,7 +568,7 @@
     "batch14": {
       "date": "2026-11-11",
       "implementation": "SOURCE_ONLY",
-      "runtime": "NOT_EXECUTED",
+      "runtime": "PARTIAL_TARGETED_4_RUNS",
       "selected_source_ref": "8808adc8c56e3affe412b9f4be71cf4b93608eb6",
       "case_count": 15,
       "registered": 275,
@@ -596,7 +596,24 @@
         "FRMS-ST-0188"
       ],
       "independently_verified_runtime_passes": 0,
-      "all_oracle_approvals_pending": true
+      "all_oracle_approvals_pending": true,
+      "user_console_targeted_pass_ids": [
+        "FRMS-ST-0103",
+        "FRMS-ST-0104",
+        "FRMS-ST-0194"
+      ],
+      "user_console_targeted_failed_ids": [
+        "FRMS-ST-0061"
+      ],
+      "ST_0061_repair_status": "SOURCE_PATCH_PENDING_RERUN",
+      "targeted_run_ids": {
+        "FRMS-ST-0103": "20261111T114719268Z",
+        "FRMS-ST-0104": "20261111T114821972Z",
+        "FRMS-ST-0194": "20261111T114924460Z",
+        "FRMS-ST-0061": "20261111T115025397Z"
+      },
+      "targeted_run_branch": "TEST_SWT",
+      "report": "test/handoff/BATCH14_TARGETED_RUNS_20261111.md"
     }
   },
   "coverage": {
@@ -757,7 +774,8 @@
     "ST-0141 20261111T101339028Z targeted 1/1 PASS per user console; executing SHA and results.json unverified; old full-run 95 PASS unaffected.",
     "Static 2026-11-11 audit: all 138 executable mappings present, but 275 SRS oracles pending, 53 malformed sourceKeys, and several source-vs-oracle scope gaps. No full-run status changed.",
     "2026-11-11 five targeted 1/1 PASS runs (0220,0184-B,0236,0072,0176); cumulative repaired targeted PASS 13/17. Historical full run 95 Pass unchanged; normative oracle gaps remain open.",
-    "Batch14 mapped 15 extra tests (total 153/275) after static analysis only; none executed. Missing data partitions remain Blocked; four earlier fixture blockers remain open. No environmental secrets stored, shared DB not mutated."
+    "Batch14 mapped 15 extra tests (total 153/275) after static analysis only; none executed. Missing data partitions remain Blocked; four earlier fixture blockers remain open. No environmental secrets stored, shared DB not mutated.",
+    "User provided 4 Batch14 targeted console runs, three PASS (0103,0104,0194), 0061 strict-locator failure; locator source repaired but not rerun. No new product/Jira defect."
   ],
   "tools": [
     {

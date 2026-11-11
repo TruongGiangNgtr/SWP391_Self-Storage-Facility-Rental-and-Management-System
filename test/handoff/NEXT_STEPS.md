@@ -155,3 +155,7 @@ Added **15** source-backed system tests across Billing (0091-0094), Renewal prev
 ### Batch 14 targeted validation (new source, not runtime verified)
 
 Check clean `TEST_SWT` worktree, pull, existing API health, `-AuditOnly` and `-Mode coverage` first. Use `-Mode case -CaseId FRMS-ST-0103 -Workers 1 -Retries 0 -SkipCatalogDiscovery`, then `0104`, `0194`, `0061`, `0093`, `0134`. Remaining Batch 14 cases require genuine matching financial/inspection fixtures; if missing, record `Blocked`, do not insert into shared Supabase. Preserve the four deferred fixture IDs `0067/0071/0109/0188` for future authorized fixture verification; none became PASS from Batch 14. Confirm TypeScript and Playwright runtime locally before Jira or merge claims.
+
+## 2026-11-11 — Batch 14 targeted rerun evidence
+
+Three new IDs were observed PASS in user console logs: `0103` (`20261111T114719268Z`), `0104` (`20261111T114821972Z`), `0194` (`20261111T114924460Z`). `0061` (`20261111T115025397Z`) **FAILED** due to Playwright strict-mode locator ambiguity between two valid offline-payment notices. Patched only the locator within `.handover-operation form > p.muted`; **ST-0061 remains PENDING_TARGETED_RERUN**, not PASS. Total mappings stay **153/275 (55.64%)**, 114 outstanding, 8 review. Shared DB was not modified; no Jira defect confirmed. See `test/handoff/BATCH14_TARGETED_RUNS_20261111.md`.

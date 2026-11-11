@@ -66,3 +66,7 @@ After these, individually test all other new IDs only where the real fixture par
 ## Deferred four pre-existing fixture blockers
 
 See [BLOCKED_FIXTURES_0067_0071_0109_0188.md](BLOCKED_FIXTURES_0067_0071_0109_0188.md). These IDs were **already IMPLEMENTED** before Batch 14 and remain unresolved, not new Batch 14 cases. No snapshot status is silently promoted to current authenticated DB state.
+
+## 2026-11-11 — Batch 14 targeted rerun evidence
+
+Three new IDs were observed PASS in user console logs: `0103` (`20261111T114719268Z`), `0104` (`20261111T114821972Z`), `0194` (`20261111T114924460Z`). `0061` (`20261111T115025397Z`) **FAILED** due to Playwright strict-mode locator ambiguity between two valid offline-payment notices. Patched only the locator within `.handover-operation form > p.muted`; **ST-0061 remains PENDING_TARGETED_RERUN**, not PASS. Total mappings stay **153/275 (55.64%)**, 114 outstanding, 8 review. Shared DB was not modified; no Jira defect confirmed. See `test/handoff/BATCH14_TARGETED_RUNS_20261111.md`.
