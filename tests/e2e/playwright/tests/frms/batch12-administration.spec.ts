@@ -44,8 +44,10 @@ test('FRMS-ST-0141 - Customer role is unavailable in employee provisioning', asy
   }
   await expect(select.locator('option[value="CUSTOMER"]')).toHaveCount(0)
   await select.selectOption('FACILITY_MANAGER')
-  await expect(dialog.getByLabel('Facility',{exact:true})).toBeVisible()
+  const facilitySelect=dialog.getByRole('combobox',{name:/^Facility(?:\s|$)/})
+  await expect(facilitySelect).toBeVisible({timeout:45_000})
   await select.selectOption('BUSINESS_OPERATIONS_MANAGER')
+  await expect(facilitySelect).toHaveCount(0)
   await expect(dialog.getByText('Not applicable for global employee roles')).toBeVisible()
   await dialog.getByRole('button',{name:'Cancel'}).click()
   await expect(dialog).toHaveCount(0)

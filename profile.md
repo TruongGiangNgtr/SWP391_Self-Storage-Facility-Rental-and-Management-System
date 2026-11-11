@@ -305,3 +305,9 @@ Received and parsed **user-uploaded `results(1).json`** for `20261111T085924993Z
 ## Targeted reruns after automation repair — 2026-11-11
 
 **`USER_REPORTED_RUNTIME_CONSOLE`**: four independent single-case, 1-worker, 0-retry runs after fast-forward pull to `8826f5e` each reported **1 selected / 1 executed / 1 PASS / exit code 0**: `FRMS-ST-0081` (`20261111T094923472Z`), `FRMS-ST-0156` (`20261111T095025709Z`), `FRMS-ST-0235` (`20261111T095126418Z`), `FRMS-ST-0183-B` (`20261111T095244321Z`). Coverage validation PASS with **138/275 implemented (50.18%)**. Historical full-run 95 PASS stays unchanged; no independent report JSON, no new aggregate full-suite PASS, and no Jira defects confirmed. Staff SCHEDULED Visit fixture still missing. Details: `test/handoff/TARGETED_RERUNS_20261111_AFTER_8826f5e.md`.
+
+## Targeted reruns after 1547d67 (2026-11-11)
+
+USER_REPORTED_RUNTIME_CONSOLE: three targeted 1/1 PASS (ST-0160 run 20261111T095951885Z; ST-0085 run 20261111T100054156Z; ST-0184 run 20261111T100258194Z), and one automation locator FAIL (ST-0141 run 20261111T100152311Z). All were run with 1 worker, 0 retries after a reported fast-forward pull. ST-0141's compound Facility label caused getByLabel('Facility',{exact:true}) to find nothing; source now targets the dialog-scoped Facility combobox and verifies presence for Facility Manager / absence for BOM. Fix PENDING_RUNTIME; no ST-0141 PASS claimed. Details: test/handoff/TARGETED_RERUNS_20261111_AFTER_1547d67.md.
+
+Historical full run remains 95 Pass / 7 Flaky / 18 Blocked / 18 UnconfirmedFailure / 8 Review / 129 Not Run. Registry unchanged: 138/275 IMPLEMENTED (50.18%). Across both post-repair targeted groups, seven distinct cases separately PASS; do not sum these into full-run counts. Zero confirmed Jira product defects.

@@ -114,3 +114,12 @@ Use `test/handoff/FIX_RUN_20261111T085924993Z.md` for the read-only targeted rer
 ### Post-patch targeted verification follow-up
 
 Four targeted cases now have separate 1/1 PASS evidence, but the remaining 13 repaired cases and full suite still need new execution. Check `-AuditOnly`, current API health, `git rev-parse HEAD`, then rerun remaining repaired cases with `-Workers 1 -Retries 0 -SkipCatalogDiscovery`, preserving each report. Pay particular attention to `FRMS-ST-0067` (requires genuinely SCHEDULED Staff Visit; do not fabricate shared data), flaky pricing boundaries `0184/0184-B`, and server 500/503/timeouts. After stable targeted validation, repeat `-Mode all -Workers 1 -Retries 0` and use its own `summary.md`/`results.json` as a new baseline.
+
+## Targeted reruns after 1547d67 (2026-11-11)
+
+USER_REPORTED_RUNTIME_CONSOLE: three targeted 1/1 PASS (ST-0160 run 20261111T095951885Z; ST-0085 run 20261111T100054156Z; ST-0184 run 20261111T100258194Z), and one automation locator FAIL (ST-0141 run 20261111T100152311Z). All were run with 1 worker, 0 retries after a reported fast-forward pull. ST-0141's compound Facility label caused getByLabel('Facility',{exact:true}) to find nothing; source now targets the dialog-scoped Facility combobox and verifies presence for Facility Manager / absence for BOM. Fix PENDING_RUNTIME; no ST-0141 PASS claimed. Details: test/handoff/TARGETED_RERUNS_20261111_AFTER_1547d67.md.
+
+Historical full run remains 95 Pass / 7 Flaky / 18 Blocked / 18 UnconfirmedFailure / 8 Review / 129 Not Run. Registry unchanged: 138/275 IMPLEMENTED (50.18%). Across both post-repair targeted groups, seven distinct cases separately PASS; do not sum these into full-run counts. Zero confirmed Jira product defects.
+
+
+Immediate verification: rerun FRMS-ST-0141 with -Mode case -Workers 1 -Retries 0 -SkipCatalogDiscovery after pulling TEST_SWT. Inspect new summary.md and results.json; do not rewrite historical runs or seed shared Supabase.
