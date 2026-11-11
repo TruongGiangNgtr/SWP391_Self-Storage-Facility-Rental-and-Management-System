@@ -3633,5 +3633,18 @@
     "implementation": null,
     "oracleApproval": "PENDING_SRS_REVIEW",
     "notes": "Procedure: 1. Sign in through the GUI as Facility Staff assigned to the visit's facility; 2. Navigate to Staff Access Visit Processing; 3. Open a SCHEDULED ACCESS visit for a customer with a known CCCD in an isolated test fixture; 4. Inspect the Check In Customer screen; 5. Verify the CCCD label/value is rendered according to authorized display rules, without invoking check-in APIs directly. Tester-reported actual: CCCD is not displayed on Check In Customer page (2026-11-11). Related FRMS-ST-0074 and FRMS-ST-0158. GUI-only assertion; no direct API mutation. Defect candidate pending requirement and reproduction verification. Execution record (2026-11-11): TESTED VIA GUI; user-reported FAIL — customer CCCD not displayed to Staff on Access Visit Check In Customer page. Reported defect FRMS-DEF-003. CCCD visibility/masking policy still requires SRS confirmation; automation remains NOT_IMPLEMENTED."
+  },
+  {
+    "id": "FRMS-ST-0280",
+    "area": "Return Inspection",
+    "name": "Verify uploaded IMAGE evidence of 2–5 MB remains previewable after refreshing the page.",
+    "sourceKey": "Supplemental:FRMS-DEF-005",
+    "technique": "State Persistence Testing / GUI Testing / Evidence Preview",
+    "expectedUI": "After a valid 2–5 MB IMAGE evidence file is uploaded successfully and the page is refreshed, the evidence remains listed and its image content can be opened in Preview if persistent evidence viewing is required by SRS. Normal list responses must not embed raw binary; a secure authorized download/preview mechanism may be needed. Persisted-preview requirement pending approval.",
+    "channel": "UI",
+    "automation": "NOT_IMPLEMENTED",
+    "implementation": null,
+    "oracleApproval": "PENDING_SRS_REVIEW",
+    "notes": "Procedure: 1. Sign in as authorized Facility Staff via GUI; 2. Open an IN_PROGRESS Return Inspection in an isolated test environment; 3. Select Photo (IMAGE) and upload a valid image between 2,000,000 and 5,000,000 bytes; 4. Verify upload succeeded and Preview works immediately; 5. Press F5 to reload the page; 6. Reopen the same inspection and select Preview on the uploaded evidence; 7. Verify the image is visible. Execution record (2026-11-11): TESTED VIA GUI; user-observed FAIL against proposed persistent-preview oracle — after uploading a 2–5 MB image and pressing F5, Preview cannot show the image. Reported defect FRMS-DEF-005 (local tracking ID, not a Jira issue). Source investigation: evidencePreviewStore.ts only persists Data URLs when file.size <= 1,500,000 bytes; larger files retain in-memory objectUrl, which is not persisted. StaffReturnsPage.tsx shows a session-only visual-preview fallback when previewUrl is absent. SRS restricts raw binary in standard list responses but does not explicitly require persistent preview; clarify product expectation before treating this as an SRS-validated defect. Automation remains NOT_IMPLEMENTED; do not reupload to a shared DB."
   }
 ]
