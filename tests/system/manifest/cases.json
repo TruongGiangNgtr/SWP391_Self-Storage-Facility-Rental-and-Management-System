@@ -3581,5 +3581,18 @@
     "implementation": "tests/e2e/playwright/tests/frms/batch13-pricing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
     "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
+  },
+  {
+    "id": "FRMS-ST-0276",
+    "area": "Return Inspection",
+    "name": "Verify Inspection Evidence Upload rejects a multipart request with no File field.",
+    "sourceKey": "Supplemental:FRMS-DEF-001",
+    "technique": "Negative Testing / Input Validation",
+    "expectedUI": "POST /api/v1/inspections/{inspectionId}/evidence with EvidenceType=PHOTO and no File returns HTTP 400 with a validation error, not HTTP 500; no evidence is created.",
+    "channel": "API",
+    "automation": "NOT_IMPLEMENTED",
+    "implementation": null,
+    "oracleApproval": "PENDING_SRS_REVIEW",
+    "notes": "Steps: 1. Authenticate as Facility Staff F01; 2. Select an accessible inspection; 3. POST multipart/form-data with EvidenceType=PHOTO; 4. Omit File; 5. Check HTTP 400 validation response and no evidence created. Actual observed 2026-11-11: HTTP 500 INTERNAL_SERVER_ERROR, traceId 0HNPVOOMV653E:00000001. Defect FRMS-DEF-001. Reproduced manually; automation not implemented. Use isolated test DB."
   }
 ]
