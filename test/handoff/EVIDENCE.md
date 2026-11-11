@@ -10,6 +10,8 @@ Evidence levels: `REPO_VERIFIED` (committed TEST_SWT source), `SNAPSHOT_VERIFIED
 | Historic regression | 51/51 PASS, run `20261110T151721934Z` | USER_REPORTED_RUNTIME; 50 Batch 12 still lack whole-batch PASS |
 | FRMS-ST-0199 | PASS (unknown customer phone login) | USER_REPORTED_RUNTIME, 2026-11-11; run ID/report not provided |
 | FRMS-ST-0203 | PASS (unknown employee email login) | USER_REPORTED_RUNTIME, 2026-11-11; run ID/report not provided |
+| FRMS-ST-0065 | **PASS**; console 1/1, 15.2 s, exit 0 | USER_REPORTED_RUNTIME_CONSOLE; run `20261111T080719965Z`; executing SHA and report artifacts not supplied |
+| FRMS-ST-0165 | **PASS**; console 1/1, 5.7 s, exit 0 | USER_REPORTED_RUNTIME_CONSOLE; run `20261111T081112172Z`; executing SHA and report artifacts not supplied |
 | Snapshot | 29 tables; 28 exported; 1 skipped; **1,552 rows** | SNAPSHOT_VERIFIED; AuditLog excluded |
 | Facility | 63 ACTIVE | SNAPSHOT_VERIFIED |
 | UserAccount | 132 (131 ACTIVE, 1 INACTIVE) | SNAPSHOT_VERIFIED; email/phone withheld |
@@ -41,7 +43,7 @@ The old `FRMS_TEST_STAFF_HANDOVER_VISIT_ID` is now CHECKED_IN. Remaining four sc
 
 - `frontend/src/features/handover-unit-selection/HandoverUnitSelectionPage.tsx` filters Reservation CONFIRMED, Visit RESERVATION/CHECKED_IN, matching AVAILABLE Unit; it also reads existing assignments.
 - `tests/e2e/playwright/tests/frms/batch12-staff.spec.ts` implements `FRMS-ST-0065` with GET Reservation, Unit, ACTIVE Assignment, and Manager UI heading; it does not create/release assignments.
-- The canonical discovery still defaults Staff F02 for cross-facility search, while wrapper supplies F32.
+- Canonical discovery at `81babb4` uses F32 and date-aware foreign verification; the residual `no same-date` warning is outdated. Supplied console logs do not establish the executing local SHA.
 - A snapshot ID is not evidence of current API role authorization or application truth; live tests may alter data or be blocked by the active launcher.
 - No new runtime Playwright PASS was produced during profile maintenance. Export ZIP and summary are **not committed** to public Git; only minimal test metadata is recorded.
 
@@ -56,3 +58,18 @@ On `TEST_SWT`, `FRMS-ST-0165` now has an actual F32 Staff positive control: ACTI
 `FRMS-ST-0065` retains its GET-only checks for the pre-existing ACTIVE assignment and now also selects the matching Reservation **in the Manager UI** and confirms the saved Unit code and `Saved` state. No save/release click or data mutation is introduced.
 
 **Evidence:** REPO_VERIFIED static source review only. Local Playwright, authenticated API, and database runtime are not accessible through the GitHub connector; `FRMS-ST-0065` and `FRMS-ST-0165` remain **PENDING_RUNTIME / Not Run** for this change. Historical 51/51 user-reported PASS and two separately reported negative-login PASS remain unchanged. No application, DB, or `main` changes.
+
+## Targeted runtime results received — 2026-11-11
+
+**Evidence level: USER_REPORTED_RUNTIME_CONSOLE** (user-pasted complete Windows CMD/Playwright console; not independently retrieved `results.json` or `summary.md`).
+
+| Testcase | Run ID | Console result | Launcher / wrapper exit |
+| --- | --- | --- | --- |
+| `FRMS-ST-0065` | `20261111T080719965Z` | **1/1 PASS**, 15.2 seconds; 1 worker, 0 retries | 0 / 0 |
+| `FRMS-ST-0165` | `20261111T081112172Z` | **1/1 PASS**, 5.7 seconds; 1 worker, 0 retries | 0 / 0 |
+
+Both runs: backend preflight OK, six primary actor roles verified by discovery, no state-change flags, Jira CSV 0 independently confirmed defects. **Exact local commit SHA at execution is not supplied.** Therefore, the console confirms targeted runtime success, but does *not yet establish* that the patched ST-0065 saved Unit-code/Saved UI oracle and patched ST-0165 F32 positive-control/correct-date oracle were the versions executed. Compare `git rev-parse HEAD` from the original worktree with the known baseline code SHA `81babb4`; retrieve `tests/system/reports/<run-id>/{summary.md,results.json}` privately before promoting to `REPORT_VERIFIED`.
+
+The warning `Staff cross-facility: no same-date other-facility work item pair confirmed` is **stale diagnostic wording** in GitHub TEST_SWT's discovery code, whose date-aware search no longer requires a same-day pair; the wrapper's snapshot defaults may have supplied the foreign Visit separately. `Batch 12 fixture discovery: 0 verified value(s) supplied` indicates no newly injected variables, not proof that all existing defaults are current. These warnings do not negate Playwright PASS, but source revision and real fixture control should be audited. `FRMS-ST-0067` remains Blocked (no RESERVATION/SCHEDULED Visit).
+
+Keep historic **51/51 user-reported regression**, ST-0199/0203 reported PASS (without run IDs) and these two targeted run IDs as **separate** evidence. Do not merge their counts or imply whole Batch 12 / 101-case PASS; oracleApproval remains pending SRS review.

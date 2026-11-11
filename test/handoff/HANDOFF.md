@@ -64,7 +64,7 @@ The user uploaded **`FRMS_PROFILE_SAFE_20261111T063028Z.zip`** and **`FRMS_PROFI
 
 **Manager F01 matching candidate found:** Reservation `f1112fee-e99f-4094-879a-563ddd1f8f81` CONFIRMED, Visit `6855fba5-942c-40a4-bf22-5658ca3be00c` RESERVATION/CHECKED_IN, physical Unit `fa72ca32-22d6-496c-aca2-20e64c040de7` AVAILABLE and matching UnitType ...0001. However, an **existing ACTIVE** assignment `d9e3672e-9708-46de-96a9-72a860f55065` already binds these exact records. It is a **snapshot-confirmed matching tuple**, not proven eligible for *new* assignment. `FRMS-ST-0065` currently makes only read-only matching/UI checks; authenticate Manager F01 and approve the testcase oracle before using the candidate. Never send assignment save/release as a diagnostic.
 
-**Launcher/test fix applied:** `RUN_FRMS_TESTS.ps1` now supplies `FRMS_TEST_ASSIGNABLE_RESERVATION_ID=f1112fee-e99f-4094-879a-563ddd1f8f81` by default and no longer rejects it. `FRMS-ST-0065` now validates Reservation, Visit, Unit, and the existing ACTIVE HandoverUnitAssignment using only GET requests, then checks the Manager page. **Live Manager F01 authentication and result remain unverified.** See [FRMS-ST-0065.md](FRMS-ST-0065.md).
+**Launcher/test fix applied:** `RUN_FRMS_TESTS.ps1` now supplies `FRMS_TEST_ASSIGNABLE_RESERVATION_ID=f1112fee-e99f-4094-879a-563ddd1f8f81` by default and no longer rejects it. `FRMS-ST-0065` now validates Reservation, Visit, Unit, and the existing ACTIVE HandoverUnitAssignment using only GET requests, then checks the Manager page. **A targeted 1/1 PASS console log is now supplied; local code revision and report artifacts remain unverified.** See [FRMS-ST-0065.md](FRMS-ST-0065.md).
 
 **Scheduled-Visit fixture is now invalid:** `FRMS_TEST_STAFF_HANDOVER_VISIT_ID=6855fba5-942c-40a4-bf22-5658ca3be00c` is now CHECKED_IN, **not SCHEDULED**. No RESERVATION/SCHEDULED Visits exist among the 21 snapshot Visits. Keep any before-check-in dependent scenario Blocked until a real eligible Visit exists.
 
@@ -76,7 +76,7 @@ See [fixtures.json](fixtures.json) for structured candidates and statuses. No te
 
 ## 5. Critical implementation discrepancies to check before further tests
 
-The committed `tests/system/scripts/batch12-discover.mjs` is **not** the latest patch-folder version. It defaults cross-facility discovery to Staff F02 (`FRMS_TEST_STAFF_02_EMAIL`) while the wrapper exposes `FRMS_TEST_FOREIGN_STAFF_EMAIL=staff.f32@example.com`. Its cross-facility scan looks for a same-day own/foreign work-item pair. The external F32 dedicated patch is not automatically applied by merely having patch folders tracked.
+At GitHub baseline `81babb4`, the canonical discovery authenticates foreign Staff F32 via `FRMS_TEST_FOREIGN_STAFF_EMAIL` and searches F32's own business date independently of F01; legacy warning text still says `no same-date` and is misleading. The local HEAD of the user-reported runs is unverified; never assume they executed the patched oracle. Do not rerun archived installers.
 
 The negative-login verifier is now integrated as `tests/system/scripts/batch12-verify-unregistered.mjs`. The main `run-frms-tests.ps1` runs it **after** API preflight/discovery, prior to the final fixture audit and Playwright for `all`, `area`, or negative-login cases `FRMS-ST-0199`/`FRMS-ST-0203`. It requires verified Admin ACTIVE role and complete nonduplicate account pages; it does not modify users. The root legacy installer/verifier were superseded. Both targeted tests are now user-reported PASS; independent inspection of their result files remains pending. An initial `-AuditOnly` warning is expected because it has no Admin/API access.
 
@@ -128,3 +128,18 @@ On `TEST_SWT`, `FRMS-ST-0165` now has an actual F32 Staff positive control: ACTI
 `FRMS-ST-0065` retains its GET-only checks for the pre-existing ACTIVE assignment and now also selects the matching Reservation **in the Manager UI** and confirms the saved Unit code and `Saved` state. No save/release click or data mutation is introduced.
 
 **Evidence:** REPO_VERIFIED static source review only. Local Playwright, authenticated API, and database runtime are not accessible through the GitHub connector; `FRMS-ST-0065` and `FRMS-ST-0165` remain **PENDING_RUNTIME / Not Run** for this change. Historical 51/51 user-reported PASS and two separately reported negative-login PASS remain unchanged. No application, DB, or `main` changes.
+
+## Targeted runtime results received — 2026-11-11
+
+**Evidence level: USER_REPORTED_RUNTIME_CONSOLE** (user-pasted complete Windows CMD/Playwright console; not independently retrieved `results.json` or `summary.md`).
+
+| Testcase | Run ID | Console result | Launcher / wrapper exit |
+| --- | --- | --- | --- |
+| `FRMS-ST-0065` | `20261111T080719965Z` | **1/1 PASS**, 15.2 seconds; 1 worker, 0 retries | 0 / 0 |
+| `FRMS-ST-0165` | `20261111T081112172Z` | **1/1 PASS**, 5.7 seconds; 1 worker, 0 retries | 0 / 0 |
+
+Both runs: backend preflight OK, six primary actor roles verified by discovery, no state-change flags, Jira CSV 0 independently confirmed defects. **Exact local commit SHA at execution is not supplied.** Therefore, the console confirms targeted runtime success, but does *not yet establish* that the patched ST-0065 saved Unit-code/Saved UI oracle and patched ST-0165 F32 positive-control/correct-date oracle were the versions executed. Compare `git rev-parse HEAD` from the original worktree with the known baseline code SHA `81babb4`; retrieve `tests/system/reports/<run-id>/{summary.md,results.json}` privately before promoting to `REPORT_VERIFIED`.
+
+The warning `Staff cross-facility: no same-date other-facility work item pair confirmed` is **stale diagnostic wording** in GitHub TEST_SWT's discovery code, whose date-aware search no longer requires a same-day pair; the wrapper's snapshot defaults may have supplied the foreign Visit separately. `Batch 12 fixture discovery: 0 verified value(s) supplied` indicates no newly injected variables, not proof that all existing defaults are current. These warnings do not negate Playwright PASS, but source revision and real fixture control should be audited. `FRMS-ST-0067` remains Blocked (no RESERVATION/SCHEDULED Visit).
+
+Keep historic **51/51 user-reported regression**, ST-0199/0203 reported PASS (without run IDs) and these two targeted run IDs as **separate** evidence. Do not merge their counts or imply whole Batch 12 / 101-case PASS; oracleApproval remains pending SRS review.

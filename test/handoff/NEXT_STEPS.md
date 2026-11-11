@@ -14,7 +14,7 @@ Actions are prioritized. **Do not mark an action done until new source or runtim
 ## P1 — Runtime evidence for Batch 12
 
 7. Confirm API `/health` and exact DB target before tests. Do not use `-StartBackend` on shared DB by default; login itself can log LoginHistory.
-8. Run the remaining unverified `FRMS-ST-0165` and other relevant cases after authenticated fixture verification. The user has already reported both `FRMS-ST-0199` and `FRMS-ST-0203` PASS; their report artifacts still need archiving for independent audit.
+8. Audit the **reported PASS** of `FRMS-ST-0165` (run `20261111T081112172Z`) and `FRMS-ST-0065` (run `20261111T080719965Z`): collect each report and local commit SHA to verify which oracle was executed; do not rerun without a concrete reason. Continue the other unverified cases after that. The user has already reported both `FRMS-ST-0199` and `FRMS-ST-0203` PASS; their report artifacts still need archiving for independent audit.
 9. Run `.\RUN_FRMS_TESTS.cmd -Mode all -Workers 4 -Retries 1` only with accepted read-only scope. Archive the new `tests/system/reports/<run-id>/summary.md` and `results.json` privately.
 10. Reconcile Pass/Blocked/Not Run/Review/UnconfirmedFailure. Independently reproduce any suspected product defects before Jira CSV export. Update runtime counts **only with a real new run ID**.
 
@@ -43,3 +43,18 @@ The F32/foreign-date oracle and discovery hardening are now implemented in canon
 ```
 
 Inspect each `tests/system/reports/<run-id>/summary.md` and `results.json`. For ST-0165, positive F32 and own-F01 preconditions are required; a missing/stale Visit is Blocked. For ST-0065, the Manager UI must show the **saved Unit code**, not just a heading. **Neither test has a new runtime PASS from this source-only patch.** Confirm local worktree status independently before pulling.
+
+## Targeted runtime results received — 2026-11-11
+
+**Evidence level: USER_REPORTED_RUNTIME_CONSOLE** (user-pasted complete Windows CMD/Playwright console; not independently retrieved `results.json` or `summary.md`).
+
+| Testcase | Run ID | Console result | Launcher / wrapper exit |
+| --- | --- | --- | --- |
+| `FRMS-ST-0065` | `20261111T080719965Z` | **1/1 PASS**, 15.2 seconds; 1 worker, 0 retries | 0 / 0 |
+| `FRMS-ST-0165` | `20261111T081112172Z` | **1/1 PASS**, 5.7 seconds; 1 worker, 0 retries | 0 / 0 |
+
+Both runs: backend preflight OK, six primary actor roles verified by discovery, no state-change flags, Jira CSV 0 independently confirmed defects. **Exact local commit SHA at execution is not supplied.** Therefore, the console confirms targeted runtime success, but does *not yet establish* that the patched ST-0065 saved Unit-code/Saved UI oracle and patched ST-0165 F32 positive-control/correct-date oracle were the versions executed. Compare `git rev-parse HEAD` from the original worktree with the known baseline code SHA `81babb4`; retrieve `tests/system/reports/<run-id>/{summary.md,results.json}` privately before promoting to `REPORT_VERIFIED`.
+
+The warning `Staff cross-facility: no same-date other-facility work item pair confirmed` is **stale diagnostic wording** in GitHub TEST_SWT's discovery code, whose date-aware search no longer requires a same-day pair; the wrapper's snapshot defaults may have supplied the foreign Visit separately. `Batch 12 fixture discovery: 0 verified value(s) supplied` indicates no newly injected variables, not proof that all existing defaults are current. These warnings do not negate Playwright PASS, but source revision and real fixture control should be audited. `FRMS-ST-0067` remains Blocked (no RESERVATION/SCHEDULED Visit).
+
+Keep historic **51/51 user-reported regression**, ST-0199/0203 reported PASS (without run IDs) and these two targeted run IDs as **separate** evidence. Do not merge their counts or imply whole Batch 12 / 101-case PASS; oracleApproval remains pending SRS review.
