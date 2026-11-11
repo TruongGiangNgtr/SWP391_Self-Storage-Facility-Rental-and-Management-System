@@ -2,7 +2,7 @@
 
 **Branch:** TEST_SWT  
 **Cases:** FRMS-ST-0199 (unknown customer phone) and FRMS-ST-0203 (unknown employee email)  
-**Current state:** Automation integrated; runtime result not yet verified.
+**Current state (2026-11-11):** `FRMS-ST-0199` and `FRMS-ST-0203` both **PASS according to the user's runtime confirmation**. Exact run IDs and report files were not provided; report-level validation is pending.
 
 ## What changed
 
@@ -32,7 +32,7 @@ Verified negative login fixtures: phone and email absent from N complete Admin a
 ... applicable fixture keys from 20 Batch 12 references; 0 missing ...
 ```
 
-The number `N` is read from the current API, not assumed to equal a historical DB count. Playwright still needs to verify the UI's rejection messages; **preflight success is not testcase PASS**.
+The number `N` is read from the current API, not assumed to equal a historical DB count. Preflight success alone is not testcase PASS; separately, the user confirmed both targeted Playwright testcases PASS on 2026-11-11. Their underlying reports have not been independently inspected.
 
 ## Interpretation of audit output
 
@@ -42,3 +42,12 @@ The number `N` is read from the current API, not assumed to equal a historical D
 - Evaluate the new `tests/system/reports/<run-id>/summary.md` and `results.json`. Do not report a Jira product defect from incomplete fixtures.
 
 **Safety:** No `-StartBackend` unless backend job effects and shared Supabase scope are authorized. Do not commit credentials, Admin user directories or raw DB export files.
+
+## Runtime results reported by user — 2026-11-11
+
+| Case ID | Result | Evidence level | Run ID / report |
+| --- | --- | --- | --- |
+| `FRMS-ST-0199` | **PASS** | `USER_REPORTED_RUNTIME` | Not supplied |
+| `FRMS-ST-0203` | **PASS** | `USER_REPORTED_RUNTIME` | Not supplied |
+
+Do not invent run IDs or treat these two targeted successes as an independently checked report, a 53/53 aggregate, or a complete Batch 12 PASS. The `-AuditOnly` preflight can still list both fixture names as missing because it does not contact Admin API.

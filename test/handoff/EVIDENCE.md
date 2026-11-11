@@ -8,6 +8,8 @@ Evidence levels: `REPO_VERIFIED` (committed TEST_SWT source), `SNAPSHOT_VERIFIED
 | --- | --- | --- |
 | Registry | 275 / 101 IMPLEMENTED / 166 NOT_IMPLEMENTED / 8 REVIEW | REPO_VERIFIED; implemented is not passed |
 | Historic regression | 51/51 PASS, run `20261110T151721934Z` | USER_REPORTED_RUNTIME; 50 Batch 12 still lack whole-batch PASS |
+| FRMS-ST-0199 | PASS (unknown customer phone login) | USER_REPORTED_RUNTIME, 2026-11-11; run ID/report not provided |
+| FRMS-ST-0203 | PASS (unknown employee email login) | USER_REPORTED_RUNTIME, 2026-11-11; run ID/report not provided |
 | Snapshot | 29 tables; 28 exported; 1 skipped; **1,552 rows** | SNAPSHOT_VERIFIED; AuditLog excluded |
 | Facility | 63 ACTIVE | SNAPSHOT_VERIFIED |
 | UserAccount | 132 (131 ACTIVE, 1 INACTIVE) | SNAPSHOT_VERIFIED; email/phone withheld |
@@ -42,3 +44,7 @@ The old `FRMS_TEST_STAFF_HANDOVER_VISIT_ID` is now CHECKED_IN. Remaining four sc
 - The canonical discovery still defaults Staff F02 for cross-facility search, while wrapper supplies F32.
 - A snapshot ID is not evidence of current API role authorization or application truth; live tests may alter data or be blocked by the active launcher.
 - No new runtime Playwright PASS was produced during profile maintenance. Export ZIP and summary are **not committed** to public Git; only minimal test metadata is recorded.
+
+## User-confirmed targeted test results — 2026-11-11
+
+The user explicitly reported **FRMS-ST-0199 PASS** and **FRMS-ST-0203 PASS** after the negative-account discovery integration and launcher parser fix. Evidence category: `USER_REPORTED_RUNTIME`, not `REPORT_VERIFIED`. No run ID, `summary.md`, `results.json`, screenshot, or Playwright trace has been supplied for either run. This does not change the separate historical `51/51` regression result or prove all 50 newly mapped Batch 12 cases passed.

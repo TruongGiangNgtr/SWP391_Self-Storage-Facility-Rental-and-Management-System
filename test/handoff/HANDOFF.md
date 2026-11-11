@@ -70,7 +70,7 @@ The user uploaded **`FRMS_PROFILE_SAFE_20261111T063028Z.zip`** and **`FRMS_PROFI
 
 **Foreign F32 fixture unchanged:** `FRMS_TEST_OTHER_FACILITY_REFERENCE_ID=33a922ce-416f-4757-87f5-8f85aba047ef` is a Reservation Visit at Facility 32 on 2026-12-05, CHECKED_IN. F32 authorized/F01 denied API results require runtime checks; comparing only F01's 2026-12-01 work list is not sufficient.
 
-**Unregistered identifiers have automated preflight but remain runtime-pending:** `FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE` and `FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL` are withheld from the sanitized export. The new verifier must prove absence across the authenticated, complete Admin directory immediately before login tests. `FRMS_TEST_NO_CCCD_PHONE/PASSWORD` and `FRMS_TEST_COMPLETED_CONTRACT_ID` remain without verified positive fixtures. All 6 Contracts in this snapshot are ACTIVE or TERMINATED.
+**Targeted negative-login results (2026-11-11): `FRMS-ST-0199` PASS and `FRMS-ST-0203` PASS, as directly reported by the user.** This is `USER_REPORTED_RUNTIME`, not a report-level verification; neither individual run ID nor `summary.md`/`results.json` was supplied. The automated unregistered-identifier preflight remains in place. **Unregistered identifier policy:** `FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE` and `FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL` are withheld from the sanitized export. The new verifier must prove absence across the authenticated, complete Admin directory immediately before login tests. `FRMS_TEST_NO_CCCD_PHONE/PASSWORD` and `FRMS_TEST_COMPLETED_CONTRACT_ID` remain without verified positive fixtures. All 6 Contracts in this snapshot are ACTIVE or TERMINATED.
 
 See [fixtures.json](fixtures.json) for structured candidates and statuses. No test PASS or login rights follow from this snapshot.
 
@@ -78,7 +78,7 @@ See [fixtures.json](fixtures.json) for structured candidates and statuses. No te
 
 The committed `tests/system/scripts/batch12-discover.mjs` is **not** the latest patch-folder version. It defaults cross-facility discovery to Staff F02 (`FRMS_TEST_STAFF_02_EMAIL`) while the wrapper exposes `FRMS_TEST_FOREIGN_STAFF_EMAIL=staff.f32@example.com`. Its cross-facility scan looks for a same-day own/foreign work-item pair. The external F32 dedicated patch is not automatically applied by merely having patch folders tracked.
 
-The negative-login verifier is now integrated as `tests/system/scripts/batch12-verify-unregistered.mjs`. The main `run-frms-tests.ps1` runs it **after** API preflight/discovery, prior to the final fixture audit and Playwright for `all`, `area`, or negative-login cases `FRMS-ST-0199`/`FRMS-ST-0203`. It requires verified Admin ACTIVE role and complete nonduplicate account pages; it does not modify users. The root legacy installer/verifier were superseded. Live runtime success is not yet established. An initial `-AuditOnly` warning is expected because it has no Admin/API access.
+The negative-login verifier is now integrated as `tests/system/scripts/batch12-verify-unregistered.mjs`. The main `run-frms-tests.ps1` runs it **after** API preflight/discovery, prior to the final fixture audit and Playwright for `all`, `area`, or negative-login cases `FRMS-ST-0199`/`FRMS-ST-0203`. It requires verified Admin ACTIVE role and complete nonduplicate account pages; it does not modify users. The root legacy installer/verifier were superseded. Both targeted tests are now user-reported PASS; independent inspection of their result files remains pending. An initial `-AuditOnly` warning is expected because it has no Admin/API access.
 
 The current `tests/e2e/playwright/tests/frms/batch12-staff.spec.ts` is older than the `test/tools/FRMS_BATCH12_FINAL2_FIX/batch12-staff.spec.ts` patch candidate. Review differences and acceptance criteria before editing. Avoid mixing installer versions blindly.
 
@@ -119,4 +119,4 @@ Keep **both** `RUN_FRMS_TESTS.ps1` (safe environment/fixture wrapper) and `run-f
 
 **Targeted ST-0065 execution:** `.\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0065 -Workers 1 -Retries 0 -SkipCatalogDiscovery`. The historical 51/51 PASS result is unchanged until new Playwright evidence exists.
 
-For the two prepared negative-login scenarios see [NEGATIVE_LOGIN_FIXTURES.md](NEGATIVE_LOGIN_FIXTURES.md). No new runtime PASS was claimed by integrating the verifier.
+For negative-login scenarios see [NEGATIVE_LOGIN_FIXTURES.md](NEGATIVE_LOGIN_FIXTURES.md). The user has now reported targeted PASS for `FRMS-ST-0199` and `FRMS-ST-0203` on 2026-11-11. Do not add 2 to historical `51/51` totals without confirming overlap and actual report IDs, or infer whole-batch PASS.

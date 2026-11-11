@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2.0",
+  "schema_version": "1.2.1",
   "generated_date": "2026-11-11",
   "language": "en",
   "data_classification": "internal-test-metadata; no raw DB export or credentials",
@@ -127,7 +127,7 @@
       "runtime_execution": "PENDING_RUNTIME"
     },
     "negative_login_preflight": {
-      "status": "INTEGRATED_NOT_RUNTIME_VERIFIED",
+      "status": "TWO_TARGETED_CASES_PASS_USER_REPORTED",
       "script": "tests/system/scripts/batch12-verify-unregistered.mjs",
       "hook": "run-frms-tests.ps1 after backend/API readiness",
       "applies_to": [
@@ -139,7 +139,26 @@
       "admin_scope": "verified ACTIVE SYSTEM_ADMINISTRATOR and complete /admin/users pagination (pageSize100)",
       "writes": "Admin authentication POST may record LoginHistory; remaining operations GET; does not create accounts",
       "on_unavailable": "clear both fixture env vars and mark tests Blocked",
-      "static_audit": "RUN_FRMS_TESTS.cmd -AuditOnly does not verify negative fixtures"
+      "static_audit": "RUN_FRMS_TESTS.cmd -AuditOnly does not verify negative fixtures",
+      "targeted_case_results": [
+        {
+          "case_id": "FRMS-ST-0199",
+          "status": "PASS",
+          "evidence": "USER_REPORTED_RUNTIME",
+          "reported_date": "2026-11-11",
+          "run_id": null,
+          "report_verified": false
+        },
+        {
+          "case_id": "FRMS-ST-0203",
+          "status": "PASS",
+          "evidence": "USER_REPORTED_RUNTIME",
+          "reported_date": "2026-11-11",
+          "run_id": null,
+          "report_verified": false
+        }
+      ],
+      "note": "User reports both targeted cases PASS; no run ID or report artifacts supplied. Historical 51/51 count unchanged, no whole-batch PASS inferred."
     }
   },
   "coverage": {
@@ -270,9 +289,7 @@
   },
   "known_blockers": [
     "FRMS_TEST_STAFF_HANDOVER_VISIT_ID (SCHEDULED precondition absent)",
-    "FRMS-ST-0065: candidate configured, still needs current Manager F01 GET/assignment state + UI runtime verification",
-    "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE: verifier integrated, runtime Admin directory check pending",
-    "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL: verifier integrated, runtime Admin directory check pending"
+    "FRMS-ST-0065: candidate configured, still needs current Manager F01 GET/assignment state + UI runtime verification"
   ],
   "verified_source_paths": [
     "tests/system/README.md",
@@ -288,11 +305,11 @@
   "caveats": [
     "Optional patch folders are not evidence their installers have run.",
     "The committed discovery currently defaults to Staff F02 rather than the configured F32 test actor.",
-    "The committed wrapper does not contain the dedicated negative-fixture installer hook.",
     "profile.md updated from second sanitized snapshot but contains no new runtime PASS evidence.",
     "An ACTIVE handover assignment already links the new F01 matching Reservation and Unit; do not create/release assignments on shared data.",
     "Zero RESERVATION/SCHEDULED Visits in snapshot; previously configured Staff handover Visit is now CHECKED_IN.",
-    "ST0065 snapshot fixture now configured in wrapper for read-only matching test; actual PASS remains unverified."
+    "ST0065 snapshot fixture now configured in wrapper for read-only matching test; actual PASS remains unverified.",
+    "2026-11-11: FRMS-ST-0199 and FRMS-ST-0203 are user-reported PASS; no run IDs or reports were provided for verification."
   ],
   "tools": [
     {

@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2.0",
+  "schema_version": "1.2.1",
   "snapshot_utc": "2026-11-11T06:30:28.186617Z",
   "source": "RUN_FRMS_TESTS.ps1 defaults cross-checked against 2026-11-11T06:30:28Z user-supplied sanitized ZIP and JSON; no runtime authorization asserted",
   "usage": "Read-only candidate metadata. Reverify role, owner, facility, type, status and current availability before using. Never commit passwords or raw DB exports.",
@@ -167,18 +167,34 @@
     {
       "name": "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE",
       "value": null,
-      "evidence": "Complete Admin account directory verifier integrated into main launcher; no precomputed identifier stored",
+      "evidence": "User confirms targeted testcase PASS; negative identifier remains process-local and not saved in Git; underlying run report not supplied",
       "runtime_verified": false,
-      "state": "AUTO_VERIFY_RUNTIME_PENDING",
-      "selection": "Authenticated paginated Admin GET, absence proven before Playwright"
+      "state": "USER_REPORTED_TARGETED_PASS_REPORT_PENDING",
+      "selection": "Authenticated paginated Admin GET, absence proven before Playwright",
+      "test_result": {
+        "case_id": "FRMS-ST-0199",
+        "status": "PASS",
+        "evidence": "USER_REPORTED_RUNTIME",
+        "reported_date": "2026-11-11",
+        "run_id": null,
+        "report_verified": false
+      }
     },
     {
       "name": "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL",
       "value": null,
-      "evidence": "Complete Admin account directory verifier integrated into main launcher; no precomputed identifier stored",
+      "evidence": "User confirms targeted testcase PASS; negative identifier remains process-local and not saved in Git; underlying run report not supplied",
       "runtime_verified": false,
-      "state": "AUTO_VERIFY_RUNTIME_PENDING",
-      "selection": "Authenticated paginated Admin GET, absence proven before Playwright"
+      "state": "USER_REPORTED_TARGETED_PASS_REPORT_PENDING",
+      "selection": "Authenticated paginated Admin GET, absence proven before Playwright",
+      "test_result": {
+        "case_id": "FRMS-ST-0203",
+        "status": "PASS",
+        "evidence": "USER_REPORTED_RUNTIME",
+        "reported_date": "2026-11-11",
+        "run_id": null,
+        "report_verified": false
+      }
     }
   ],
   "rules": {
