@@ -68,12 +68,14 @@ for (let page = 1; page <= 500; page++) {
   }
   if (pagination.totalItems !== expectedTotal || Math.max(1, pagination.totalPages) !== expectedPages)
     done(false, {}, 'User directory changed during scan; retry');
-  if (data.some(x => !x || !Object.hasOwn(x, 'email') || !Object.hasOwn(x, 'phoneNumber')))
+  if (data.some(x => !x || !Object.hasOwn(x, 'email') || !Object.hasOwn(x, 'phoneNumber') ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x.userAccountId ?? '')))
     done(false, {}, 'User directory does not expose email and phone fields');
   all.push(...data);
   if (page >= expectedPages) break;
 }
-if (all.length !== expectedTotal)
+if (all.length !== expectedTotal ||
+    new Set(all.map(x => x.userAccountId.toLowerCase())).size !== all.length)
   done(false, {}, 'Admin account list count did not match totalItems');
 
 const registeredPhones = new Set(all.map(x => String(x.phoneNumber ?? '').trim()));
@@ -82,11 +84,15 @@ const candidatePhones = ['0999999999','0988888888','0977777777','0966666666'];
 for (let i = 0; i < 100 && candidatePhones.every(x => registeredPhones.has(x)); i++) {
   candidatePhones.push(`09${String(randomInt(100_000_000)).padStart(8, '0')}`);
 }
-const phone = candidatePhones.find(x => !registeredPhones.has(x));
+const requestedPhone = (process.env.FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE ?? '').trim();
+const phone = requestedPhone || candidatePhones.find(x => !registeredPhones.has(x));
 const candidateEmails = ['frms-batch12-unknown@example.invalid',
   `frms-batch12-${randomUUID()}@example.invalid`];
-const email = candidateEmails.find(x => !registeredEmails.has(x.toLowerCase()));
-if (!phone || !email) done(false, {}, 'No verifiably unregistered identifiers found');
+const requestedEmail = (process.env.FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL ?? '').trim().toLowerCase();
+const email = requestedEmail || candidateEmails.find(x => !registeredEmails.has(x.toLowerCase()));
+if (!phone || !/^0[0-9]{9}$/.test(phone) || registeredPhones.has(phone) ||
+    !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || registeredEmails.has(email))
+  done(false, {}, 'Negative identifiers invalid, registered, or not verifiably absent');
 const fixtures = {
   [OUT_KEYS[0]]: phone,
   [OUT_KEYS[1]]: email,

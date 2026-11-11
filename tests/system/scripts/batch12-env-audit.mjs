@@ -36,8 +36,13 @@ for (const file of fs.readdirSync(dir).filter(f => /^batch12-.*\.spec\.ts$/.test
   const source = fs.readFileSync(path.join(dir,file),'utf8')
   for (const match of source.matchAll(/\bfixture\(\s*['"]([A-Z0-9_]+)['"]\s*\)/g)) names.add(match[1])
 }
-const missing = [...names].filter(key => !env[key]).sort()
-console.log(`${names.size} explicit fixture keys referenced; ${missing.length} missing (affected tests will be SKIPPED/Blocked, not PASS).`)
+const targetCase = (env.FRMS_TARGET_CASE_ID || '').trim()
+const negativeKeys = new Set(['FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE', 'FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL'])
+const negativeRelevant = !targetCase || ['FRMS-ST-0199', 'FRMS-ST-0203'].includes(targetCase)
+const applicable = [...names].filter(key => negativeRelevant || !negativeKeys.has(key))
+const missing = applicable.filter(key => !env[key]).sort()
+console.log(`${applicable.length} applicable fixture keys from ${names.size} Batch 12 references; ${missing.length} missing (affected tests will be SKIPPED/Blocked, not PASS).`)
+if (!negativeRelevant) console.log('Unregistered login prerequisites do not apply to this targeted testcase.')
 if (missing.length) console.log('Missing fixture names only:\n  '+missing.join('\n  '))
 const unsafe = env.FRMS_TEST_DB_ISOLATED === 'true' || env.FRMS_ALLOW_STATE_CHANGES === 'YES'
 console.log(`${unsafe ? 'WARNING' : 'OK'} State-changing flags: ${unsafe ? 'one or more enabled; disable when connected to shared Supabase' : 'not enabled for this read-only batch'}`)

@@ -251,16 +251,6 @@ if (manager && uuid(manager.user.profile?.facilityId)) {
     if (unit) fixtures.FRMS_TEST_AVAILABLE_PHYSICAL_UNIT_ID = unit.storageUnitId;
   } else err('Manager: no checked-in CONFIRMED reservation matched an AVAILABLE physical unit');
 }
-// Check nonexistent login identifiers against an *exhaustive* Admin account listing.
-if (admin) {
-  const users = await list('/admin/users', admin.token, 50);
-  if (users) {
-    const phones = new Set(users.map(x => x.phoneNumber));
-    const emails = new Set(users.map(x => x.email?.toLowerCase()));
-    const candidatePhone = ['0999999999', '0988888888', '0977777777'].find(x => !phones.has(x));
-    const candidateEmail = ['frms-batch12-unknown@example.invalid', 'frms-batch12-unknown2@example.invalid'].find(x => !emails.has(x));
-    if (candidatePhone) set('FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE', candidatePhone);
-    if (candidateEmail) set('FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL', candidateEmail);
-  } else err('Admin: full user directory not available; negative identifiers not verified');
-}
+// Negative login identifiers are handled by the dedicated exhaustive Admin-directory
+// verifier after this discovery stage. No candidate is accepted from partial pages.
 console.log(JSON.stringify({ fixtures, roles, notes }));

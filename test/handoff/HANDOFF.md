@@ -70,7 +70,7 @@ The user uploaded **`FRMS_PROFILE_SAFE_20261111T063028Z.zip`** and **`FRMS_PROFI
 
 **Foreign F32 fixture unchanged:** `FRMS_TEST_OTHER_FACILITY_REFERENCE_ID=33a922ce-416f-4757-87f5-8f85aba047ef` is a Reservation Visit at Facility 32 on 2026-12-05, CHECKED_IN. F32 authorized/F01 denied API results require runtime checks; comparing only F01's 2026-12-01 work list is not sufficient.
 
-**Unregistered identifiers unresolved:** `FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE` and `FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL` are withheld from the sanitized export; verify absence across all authenticated Admin pages. `FRMS_TEST_NO_CCCD_PHONE/PASSWORD` and `FRMS_TEST_COMPLETED_CONTRACT_ID` remain without verified positive fixtures. All 6 Contracts in this snapshot are ACTIVE or TERMINATED.
+**Unregistered identifiers have automated preflight but remain runtime-pending:** `FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE` and `FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL` are withheld from the sanitized export. The new verifier must prove absence across the authenticated, complete Admin directory immediately before login tests. `FRMS_TEST_NO_CCCD_PHONE/PASSWORD` and `FRMS_TEST_COMPLETED_CONTRACT_ID` remain without verified positive fixtures. All 6 Contracts in this snapshot are ACTIVE or TERMINATED.
 
 See [fixtures.json](fixtures.json) for structured candidates and statuses. No test PASS or login rights follow from this snapshot.
 
@@ -78,7 +78,7 @@ See [fixtures.json](fixtures.json) for structured candidates and statuses. No te
 
 The committed `tests/system/scripts/batch12-discover.mjs` is **not** the latest patch-folder version. It defaults cross-facility discovery to Staff F02 (`FRMS_TEST_STAFF_02_EMAIL`) while the wrapper exposes `FRMS_TEST_FOREIGN_STAFF_EMAIL=staff.f32@example.com`. Its cross-facility scan looks for a same-day own/foreign work-item pair. The external F32 dedicated patch is not automatically applied by merely having patch folders tracked.
 
-`batch12-verify-unregistered.mjs` and a root `install.mjs` exist, but the current committed `RUN_FRMS_TESTS.ps1` does **not** include the special negative-fixture pre-audit hook. The previous user output still had 3 missing fixture names. Do not claim the preflight patch is active without checking actual installed code.
+The negative-login verifier is now integrated as `tests/system/scripts/batch12-verify-unregistered.mjs`. The main `run-frms-tests.ps1` runs it **after** API preflight/discovery, prior to the final fixture audit and Playwright for `all`, `area`, or negative-login cases `FRMS-ST-0199`/`FRMS-ST-0203`. It requires verified Admin ACTIVE role and complete nonduplicate account pages; it does not modify users. The root legacy installer/verifier were superseded. Live runtime success is not yet established. An initial `-AuditOnly` warning is expected because it has no Admin/API access.
 
 The current `tests/e2e/playwright/tests/frms/batch12-staff.spec.ts` is older than the `test/tools/FRMS_BATCH12_FINAL2_FIX/batch12-staff.spec.ts` patch candidate. Review differences and acceptance criteria before editing. Avoid mixing installer versions blindly.
 
@@ -118,3 +118,5 @@ The obsolete `APPLY_FRMS_PATCHES_TEST_SWT.ps1` was removed because its required 
 Keep **both** `RUN_FRMS_TESTS.ps1` (safe environment/fixture wrapper) and `run-frms-tests.ps1` (Playwright/system-test launcher): the CMD entrypoint depends on both. Also keep `backend/scripts/PostgreSql-Local.ps1` for local PostgreSQL lifecycle. The older `backend/tests/Frms.IntegrationTests/Verify-CreateReservation.ps1` targets legacy SQL Server with write operations and hardcoded paths; it is unrelated to the current automated PostgreSQL suite, retained for historical continuity only. Do not execute it on shared Supabase. This cleanup did not execute tests or validate new PASS results.
 
 **Targeted ST-0065 execution:** `.\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0065 -Workers 1 -Retries 0 -SkipCatalogDiscovery`. The historical 51/51 PASS result is unchanged until new Playwright evidence exists.
+
+For the two prepared negative-login scenarios see [NEGATIVE_LOGIN_FIXTURES.md](NEGATIVE_LOGIN_FIXTURES.md). No new runtime PASS was claimed by integrating the verifier.

@@ -113,7 +113,7 @@ Alternative Reservation `b370c765-adb7-4e16-aa19-54caf7d5b788` remains CONFIRMED
 
 - **SCHEDULED visit blocker:** `FRMS_TEST_STAFF_HANDOVER_VISIT_ID=6855fba5-942c-40a4-bf22-5658ca3be00c` now has `VisitType=RESERVATION`, `Status=CHECKED_IN`. The snapshot has **0 RESERVATION + SCHEDULED visits**; the other four SCHEDULED Visits are ACCESS (3) or RETURN (1). Tests needing a pre-check-in Reservation Visit must remain Blocked until a genuine one exists, with no database mutation to create it.
 - **Cross-facility scope:** `FRMS_TEST_OTHER_FACILITY_REFERENCE_ID=33a922ce-416f-4757-87f5-8f85aba047ef` is a CHECKED_IN Reservation Visit at F32, date `2026-12-05`. Role authorization F32 allowed/F01 denied is still **PENDING_RUNTIME**. The own F01 scope date `2026-12-01` differs, so a negative check against only that date could be misleading.
-- **Negative login inputs:** `FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE` and `FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL` need proof of absence in every page of the live Admin account directory. The safe export intentionally excludes email/phone; do not assume candidate strings are unregistered.
+- **Negative login inputs (FRMS-ST-0199, FRMS-ST-0203):** `FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE` and `FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL` are now verified automatically by `tests/system/scripts/batch12-verify-unregistered.mjs` after the API preflight and before Playwright. The verifier authenticates Admin, checks ACTIVE role and **all** paginated account rows, rejects incomplete/duplicate directory pages, and sets both process-only values only if absent. The sanitized export cannot prove absence; if Admin verification is unavailable, both cases remain Blocked. No account is created. Runtime verification of this new process is pending.
 - **Other missing preconditions:** no COMPLETED Contract in snapshot; no verified no-CCCD demo account. Optional fixture installer folders are not proof they are applied.
 - **Discovery mismatch:** committed `tests/system/scripts/batch12-discover.mjs` defaults to Staff F02 for foreign discovery while wrapper knows Staff F32. Check code before applying optional `test/tools/FRMS_BATCH12_*/install.mjs`.
 
@@ -223,7 +223,7 @@ Do not start a backend against shared Supabase merely to run the wrapper: Reserv
 1. **ST-0065 fixture prepared in runner and read-only test assertions updated.** Run the case with Manager F01 against the authorized API; verify current Reservation, Visit, Unit and ACTIVE Assignment via GET. The outdated `knownIneligible` guard was removed for the verified snapshot ID. No save/release PUT/DELETE.
 2. Keep scheduled Reservation Visit tests Blocked; the new snapshot has none. Do not repurpose CHECKED_IN visits as SCHEDULED.
 3. Verify F32 foreign Visit access and F01 denial using correct Visit date; avoid false positives from mismatched dates.
-4. Verify the two nonexistent login identifiers from a complete Admin directory, without logging existing user details.
+4. Run `FRMS-ST-0199` and `FRMS-ST-0203` after syncing this fix. The launcher now verifies unregistered identifiers from the full Admin directory without logging existing account details. `-AuditOnly` is a static inventory and intentionally cannot prove absence.
 5. After authorization and fixture checks, run targeted tests, then the mapped suite and inspect `summary.md`/`results.json`. Never report 101 PASS from a registry count.
 
 ## 11. Evidence and source ownership
@@ -245,3 +245,14 @@ This profile supersedes the previous stale **30 implemented / 20 PASS / 1 worker
 ```
 
 The wrapper supplies the snapshot Reservation and matching AVAILABLE Unit automatically. API role/permissions and current state are **not** guaranteed. `-SkipCatalogDiscovery` skips unrelated catalogue fixture lookups, not the Batch 12 discovery pass. Runtime output must be checked in `tests/system/reports/<run-id>/summary.md` and `results.json`. The previous historical PASS count remains 51/51.
+
+### Negative login fixture verification — prepared commands
+
+Use the already-running authorized API, then run from the repository root:
+
+```bat
+.\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0199 -Workers 1 -Retries 0 -SkipCatalogDiscovery
+.\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0203 -Workers 1 -Retries 0 -SkipCatalogDiscovery
+```
+
+Only the actual targeted runs invoke Admin verification. The verifier may generate normal LoginHistory records through authentication. Success log: `Verified negative login fixtures: phone and email absent from N complete Admin account records`. If verification fails, both variables are cleared from the test child process and the cases must remain Blocked. `-AuditOnly` still lists these keys as unconfigured because it does not contact the API. In a non-negative targeted case (e.g. FRMS-ST-0065) the two keys are excluded from its applicable fixture audit. Reports: `tests/system/reports/<run-id>/`.

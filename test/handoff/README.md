@@ -13,6 +13,7 @@ This directory is **`test/handoff/` (singular)** as requested. Executable tests 
 5. [RUNBOOK.md](RUNBOOK.md) — exact Windows CMD commands, CI/runner behavior, reports and safe diagnostics
 6. [NEXT_STEPS.md](NEXT_STEPS.md) — prioritized backlog and acceptance gates
 7. [FRMS-ST-0065.md](FRMS-ST-0065.md) — ready-to-run read-only Manager F01 test data and exact commands
+8. [NEGATIVE_LOGIN_FIXTURES.md](NEGATIVE_LOGIN_FIXTURES.md) — verified negative-account fixture preflight and commands
 
 ## Canonical source files (do not duplicate or overwrite)
 

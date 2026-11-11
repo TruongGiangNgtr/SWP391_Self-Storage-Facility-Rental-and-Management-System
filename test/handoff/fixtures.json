@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "snapshot_utc": "2026-11-11T06:30:28.186617Z",
   "source": "RUN_FRMS_TESTS.ps1 defaults cross-checked against 2026-11-11T06:30:28Z user-supplied sanitized ZIP and JSON; no runtime authorization asserted",
   "usage": "Read-only candidate metadata. Reverify role, owner, facility, type, status and current availability before using. Never commit passwords or raw DB exports.",
@@ -167,23 +167,25 @@
     {
       "name": "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE",
       "value": null,
-      "evidence": "sanitized_export_excludes_phone; must_check_complete_admin_directory",
+      "evidence": "Complete Admin account directory verifier integrated into main launcher; no precomputed identifier stored",
       "runtime_verified": false,
-      "state": "UNVERIFIED"
+      "state": "AUTO_VERIFY_RUNTIME_PENDING",
+      "selection": "Authenticated paginated Admin GET, absence proven before Playwright"
     },
     {
       "name": "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL",
       "value": null,
-      "evidence": "sanitized_export_excludes_email; must_check_complete_admin_directory",
+      "evidence": "Complete Admin account directory verifier integrated into main launcher; no precomputed identifier stored",
       "runtime_verified": false,
-      "state": "UNVERIFIED"
+      "state": "AUTO_VERIFY_RUNTIME_PENDING",
+      "selection": "Authenticated paginated Admin GET, absence proven before Playwright"
     }
   ],
   "rules": {
     "FRMS_TEST_ASSIGNABLE_RESERVATION_ID": "Snapshot candidate CONFIGURED for GET-only ST-0065. Existing ACTIVE assignment links Reservation to AVAILABLE unit. Requires Manager F01 live access and same statuses; no creation/release; not a new-assignment fixture.",
     "FRMS_TEST_OTHER_FACILITY_REFERENCE_ID": "Visit ID of Facility32, not facility ID; verify F32 allow/F01 deny under authenticated API and work-item boundaries.",
-    "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE": "verify syntactically valid, absent from *every page* of Admin directory immediately before test; don't create account.",
-    "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL": "verify syntactically valid, absent from *every page* of Admin directory immediately before test; don't create account.",
+    "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE": "Automatic preflight via tests/system/scripts/batch12-verify-unregistered.mjs. Requires ACTIVE Admin login, complete pagination, absent syntactically valid 10-digit phone. If failed, fixture unset and test Blocked.",
+    "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL": "Automatic preflight via tests/system/scripts/batch12-verify-unregistered.mjs. Requires ACTIVE Admin login, complete pagination, absent syntactically valid email. If failed, fixture unset and test Blocked.",
     "FRMS_TEST_STAFF_HANDOVER_VISIT_ID": "Must be RESERVATION + SCHEDULED for pre-check-in negative case; configured Visit is CHECKED_IN and no suitable Visit remains in attached snapshot."
   },
   "snapshot_files": [

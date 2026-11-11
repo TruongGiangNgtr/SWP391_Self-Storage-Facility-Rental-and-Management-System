@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "generated_date": "2026-11-11",
   "language": "en",
   "data_classification": "internal-test-metadata; no raw DB export or credentials",
@@ -125,6 +125,21 @@
       "wrapper_guard": "resolved: RUN_FRMS_TESTS.ps1 no longer rejects f1112fee; snapshot default configured",
       "test_implementation": "GET Reservation + StorageUnit + ACTIVE assignment and UI headings; no PUT/DELETE",
       "runtime_execution": "PENDING_RUNTIME"
+    },
+    "negative_login_preflight": {
+      "status": "INTEGRATED_NOT_RUNTIME_VERIFIED",
+      "script": "tests/system/scripts/batch12-verify-unregistered.mjs",
+      "hook": "run-frms-tests.ps1 after backend/API readiness",
+      "applies_to": [
+        "FRMS-ST-0199",
+        "FRMS-ST-0203",
+        "all",
+        "area"
+      ],
+      "admin_scope": "verified ACTIVE SYSTEM_ADMINISTRATOR and complete /admin/users pagination (pageSize100)",
+      "writes": "Admin authentication POST may record LoginHistory; remaining operations GET; does not create accounts",
+      "on_unavailable": "clear both fixture env vars and mark tests Blocked",
+      "static_audit": "RUN_FRMS_TESTS.cmd -AuditOnly does not verify negative fixtures"
     }
   },
   "coverage": {
@@ -256,8 +271,8 @@
   "known_blockers": [
     "FRMS_TEST_STAFF_HANDOVER_VISIT_ID (SCHEDULED precondition absent)",
     "FRMS-ST-0065: candidate configured, still needs current Manager F01 GET/assignment state + UI runtime verification",
-    "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE",
-    "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL"
+    "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE: verifier integrated, runtime Admin directory check pending",
+    "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL: verifier integrated, runtime Admin directory check pending"
   ],
   "verified_source_paths": [
     "tests/system/README.md",
@@ -267,7 +282,8 @@
     "run-frms-tests.ps1",
     "tests/system/scripts/batch12-discover.mjs",
     "test/tools/FRMS_DB_PROFILE_EXPORT/README.md",
-    "profile.md"
+    "profile.md",
+    "tests/system/scripts/batch12-verify-unregistered.mjs"
   ],
   "caveats": [
     "Optional patch folders are not evidence their installers have run.",

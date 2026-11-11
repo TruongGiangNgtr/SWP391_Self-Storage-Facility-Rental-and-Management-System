@@ -183,13 +183,15 @@ try {
         Write-Warning 'Batch 12 discovery script not installed. Snapshot fallbacks are used; unregistered account fixture discovery may remain unavailable.'
     }
 
-    Write-Host '--- Batch 12 environment audit (missing fixture data is not an assertion failure) ---'
-    & node $Audit | Out-Host
-    if ($LASTEXITCODE -ne 0) { throw "Batch 12 core environment audit failed (exit $LASTEXITCODE)." }
     if ($AuditOnly) {
-        Write-Host 'AuditOnly completed: no backend or Playwright tests started.'
+        Write-Host '--- Pre-discovery environment audit (NO Admin directory check) ---'
+        & node $Audit | Out-Host
+        if ($LASTEXITCODE -ne 0) { throw "Batch 12 core environment audit failed (exit $LASTEXITCODE)." }
+        Write-Host 'AuditOnly is a static key inventory. Unregistered phone/email require a live, authenticated Admin preflight.'
+        Write-Host 'AuditOnly completed: no backend, Admin API verification or Playwright tests started.'
         exit 0
     }
+    Write-Host 'Final fixture audit will run after backend preflight, discovery and verified Admin directory scan.'
 
     $launcherArgs = @('-NoProfile','-ExecutionPolicy','Bypass','-File',$Launcher,
         '-Mode',$Mode,'-Workers',[string]$Workers,'-Retries',[string]$Retries)

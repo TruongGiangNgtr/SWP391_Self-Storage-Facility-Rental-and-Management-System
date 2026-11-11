@@ -80,8 +80,8 @@ The wrapper defaults to demo identifiers from the existing source; actual secret
 
 ```text
 FRMS_TEST_ASSIGNABLE_RESERVATION_ID     CONFIGURED for read-only ST-0065; ACTIVE assignment exists, Manager runtime verification pending
-FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE  Must verify absent via complete Admin directory (FRMS-ST-0199)
-FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL  Must verify absent via complete Admin directory (FRMS-ST-0203)
+FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE  Auto-verified from full Admin directory just before FRMS-ST-0199; runtime pending
+FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL  Auto-verified from full Admin directory just before FRMS-ST-0203; runtime pending
 FRMS_TEST_STAFF_HANDOVER_VISIT_ID     CHECKED_IN now; no RESERVATION/SCHEDULED Visit in snapshot for pre-check-in tests
 ```
 
@@ -116,3 +116,7 @@ Never push `.env`, database connections, raw dumps, emails/phones, credentials, 
 ```
 
 The wrapper supplies F01 Facility `f0000000-0000-0000-0000-000000000001`, Reservation `f1112fee-e99f-4094-879a-563ddd1f8f81`, physical Unit `fa72ca32-22d6-496c-aca2-20e64c040de7`, Manager F01 demo identity. The test checks GET reservation/visit/unit/active assignment and then the Manager page, without assignment writes. When preconditions changed, `FRMS_FIXTURE_MISSING` is normalized as Blocked. For detailed API/data evidence, see [FRMS-ST-0065.md](FRMS-ST-0065.md).
+
+### Negative login fixture audit (added 2026-11-11)
+
+Use `.\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0199 -Workers 1 -Retries 0 -SkipCatalogDiscovery`, then run the same command with `FRMS-ST-0203`. The launcher verifies Admin `/auth/me`, retrieves **every** `/admin/users` page (pageSize=100), rejects incomplete/duplicate pagination and only then injects absent phone/email values into the Playwright child process. `-AuditOnly` is static and does not perform this authenticated verification. On a non-negative targeted case such as ST-0065, these two unrelated variables are excluded from the final missing-fixture list. No account creation or direct database changes. See [NEGATIVE_LOGIN_FIXTURES.md](NEGATIVE_LOGIN_FIXTURES.md).
