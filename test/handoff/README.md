@@ -23,7 +23,7 @@ This directory is **`test/handoff/` (singular)** as requested. Executable tests 
 - `tests/system/scripts/`: discovery, coverage, preflight, result normalization and Jira export
 - `tests/e2e/playwright/tests/frms/`: executable specs
 - `profile.md`: historical notes; portions of its embedded statistics are outdated
-- `FRMS_DB_PROFILE_EXPORT/`: sanitized PostgreSQL export tool. **Do not commit its data output.**
+- `test/tools/`: versioned Batch 12 fixture packages and a sanitized PostgreSQL exporter. See [`../tools/README.md`](../tools/README.md). **Do not commit its data output.**
 
 ## AI usage and evidence rules
 

@@ -14,10 +14,10 @@ Discovery first looks for a foreign Visit in another Staff's work list. If not f
 
 ## Installation: Windows CMD at TEST_SWT repository root
 
-Unzip `FRMS_BATCH12_FINAL2_FIX` into repo root (folder name should match exactly). Then:
+The package is tracked under `test/tools/FRMS_BATCH12_FINAL2_FIX/`. Review current discovery/test file versions and the checksum guards first. If installation is appropriate, run the installer from the **repository root**:
 
 ```bat
-node .\FRMS_BATCH12_FINAL2_FIX\install.mjs
+node .\test\tools\FRMS_BATCH12_FINAL2_FIX\install.mjs
 node --check tests\system\scripts\batch12-discover.mjs
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\run-frms-tests.ps1" -Mode all -Workers 4 -Retries 1
 ```

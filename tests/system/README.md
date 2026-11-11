@@ -23,10 +23,10 @@ The two root PowerShell scripts are **both required**: `RUN_FRMS_TESTS.cmd` invo
 | `tests/system/scripts/` | Coverage, preflight, discovery, execution and Jira report scripts |
 | `tests/system/reports/` | Generated evidence; excluded from Git |
 | `profile.md` | Historical environment and test-data notes; **some earlier coverage/run claims are outdated** |
-| `FRMS_DB_PROFILE_EXPORT/README.md` | Separate, read-only PostgreSQL profile export procedure |
+| `test/tools/FRMS_DB_PROFILE_EXPORT/README.md` | Separate, read-only PostgreSQL profile export procedure |
 | [PATCH_HISTORY.md](PATCH_HISTORY.md) | Historical patch details and resolved launch/locator bugs |
 
-The patch installers in `FRMS_BATCH12_*/` retain their own READMEs because they document optional versioned changes. **Do not re-run old installers just because the directory exists.**
+The versioned patch installers in `test/tools/FRMS_BATCH12_*/` retain their own READMEs because they document optional versioned changes. **Do not re-run old installers just because the directory exists.**
 
 ## Windows CMD — first checks
 
@@ -85,7 +85,7 @@ The wrapper supplies the Testing process variables, read-only test flags, worker
 - `FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE` / `FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL`: need proof of absence in the entire Admin user directory. The sanitized DB export excludes phone/email and **cannot** establish this. A negative-fixture preflight script exists among the patch materials, but verify it is installed and invoked before treating these keys as configured. Account creation or a coincidental login error is not proof of absence.
 - Other IDs (contracts, invoices, reservations, inspections, catalogue unit types) are **candidate** values and must be revalidated for status, facility and ownership. Never insert invented UUIDs to force an audit to show zero missing.
 
-See the `FRMS_BATCH12_FINAL2_FIX/README.md` and `FRMS_DB_PROFILE_EXPORT/README.md` for optional diagnostic workflows. A patch directory being tracked does not prove its installer was applied to the active launcher.
+See the `test/tools/FRMS_BATCH12_FINAL2_FIX/README.md` and `test/tools/FRMS_DB_PROFILE_EXPORT/README.md` for optional diagnostic workflows. A patch directory being tracked does not prove its installer was applied to the active launcher.
 
 ## Safety: shared database
 
@@ -118,3 +118,7 @@ Other PowerShell files intentionally retained:
 - `backend/tests/Frms.IntegrationTests/Verify-CreateReservation.ps1`: **legacy SQL Server** test verification script with hardcoded Windows paths and write operations against a legacy test database. Not part of the current PostgreSQL Playwright test run. Do **not** run against shared Supabase. Kept to preserve existing historical test artifacts/references.
 
 No test code, launcher code or backend code was modified by this cleanup. Do not interpret static cleanup as a runtime test PASS.
+
+## Tool location after cleanup
+
+Versioned fixture installers and the read-only database profile exporter are now under [`test/tools/`](../../test/tools/README.md). Do not use the old root-level `FRMS_BATCH12_*` and `FRMS_DB_PROFILE_EXPORT` paths. Installer commands must still be run **from the repository root**, because they intentionally resolve active test files using the current working directory. Moving the archived packages did **not** install or upgrade the canonical discovery code.

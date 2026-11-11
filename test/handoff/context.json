@@ -37,7 +37,8 @@
         }
       ],
       "runtime_test_evidence": "none; cleanup only"
-    }
+    },
+    "tools_root": "test/tools"
   },
   "state": {
     "branch_protection_note": "Never modify main; retain only one commit per coherent batch",
@@ -193,7 +194,7 @@
     "RUN_FRMS_TESTS.ps1",
     "run-frms-tests.ps1",
     "tests/system/scripts/batch12-discover.mjs",
-    "FRMS_DB_PROFILE_EXPORT/README.md",
+    "test/tools/FRMS_DB_PROFILE_EXPORT/README.md",
     "profile.md"
   ],
   "caveats": [
@@ -201,5 +202,32 @@
     "Optional patch folders are not evidence their installers have run.",
     "The committed discovery currently defaults to Staff F02 rather than the configured F32 test actor.",
     "The committed wrapper does not contain the dedicated negative-fixture installer hook."
+  ],
+  "tools": [
+    {
+      "path": "test/tools/FRMS_DB_PROFILE_EXPORT",
+      "kind": "readonly_postgresql_metadata_exporter",
+      "entrypoint": "test/tools/FRMS_DB_PROFILE_EXPORT/RUN_EXPORT.cmd",
+      "status": "tracked, not a database backup",
+      "requires": "Python 3 and psycopg; broken system pip needs an isolated venv"
+    },
+    {
+      "path": "test/tools/FRMS_BATCH12_FIXTURE_AUTO",
+      "kind": "historical_fixture_bootstrap",
+      "entrypoint": "test/tools/FRMS_BATCH12_FIXTURE_AUTO/install.mjs",
+      "status": "archived installer, do not rerun without reviewing active scripts"
+    },
+    {
+      "path": "test/tools/FRMS_BATCH12_FIXTURE_REFINEMENT",
+      "kind": "historical_discovery_patch",
+      "entrypoint": "test/tools/FRMS_BATCH12_FIXTURE_REFINEMENT/install.mjs",
+      "status": "archived installer, code at canonical path may already be newer"
+    },
+    {
+      "path": "test/tools/FRMS_BATCH12_FINAL2_FIX",
+      "kind": "optional_readonly_discovery_and_staff_test_patch",
+      "entrypoint": "test/tools/FRMS_BATCH12_FINAL2_FIX/install.mjs",
+      "status": "not automatically installed, checks exact expected source hashes"
+    }
   ]
 }

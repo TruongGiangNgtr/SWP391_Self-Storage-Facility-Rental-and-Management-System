@@ -16,10 +16,10 @@
 
 ## Installation — Windows CMD at repository root
 
-Extract `FRMS_BATCH12_FIXTURE_REFINEMENT` at the repository root; do not run from Downloads. With `TEST_SWT` checked out:
+The tracked historical package resides at `test/tools/FRMS_BATCH12_FIXTURE_REFINEMENT/`. Only apply it to an **expected older baseline** after reviewing the active script; do not downgrade a newer script. From the repository root on `TEST_SWT`:
 
 ```bat
-node .\FRMS_BATCH12_FIXTURE_REFINEMENT\install.mjs
+node .\test\tools\FRMS_BATCH12_FIXTURE_REFINEMENT\install.mjs
 node --check tests\system\scripts\batch12-discover.mjs
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\run-frms-tests.ps1" -Mode all -Workers 4 -Retries 1
 ```

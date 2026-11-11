@@ -76,7 +76,7 @@ The committed `tests/system/scripts/batch12-discover.mjs` is **not** the latest 
 
 `batch12-verify-unregistered.mjs` and a root `install.mjs` exist, but the current committed `RUN_FRMS_TESTS.ps1` does **not** include the special negative-fixture pre-audit hook. The previous user output still had 3 missing fixture names. Do not claim the preflight patch is active without checking actual installed code.
 
-The current `tests/e2e/playwright/tests/frms/batch12-staff.spec.ts` is older than the `FRMS_BATCH12_FINAL2_FIX/batch12-staff.spec.ts` patch candidate. Review differences and acceptance criteria before editing. Avoid mixing installer versions blindly.
+The current `tests/e2e/playwright/tests/frms/batch12-staff.spec.ts` is older than the `test/tools/FRMS_BATCH12_FINAL2_FIX/batch12-staff.spec.ts` patch candidate. Review differences and acceptance criteria before editing. Avoid mixing installer versions blindly.
 
 Root `profile.md` on the tracked branch predates the 2026-11-11 full snapshot and has stale 30-case status in sections; use this folder and `tests/system/README.md` for current counts, not those old profile sections.
 
@@ -89,7 +89,7 @@ Root `profile.md` on the tracked branch predates the 2026-11-11 full snapshot an
 - Patch history: `tests/system/PATCH_HISTORY.md`
 - Runner: `RUN_FRMS_TESTS.cmd`, `RUN_FRMS_TESTS.ps1`, `run-frms-tests.ps1`
 - Utilities: `tests/system/scripts/{batch12-env-audit,batch12-discover,validate-coverage,normalize-results,export-jira-defects}.mjs`
-- Optional profile exporter: `FRMS_DB_PROFILE_EXPORT/`; do not commit safe-data ZIPs.
+- Optional profile exporter: `test/tools/FRMS_DB_PROFILE_EXPORT/`; do not commit safe-data ZIPs.
 - Reports: `tests/system/reports/<run-id>/{summary.md,results.json,jira_defects.csv}`
 - Handoff: `test/handoff/` only; the actual tests remain in `tests/`.
 

@@ -6,7 +6,7 @@ It reads `backend/Frms.Api/.env` locally for `ConnectionStrings__Frms` / `Connec
 
 ## Run on Windows CMD
 
-1. Extract the `FRMS_DB_PROFILE_EXPORT` folder into the **repository root** (beside `backend` and `run-frms-tests.ps1`).
+1. The tracked exporter lives in `test/tools/FRMS_DB_PROFILE_EXPORT/` beneath the repository. From the **repository root**, run the commands below. The exporter finds `backend/Frms.Api` by walking up its parent directories.
 2. Install the single Python dependency:
 
    ```bat
@@ -16,10 +16,10 @@ It reads `backend/Frms.Api/.env` locally for `ConnectionStrings__Frms` / `Connec
 3. Run the exporter from the repo root:
 
    ```bat
-   .\FRMS_DB_PROFILE_EXPORT\RUN_EXPORT.cmd
+   .\test\tools\FRMS_DB_PROFILE_EXPORT\RUN_EXPORT.cmd
    ```
 
-   Alternatively: `py -3 .\FRMS_DB_PROFILE_EXPORT\export_frms_profile.py`.
+   Alternatively: `py -3 .\test\tools\FRMS_DB_PROFILE_EXPORT\export_frms_profile.py`.
 
 4. Output is outside the repo at `%USERPROFILE%\FRMS_PROFILE_EXPORTS\`:
 
@@ -40,9 +40,11 @@ These are **candidates only**. Final tests must verify actual roles, ownership, 
 
 ## Failure scenarios
 
-- `Cannot locate backend/Frms.Api`: place the extracted folder directly in the repository root.
+- `Cannot locate backend/Frms.Api`: keep the exporter inside this repository's directory tree, under `test/tools/`.
 - `Missing dependency`: run the installation command above; no need to modify .NET project dependencies.
 - `Missing ConnectionStrings`: ensure the backend `.env` exists in your local repo (do not upload it).
 - `PostgreSQL connection/export failed`: check Supabase/PG network access, TLS, or DB permissions on your own machine. Do not paste credentials.
 
 Do **not commit** the resulting ZIP or JSON to Git. The default output folder intentionally lives outside the repository.
+
+**Windows Python pip repair:** The tracked `RUN_EXPORT.cmd` uses system `py -3`; if its pip is broken, do not alter project dependencies. Create a separate virtual environment (for example `%TEMP%\frms-profile-export-venv`), install `psycopg[binary]` inside it and invoke `export_frms_profile.py` with that environment's `python.exe`. The absolute `__file__` lookup makes this work from any current working directory.

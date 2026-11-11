@@ -8,11 +8,11 @@ Last updated: 2026-11-11. Branch: `TEST_SWT`. Existing 51 PASS remain historical
 
 ## Installation (Windows CMD)
 
-1. Extract this directory as `FRMS_BATCH12_FIXTURE_AUTO` at the **repository root**, containing `install.mjs` and `tests/system/scripts/batch12-discover.mjs`.
+1. This *historical installer version* is stored at `test/tools/FRMS_BATCH12_FIXTURE_AUTO/`, containing `install.mjs` and its bundled `tests/system/scripts/batch12-discover.mjs`. Do not re-install on a branch where later discovery changes have already been applied.
 2. From that same root, while on `TEST_SWT`, run:
 
 ```bat
-node .\FRMS_BATCH12_FIXTURE_AUTO\install.mjs
+node .\test\tools\FRMS_BATCH12_FIXTURE_AUTO\install.mjs
 git diff -- run-frms-tests.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\run-frms-tests.ps1" -Mode all -Workers 4 -Retries 1
 ```

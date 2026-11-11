@@ -1,3 +1,5 @@
+> Archived historical addendum stored at `test/tools/FRMS_BATCH12_FIXTURE_AUTO/`; current test state is in `test/handoff/`. Do not automatically rerun its installer.
+
 # profile.md — Batch 12 fixture update (2026-11-11)
 
 The environment audit reported 20 explicit missing fixture keys. The uploaded public Facility API snapshot identifies:
