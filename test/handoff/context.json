@@ -209,7 +209,14 @@
       "kind": "readonly_postgresql_metadata_exporter",
       "entrypoint": "test/tools/FRMS_DB_PROFILE_EXPORT/RUN_EXPORT.cmd",
       "status": "tracked, not a database backup",
-      "requires": "Python 3 and psycopg; broken system pip needs an isolated venv"
+      "requires": "Python 3 and psycopg; broken system pip needs an isolated venv",
+      "default_report_directory": "test/reports/db-profile",
+      "artifacts": [
+        "FRMS_PROFILE_SAFE_<UTC>.zip",
+        "FRMS_PROFILE_SUMMARY_<UTC>.json"
+      ],
+      "direct_python_default": "home/FRMS_PROFILE_EXPORTS unless --out is set",
+      "report_git_ignored": true
     },
     {
       "path": "test/tools/FRMS_BATCH12_FIXTURE_AUTO",

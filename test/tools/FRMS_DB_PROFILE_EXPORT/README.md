@@ -19,14 +19,14 @@ It reads `backend/Frms.Api/.env` locally for `ConnectionStrings__Frms` / `Connec
    .\test\tools\FRMS_DB_PROFILE_EXPORT\RUN_EXPORT.cmd
    ```
 
-   Alternatively: `py -3 .\test\tools\FRMS_DB_PROFILE_EXPORT\export_frms_profile.py`.
+   Alternatively: `py -3 .\test\tools\FRMS_DB_PROFILE_EXPORT\export_frms_profile.py --out ".\test\reports\db-profile"` to use the same destination when calling Python directly. Without `--out`, the standalone Python script still defaults to `%USERPROFILE%\FRMS_PROFILE_EXPORTS\`.
 
-4. Output is outside the repo at `%USERPROFILE%\FRMS_PROFILE_EXPORTS\`:
+4. The `RUN_EXPORT.cmd` default output is **inside the repository but Git-ignored** at `test/reports/db-profile/`:
 
    - `FRMS_PROFILE_SAFE_<UTC>.zip` — sanitized schema, all eligible rows, manifest, candidate fixture report.
    - `FRMS_PROFILE_SUMMARY_<UTC>.json` — counts, chosen safe columns, and fixture candidates. Share this first if the ZIP is large.
 
-Optional: `RUN_EXPORT.cmd --row-limit 5000` to cap rows in very large databases, or `--out "D:\safe-output"` to choose output directory. Default exports **all rows** for each eligible table, streaming to ZIP without reading the whole DB into memory. It only exports `public` by default; never point this at unrelated `auth`, `storage`, or system schemas.
+Optional: `RUN_EXPORT.cmd --row-limit 5000` to cap rows in very large databases, or `RUN_EXPORT.cmd --out "D:\safe-output"` to override the default output directory. The script passes its default `--out` first; a caller-supplied `--out` overrides it. Default exports **all rows** for each eligible table, streaming to ZIP without reading the whole DB into memory. It only exports `public` by default; never point this at unrelated `auth`, `storage`, or system schemas.
 
 ## What you should share
 
@@ -45,6 +45,8 @@ These are **candidates only**. Final tests must verify actual roles, ownership, 
 - `Missing ConnectionStrings`: ensure the backend `.env` exists in your local repo (do not upload it).
 - `PostgreSQL connection/export failed`: check Supabase/PG network access, TLS, or DB permissions on your own machine. Do not paste credentials.
 
-Do **not commit** the resulting ZIP or JSON to Git. The default output folder intentionally lives outside the repository.
+Do **not commit** the resulting ZIP or JSON to Git. The default output folder now lives under `test/reports/db-profile/` and is excluded from Git by `test/reports/.gitignore`. This is a protection against accidental tracking, not a substitute for reviewing sensitive IDs before sharing.
 
 **Windows Python pip repair:** The tracked `RUN_EXPORT.cmd` uses system `py -3`; if its pip is broken, do not alter project dependencies. Create a separate virtual environment (for example `%TEMP%\frms-profile-export-venv`), install `psycopg[binary]` inside it and invoke `export_frms_profile.py` with that environment's `python.exe`. The absolute `__file__` lookup makes this work from any current working directory.
+
+If `pip` is broken and a virtual environment is required, pass `--out ".\test\reports\db-profile"` in the direct Python invocation to use the same report folder.
