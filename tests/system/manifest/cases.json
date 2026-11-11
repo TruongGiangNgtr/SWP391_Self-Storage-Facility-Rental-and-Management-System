@@ -3620,5 +3620,18 @@
     "implementation": null,
     "oracleApproval": "PENDING_SRS_REVIEW",
     "notes": "Procedure: 1. Login as Facility Staff; 2. Open an IN_PROGRESS inspection; 3. Select Photo (IMAGE); 4. Choose a test file of 9,000,001 bytes; 5. Click Upload; 6. Verify size rejection, no evidence created, and form not stuck on Uploading; 7. Inspect Network status/timing if stuck. Tester reported UI 'bị đứng' for file over 9 MB; exact HTTP status, timing and UI behavior remain unverified. FRMS-DEF-003 is a candidate, not a confirmed defect. Avoid shared DB mutation."
+  },
+  {
+    "id": "FRMS-ST-0279",
+    "area": "Access Visits",
+    "name": "Verify customer CCCD is displayed on the Staff Access Visit Check-in page.",
+    "sourceKey": "Supplemental:Staff-Access-Visit-CCCD-GUI",
+    "technique": "GUI Testing / Data Display Verification",
+    "expectedUI": "When an authorized Facility Staff member opens the Check In Customer screen for a scheduled ACCESS visit whose customer has a recorded CCCD, the customer CCCD field is visible and displays the correct permitted value (or an explicitly required masked representation); it must not be silently blank. Confirm visibility/masking rules against requirements.",
+    "channel": "UI",
+    "automation": "NOT_IMPLEMENTED",
+    "implementation": null,
+    "oracleApproval": "PENDING_SRS_REVIEW",
+    "notes": "Procedure: 1. Sign in through the GUI as Facility Staff assigned to the visit's facility; 2. Navigate to Staff Access Visit Processing; 3. Open a SCHEDULED ACCESS visit for a customer with a known CCCD in an isolated test fixture; 4. Inspect the Check In Customer screen; 5. Verify the CCCD label/value is rendered according to authorized display rules, without invoking check-in APIs directly. Tester-reported actual: CCCD is not displayed on Check In Customer page (2026-11-11). Related FRMS-ST-0074 and FRMS-ST-0158. GUI-only assertion; no direct API mutation. Defect candidate pending requirement and reproduction verification."
   }
 ]
