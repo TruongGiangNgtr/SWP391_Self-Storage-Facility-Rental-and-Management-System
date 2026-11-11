@@ -28,6 +28,12 @@ export function StaffHandoverPage() {
   const validAssignment = isActiveHandoverAssignment(assignment, reservationId)
   const [validationError, setValidationError] = useState<ApiErrorPresentation | null>(null)
   const customer = context?.workItem?.customer
+  // Missing API field is different from a saved null CCCD.
+  const cccdDisplay = !customer
+    ? '—'
+    : customer.cccd === undefined
+      ? 'Not provided by Staff API'
+      : customer.cccd?.trim() || 'Not recorded'
   const discounts = useCustomerDiscounts(context?.reservation.status === 'CONFIRMED' ? customer?.customerId : undefined, discountPage)
   const selectedDiscount = discounts.response?.data.find(
     (item) => item.discountId === discountId && item.customerId === customer?.customerId && item.status === 'ACTIVE',
@@ -78,15 +84,11 @@ export function StaffHandoverPage() {
             {customer ? (
               <p className="muted">
                 Phone: <strong>{customer.phoneNumber}</strong>
-                {customer.cccd ? (
-                  <> · Citizen ID (CCCD): <strong>{customer.cccd}</strong></>
-                ) : (
-                  <> · Citizen ID (CCCD): <em>Not recorded</em></>
-                )}
+                {' · Citizen ID (CCCD): '}<strong>{cccdDisplay}</strong>
               </p>
             ) : <p className="notice">Customer identification is not in the current work-list page. Return to Work List to review the customer; a missing work item is not evidence of a different reservation.</p>}
             <dl className="detail-list">
-              <div><dt>Citizen ID (CCCD)</dt><dd><strong style={{ letterSpacing: '0.05em' }}>{customer?.cccd ?? '—'}</strong></dd></div>
+              <div><dt>Citizen ID (CCCD)</dt><dd><strong style={{ letterSpacing: '0.05em' }}>{cccdDisplay}</strong></dd></div>
               <div><dt>Reservation</dt><dd><EmployeeReservationLabel customerId={context.reservation.customerId} customerName={customer?.fullName} startMonth={context.reservation.startMonth} endMonth={context.reservation.endMonth} visitDate={context.visit.visitDate} /></dd></div>
               <div><dt>Rental Period</dt><dd>{formatMonthRange(context.reservation.startMonth, context.reservation.endMonth)}</dd></div>
               <div><dt>Facility</dt><dd><EmployeeEntityLabel kind="facility" id={context.reservation.facilityId} /></dd></div>

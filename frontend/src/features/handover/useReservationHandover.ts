@@ -8,6 +8,7 @@ import type { ReservationDetail } from '../reservations/reservation.types'
 import type { VisitDetail } from '../visits/visit.types'
 import { isReservationWorkItem, type CompleteHandoverRequest, type CompleteHandoverResult, type ReservationWorkItem, type HandoverUnitAssignment } from './handover.types'
 import { getHandoverContextError, isUuid, isActiveHandoverAssignment, sameHandoverAssignment } from './handoverValidation'
+import { fetchAllEmployeePages } from '../../utils/employeePresentation'
 
 interface HandoverContext {
   assignment: HandoverUnitAssignment | null
@@ -45,13 +46,15 @@ export function useReservationHandover(reservationId: string, visitId: string, w
           setSnapshot({ key, context: null, error: presentValidationError(contextError) })
           return
         }
-        // Read exactly the work-list page from navigation, not an unbounded list scan.
-        const [workResponse, assignmentResponse] = await Promise.all([
-          visitApi.listStaffWorkItems({ date: visit.visitDate, page: workPage }),
+        // workPage is the filtered UI page, not an API page. Match the visit
+        // across the same facility-scoped daily list used by the Work List.
+        const [workItems, assignmentResponse] = await Promise.all([
+          fetchAllEmployeePages((page, pageSize) =>
+            visitApi.listStaffWorkItems({ date: visit.visitDate, page, pageSize })),
           handoverAssignmentApi.get(reservationId),
         ])
         if (current !== revision.current) return
-        const workItem = workResponse.data.find((item): item is ReservationWorkItem =>
+        const workItem = workItems.items.find((item): item is ReservationWorkItem =>
           isReservationWorkItem(item) && item.referenceId === visitId && item.entityId === reservationId) ?? null
         setSnapshot({ key, context: { reservation, visit, workItem, assignment: assignmentResponse.data }, error: null })
       } catch (caughtError) {
