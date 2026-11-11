@@ -33,3 +33,7 @@ git pull --ff-only origin TEST_SWT
 ```
 
 Do not use `-StartBackend` or any state-writing fixture setup on the shared database. The older four unresolved cases `0067`, `0071`, `0109`, `0188` remain deferred; see `BLOCKED_FIXTURES_0067_0071_0109_0188.md`.
+
+## 2026-11-11 — ST-0061 targeted PASS after locator fix
+
+User CMD log confirmed `FRMS-ST-0061` run `20261111T120242294Z`: **1/1 PASS, 24.3s**, workers=1, retries=0, exit codes 0. The local branch was fast-forwarded to `fb5f216` before execution. Earlier `20261111T115025397Z` strict-locator FAIL remains historical; **0061 now has post-fix targeted PASS evidence**. Batch 14 thus has **4/15 distinct targeted PASS**, 11 without runtime, no newly confirmed Jira defect from this run; DB remains read-only. Since this run, remote branch also added ST-0276 as NOT_IMPLEMENTED, increasing registry to **276 cases / 153 IMPLEMENTED / 115 NOT_IMPLEMENTED / 8 REVIEW (55.43%)**. The old full run (275 cases, 95 PASS) and 0061's own 275-case runner snapshot remain unchanged. See `test/handoff/BATCH14_ST0061_PASS_20261111T120242294Z.md`.

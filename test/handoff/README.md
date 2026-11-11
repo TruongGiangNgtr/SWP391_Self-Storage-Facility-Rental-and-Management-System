@@ -61,3 +61,5 @@ Last reviewed: **2026-11-11**, against branch head `145e9f965f3a` before adding 
 - [BATCH14_IMPLEMENTATION_20261111.md](BATCH14_IMPLEMENTATION_20261111.md): 15 source-backed read-only cases; 153/275 implementation mappings, runtime pending.
 - [BATCH14_ENVIRONMENT_20261111.md](BATCH14_ENVIRONMENT_20261111.md): confirmed existing environment keys, credential checks and no-new-key statement.
 - [BLOCKED_FIXTURES_0067_0071_0109_0188.md](BLOCKED_FIXTURES_0067_0071_0109_0188.md): four previously mapped cases deferred for genuine authorized fixture evidence.
+
+- [BATCH14_ST0061_PASS_20261111T120242294Z.md](BATCH14_ST0061_PASS_20261111T120242294Z.md): post-fix 0061 PASS and concurrent registry reconciliation.

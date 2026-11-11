@@ -195,3 +195,7 @@ Added **15** source-backed system tests across Billing (0091-0094), Renewal prev
 ## 2026-11-11 — Batch 14 targeted rerun evidence
 
 Three new IDs were observed PASS in user console logs: `0103` (`20261111T114719268Z`), `0104` (`20261111T114821972Z`), `0194` (`20261111T114924460Z`). `0061` (`20261111T115025397Z`) **FAILED** due to Playwright strict-mode locator ambiguity between two valid offline-payment notices. Patched only the locator within `.handover-operation form > p.muted`; **ST-0061 remains PENDING_TARGETED_RERUN**, not PASS. Total mappings stay **153/275 (55.64%)**, 114 outstanding, 8 review. Shared DB was not modified; no Jira defect confirmed. See `test/handoff/BATCH14_TARGETED_RUNS_20261111.md`.
+
+## 2026-11-11 — ST-0061 targeted PASS after locator fix
+
+User CMD log confirmed `FRMS-ST-0061` run `20261111T120242294Z`: **1/1 PASS, 24.3s**, workers=1, retries=0, exit codes 0. The local branch was fast-forwarded to `fb5f216` before execution. Earlier `20261111T115025397Z` strict-locator FAIL remains historical; **0061 now has post-fix targeted PASS evidence**. Batch 14 thus has **4/15 distinct targeted PASS**, 11 without runtime, no newly confirmed Jira defect from this run; DB remains read-only. Since this run, remote branch also added ST-0276 as NOT_IMPLEMENTED, increasing registry to **276 cases / 153 IMPLEMENTED / 115 NOT_IMPLEMENTED / 8 REVIEW (55.43%)**. The old full run (275 cases, 95 PASS) and 0061's own 275-case runner snapshot remain unchanged. See `test/handoff/BATCH14_ST0061_PASS_20261111T120242294Z.md`.
