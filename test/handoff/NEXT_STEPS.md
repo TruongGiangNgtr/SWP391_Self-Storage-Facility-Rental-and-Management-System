@@ -178,3 +178,9 @@ User CMD output confirmed `.\RUN_FRMS_TESTS.cmd -Mode coverage` **PASS, exit 0**
 
 Next safe read-only Batch14 test candidates: `FRMS-ST-0094`, `FRMS-ST-0243`; other pending: `0116`, `0117`, `0118`, `0122`, `0244`. Those require authentic paid/overdue invoice, completed Inspection, pending Damage or settlement partition; classify absent fixture as Blocked. Four earlier patched cases `0067/0071/0109/0188` remain deferred. Do not run data-writing evidence uploads on shared Supabase.
 
+## 2026-11-11 — Batch 14 ST-0094 PASS and ST-0243 SKIPPED
+
+User Windows CMD output: `-Mode coverage` **PASS, exit 0** for **281 registered / 281 unique / 153 IMPLEMENTED / 120 NOT_IMPLEMENTED / 8 REVIEW** (275 baseline + 6 supplemental). `FRMS-ST-0094` run `20261111T135631438Z` **1/1 PASS**, 19.0s, workers=1, retries=0, exit 0. `FRMS-ST-0243` run `20261111T140148408Z` **1 SKIPPED / exit 2**, not PASS or a confirmed product defect. ST-0243 seeks a Customer-owned Contract with Inspection `COMPLETED` and no settlement; its **exact skip reason is not shown in the console** and requires the local run report. Batch 14 now **9/15 distinct targeted PASS**, **1 SKIPPED**, **5 not yet run** (`0116`, `0117`, `0118`, `0122`, `0244`). No new confirmed Jira defect from these logs; shared Supabase read-only. Original full regression `20261111T085924993Z` remains 95 PASS at its historical 275-case registry. More: `test/handoff/BATCH14_COVERAGE281_ST0094_PASS_ST0243_SKIPPED_20261111.md`.
+
+Next check: inspect `tests/system/reports/20261111T140148408Z/summary.md` and `playwright-results.json` for the exact ST-0243 skip reason before proposing a fixture. Prefer genuine Customer1/2 Contract with `COMPLETED` Inspection and null settlement, do not seed shared DB. Pending read-only targeted cases: `FRMS-ST-0117`, `0118`, `0116`, `0122`, `0244`. Use the exact option `-SkipCatalogDiscovery` (the provided 0243 command omitted its final 'y').
+
