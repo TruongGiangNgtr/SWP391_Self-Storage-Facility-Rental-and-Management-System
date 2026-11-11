@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "generated_date": "2026-11-11",
   "language": "en",
   "data_classification": "internal-test-metadata; no raw DB export or credentials",
@@ -45,8 +45,8 @@
     "main_divergence_at_review": {
       "behind": 22
     },
-    "snapshot_at_utc": "2026-11-11T04:40:10Z",
-    "snapshot_mode": "read-only sanitized metadata; not current runtime",
+    "snapshot_at_utc": "2026-11-11T06:30:28.186617Z",
+    "snapshot_mode": "read-only sanitized public schema, 29 tables inventoried, 28 exported, 1 skipped; runtime unverified",
     "historical_pass": {
       "passed": 51,
       "executed": 51,
@@ -56,6 +56,73 @@
     "batch12": {
       "additional_mapped_cases": 50,
       "entire_batch_runtime_confirmed": false
+    },
+    "snapshot_files": [
+      "FRMS_PROFILE_SAFE_20261111T063028Z.zip",
+      "FRMS_PROFILE_SUMMARY_20261111T063028Z.json"
+    ],
+    "snapshot_inventory": {
+      "tables_inventoried": 29,
+      "tables_exported": 28,
+      "skipped_tables": [
+        "AuditLog"
+      ],
+      "exported_rows": 1552,
+      "storage_units": {
+        "total": 386,
+        "AVAILABLE": 378,
+        "MAINTENANCE": 3,
+        "INSPECTION": 3,
+        "IN_USE": 2
+      },
+      "reservations": {
+        "total": 12,
+        "CONFIRMED": 3,
+        "COMPLETED": 6,
+        "PENDING_DEPOSIT": 2,
+        "CANCELLED": 1
+      },
+      "visits": {
+        "total": 21,
+        "CHECKED_IN": 6,
+        "CHECKED_OUT": 10,
+        "SCHEDULED": 4,
+        "CANCELLED": 1,
+        "scheduled_reservation_visits": 0
+      },
+      "handover_assignments": {
+        "total": 8,
+        "ACTIVE": 2,
+        "CONSUMED": 6
+      },
+      "contracts": {
+        "total": 6,
+        "ACTIVE": 3,
+        "TERMINATED": 3,
+        "COMPLETED": 0
+      },
+      "user_accounts": {
+        "total": 132,
+        "ACTIVE": 131,
+        "INACTIVE": 1
+      }
+    },
+    "handover_candidate": {
+      "reservation_id": "f1112fee-e99f-4094-879a-563ddd1f8f81",
+      "visit_id": "6855fba5-942c-40a4-bf22-5658ca3be00c",
+      "physical_unit_id": "fa72ca32-22d6-496c-aca2-20e64c040de7",
+      "facility_id": "f0000000-0000-0000-0000-000000000001",
+      "unit_type_id": "b1000000-0000-0000-0000-000000000001",
+      "assignment_id": "d9e3672e-9708-46de-96a9-72a860f55065",
+      "assignment_status": "ACTIVE",
+      "reservation_status": "CONFIRMED",
+      "visit_status": "CHECKED_IN",
+      "unit_status": "AVAILABLE",
+      "evidence": "SNAPSHOT_VERIFIED",
+      "authorization": "PENDING_RUNTIME",
+      "new_assignment_eligibility": "NOT_ESTABLISHED",
+      "read_only_FRMS_ST_0065": "MAY_BE_USABLE_AFTER_ROLE_AND_ORACLE_REVIEW",
+      "wrapper_guard": "RUN_FRMS_TESTS.ps1 currently clears this reservation from FRMS_TEST_ASSIGNABLE_RESERVATION_ID"
     }
   },
   "coverage": {
@@ -183,7 +250,8 @@
     "danger": "Starting backend may activate Reservation Expiration background job; use already-running authorized API and no -StartBackend by default"
   },
   "known_blockers": [
-    "FRMS_TEST_ASSIGNABLE_RESERVATION_ID",
+    "FRMS_TEST_STAFF_HANDOVER_VISIT_ID (SCHEDULED precondition absent)",
+    "FRMS_TEST_ASSIGNABLE_RESERVATION_ID (launcher guard / runtime role pending)",
     "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE",
     "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL"
   ],
@@ -198,10 +266,12 @@
     "profile.md"
   ],
   "caveats": [
-    "The branch profile.md predates the Nov 11 sanitized DB snapshot; use handoff evidence for newer facts.",
     "Optional patch folders are not evidence their installers have run.",
     "The committed discovery currently defaults to Staff F02 rather than the configured F32 test actor.",
-    "The committed wrapper does not contain the dedicated negative-fixture installer hook."
+    "The committed wrapper does not contain the dedicated negative-fixture installer hook.",
+    "profile.md updated from second sanitized snapshot but contains no new runtime PASS evidence.",
+    "An ACTIVE handover assignment already links the new F01 matching Reservation and Unit; do not create/release assignments on shared data.",
+    "Zero RESERVATION/SCHEDULED Visits in snapshot; previously configured Staff handover Visit is now CHECKED_IN."
   ],
   "tools": [
     {

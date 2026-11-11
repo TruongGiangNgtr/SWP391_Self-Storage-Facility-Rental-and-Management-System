@@ -79,12 +79,13 @@ The wrapper defaults to demo identifiers from the existing source; actual secret
 ## 6. Missing fixtures and what to do
 
 ```text
-FRMS_TEST_ASSIGNABLE_RESERVATION_ID     BLOCKED by snapshot business data (FRMS-ST-0065)
+FRMS_TEST_ASSIGNABLE_RESERVATION_ID     New matching F01 tuple exists, but ACTIVE assignment + stale launcher guard + Manager API pending (FRMS-ST-0065)
 FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE  Must verify absent via complete Admin directory (FRMS-ST-0199)
 FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL  Must verify absent via complete Admin directory (FRMS-ST-0203)
+FRMS_TEST_STAFF_HANDOVER_VISIT_ID     CHECKED_IN now; no RESERVATION/SCHEDULED Visit in snapshot for pre-check-in tests
 ```
 
-Do **not** replace missing fixtures with unrelated UUIDs or invented unregistered identities. If a newly authorized, isolated test DB is provisioned, build a deterministic fixture factory and validate same Facility + UnitType + Visit status, then rerun case and record evidence.
+Do **not** replace missing fixtures with unrelated UUIDs or invented unregistered identities. The new matching F01 Reservation is already linked to an ACTIVE HandoverUnitAssignment; only consider read-only matching assertions after Manager API and oracle review. The current wrapper hard-rejects its ID from an earlier snapshot. No assignment mutation is allowed. If a newly authorized, isolated test DB is provisioned, build a deterministic fixture factory and validate same Facility + UnitType + Visit status, then rerun case and record evidence.
 
 The active discovery code may still use Staff F02 by default even though the fixture uses Staff F32. An F32 dedicated patch exists outside the canonical script; **check installed source before reapplying**. `FRMS_TEST_OTHER_FACILITY_REFERENCE_ID` is a Visit ID with reference date `2026-12-05`.
 

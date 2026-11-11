@@ -58,17 +58,21 @@ Full operational commands are in [RUNBOOK.md](RUNBOOK.md).
 
 Demo identities: Customer 1/2/3 use phone numbers `0901000001/2/3`. Staff F01 `staff.f01@example.com`; Staff F32 `staff.f32@example.com`; Manager F01 `manager.f01@example.com`; BOM `bom@example.com`; Admin `admin@example.com` use emails. Credential values are not included in this handoff. Actual ACTIVE role and facility permission must be checked.
 
-## 4. Fixture status — key handoff facts
+## 4. Fixture status — new 2026-11-11 06:30:28 UTC snapshot
 
-The user supplied a *sanitized, read-only* PostgreSQL snapshot from `2026-11-11T04:40:10Z`. It supports **candidate** IDs, not permanent data availability. The committed wrapper has 17 candidate fixture values and additional F32 date/terminated-contract metadata; machine-readable names and values are in [fixtures.json](fixtures.json).
+The user uploaded **`FRMS_PROFILE_SAFE_20261111T063028Z.zip`** and **`FRMS_PROFILE_SUMMARY_20261111T063028Z.json`** (internal, not in Git). Manifest and candidate data match: 29 public tables inventoried, 28 exported, AuditLog skipped, **1,552 metadata rows**. Snapshot states include 12 Reservations (3 CONFIRMED), 21 Visits (6 CHECKED_IN, 4 SCHEDULED, **0 RESERVATION/SCHEDULED**), 386 StorageUnits (378 AVAILABLE), 8 Handover Assignments (2 ACTIVE).
 
-**Blocked:** `FRMS_TEST_ASSIGNABLE_RESERVATION_ID` for `FRMS-ST-0065`. At Facility 01, Reservation `b370c765-adb7-4e16-aa19-54caf7d5b788` is `CONFIRMED` and its Visit is `CHECKED_IN`, but UnitType `b1000000-0000-0000-0000-000000000002` has 2 `IN_USE`, 1 `INSPECTION`, **0 AVAILABLE** physical units. Reservation `f1112fee-e99f-4094-879a-563ddd1f8f81` has an available matching type but Visit still `SCHEDULED`. Neither is a valid assignable ID. Do not force an ID or alter remote DB to make the case pass.
+**Manager F01 matching candidate found:** Reservation `f1112fee-e99f-4094-879a-563ddd1f8f81` CONFIRMED, Visit `6855fba5-942c-40a4-bf22-5658ca3be00c` RESERVATION/CHECKED_IN, physical Unit `fa72ca32-22d6-496c-aca2-20e64c040de7` AVAILABLE and matching UnitType ...0001. However, an **existing ACTIVE** assignment `d9e3672e-9708-46de-96a9-72a860f55065` already binds these exact records. It is a **snapshot-confirmed matching tuple**, not proven eligible for *new* assignment. `FRMS-ST-0065` currently makes only read-only matching/UI checks; authenticate Manager F01 and approve the testcase oracle before using the candidate. Never send assignment save/release as a diagnostic.
 
-**Snapshot corroborated but runtime authorization pending:** `FRMS_TEST_OTHER_FACILITY_REFERENCE_ID=33a922ce-416f-4757-87f5-8f85aba047ef` is a **Visit ID**, not Facility ID. It belongs to Reservation `bc9b2c4c-9d74-4f16-b0d6-73156a42fe85` at Facility 32, Visit date `2026-12-05`, status `CHECKED_IN`. Confirm Staff F32 can read it and Staff F01 cannot. `FRMS-ST-0165` checks isolation, not mere UUID format.
+**Launcher conflict:** current `RUN_FRMS_TESTS.ps1` still includes `f1112fee-e99f-4094-879a-563ddd1f8f81` in `knownIneligible` based on the earlier snapshot and clears the custom `FRMS_TEST_ASSIGNABLE_RESERVATION_ID`. This is a stale guard to review separately. The profile/handoff update **does not change test code or launcher**.
 
-**Unverified negative identifiers:** `FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE`, `FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL` require full-page enumeration of Admin user directory with actual phone/email data. The sanitized database export excludes these fields. They should remain missing if the Admin verification cannot complete.
+**Scheduled-Visit fixture is now invalid:** `FRMS_TEST_STAFF_HANDOVER_VISIT_ID=6855fba5-942c-40a4-bf22-5658ca3be00c` is now CHECKED_IN, **not SCHEDULED**. No RESERVATION/SCHEDULED Visits exist among the 21 snapshot Visits. Keep any before-check-in dependent scenario Blocked until a real eligible Visit exists.
 
-**Other unresolved preconditions:** `FRMS_TEST_NO_CCCD_PHONE/PASSWORD`, `FRMS_TEST_COMPLETED_CONTRACT_ID` were not established from the snapshot. Read-only fixture discovery may be incomplete.
+**Foreign F32 fixture unchanged:** `FRMS_TEST_OTHER_FACILITY_REFERENCE_ID=33a922ce-416f-4757-87f5-8f85aba047ef` is a Reservation Visit at Facility 32 on 2026-12-05, CHECKED_IN. F32 authorized/F01 denied API results require runtime checks; comparing only F01's 2026-12-01 work list is not sufficient.
+
+**Unregistered identifiers unresolved:** `FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE` and `FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL` are withheld from the sanitized export; verify absence across all authenticated Admin pages. `FRMS_TEST_NO_CCCD_PHONE/PASSWORD` and `FRMS_TEST_COMPLETED_CONTRACT_ID` remain without verified positive fixtures. All 6 Contracts in this snapshot are ACTIVE or TERMINATED.
+
+See [fixtures.json](fixtures.json) for structured candidates and statuses. No test PASS or login rights follow from this snapshot.
 
 ## 5. Critical implementation discrepancies to check before further tests
 
@@ -78,7 +82,7 @@ The committed `tests/system/scripts/batch12-discover.mjs` is **not** the latest 
 
 The current `tests/e2e/playwright/tests/frms/batch12-staff.spec.ts` is older than the `test/tools/FRMS_BATCH12_FINAL2_FIX/batch12-staff.spec.ts` patch candidate. Review differences and acceptance criteria before editing. Avoid mixing installer versions blindly.
 
-Root `profile.md` on the tracked branch predates the 2026-11-11 full snapshot and has stale 30-case status in sections; use this folder and `tests/system/README.md` for current counts, not those old profile sections.
+Root `profile.md` has now been updated from the second sanitized snapshot and current 101-case registry. Use it with `fixtures.json` for current metadata; a fresh report is still necessary for PASS results.
 
 ## 6. Repo links and file ownership
 
@@ -105,7 +109,7 @@ Root `profile.md` on the tracked branch predates the 2026-11-11 full snapshot an
 
 ## 8. Next priorities
 
-See [NEXT_STEPS.md](NEXT_STEPS.md). Most immediate: resolve negative fixture verification safely, reconcile F32 cross-facility discovery/STAFF test versions, validate 101 testcase discovery and run evidence; leave the assignment case blocked until genuine test data become eligible.
+See [NEXT_STEPS.md](NEXT_STEPS.md). Most immediate: resolve negative fixture verification safely, reconcile F32 cross-facility discovery/STAFF test versions, validate 101 testcase discovery and run evidence; verify the new read-only F01 matching tuple and stale launcher guard, while keeping any new assignment operations prohibited on shared data. Scheduled Visit tests have no valid fixture in this snapshot.
 
 ## 9. PowerShell cleanup decision (2026-11-11)
 

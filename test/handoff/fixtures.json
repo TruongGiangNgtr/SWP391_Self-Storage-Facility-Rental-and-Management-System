@@ -1,7 +1,7 @@
 {
-  "schema_version": "1.0.0",
-  "snapshot_utc": "2026-11-11T04:40:10Z",
-  "source": "RUN_FRMS_TESTS.ps1 snapshot fixture defaults; source snapshot separately user-supplied",
+  "schema_version": "1.1.0",
+  "snapshot_utc": "2026-11-11T06:30:28.186617Z",
+  "source": "RUN_FRMS_TESTS.ps1 defaults cross-checked against 2026-11-11T06:30:28Z user-supplied sanitized ZIP and JSON; no runtime authorization asserted",
   "usage": "Read-only candidate metadata. Reverify role, owner, facility, type, status and current availability before using. Never commit passwords or raw DB exports.",
   "items": [
     {
@@ -13,15 +13,28 @@
     {
       "name": "FRMS_TEST_ASSIGNABLE_RESERVATION_ID",
       "value": null,
-      "evidence": "no_eligible_f01_reservation_visit_unit_tuple_in_snapshot",
+      "evidence": "new snapshot contains a matching CONFIRMED+CHECKED_IN+AVAILABLE F01 triple, but already ACTIVE assignment and launcher knownIneligible guard",
       "runtime_verified": false,
-      "state": "BLOCKED"
+      "state": "PENDING_RUNTIME_AND_LAUNCHER_REVIEW",
+      "candidate": {
+        "reservationId": "f1112fee-e99f-4094-879a-563ddd1f8f81",
+        "visitId": "6855fba5-942c-40a4-bf22-5658ca3be00c",
+        "storageUnitId": "fa72ca32-22d6-496c-aca2-20e64c040de7",
+        "unitTypeId": "b1000000-0000-0000-0000-000000000001",
+        "facilityId": "f0000000-0000-0000-0000-000000000001",
+        "existingAssignmentId": "d9e3672e-9708-46de-96a9-72a860f55065",
+        "existingAssignmentStatus": "ACTIVE"
+      },
+      "allowed_use": "read-only matching relation only after authenticated Manager F01 and approved testcase oracle",
+      "forbidden_use": "do not perform new assignment save/release as a diagnostic"
     },
     {
       "name": "FRMS_TEST_AVAILABLE_PHYSICAL_UNIT_ID",
       "value": "fa72ca32-22d6-496c-aca2-20e64c040de7",
-      "evidence": "snapshot_default_in_committed_runner",
-      "runtime_verified": false
+      "evidence": "StorageUnit AVAILABLE in snapshot, but assigned to matching Reservation via ACTIVE HandoverUnitAssignment",
+      "runtime_verified": false,
+      "state": "AVAILABLE_BUT_ALREADY_ASSIGNED_ACTIVE",
+      "existing_active_assignment": "d9e3672e-9708-46de-96a9-72a860f55065"
     },
     {
       "name": "FRMS_TEST_COMPLETED_CONTRACT_ID",
@@ -78,7 +91,9 @@
       "name": "FRMS_TEST_OTHER_FACILITY_REFERENCE_ID",
       "value": "33a922ce-416f-4757-87f5-8f85aba047ef",
       "evidence": "snapshot_default_in_committed_runner",
-      "runtime_verified": false
+      "runtime_verified": false,
+      "state": "SNAPSHOT_CANDIDATE",
+      "snapshot_status": "CHECKED_IN"
     },
     {
       "name": "FRMS_TEST_OTHER_FACILITY_SCOPE_DATE",
@@ -113,14 +128,17 @@
     {
       "name": "FRMS_TEST_STAFF_HANDOVER_RESERVATION_ID",
       "value": "f1112fee-e99f-4094-879a-563ddd1f8f81",
-      "evidence": "snapshot_default_in_committed_runner",
-      "runtime_verified": false
+      "evidence": "Reservation CONFIRMED; linked Visit now CHECKED_IN; not suitable for pre-check-in gating",
+      "runtime_verified": false,
+      "state": "RESERVATION_CONFIRMED_BUT_ASSOCIATED_VISIT_NOT_SCHEDULED"
     },
     {
       "name": "FRMS_TEST_STAFF_HANDOVER_VISIT_ID",
       "value": "6855fba5-942c-40a4-bf22-5658ca3be00c",
-      "evidence": "snapshot_default_in_committed_runner",
-      "runtime_verified": false
+      "evidence": "Visit changed from SCHEDULED to CHECKED_IN in new snapshot; no RESERVATION/SCHEDULED visits remain",
+      "runtime_verified": false,
+      "state": "INELIGIBLE_FOR_SCHEDULED_CASE",
+      "snapshot_status": "CHECKED_IN"
     },
     {
       "name": "FRMS_TEST_STAFF_IN_PROGRESS_INSPECTION_ID",
@@ -162,9 +180,60 @@
     }
   ],
   "rules": {
-    "FRMS_TEST_ASSIGNABLE_RESERVATION_ID": "CONFIRMED reservation in Manager F01 scope AND RESERVATION Visit CHECKED_IN AND AVAILABLE physical unit in same facility with same UnitTypeId; no current snapshot match.",
+    "FRMS_TEST_ASSIGNABLE_RESERVATION_ID": "One snapshot matching F01 CONFIRMED Reservation + CHECKED_IN Reservation Visit + AVAILABLE matching StorageUnit exists, but is already linked to an ACTIVE assignment. Do not treat as eligible for a NEW assignment. Read-only ST-0065 needs Manager F01 API/approved oracle; wrapper currently hard-rejects the ID.",
     "FRMS_TEST_OTHER_FACILITY_REFERENCE_ID": "Visit ID of Facility32, not facility ID; verify F32 allow/F01 deny under authenticated API and work-item boundaries.",
     "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE": "verify syntactically valid, absent from *every page* of Admin directory immediately before test; don't create account.",
-    "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL": "verify syntactically valid, absent from *every page* of Admin directory immediately before test; don't create account."
+    "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL": "verify syntactically valid, absent from *every page* of Admin directory immediately before test; don't create account.",
+    "FRMS_TEST_STAFF_HANDOVER_VISIT_ID": "Must be RESERVATION + SCHEDULED for pre-check-in negative case; configured Visit is CHECKED_IN and no suitable Visit remains in attached snapshot."
+  },
+  "snapshot_files": [
+    "FRMS_PROFILE_SAFE_20261111T063028Z.zip",
+    "FRMS_PROFILE_SUMMARY_20261111T063028Z.json"
+  ],
+  "snapshot_totals": {
+    "tables_inventoried": 29,
+    "tables_exported": 28,
+    "skipped_tables": [
+      "AuditLog"
+    ],
+    "exported_rows": 1552,
+    "storage_units": {
+      "total": 386,
+      "AVAILABLE": 378,
+      "MAINTENANCE": 3,
+      "INSPECTION": 3,
+      "IN_USE": 2
+    },
+    "reservations": {
+      "total": 12,
+      "CONFIRMED": 3,
+      "COMPLETED": 6,
+      "PENDING_DEPOSIT": 2,
+      "CANCELLED": 1
+    },
+    "visits": {
+      "total": 21,
+      "CHECKED_IN": 6,
+      "CHECKED_OUT": 10,
+      "SCHEDULED": 4,
+      "CANCELLED": 1,
+      "scheduled_reservation_visits": 0
+    },
+    "handover_assignments": {
+      "total": 8,
+      "ACTIVE": 2,
+      "CONSUMED": 6
+    },
+    "contracts": {
+      "total": 6,
+      "ACTIVE": 3,
+      "TERMINATED": 3,
+      "COMPLETED": 0
+    },
+    "user_accounts": {
+      "total": 132,
+      "ACTIVE": 131,
+      "INACTIVE": 1
+    }
   }
 }

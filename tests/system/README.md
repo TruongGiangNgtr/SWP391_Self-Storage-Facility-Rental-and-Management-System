@@ -79,9 +79,10 @@ The wrapper supplies the Testing process variables, read-only test flags, worker
 
 ## Fixtures and current known blockers
 
-- Snapshot baseline: sanitized PostgreSQL export at `2026-11-11T04:40:10Z` (UTC); identifiers and statuses can change after the snapshot. Validate them against the **current** API and the authenticated role.
+- Snapshot baseline: sanitized PostgreSQL export at `2026-11-11T06:30:28.186617Z` (UTC); identifiers and statuses can change after the snapshot. Validate them against the **current** API and the authenticated role.
 - `FRMS_TEST_OTHER_FACILITY_REFERENCE_ID`: cross-facility Visit ID `33a922ce-416f-4757-87f5-8f85aba047ef`, associated with Facility 32 and Staff f32. For `FRMS-ST-0165`, independently verify F32 authorized access and F01 denied access. `referenceId` is a Visit ID for a `RESERVATION_VISIT` work item, **not** a Facility ID.
-- `FRMS_TEST_ASSIGNABLE_RESERVATION_ID`: **do not set** from the 2026-11-11 snapshot. No Facility 01 Reservation simultaneously met `CONFIRMED`, Reservation Visit `CHECKED_IN`, and a matching `AVAILABLE` physical unit. `FRMS-ST-0065` remains Blocked/Skipped until real, isolated eligible data exists and is verified.
+- `FRMS_TEST_ASSIGNABLE_RESERVATION_ID`: the new snapshot has a matching F01 CONFIRMED + CHECKED_IN + AVAILABLE Unit tuple (`f1112fee-e99f-4094-879a-563ddd1f8f81`), **but it already has an ACTIVE assignment**. The current wrapper still clears the ID as `knownIneligible`. For the **read-only** ST-0065 mapping, verify Manager F01 API access, approved oracle and launcher guard before using the candidate; never create/release an assignment on shared Supabase.
+- `FRMS_TEST_STAFF_HANDOVER_VISIT_ID`: changed to `CHECKED_IN` in the new snapshot; **zero RESERVATION/SCHEDULED** Visits remain. Before-check-in gating tests have no valid fixture and must be Blocked.
 - `FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE` / `FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL`: need proof of absence in the entire Admin user directory. The sanitized DB export excludes phone/email and **cannot** establish this. A negative-fixture preflight script exists among the patch materials, but verify it is installed and invoked before treating these keys as configured. Account creation or a coincidental login error is not proof of absence.
 - Other IDs (contracts, invoices, reservations, inspections, catalogue unit types) are **candidate** values and must be revalidated for status, facility and ownership. Never insert invented UUIDs to force an audit to show zero missing.
 

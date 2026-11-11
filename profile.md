@@ -1,211 +1,149 @@
-# FRMS Automated System Testing - Profile
+# FRMS Automated System Testing — Profile
 
 **Project:** SWP391 Self-Storage Facility Rental and Management System  
 **Branch:** `TEST_SWT`  
-**Last updated:** 2026-11-10 (Asia/Ho_Chi_Minh)  
-**Purpose:** Record verified settings, intended settings, test fixtures, and the latest observed automated test run.
+**Refreshed:** 2026-11-11  
+**Latest attached DB snapshot (UTC):** `2026-11-11T06:30:28.186617Z`  
+**Classification:** Internal test metadata. Never commit raw DB ZIPs, credentials, tokens or connection strings.
 
-> Status words matter: **Verified** means confirmed by a command output or source file; **Configured** means a value to set in the local terminal; **Pending** means not yet confirmed to work. This profile does not claim that all 275 cases passed.
+**Evidence language:** `REPO_VERIFIED` means checked in current committed source, `SNAPSHOT_VERIFIED` means extracted from the user-provided read-only sanitized PostgreSQL files, `USER_REPORTED_RUNTIME` is a user-supplied previous run, and `PENDING_RUNTIME` needs fresh authenticated API/Playwright confirmation. A database snapshot is **not** a live test run.
 
-## 1. Repository and tools
+## 1. Repository, runtime and file map
 
-| Item | Value | Status |
+| Item | Location / value |
+| --- | --- |
+| GitHub | `TruongGiangNgtr/SWP391_Self-Storage-Facility-Rental-and-Management-System` |
+| Worktree | `C:\Users\buidi\OneDrive\Desktop\Git\SWP391\SWP391_Self-Storage-Facility-Rental-and-Management-System` |
+| Branch | `TEST_SWT` (do not use `swt_test` or `main`) |
+| API / test frontend | `http://127.0.0.1:5164` / `http://127.0.0.1:4173` |
+| Test runtime | Windows CMD, PowerShell 5.1, Node/pnpm, Playwright Chromium, .NET 10 |
+| Preferred entrypoint | `RUN_FRMS_TESTS.cmd` |
+| Runner chain | `RUN_FRMS_TESTS.ps1` → `run-frms-tests.ps1` |
+| Defaults | Testing, 4 Playwright workers, 1 retry, `CI=true` |
+| Registry | `tests/system/manifest/cases.json` |
+| Specs | `tests/e2e/playwright/tests/frms/` |
+| Test result reports | `tests/system/reports/<run-id>/` |
+| PostgreSQL profile exporter | `test/tools/FRMS_DB_PROFILE_EXPORT/RUN_EXPORT.cmd` |
+| Profile export reports | `test/reports/db-profile/` (Git ignored) |
+| Transfer to another AI | `test/handoff/README.md`, `test/handoff/context.json`, `test/handoff/fixtures.json` |
+
+Note the difference: `test/` holds tools/handoff/DB metadata; `tests/` holds runnable test code and Playwright reports.
+
+## 2. Automation coverage and historical runtime evidence
+
+The committed registry contains **275 unique system testcases in 12 areas**:
+
+| Functional area | Registered | Implemented | Not implemented | Review |
+| --- | ---: | ---: | ---: | ---: |
+| Authentication & Security | 51 | 39 | 12 | 0 |
+| Storage Search & AI Size Guide | 19 | 15 | 4 | 0 |
+| Reservation | 22 | 8 | 14 | 0 |
+| Handover | 29 | 5 | 24 | 0 |
+| Facility Operations | 10 | 2 | 8 | 0 |
+| Access Visits | 25 | 8 | 14 | 3 |
+| Billing & Payments | 23 | 5 | 18 | 0 |
+| Renewal | 16 | 3 | 13 | 0 |
+| Return & Settlement | 22 | 2 | 20 | 0 |
+| Support Tickets | 25 | 4 | 16 | 5 |
+| Administration | 19 | 5 | 14 | 0 |
+| Pricing & Reference Data | 14 | 5 | 9 | 0 |
+| **TOTAL** | **275** | **101** | **166** | **8** |
+
+- **Implementation coverage:** 101/275 = **36.73%** (`REPO_VERIFIED`).
+- **Historical user-reported result:** 51/51 implemented tests PASS, run `20261110T151721934Z`. This does **not** establish current success.
+- **Batch 12:** 50 additional test mappings; no evidence yet of a complete 50-case runtime PASS. Do not claim 101/101 PASS.
+- The manifest still has `oracleApproval=PENDING_SRS_REVIEW`. `IMPLEMENTED` does not mean oracle-approved or PASS.
+- Missing valid fixtures → `Blocked/Skipped`; code/test issues → `UnconfirmedFailure`; others `Review` or `Not Run`. Only independently confirmed, reproducible product defects belong in Jira.
+
+## 3. Database safety and access conventions
+
+The last-known API configuration targets **remote/shared Supabase PostgreSQL**. `ASPNETCORE_ENVIRONMENT=Testing` is a process setting, **not** database isolation. `ConnectionStrings__Frms` may take precedence over `ConnectionStrings__FrmsDb`; both must be checked privately in `backend/Frms.Api/.env` without printing secrets.
+
+- Limit runs on shared data to authorized read-only inspection, negative frontend validation and bounded authentication. Login may write `LoginHistory`.
+- Billing, NoShow, Notifications job flags can be disabled, but Reservation Expiration is not controlled by those three flags. Do not launch an API process against shared data without reviewing that job.
+- No real Reservation creation/check-in, handover assignment save/release, renewal, invoice/payment mutation, migrations, account modifications or seeding to manufacture test preconditions.
+- The exporter uses `READ ONLY` transactions and allowlisted metadata fields. Its ZIP may still include linkable business IDs and should stay internal.
+- The stored profile and handoff contain no live DB password, JWT, payOS token or raw user phone/email table.
+
+## 4. New PostgreSQL snapshot from uploaded files
+
+Files examined (not committed): `FRMS_PROFILE_SAFE_20261111T063028Z.zip` and `FRMS_PROFILE_SUMMARY_20261111T063028Z.json`. Their manifest and candidate JSON agree. Export timestamp: **2026-11-11 06:30:28 UTC**.
+
+**Inventory:** 29 tables surveyed; 28 exported; 1 sensitive `AuditLog` table skipped; **1,552 metadata rows** from allowlisted columns. The ZIP passed integrity checking. No full database dump or personally identifiable credential fields were imported.
+
+| Table | Rows | States (where available) |
+| --- | ---: | --- |
+| Facility | 63 | 63 ACTIVE |
+| UserAccount | 132 | 131 ACTIVE, 1 INACTIVE |
+| Employee / Customer | 128 / 4 | Safe reference identifiers only |
+| StorageUnit | 386 | 378 AVAILABLE, 3 MAINTENANCE, 3 INSPECTION, 2 IN_USE |
+| Reservation | 12 | 3 CONFIRMED, 6 COMPLETED, 2 PENDING_DEPOSIT, 1 CANCELLED |
+| Visit | 21 | 6 CHECKED_IN, 10 CHECKED_OUT, 4 SCHEDULED, 1 CANCELLED |
+| HandoverUnitAssignment | 8 | 2 ACTIVE, 6 CONSUMED |
+| Contract | 6 | 3 ACTIVE, 3 TERMINATED, **0 COMPLETED** |
+| Invoice | 22 | 19 PAID, 3 OVERDUE |
+| Payment | 18 | 15 SUCCESS, 3 PENDING |
+| Inspection | 4 | 1 IN_PROGRESS, 3 COMPLETED |
+| SupportTicket | 2 | 2 COMPLETED |
+| LoginHistory | 613 | 589 SUCCESS, 24 FAILED |
+| NotificationLog | 73 | 73 PENDING |
+
+**Important delta from the earlier 04:40:10 UTC snapshot:** the earlier claim that no matching Manager F01 Reservation–Visit–Unit triple exists is no longer correct. One candidate is present, but it is **already assigned**. Also, the known Staff handover Visit changed from SCHEDULED to CHECKED_IN.
+
+## 5. Manager F01 assignment candidate — nuanced validity
+
+The export reports one `assignable_manager_f01` triple. Cross-checking raw safe rows adds a **critical existing ACTIVE assignment**:
+
+| Item | ID | Snapshot state |
 | --- | --- | --- |
-| Repository | `https://github.com/TruongGiangNgtr/SWP391_Self-Storage-Facility-Rental-and-Management-System` | Verified |
-| Branch | `TEST_SWT` | Verified |
-| Local root | `C:\Users\buidi\OneDrive\Desktop\Git\SWP391\SWP391_Self-Storage-Facility-Rental-and-Management-System` | Verified |
-| Operating system | Windows, build `10.0.26200.9711` | Verified |
-| Test command shell | **CMD** (use `set "KEY=value"`) | Previously used |
-| Backend command shell | **PowerShell** (use `$env:KEY = "value"`) | Verified by latest user log |
-| Alternative test shell | PowerShell (use `$env:KEY = "value"`) | Supported |
-| Package manager | `pnpm 11.19.0` | Verified |
-| Backend | ASP.NET Core (.NET), PostgreSQL | Verified |
-| UI automation | Playwright with Chromium Headless Shell | Verified |
-| API URL | `http://127.0.0.1:5164` | Verified by preflight |
-| Frontend URL | `http://127.0.0.1:4173` | Playwright starts Vite |
-| Backend environment | `Testing` | Verified |
-| Automation environment | `Testing` | Verified |
+| Facility F01 | `f0000000-0000-0000-0000-000000000001` | ACTIVE |
+| Reservation | `f1112fee-e99f-4094-879a-563ddd1f8f81` | CONFIRMED |
+| Visit | `6855fba5-942c-40a4-bf22-5658ca3be00c` | RESERVATION / CHECKED_IN, 2026-12-05 |
+| UnitType | `b1000000-0000-0000-0000-000000000001` | Same type as Reservation |
+| Physical Unit | `fa72ca32-22d6-496c-aca2-20e64c040de7` | A-102 / AVAILABLE |
+| HandoverUnitAssignment | `d9e3672e-9708-46de-96a9-72a860f55065` | **ACTIVE**, already links Reservation to Unit |
 
-## 2. CMD variables for automated tests
+This **proves a matching tuple exists in the snapshot**, not that a *new* assignment can be performed. The frontend `HandoverUnitSelectionPage.tsx` filters `CONFIRMED`, `RESERVATION` Visit `CHECKED_IN`, and same-facility/same-type `AVAILABLE` units, and also reads the current Assignment. The committed `FRMS-ST-0065` test checks the read-only UnitType match and a visible heading, **not** assignment creation. After authenticated Manager F01 GET verification and SRS oracle review, the tuple may be useful for that read-only assertion, but **do not save or release assignments**.
 
-Set these in the **same CMD window** in which `pnpm run test:frms:*` will run. They are process-local settings, not permanent Windows environment variables.
+**Launcher conflict:** `RUN_FRMS_TESTS.ps1` still lists this new matching Reservation ID `f1112fee-e99f-4094-879a-563ddd1f8f81` under `knownIneligible` from the earlier snapshot and clears `FRMS_TEST_ASSIGNABLE_RESERVATION_ID` if provided. That hardcoded guard must be reviewed separately before relying on this fixture; the profile update makes **no launcher changes**.
 
-```bat
-set "FRMS_ENVIRONMENT=Testing"
-set "FRMS_API_URL=http://127.0.0.1:5164"
-set "FRMS_UI_URL=http://127.0.0.1:4173"
-set "VITE_API_PROXY_TARGET=http://127.0.0.1:5164"
-set "CI=true"
+Alternative Reservation `b370c765-adb7-4e16-aa19-54caf7d5b788` remains CONFIRMED + CHECKED_IN but its F01 UnitType `...0002` has 2 IN_USE + 1 INSPECTION and **0 AVAILABLE** physical units. It does not satisfy the matching-available-unit requirement.
 
-rem Customer logs in using PHONE, not email.
-set "FRMS_TEST_CUSTOMER_1_PHONE=0901000001"
-set "FRMS_TEST_CUSTOMER_1_PASSWORD=11111111"
+## 6. Staff fixture drift and unresolved identity inputs
 
-rem Employee logs in using EMAIL, not phone.
-set "FRMS_TEST_STAFF_01_EMAIL=staff.f01@example.com"
-set "FRMS_TEST_STAFF_PASSWORD=11111111"
-```
+- **SCHEDULED visit blocker:** `FRMS_TEST_STAFF_HANDOVER_VISIT_ID=6855fba5-942c-40a4-bf22-5658ca3be00c` now has `VisitType=RESERVATION`, `Status=CHECKED_IN`. The snapshot has **0 RESERVATION + SCHEDULED visits**; the other four SCHEDULED Visits are ACCESS (3) or RETURN (1). Tests needing a pre-check-in Reservation Visit must remain Blocked until a genuine one exists, with no database mutation to create it.
+- **Cross-facility scope:** `FRMS_TEST_OTHER_FACILITY_REFERENCE_ID=33a922ce-416f-4757-87f5-8f85aba047ef` is a CHECKED_IN Reservation Visit at F32, date `2026-12-05`. Role authorization F32 allowed/F01 denied is still **PENDING_RUNTIME**. The own F01 scope date `2026-12-01` differs, so a negative check against only that date could be misleading.
+- **Negative login inputs:** `FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE` and `FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL` need proof of absence in every page of the live Admin account directory. The safe export intentionally excludes email/phone; do not assume candidate strings are unregistered.
+- **Other missing preconditions:** no COMPLETED Contract in snapshot; no verified no-CCCD demo account. Optional fixture installer folders are not proof they are applied.
+- **Discovery mismatch:** committed `tests/system/scripts/batch12-discover.mjs` defaults to Staff F02 for foreign discovery while wrapper knows Staff F32. Check code before applying optional `test/tools/FRMS_BATCH12_*/install.mjs`.
 
-`11111111` is the chosen demo/test password. **Pending:** authentication with these credentials has not yet been confirmed against the running database. Setting the variables alone does not change database passwords.
+### Values already embedded as runner snapshot defaults
 
-Other known customer demo accounts:
+These **17** environment defaults were cross-referenced with the new export, but their presence is not a runtime PASS, permission check or current availability guarantee.
 
-| Account | Login phone | Reference email |
+| Environment name | Current runner default | Snapshot observation |
 | --- | --- | --- |
-| Customer 1 | `0901000001` | `customer1@example.com` |
-| Customer 2 | `0901000002` | `customer2@example.com` |
-| Customer 3 | `0901000003` | `customer3@example.com` |
+| `FRMS_TEST_ACTIVE_CONTRACT_ID` | `91000000-0000-0000-0000-000000000001` | ACTIVE Contract |
+| `FRMS_TEST_AVAILABLE_PHYSICAL_UNIT_ID` | `fa72ca32-22d6-496c-aca2-20e64c040de7` | AVAILABLE; A-102, F01, UnitType ...0001; already linked to ACTIVE assignment |
+| `FRMS_TEST_CUSTOMER_2_INVOICE_ID` | `83000000-0000-0000-0000-000000000003` | OVERDUE Invoice |
+| `FRMS_TEST_CUSTOMER_2_RESERVATION_ID` | `81000000-0000-0000-0000-000000000002` | COMPLETED Reservation |
+| `FRMS_TEST_CUSTOMER_2_SUPPORT_TICKET_ID` | `ffcfa55e-9512-4f62-9f83-34ba8c15b98d` | COMPLETED ticket |
+| `FRMS_TEST_HANOI_FACILITY_ID` | `f0000000-0000-0000-0000-000000000001` | ACTIVE Facility 01 |
+| `FRMS_TEST_HANOI_FACILITY_NAME` | `FRMS Facility - Hà Nội` | ACTIVE Facility 01 |
+| `FRMS_TEST_OTHER_FACILITY_REFERENCE_ID` | `33a922ce-416f-4757-87f5-8f85aba047ef` | CHECKED_IN Reservation Visit at F32, date 2026-12-05; authorization not verified |
+| `FRMS_TEST_OWN_DEPOSIT_INVOICE_ID` | `2383e8b2-2f51-43c7-88cb-def8a359fe2b` | PAID Invoice |
+| `FRMS_TEST_OWN_PAID_INVOICE_ID` | `83000000-0000-0000-0000-000000000001` | PAID Invoice |
+| `FRMS_TEST_OWN_RESERVATION_ID` | `b370c765-adb7-4e16-aa19-54caf7d5b788` | CONFIRMED, CHECKED_IN Visit, no matching AVAILABLE UnitType ...0002 at F01 |
+| `FRMS_TEST_PRICING_UNIT_TYPE_NAME` | `Medium Private (5x10)` | Reference UnitType name; API authorization still pending |
+| `FRMS_TEST_STAFF_HANDOVER_RESERVATION_ID` | `f1112fee-e99f-4094-879a-563ddd1f8f81` | CONFIRMED; associated Visit now CHECKED_IN, not SCHEDULED |
+| `FRMS_TEST_STAFF_HANDOVER_VISIT_ID` | `6855fba5-942c-40a4-bf22-5658ca3be00c` | CHECKED_IN; INVALID for pre-check-in SCHEDULED test |
+| `FRMS_TEST_STAFF_IN_PROGRESS_INSPECTION_ID` | `8284175e-729e-4070-931e-3d44deb21ec0` | IN_PROGRESS Inspection |
+| `FRMS_TEST_STAFF_OWN_REFERENCE_ID` | `0c5eb20c-ec50-4e2f-a633-e0cea07eeadf` | CHECKED_IN Visit, Staff F01 |
+| `FRMS_TEST_STAFF_SCOPE_DATE` | `2026-12-01` | 2026-12-01; needs current work-list confirmation |
 
-Staff accounts follow `staff.fNN@example.com` for `NN=01..62`; their facility memberships and ACTIVE status must be checked in the actual Testing database.
+Additional defaults: `FRMS_TEST_OTHER_FACILITY_SCOPE_DATE=2026-12-05`; `FRMS_TEST_TERMINATED_CONTRACT_ID=b2447e82-3493-44e7-8678-cd9255ea8d72` (TERMINATED). `FRMS_TEST_ASSIGNABLE_RESERVATION_ID` and the two unregistered-identity keys are **not set** from the committed wrapper.
 
-## 3. Backend configuration and complete PowerShell startup script
-
-### 3.1 Confirmed backend configuration
-
-Run the API in a **separate PowerShell terminal**, leaving it open during automated tests. The local environment file is located at `backend\Frms.Api\.env`. The file contains PostgreSQL, JWT, and service integration settings; the actual secrets are **not copied into this profile**.
-
-The backend does **not** automatically load `.env` when `ASPNETCORE_ENVIRONMENT=Testing`. The working setup is to load its variables into the PowerShell process **before** calling `dotnet run --no-launch-profile`.
-
-**Observed from the user's terminal:** the `.env` file exists, the PostgreSQL connection variable is set, the JWT signing key is set, and `backend\Frms.Api\prod-ca-2021.crt` exists. The last provided log ends at the `dotnet run` command; it does not itself show a new startup success message. Earlier logs independently confirmed `/health` and `PREFLIGHT OK`.
-
-### 3.2 Full backend startup (Windows PowerShell)
-
-Copy and execute this block in **PowerShell**, not CMD. It uses the user's confirmed local repository path and preserves the exact startup sequence.
-
-```powershell
-# 1. Go to repository root.
-$REPO = "C:\Users\buidi\OneDrive\Desktop\Git\SWP391\SWP391_Self-Storage-Facility-Rental-and-Management-System"
-Set-Location $REPO
-
-# 2. Locate the local backend environment file.
-$ENV_FILE = "$REPO\backend\Frms.Api\.env"
-if (-not (Test-Path $ENV_FILE)) {
-    throw "Khong tim thay file .env tai $ENV_FILE"
-}
-
-# 3. Load key=value entries from .env into THIS PowerShell process.
-#    Preserve characters such as &, ?, spaces, and = inside quoted values.
-foreach ($line in Get-Content -LiteralPath $ENV_FILE -Encoding UTF8) {
-    if ($line -match '^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$') {
-        $key = $Matches[1]
-        $value = $Matches[2].Trim()
-
-        if ($value.Length -ge 2 -and
-            $value.StartsWith('"') -and
-            $value.EndsWith('"')) {
-            $value = $value.Substring(1, $value.Length - 2)
-        }
-
-        [Environment]::SetEnvironmentVariable($key, $value, "Process")
-    }
-}
-
-# 4. Configure isolated Testing process mode and API listener.
-$env:ASPNETCORE_ENVIRONMENT = "Testing"
-$env:DOTNET_ENVIRONMENT = "Testing"
-$env:ASPNETCORE_URLS = "http://127.0.0.1:5164"
-
-# 5. Disable configurable scheduled jobs for this test session.
-$env:BackgroundJobs__Billing__Enabled = "false"
-$env:BackgroundJobs__NoShow__Enabled = "false"
-$env:BackgroundJobs__Notifications__Enabled = "false"
-
-# 6. Verify that credentials are loaded WITHOUT printing their values.
-Write-Host "Connection configured:" ([bool]$env:ConnectionStrings__FrmsDb)
-Write-Host "JWT configured:" ([bool]$env:Jwt__SigningKey)
-
-# 7. Verify TLS certificate file used by the connection string.
-Test-Path "$REPO\backend\Frms.Api\prod-ca-2021.crt"
-
-# 8. Start the backend. Keep this terminal open.
-dotnet run --project .\backend\Frms.Api --no-launch-profile
-```
-
-The user's last confirmed checks produced:
-
-```text
-Connection configured: True
-JWT configured: True
-True
-```
-
-`True` in the third line refers to the certificate file path. These checks confirm the variables/file exist, **not** that the database is isolated or safe for destructive tests.
-
-### 3.3 Verify the running API from another terminal
-
-Use a **second PowerShell terminal** (the backend terminal stays occupied by `dotnet run`):
-
-```powershell
-$REPO = "C:\Users\buidi\OneDrive\Desktop\Git\SWP391\SWP391_Self-Storage-Facility-Rental-and-Management-System"
-Set-Location $REPO
-
-$env:FRMS_ENVIRONMENT = "Testing"
-$env:FRMS_API_URL = "http://127.0.0.1:5164"
-$env:FRMS_UI_URL = "http://127.0.0.1:4173"
-$env:VITE_API_PROXY_TARGET = "http://127.0.0.1:5164"
-$env:CI = "true"
-
-Invoke-WebRequest -Uri "http://127.0.0.1:5164/health" -UseBasicParsing
-pnpm run test:frms:preflight
-```
-
-For Windows PowerShell 5.1, `-UseBasicParsing` prevents the HTML/script parsing security prompt. Expected response: HTTP `200` with body `Healthy`, followed by `PREFLIGHT OK` when preflight succeeds. The prior run confirmed preflight success; rerun these commands to verify this particular backend session.
-
-### 3.4 Database and process boundaries
-
-- `.env` currently targets a **remote Supabase PostgreSQL database**. Setting ASP.NET Core to `Testing` does not create a dedicated database. Do not perform destructive/reset/migration tests against the remote database without confirming authorization and data isolation.
-- If `ConnectionStrings__Frms` is also present, it overrides `ConnectionStrings__FrmsDb`. Check for an unintended override before starting the backend.
-- The three job flags above disable Billing, NoShow, and Notifications jobs, but **reservation expiration** may still execute on startup and periodically. This matters when connected to shared data.
-- The PowerShell backend process and CMD/PowerShell test process have **separate** environment variables; the test variables in section 2 must be set in the terminal used to run `pnpm`.
-- Keep PostgreSQL credentials, JWT signing key, payment keys, AI keys, and SMTP passwords in local ignored `.env`; do not commit them to this profile or repository.
-
-## 4. Playwright settings
-
-| Item | Value | Status |
-| --- | --- | --- |
-| Tests | `tests/e2e/playwright/tests/frms/` | Verified |
-| Registry | `tests/system/manifest/cases.json` | Verified |
-| Runner | `tests/system/scripts/run.mjs` | Verified |
-| Reports | `tests/system/reports/<run-id>/` | Verified |
-| Browser | Chromium Headless Shell `v1243` | Installed / observed |
-| Retries | **1** | Verified in runner |
-| Workers requested | **4** | **Pending application** |
-| Workers in last inspected runner | **1** (`--workers=1`) | Verified in Patch 06 runner source |
-| Jira export | Only independently confirmed product defects | Verified policy |
-
-**Important correction:** The previous profile described four workers as a preference, but that setting was not shown as applied. To activate it, change the Playwright argument in `tests/system/scripts/run.mjs` from `--workers=1` to `--workers=4`. Verify the next output contains `Running 30 tests using 4 workers`.
-
-Parallel workers are suitable for independent, read-only UI cases. Before enabling concurrent Reservation, Billing, Renewal, or account-state tests, provide independent fixtures and deterministic cleanup; otherwise simultaneous tests may corrupt results or shared data.
-
-## 5. Applied patches and test status
-
-| Patch | Function | Status |
-| --- | --- | --- |
-| `01_FRMS_CORE_REGISTRY_REPORTER.patch` | Registry, reports and Jira exporter | Applied |
-| `02_FRMS_AUTH_UI_TESTS.patch` | Authentication UI checks | Applied |
-| `03_FRMS_CATALOG_AND_API_TESTS.patch` | Catalog and API checks | Applied |
-| `04_FRMS_WINDOWS_PLAYWRIGHT_RUNNER_FIX.patch` | Fix Windows `C:\Program` child-process error | Applied |
-| `05_FRMS_RESULT_LOCATORS_AND_CATALOG_DIAGNOSTICS.patch` | Fix ambiguous locators; improve catalog assertions | Applied |
-| `06_FRMS_CATALOG_API_DIAGNOSTICS.patch` | Direct API probe, response timing, timeout diagnostics | **Pending confirmation** |
-
-**Latest observed full run:** `20261110T130856341Z` (after Patch 05)
-
-| Status | Count |
-| --- | ---: |
-| Registry cases / unique IDs | 275 / 275 |
-| Implemented cases attempted | 30 |
-| Pass | **20** |
-| Blocked by fixture or test environment | **7** |
-| Unconfirmed failure / catalog timeout | **3** |
-| Not Run / not implemented | 237 |
-| Review | 8 |
-| Independently confirmed product defects for Jira | **0** |
-
-Blocked login cases: `FRMS-ST-0005`, `0024`, `0197` (Customer password variable); `0008`, `0201` (Staff password variable). The CMD configuration in section 2 supplies the missing variables, but the actual login result is still pending.
-
-Blocked catalog cases: `FRMS-ST-0027`, `0028` (fixture and facility availability). Unconfirmed timeouts: `FRMS-ST-0032`, `0035`, `0036` (wait for public catalog results). Do not classify fixture failures or timeout symptoms as product defects without independent reproduction.
-
-## 6. Unit type reference data
+## 7. Unit Type reference data (2026-11-10 API reference)
 
 The following is transcribed from the two user-supplied API responses dated 2026-11-10: **7 PRIVATE unit types and 1 PUBLIC unit type**. Values are exact API fields, not assumed inventory availability.
 
@@ -240,45 +178,61 @@ set "FRMS_TEST_AVAILABLE_UNIT_RENT_VND=3500"
 
 Do not set `FRMS_TEST_ACTIVE_FACILITY_NAME` to a placeholder or invent one. Obtain the facility name from the facility-specific `/facilities` and `/facilities/{facilityId}/unit-types` responses and verify `availableCapacity > 0` for the period. `FRMS-ST-0027` uses one next-month period; `0028` uses a next-month to following-month period.
 
-## 7. Commands to run (CMD)
+
+## 8. Actors and local environment
+
+Customer authenticates by **PHONE**: `0901000001`, `0901000002`, `0901000003`. Staff / other employee roles authenticate by **EMAIL**: `staff.f01@example.com`, `staff.f32@example.com`, `manager.f01@example.com`, `bom@example.com`, `admin@example.com`. Every actor must be ACTIVE, correctly assigned and verified by the running backend before a role-sensitive test is considered valid.
 
 ```bat
-rem Validate the registry: 275 cases, 30 automated mappings.
-pnpm run test:frms:coverage
-
-rem API readiness (requires backend already running).
-pnpm run test:frms:preflight
-
-rem Install the browser only if missing.
-pnpm --dir tests/e2e/playwright exec playwright install chromium
-
-rem Run an individual implemented case.
-pnpm run test:frms:case -- --id FRMS-ST-0002
-
-rem Run all implemented cases and report against the entire registry.
-pnpm run test:frms:all
-
-rem Only after Patch 06 has been applied.
-pnpm run test:frms:catalog-probe
+rem Windows CMD at repository root. Never commit actual passwords:
+set "FRMS_ENVIRONMENT=Testing"
+set "FRMS_API_URL=http://127.0.0.1:5164"
+set "FRMS_UI_URL=http://127.0.0.1:4173"
+set "VITE_API_PROXY_TARGET=http://127.0.0.1:5164"
+set "CI=true"
+rem set "FRMS_TEST_CUSTOMER_1_PASSWORD=<local secret>"
+rem set "FRMS_TEST_STAFF_PASSWORD=<local secret>"
 ```
 
-**Case status guidance:** `Pass` proves the implemented assertion passed for that execution; `Blocked` means missing fixture/infrastructure; `UnconfirmedFailure` is not automatically a product defect; `Review` requires requirements or oracle decisions; `Not Run` is not tested. Jira CSV must include only independently confirmed software defects.
+The wrapper has demo defaults for local usage; override them using local process environment or CI secrets rather than writing credentials into this profile.
 
-## 8. Next actions
+## 9. Running tests and refresh exports
 
-- [ ] Change the Playwright runner from one worker to four and verify a four-worker run.
-- [ ] Re-run customer/staff login tests using the configured demo password `11111111`; confirm accounts are ACTIVE.
-- [ ] Identify an ACTIVE facility offering the chosen unit type with positive availability during the required months.
-- [ ] Confirm whether Patch 06 was applied; run `test:frms:catalog-probe` if available.
-- [ ] Re-run the suite and inspect the new `results.json` and trace evidence before reporting any confirmed defects.
-- [ ] Continue implementing the outstanding cases with fixture isolation and requirement-aligned assertions.
+```bat
+cd /d "C:\Users\buidi\OneDrive\Desktop\Git\SWP391\SWP391_Self-Storage-Facility-Rental-and-Management-System"
+git branch --show-current
+git status --short
+rem Confirm already-running authorized API:
+curl http://127.0.0.1:5164/health
 
-## 9. Automated one-command test launcher (new)
+.\RUN_FRMS_TESTS.cmd -AuditOnly
+.\RUN_FRMS_TESTS.cmd -Mode coverage
+.\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0165 -Workers 1 -Retries 0
+.\RUN_FRMS_TESTS.cmd -Mode all -Workers 4 -Retries 1
 
-Use `run-frms-tests.ps1` in repository root and apply `07_FRMS_CONFIGURABLE_WORKERS.patch` once on `TEST_SWT`. This script loads backend `.env` (all configured DB/JWT/integration keys), sets Testing environment, backend/API/UI/proxy URLs, customer/staff demo credentials (`11111111`), unit type reference values, 4 Playwright workers, 1 retry, and disabled configurable background jobs. It can start/stop backend automatically, run preflight, discover a catalog fixture when verifiable, and launch registered test cases with Jira/report generation. See `RUN_FRMS_TESTS.md` for complete usage and limitations.
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\run-frms-tests.ps1 -Mode all -Workers 4 -Retries 1
+rem Read-only PostgreSQL metadata exporter with isolated Python venv:
+.\test\tools\FRMS_DB_PROFILE_EXPORT\RUN_EXPORT.cmd
 ```
 
-**Status:** Files generated and statically validated; full Windows/DB run not executed here. The latest confirmed run remains 20 Pass, 7 Blocked, 3 UnconfirmedFailure.
+Exporter output: `test/reports/db-profile/FRMS_PROFILE_SAFE_<UTC>.zip` and `FRMS_PROFILE_SUMMARY_<UTC>.json`, excluded by `test/reports/.gitignore`. Playwright results: `tests/system/reports/<run-id>/`. The exporter is **not** a testcase run and does not establish PASS.
+
+Do not start a backend against shared Supabase merely to run the wrapper: Reservation Expiration is not controlled by the other three disabled background-job flags. See `test/handoff/RUNBOOK.md`.
+
+## 10. Next acceptance checks
+
+1. Check the **current** Manager F01 GET responses for the matching tuple and its existing ACTIVE assignment; decide the scope of read-only `FRMS-ST-0065`, review stale launcher `knownIneligible` guard. No save/release POST.
+2. Keep scheduled Reservation Visit tests Blocked; the new snapshot has none. Do not repurpose CHECKED_IN visits as SCHEDULED.
+3. Verify F32 foreign Visit access and F01 denial using correct Visit date; avoid false positives from mismatched dates.
+4. Verify the two nonexistent login identifiers from a complete Admin directory, without logging existing user details.
+5. After authorization and fixture checks, run targeted tests, then the mapped suite and inspect `summary.md`/`results.json`. Never report 101 PASS from a registry count.
+
+## 11. Evidence and source ownership
+
+- DB snapshot inputs (user-uploaded; **not in Git**): `FRMS_PROFILE_SAFE_20261111T063028Z.zip`, `FRMS_PROFILE_SUMMARY_20261111T063028Z.json`.
+- Requirements/oracles: `docs/FRMS_SRS_V11.md` and `tests/system/manifest/cases.json`.
+- Actual UI rule: `frontend/src/features/handover-unit-selection/HandoverUnitSelectionPage.tsx`.
+- Runner and fixture defaults: `RUN_FRMS_TESTS.ps1`, `run-frms-tests.ps1`, `tests/system/scripts/batch12-discover.mjs`.
+- Automation manual and history: `tests/system/README.md`, `tests/system/PATCH_HISTORY.md`.
+- Structured handoff: `test/handoff/context.json`, `fixtures.json`, `EVIDENCE.md`, `HANDOFF.md`, `NEXT_STEPS.md`.
+
+This profile supersedes the previous stale **30 implemented / 20 PASS / 1 worker** snapshot narrative. Updates to `TEST_SWT` should be **one commit per coherent change batch**. No documentation update is proof of a runtime PASS.
