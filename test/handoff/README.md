@@ -63,3 +63,5 @@ Last reviewed: **2026-11-11**, against branch head `145e9f965f3a` before adding 
 - [BLOCKED_FIXTURES_0067_0071_0109_0188.md](BLOCKED_FIXTURES_0067_0071_0109_0188.md): four previously mapped cases deferred for genuine authorized fixture evidence.
 
 - [BATCH14_ST0061_PASS_20261111T120242294Z.md](BATCH14_ST0061_PASS_20261111T120242294Z.md): post-fix 0061 PASS and concurrent registry reconciliation.
+
+- [BATCH14_COVERAGE_FIX_AND_RERUNS_20261111.md](BATCH14_COVERAGE_FIX_AND_RERUNS_20261111.md): two new targeted PASS, validator failure analysis and supplemental testcase fix; updated 279-case registry.
