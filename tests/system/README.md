@@ -5,7 +5,7 @@
 ## Current scope and evidence
 
 - Registry: **275 unique test cases**, across 12 functional areas; source of truth: [manifest/cases.json](manifest/cases.json).
-- Registry mapping: **101 IMPLEMENTED**, **166 NOT_IMPLEMENTED**, **8 REVIEW** (verified against the committed manifest).
+- Registry mapping: **138 IMPLEMENTED**, **129 NOT_IMPLEMENTED**, **8 REVIEW** (verified against the committed manifest).
 - Historical runtime evidence: **51 implemented cases reported PASS** in run `20261110T151721934Z`, after Patch 11. The additional **50 Batch 12 cases have not been shown to pass as a complete run**.
 - Registry `IMPLEMENTED` means executable code is mapped, **not** that a test passed. Each test oracle still requires SRS review.
 - An unresolved fixture, missing API or wrong permission is **Blocked/Skipped**, not PASS or a confirmed software defect. An unconfirmed assertion failure is **not** automatically a Jira defect.
@@ -132,3 +132,7 @@ Versioned fixture installers and the read-only database profile exporter are now
 ```
 
 The wrapper supplies the snapshot ID pair by default. Verify actual `/health` separately and inspect the new `summary.md` and `results.json`. Full fixture notes are in [test/handoff/FRMS-ST-0065.md](../../test/handoff/FRMS-ST-0065.md). The test uses GET requests and browser navigation only; login can still write LoginHistory.
+
+## Batch 13 (2026-11-11): 50.18% implementation coverage
+
+Manifest now contains **138 IMPLEMENTED / 129 NOT_IMPLEMENTED / 8 REVIEW (275 total)**, after 37 new uniquely mapped Playwright cases. See `test/handoff/BATCH13_COVERAGE.md`. All new cases are **PENDING_RUNTIME**, with SRS oracle review pending. No new PASS, Jira defect, app edit or DB mutation is claimed. Access Visit creation ST-0077 and ST-0080 are isolated-write gated and cannot run on shared Supabase under normal wrapper defaults. Foreign physical Unit cases require a positively verified real foreign Facility Manager.

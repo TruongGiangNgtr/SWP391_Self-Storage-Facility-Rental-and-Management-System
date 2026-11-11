@@ -20,7 +20,7 @@ Actions are prioritized. **Do not mark an action done until new source or runtim
 
 ## P2 — Remaining testcase implementation
 
-11. Plan 166 not-implemented cases by functional area and 8 REVIEW cases by SRS oracle decision.
+11. Plan 129 not-implemented cases by functional area and 8 REVIEW cases by SRS oracle decision.
 12. For mutation, payment, concurrency and data lifecycle coverage, require an isolated disposable PostgreSQL test DB, deterministic factories, cleanup/rollback, controlled background jobs and payOS sandbox where needed.
 13. Extend automated suites and coverage only after source-aligned UI expected outputs and business-state assertions are known. Never change production business rules just to satisfy tests.
 
@@ -58,3 +58,11 @@ Both runs: backend preflight OK, six primary actor roles verified by discovery, 
 The warning `Staff cross-facility: no same-date other-facility work item pair confirmed` is **stale diagnostic wording** in GitHub TEST_SWT's discovery code, whose date-aware search no longer requires a same-day pair; the wrapper's snapshot defaults may have supplied the foreign Visit separately. `Batch 12 fixture discovery: 0 verified value(s) supplied` indicates no newly injected variables, not proof that all existing defaults are current. These warnings do not negate Playwright PASS, but source revision and real fixture control should be audited. `FRMS-ST-0067` remains Blocked (no RESERVATION/SCHEDULED Visit).
 
 Keep historic **51/51 user-reported regression**, ST-0199/0203 reported PASS (without run IDs) and these two targeted run IDs as **separate** evidence. Do not merge their counts or imply whole Batch 12 / 101-case PASS; oracleApproval remains pending SRS review.
+
+## Batch 13 — 50.18% implemented coverage (2026-11-11)
+
+The `TEST_SWT` registry now contains **275 unique cases: 138 IMPLEMENTED (50.18%), 129 NOT_IMPLEMENTED, 8 REVIEW**. Batch 13 adds 37 distinct case IDs mapped to five new Playwright specs and a source-checked fixture helper. Read `test/handoff/BATCH13_COVERAGE.md` for exact cases, fixture gates and commands.
+
+**Evidence: REPO_VERIFIED_SOURCE_MAPPING_ONLY; PENDING_RUNTIME**. No new Playwright runtime PASS, TypeScript compilation, approved SRS oracle or Jira defect was produced by this change. Historical 51/51 and individual user-reported ST-0199, ST-0203, ST-0065, ST-0165 remain separate evidence. Both new access Visit creation cases require an isolated disposable DB and `isolatedWrite()`; all new shared-safe cases are authentication/GET/browser-only. Foreign physical Unit tests require an authenticated real foreign Manager positive control; do not invent fixtures. Missing preconditions remain Blocked.
+
+P0: Verify updated TEST_SWT local source, run `.\RUN_FRMS_TESTS.cmd -Mode coverage` and selected read-only Batch 13 tests; archive `summary.md`/`results.json`; classify fixture gaps as Blocked. Do not execute write-gated Access Visit tests on shared Supabase.

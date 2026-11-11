@@ -38,20 +38,20 @@ The committed registry contains **275 unique system testcases in 12 areas**:
 | Authentication & Security | 51 | 39 | 12 | 0 |
 | Storage Search & AI Size Guide | 19 | 15 | 4 | 0 |
 | Reservation | 22 | 8 | 14 | 0 |
-| Handover | 29 | 5 | 24 | 0 |
-| Facility Operations | 10 | 2 | 8 | 0 |
-| Access Visits | 25 | 8 | 14 | 3 |
-| Billing & Payments | 23 | 5 | 18 | 0 |
+| Handover | 29 | 17 | 12 | 0 |
+| Facility Operations | 10 | 6 | 4 | 0 |
+| Access Visits | 25 | 13 | 9 | 3 |
+| Billing & Payments | 23 | 10 | 13 | 0 |
 | Renewal | 16 | 3 | 13 | 0 |
 | Return & Settlement | 22 | 2 | 20 | 0 |
-| Support Tickets | 25 | 4 | 16 | 5 |
-| Administration | 19 | 5 | 14 | 0 |
-| Pricing & Reference Data | 14 | 5 | 9 | 0 |
-| **TOTAL** | **275** | **101** | **166** | **8** |
+| Support Tickets | 25 | 8 | 12 | 5 |
+| Administration | 19 | 7 | 12 | 0 |
+| Pricing & Reference Data | 14 | 10 | 4 | 0 |
+| **TOTAL** | **275** | **138** | **129** | **8** |
 
-- **Implementation coverage:** 101/275 = **36.73%** (`REPO_VERIFIED`).
+- **Implementation coverage:** 138/275 = **50.18%** (`REPO_VERIFIED`).
 - **Historical user-reported result:** 51/51 implemented tests PASS, run `20261110T151721934Z`. This does **not** establish current success.
-- **Batch 12:** 50 additional test mappings; no evidence yet of a complete 50-case runtime PASS. Do not claim 101/101 PASS.
+- **Batch 12:** 50 historical mappings (101 at that baseline), without a complete verified Batch 12 PASS. **Batch 13:** 37 new mappings (138 total), no runtime PASS yet.
 - The manifest still has `oracleApproval=PENDING_SRS_REVIEW`. `IMPLEMENTED` does not mean oracle-approved or PASS.
 - Missing valid fixtures → `Blocked/Skipped`; code/test issues → `UnconfirmedFailure`; others `Review` or `Not Run`. Only independently confirmed, reproducible product defects belong in Jira.
 
@@ -224,7 +224,7 @@ Do not start a backend against shared Supabase merely to run the wrapper: Reserv
 2. Keep scheduled Reservation Visit tests Blocked; the new snapshot has none. Do not repurpose CHECKED_IN visits as SCHEDULED.
 3. Verify F32 foreign Visit access and F01 denial using correct Visit date; avoid false positives from mismatched dates.
 4. Run `FRMS-ST-0199` and `FRMS-ST-0203` after syncing this fix. The launcher now verifies unregistered identifiers from the full Admin directory without logging existing account details. `-AuditOnly` is a static inventory and intentionally cannot prove absence.
-5. After authorization and fixture checks, run targeted tests, then the mapped suite and inspect `summary.md`/`results.json`. Never report 101 PASS from a registry count.
+5. After authorization and fixture checks, run targeted tests, then the mapped suite and inspect `summary.md`/`results.json`. Never report 138 PASS from a registry count.
 
 ## 11. Evidence and source ownership
 
@@ -279,3 +279,9 @@ Both runs: backend preflight OK, six primary actor roles verified by discovery, 
 The warning `Staff cross-facility: no same-date other-facility work item pair confirmed` is **stale diagnostic wording** in GitHub TEST_SWT's discovery code, whose date-aware search no longer requires a same-day pair; the wrapper's snapshot defaults may have supplied the foreign Visit separately. `Batch 12 fixture discovery: 0 verified value(s) supplied` indicates no newly injected variables, not proof that all existing defaults are current. These warnings do not negate Playwright PASS, but source revision and real fixture control should be audited. `FRMS-ST-0067` remains Blocked (no RESERVATION/SCHEDULED Visit).
 
 Keep historic **51/51 user-reported regression**, ST-0199/0203 reported PASS (without run IDs) and these two targeted run IDs as **separate** evidence. Do not merge their counts or imply whole Batch 12 / 101-case PASS; oracleApproval remains pending SRS review.
+
+## Batch 13 — 50.18% implemented coverage (2026-11-11)
+
+The `TEST_SWT` registry now contains **275 unique cases: 138 IMPLEMENTED (50.18%), 129 NOT_IMPLEMENTED, 8 REVIEW**. Batch 13 adds 37 distinct case IDs mapped to five new Playwright specs and a source-checked fixture helper. Read `test/handoff/BATCH13_COVERAGE.md` for exact cases, fixture gates and commands.
+
+**Evidence: REPO_VERIFIED_SOURCE_MAPPING_ONLY; PENDING_RUNTIME**. No new Playwright runtime PASS, TypeScript compilation, approved SRS oracle or Jira defect was produced by this change. Historical 51/51 and individual user-reported ST-0199, ST-0203, ST-0065, ST-0165 remain separate evidence. Both new access Visit creation cases require an isolated disposable DB and `isolatedWrite()`; all new shared-safe cases are authentication/GET/browser-only. Foreign physical Unit tests require an authenticated real foreign Manager positive control; do not invent fixtures. Missing preconditions remain Blocked.

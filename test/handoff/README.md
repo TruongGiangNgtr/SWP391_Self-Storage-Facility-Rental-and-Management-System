@@ -39,3 +39,5 @@ This directory is **`test/handoff/` (singular)** as requested. Executable tests 
 - For a new live run, demand `summary.md`/`results.json` evidence before updating counts.
 
 Last reviewed: **2026-11-11**, against branch head `145e9f965f3a` before adding these handoff files.
+
+- [BATCH13_COVERAGE.md](BATCH13_COVERAGE.md): 37 new Playwright mappings, 50.18% implementation coverage, safety and remaining runtime gates.

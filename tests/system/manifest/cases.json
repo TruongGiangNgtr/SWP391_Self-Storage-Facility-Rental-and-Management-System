@@ -1294,10 +1294,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "An IN_USE unit does not appear among \"Available Matching Units\". An invalid forced selection does not produce a saved assignment; the current selection is unchanged.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-handover.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0064-B",
@@ -1307,10 +1307,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "A MAINTENANCE unit does not appear among \"Available Matching Units\" and cannot be saved as an eligible handover unit.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-handover.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0065",
@@ -1333,10 +1333,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "A mismatched physical unit is absent from the \"Available Matching Units\" selection; invalid direct submission shows the employee error presentation rather than an asserted literal alert.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-handover.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0067",
@@ -1398,10 +1398,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "Without a valid active manager assignment, the handover screen says \"No valid active assignment. Ask the Manager to save a unit, then refresh details.\" The completion step is unavailable.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-handover.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0217",
@@ -1450,10 +1450,10 @@
     "technique": "Use Case Testing / State Verification (source section: Facility check-in)",
     "expectedUI": "The screen no longer offers \"Check In Customer\" when the visit is CHECKED_IN; it displays \"The customer is checked in. Continue with the Manager-selected unit and offline receipt.\"",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-handover.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0221",
@@ -1489,10 +1489,10 @@
     "technique": "Use Case Testing / State Verification (source section: Complete handover)",
     "expectedUI": "IN_USE units are excluded from the manager's eligible-unit list; an invalid selection cannot complete handover and no new contract screen opens.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-handover.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0223-B",
@@ -1502,10 +1502,10 @@
     "technique": "Use Case Testing / State Verification (source section: Complete handover)",
     "expectedUI": "Units of another Unit Type are excluded from eligible assignment. Staff handover cannot proceed with a mismatched selection.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-handover.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0223-C",
@@ -1515,10 +1515,10 @@
     "technique": "Use Case Testing / State Verification (source section: Complete handover)",
     "expectedUI": "Units belonging to another facility are excluded from eligible assignment. A handover result is not shown for that selection.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-handover.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Requires positive-control foreign Manager identity and Unit. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0224",
@@ -1528,10 +1528,10 @@
     "technique": "Use Case Testing / State Verification (source section: Complete handover)",
     "expectedUI": "A different-facility staff member cannot open a permitted check-in action for the Ha Noi visit; protected views show access feedback instead of customer details.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-handover.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0224-B",
@@ -1541,10 +1541,10 @@
     "technique": "Use Case Testing / State Verification (source section: Complete handover)",
     "expectedUI": "A different-facility staff member cannot complete the Ha Noi handover; no new staff contract page opens.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-handover.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0225",
@@ -1554,10 +1554,10 @@
     "technique": "Use Case Testing / State Verification (source section: Complete handover)",
     "expectedUI": "A completed handover shows the existing contract; the workflow does not expose another \"Complete Handover\" action for the same finished visit. A repeat-request API idempotency assertion is not visible in the UI.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-handover.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0226",
@@ -1567,10 +1567,10 @@
     "technique": "Use Case Testing / State Verification (source section: Complete handover)",
     "expectedUI": "A customer navigating to a staff handover route sees the Forbidden page or is redirected to sign-in, rather than any staff completion controls.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-handover.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0164",
@@ -1632,10 +1632,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "The Physical Unit status action for an IN_USE unit does not offer a direct MAINTENANCE transition; the unit continues to show IN USE after refresh.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-facility.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0169",
@@ -1658,10 +1658,10 @@
     "technique": "State Transition Testing (source section: STATE TRANSITION TESTING)",
     "expectedUI": "A MAINTENANCE unit is absent from \"Available Matching Units\"; no handover completion occurs from attempting to use it.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-facility.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0171",
@@ -1684,10 +1684,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "Facility Staff has no manager-only unit-status editing control; opening the manager route is forbidden or returns to an authorized staff page.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-facility.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0172-B",
@@ -1697,10 +1697,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "A manager cannot change units outside their assigned facility; the cross-facility record is not offered for editing or displays an access error.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-facility.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Requires positive-control foreign Manager identity and Unit. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0072",
@@ -1775,10 +1775,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "For an ACTIVE contract, the \"Schedule Access Visit\" form is available. A valid date submission opens the newly scheduled Visit Details page.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-access-billing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). IsolatedWrite gate; skips on shared Supabase. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0078",
@@ -1827,10 +1827,10 @@
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
     "expectedUI": "A visit on the last day of an ACTIVE contract's end month passes the frontend date-range validation and, upon successful submission, opens Visit Details showing SCHEDULED.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-access-billing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). IsolatedWrite gate; skips on shared Supabase. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0081",
@@ -1879,10 +1879,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "An OVERDUE rental invoice is displayed in billing, but an OVERDUE contract enum is not supported by the frontend contract model. Access Visit eligibility must be observed against the ACTIVE contract and current server policy; no automatic access suspension or fabricated fixed warning is asserted.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-access-billing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0156",
@@ -2012,10 +2012,10 @@
     "technique": "State Transition Testing (source section: STATE TRANSITION TESTING)",
     "expectedUI": "A CHECKED_IN visit displays \"This visit can no longer be rescheduled or cancelled.\" The cancel action is unavailable and the badge stays CHECKED_IN.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-access-billing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0163",
@@ -2025,10 +2025,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "A different customer's contract is not rendered as an editable access-visit context; the page shows an access/item-not-found notice without the owner's rental details.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-access-billing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0085",
@@ -2051,10 +2051,10 @@
     "technique": "Use Case Testing (source section: USE CASE TESTING)",
     "expectedUI": "When the billing data includes a generated later-month rental invoice, it appears in \"All Invoices\" as \"Rental Fee\" with its recorded rental month, due amount and status; first-month rent is explicitly described as handled offline.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-access-billing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0087",
@@ -2181,10 +2181,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "\"Fees & Return Tracking\" shows the recorded Late Fee Records for this contract, if any; there is no frontend seven-day grace-period rule or guaranteed zero amount.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-access-billing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0096",
@@ -2194,10 +2194,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "\"Fees & Return Tracking\" shows the returned late-fee amount and status after refresh, if any. The seven-day threshold cannot be inferred from frontend components alone.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-access-billing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0227",
@@ -2311,10 +2311,10 @@
     "technique": "Use Case Testing / Integration (source section: Payment protection)",
     "expectedUI": "Invoice Details displays its recorded Base Amount, Discount and Amount Due. These displayed snapshot amounts remain the same when the current unit-type list price changes.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-access-billing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0236",
@@ -2324,10 +2324,10 @@
     "technique": "Use Case Testing / Integration (source section: Payment protection)",
     "expectedUI": "Facility Staff does not have a customer invoice payment confirmation action. Staff cannot mark a customer's invoice PAID through the visible staff portal.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-access-billing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0097",
@@ -2883,10 +2883,10 @@
     "technique": "Use Case Testing (source section: USE CASE TESTING)",
     "expectedUI": "The customer Support Ticket Details page shows the recorded COMPLETED ticket and Staff Result. There is no customer \"Close Ticket\" action or CLOSED status in the current frontend.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-support-admin.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0128",
@@ -2989,10 +2989,10 @@
     "technique": "GUI Testing (source section: GUI TESTING - layout requirements)",
     "expectedUI": "Support Ticket Details displays category, description, linked contract, current status, assigned-staff/result details when available, and Cancel Ticket only for an eligible OPEN/IN_PROGRESS ticket. There is no Title or Close-after-resolved action.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-support-admin.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0174",
@@ -3041,10 +3041,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "The Category select offers only the supported categories. An outside value cannot be selected through the current form; no new ticket appears from an invalid submission.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-support-admin.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0177",
@@ -3148,10 +3148,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "A different-facility staff member cannot see that ticket in their permitted Support Processing list or operate its detail view.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-support-admin.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0135",
@@ -3265,10 +3265,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "After successful System Administrator sign-in, administrative account management pages render and their authorized controls are visible.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-support-admin.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0146",
@@ -3330,10 +3330,10 @@
     "technique": "Use Case Testing (source section: USE CASE TESTING)",
     "expectedUI": "The Activity log management table/detail displays actor, action, target and recorded time. The page is intended to show safe audit metadata, not secret credentials.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-support-admin.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0193",
@@ -3473,10 +3473,10 @@
     "technique": "Equivalence Partitioning (source section: EQUIVALENCE PARTITIONING)",
     "expectedUI": "A nonnegative price below 100,000 does not fail the frontend's minimum validation; this case cannot assert rejection at 100,000. Only values below zero trigger \"Rental price must be greater than or equal to 0.\"",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-pricing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0183-C",
@@ -3499,10 +3499,10 @@
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
     "expectedUI": "Price 99,999 passes the frontend's nonnegative check; 100,000 is not a frontend lower bound. Whether the backend accepts the chosen price must be confirmed separately.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-pricing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0184-B",
@@ -3510,12 +3510,12 @@
     "name": "Check actual lower bound Rental Price = 0 is accepted by the frontend validator.",
     "sourceKey": "Khoa:MOD05_Pricing:PRC-TC-04`",
     "technique": "Boundary Value Analysis (source section: BOUNDARY VALUE ANALYSIS)",
-    "expectedUI": "Price 100,000 passes the frontend's nonnegative numeric check; after an accepted save, the updated price is shown in the registry.",
+    "expectedUI": "Rental Price 0 is permitted by the editor input (min=0) with no negative-price validation error. No persisted price change occurs until Save Price is submitted and accepted.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-pricing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0185",
@@ -3551,10 +3551,10 @@
     "technique": "Decision Table Testing (source section: DECISION TABLE TESTING)",
     "expectedUI": "The \"Unit Type Pricing\" page is implemented for the Business Operations Manager portal. If an authorized account opens it, the registry and Save Price action appear. System Admin permission is not proven by this screen.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-pricing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   },
   {
     "id": "FRMS-ST-0187-B",
@@ -3577,9 +3577,9 @@
     "technique": "Reference Data / System Testing (source section: REFERENCE DATA TESTING)",
     "expectedUI": "The inspection's Damage Type selector lists the active damage types returned by the catalogue. The frontend does not impose exactly six hard-coded types or prove non-admin mutation authorization from this view.",
     "channel": "UI",
-    "automation": "NOT_IMPLEMENTED",
-    "implementation": null,
+    "automation": "IMPLEMENTED",
+    "implementation": "tests/e2e/playwright/tests/frms/batch13-pricing.spec.ts",
     "oracleApproval": "PENDING_SRS_REVIEW",
-    "notes": "No automated defect creation until runtime verification and approved oracle."
+    "notes": "Batch 13 automated case (2026-11-11). Read-only GET/browser checks; missing genuine data are Blocked. PENDING_RUNTIME; SRS oracle approval required. No PASS asserted."
   }
 ]

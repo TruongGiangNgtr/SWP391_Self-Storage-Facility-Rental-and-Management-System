@@ -120,3 +120,7 @@ The wrapper supplies F01 Facility `f0000000-0000-0000-0000-000000000001`, Reserv
 ### Negative login fixture audit (added 2026-11-11)
 
 Use `.\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0199 -Workers 1 -Retries 0 -SkipCatalogDiscovery`, then run the same command with `FRMS-ST-0203`. The launcher verifies Admin `/auth/me`, retrieves **every** `/admin/users` page (pageSize=100), rejects incomplete/duplicate pagination and only then injects absent phone/email values into the Playwright child process. `-AuditOnly` is static and does not perform this authenticated verification. On a non-negative targeted case such as ST-0065, these two unrelated variables are excluded from the final missing-fixture list. No account creation or direct database changes. See [NEGATIVE_LOGIN_FIXTURES.md](NEGATIVE_LOGIN_FIXTURES.md).
+
+## Batch 13 (2026-11-11): 50.18% implementation coverage
+
+Manifest now contains **138 IMPLEMENTED / 129 NOT_IMPLEMENTED / 8 REVIEW (275 total)**, after 37 new uniquely mapped Playwright cases. See `test/handoff/BATCH13_COVERAGE.md`. All new cases are **PENDING_RUNTIME**, with SRS oracle review pending. No new PASS, Jira defect, app edit or DB mutation is claimed. Access Visit creation ST-0077 and ST-0080 are isolated-write gated and cannot run on shared Supabase under normal wrapper defaults. Foreign physical Unit cases require a positively verified real foreign Facility Manager.

@@ -6,7 +6,7 @@ Evidence levels: `REPO_VERIFIED` (committed TEST_SWT source), `SNAPSHOT_VERIFIED
 
 | Item | Value | Evidence and limitation |
 | --- | --- | --- |
-| Registry | 275 / 101 IMPLEMENTED / 166 NOT_IMPLEMENTED / 8 REVIEW | REPO_VERIFIED; implemented is not passed |
+| Registry | 275 / 138 IMPLEMENTED / 129 NOT_IMPLEMENTED / 8 REVIEW | REPO_VERIFIED; implemented is not passed |
 | Historic regression | 51/51 PASS, run `20261110T151721934Z` | USER_REPORTED_RUNTIME; 50 Batch 12 still lack whole-batch PASS |
 | FRMS-ST-0199 | PASS (unknown customer phone login) | USER_REPORTED_RUNTIME, 2026-11-11; run ID/report not provided |
 | FRMS-ST-0203 | PASS (unknown employee email login) | USER_REPORTED_RUNTIME, 2026-11-11; run ID/report not provided |
@@ -73,3 +73,9 @@ Both runs: backend preflight OK, six primary actor roles verified by discovery, 
 The warning `Staff cross-facility: no same-date other-facility work item pair confirmed` is **stale diagnostic wording** in GitHub TEST_SWT's discovery code, whose date-aware search no longer requires a same-day pair; the wrapper's snapshot defaults may have supplied the foreign Visit separately. `Batch 12 fixture discovery: 0 verified value(s) supplied` indicates no newly injected variables, not proof that all existing defaults are current. These warnings do not negate Playwright PASS, but source revision and real fixture control should be audited. `FRMS-ST-0067` remains Blocked (no RESERVATION/SCHEDULED Visit).
 
 Keep historic **51/51 user-reported regression**, ST-0199/0203 reported PASS (without run IDs) and these two targeted run IDs as **separate** evidence. Do not merge their counts or imply whole Batch 12 / 101-case PASS; oracleApproval remains pending SRS review.
+
+## Batch 13 — 50.18% implemented coverage (2026-11-11)
+
+The `TEST_SWT` registry now contains **275 unique cases: 138 IMPLEMENTED (50.18%), 129 NOT_IMPLEMENTED, 8 REVIEW**. Batch 13 adds 37 distinct case IDs mapped to five new Playwright specs and a source-checked fixture helper. Read `test/handoff/BATCH13_COVERAGE.md` for exact cases, fixture gates and commands.
+
+**Evidence: REPO_VERIFIED_SOURCE_MAPPING_ONLY; PENDING_RUNTIME**. No new Playwright runtime PASS, TypeScript compilation, approved SRS oracle or Jira defect was produced by this change. Historical 51/51 and individual user-reported ST-0199, ST-0203, ST-0065, ST-0165 remain separate evidence. Both new access Visit creation cases require an isolated disposable DB and `isolatedWrite()`; all new shared-safe cases are authentication/GET/browser-only. Foreign physical Unit tests require an authenticated real foreign Manager positive control; do not invent fixtures. Missing preconditions remain Blocked.
