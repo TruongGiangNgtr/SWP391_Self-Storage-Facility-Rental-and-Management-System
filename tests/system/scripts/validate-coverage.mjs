@@ -16,9 +16,16 @@ const EXPECTED = {
   'Administration': 19,
   'Pricing & Reference Data': 14,
 }
+// Preserve the 275-case SRS baseline while accepting separately traced defect cases.
+// Supplemental cases may extend an existing area or the Return Inspection area.
+// They never silently change the fixed baseline counts.
+const BASELINE_TOTAL = Object.values(EXPECTED).reduce((sum, n) => sum + n, 0)
+const SUPPLEMENTAL_AREAS = new Set(['Return Inspection'])
 const manifest = loadManifest()
 const errors = []
-if (manifest.length !== 275) errors.push(`Expected 275 IDs, received ${manifest.length}.`)
+const supplemental = manifest.filter(item => typeof item.sourceKey === 'string' && item.sourceKey.startsWith('Supplemental:'))
+if (manifest.length !== BASELINE_TOTAL + supplemental.length)
+  errors.push(`Expected ${BASELINE_TOTAL} baseline IDs plus ${supplemental.length} supplemental IDs, received ${manifest.length}.`)
 const ids = new Set()
 const counts = Object.fromEntries(Object.keys(EXPECTED).map(area => [area, 0]))
 const implementationIndex = new Map()
@@ -26,7 +33,14 @@ for (const item of manifest) {
   if (!/^FRMS-ST-\d{4}(?:-[A-Z])?$/.test(item.id)) errors.push(`Malformed ID ${item.id}`)
   if (ids.has(item.id)) errors.push(`Duplicate ID ${item.id}`)
   ids.add(item.id)
-  if (!(item.area in EXPECTED)) errors.push(`Unknown primary area for ${item.id}: ${item.area}`)
+  const isSupplemental = typeof item.sourceKey === 'string' && item.sourceKey.startsWith('Supplemental:')
+  if (isSupplemental) {
+    const match = /^FRMS-ST-(\d{4})(?:-[A-Z])?$/.exec(item.id)
+    if (!match || Number(match[1]) <= BASELINE_TOTAL)
+      errors.push(`Supplemental testcase must use an ID after the ${BASELINE_TOTAL}-case baseline: ${item.id}`)
+    if (!(item.area in EXPECTED) && !SUPPLEMENTAL_AREAS.has(item.area))
+      errors.push(`Unknown supplemental area for ${item.id}: ${item.area}`)
+  } else if (!(item.area in EXPECTED)) errors.push(`Unknown primary area for ${item.id}: ${item.area}`)
   else counts[item.area]++
   if (!['UI', 'API', 'REVIEW', 'UI_API_DB', 'INTEGRATION'].includes(item.channel)) errors.push(`Invalid channel for ${item.id}`)
   if (!['IMPLEMENTED', 'NOT_IMPLEMENTED', 'REVIEW'].includes(item.automation)) errors.push(`Invalid automation state for ${item.id}`)
@@ -58,5 +72,6 @@ if (fs.existsSync(specRoot)) {
   }
 }
 console.log(`Registry: ${manifest.length} cases / ${ids.size} unique / ${manifest.filter(x => x.automation === 'IMPLEMENTED').length} implemented / ${manifest.filter(x => x.automation === 'REVIEW').length} review / ${manifest.filter(x => x.automation === 'NOT_IMPLEMENTED').length} outstanding`)
+console.log(`Registry partitions: ${BASELINE_TOTAL} baseline / ${supplemental.length} supplemental`)
 if (errors.length) { errors.forEach(e => console.error(`COVERAGE ERROR: ${e}`)); process.exitCode = 3 }
 else console.log('Registry structure and executable mappings valid. This is NOT a claim of runtime passes or SRS approval.')
