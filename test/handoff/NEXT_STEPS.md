@@ -106,3 +106,11 @@ Received and parsed **user-uploaded `results(1).json`** for `20261111T085924993Z
 ### Next action after source patch
 
 Use `test/handoff/FIX_RUN_20261111T085924993Z.md` for the read-only targeted rerun commands. Verify the exact TEST_SWT HEAD locally and collect new report files. Keep 18 Blocked and remaining 5xx/timeouts separate from deterministic test defects; no fixture seeding on shared Supabase.
+
+## Targeted reruns after automation repair — 2026-11-11
+
+**`USER_REPORTED_RUNTIME_CONSOLE`**: four independent single-case, 1-worker, 0-retry runs after fast-forward pull to `8826f5e` each reported **1 selected / 1 executed / 1 PASS / exit code 0**: `FRMS-ST-0081` (`20261111T094923472Z`), `FRMS-ST-0156` (`20261111T095025709Z`), `FRMS-ST-0235` (`20261111T095126418Z`), `FRMS-ST-0183-B` (`20261111T095244321Z`). Coverage validation PASS with **138/275 implemented (50.18%)**. Historical full-run 95 PASS stays unchanged; no independent report JSON, no new aggregate full-suite PASS, and no Jira defects confirmed. Staff SCHEDULED Visit fixture still missing. Details: `test/handoff/TARGETED_RERUNS_20261111_AFTER_8826f5e.md`.
+
+### Post-patch targeted verification follow-up
+
+Four targeted cases now have separate 1/1 PASS evidence, but the remaining 13 repaired cases and full suite still need new execution. Check `-AuditOnly`, current API health, `git rev-parse HEAD`, then rerun remaining repaired cases with `-Workers 1 -Retries 0 -SkipCatalogDiscovery`, preserving each report. Pay particular attention to `FRMS-ST-0067` (requires genuinely SCHEDULED Staff Visit; do not fabricate shared data), flaky pricing boundaries `0184/0184-B`, and server 500/503/timeouts. After stable targeted validation, repeat `-Mode all -Workers 1 -Retries 0` and use its own `summary.md`/`results.json` as a new baseline.

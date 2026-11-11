@@ -46,3 +46,5 @@ Last reviewed: **2026-11-11**, against branch head `145e9f965f3a` before adding 
 - [RUN_20261111T085924993Z.json](RUN_20261111T085924993Z.json): all 275 case statuses with report provenance and Blocked classification.
 
 - [FIX_RUN_20261111T085924993Z.md](FIX_RUN_20261111T085924993Z.md): 17 testcase automation repairs grounded in uploaded `results.json`; safe targeted rerun procedure and unresolved infrastructure/fixture cases.
+
+- [TARGETED_RERUNS_20261111_AFTER_8826f5e.md](TARGETED_RERUNS_20261111_AFTER_8826f5e.md): four independent post-patch 1/1 PASS runs (console-provenance), coverage check and next validation steps.
