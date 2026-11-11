@@ -65,3 +65,6 @@ Last reviewed: **2026-11-11**, against branch head `145e9f965f3a` before adding 
 - [BATCH14_ST0061_PASS_20261111T120242294Z.md](BATCH14_ST0061_PASS_20261111T120242294Z.md): post-fix 0061 PASS and concurrent registry reconciliation.
 
 - [BATCH14_COVERAGE_FIX_AND_RERUNS_20261111.md](BATCH14_COVERAGE_FIX_AND_RERUNS_20261111.md): two new targeted PASS, validator failure analysis and supplemental testcase fix; updated 279-case registry.
+
+- [BATCH14_COVERAGE_PASS_AND_ST0091_ST0092_20261111.md](BATCH14_COVERAGE_PASS_AND_ST0091_ST0092_20261111.md): post-fix coverage validation PASS and two new Billing targeted PASS runs (Batch14 8/15).
+
