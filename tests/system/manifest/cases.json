@@ -3646,5 +3646,18 @@
     "implementation": null,
     "oracleApproval": "PENDING_SRS_REVIEW",
     "notes": "Procedure: 1. Sign in as authorized Facility Staff via GUI; 2. Open an IN_PROGRESS Return Inspection in an isolated test environment; 3. Select Photo (IMAGE) and upload a valid image between 2,000,000 and 5,000,000 bytes; 4. Verify upload succeeded and Preview works immediately; 5. Press F5 to reload the page; 6. Reopen the same inspection and select Preview on the uploaded evidence; 7. Verify the image is visible. Execution record (2026-11-11): TESTED VIA GUI; user-observed FAIL against proposed persistent-preview oracle — after uploading a 2–5 MB image and pressing F5, Preview cannot show the image. Reported defect FRMS-DEF-005 (local tracking ID, not a Jira issue). Source investigation: evidencePreviewStore.ts only persists Data URLs when file.size <= 1,500,000 bytes; larger files retain in-memory objectUrl, which is not persisted. StaffReturnsPage.tsx shows a session-only visual-preview fallback when previewUrl is absent. SRS restricts raw binary in standard list responses but does not explicitly require persistent preview; clarify product expectation before treating this as an SRS-validated defect. Automation remains NOT_IMPLEMENTED; do not reupload to a shared DB."
+  },
+  {
+    "id": "FRMS-ST-0281",
+    "area": "Return & Settlement",
+    "name": "Reject a Customer RETURN Visit date after the Contract EndMonth.",
+    "sourceKey": "Supplemental:FRMS-DEF-006",
+    "technique": "Boundary Value Analysis / Negative Testing / Date Validation",
+    "expectedUI": "The Customer Return Visit form must not schedule a RETURN visit later than the last calendar day of Contract.EndMonth. Selecting/submitting an out-of-contract date should be blocked or return a clear validation message, with no new scheduled RETURN Visit. The current main backend enforces RETURN_VISIT_DATE_OUTSIDE_CONTRACT (HTTP 400); TEST_SWT must match the approved rule.",
+    "channel": "UI",
+    "automation": "NOT_IMPLEMENTED",
+    "implementation": null,
+    "oracleApproval": "PENDING_SRS_REVIEW",
+    "notes": "Procedure: 1. Sign in as Customer through GUI; 2. Open an ACTIVE Contract's Request Storage Return form in an isolated test environment; 3. Note Contract End Month; 4. Select the first calendar day after that end month; 5. Verify date is rejected or marked invalid before scheduling; 6. If executing submit in isolated fixture, verify no RETURN Visit is created and an understandable validation is displayed. Execution record (2026-11-11): TESTED VIA GUI (partial); user-reported that the Return Visit date picker permits selecting a date outside the Contract term. The user did not specify exact date or confirm whether Submit succeeded, so actual creation is NOT runtime-verified. Source-backed defect FRMS-DEF-006: TEST_SWT frontend ReturnVisitCreatePage.tsx does not set min/max, and its backend ReturnVisitService.ValidateDate only rejects dates earlier than today; TEST_SWT PostgreSQL Visits.sql likewise lacks a Contract.EndMonth upper bound. The main branch's Pg021_ReturnVisitWithinContract and ReturnVisitService explicitly reject visit dates after Contract.EndMonth. This case targets future dates later than the last day of Contract.EndMonth; earlier-than-start scenarios are not claimed tested. Automation NOT_IMPLEMENTED; runtime submission and SRS oracle review remain pending."
   }
 ]
