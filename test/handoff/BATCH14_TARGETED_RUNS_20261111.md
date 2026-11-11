@@ -37,3 +37,7 @@ Do not use `-StartBackend` or any state-writing fixture setup on the shared data
 ## 2026-11-11 — ST-0061 targeted PASS after locator fix
 
 User CMD log confirmed `FRMS-ST-0061` run `20261111T120242294Z`: **1/1 PASS, 24.3s**, workers=1, retries=0, exit codes 0. The local branch was fast-forwarded to `fb5f216` before execution. Earlier `20261111T115025397Z` strict-locator FAIL remains historical; **0061 now has post-fix targeted PASS evidence**. Batch 14 thus has **4/15 distinct targeted PASS**, 11 without runtime, no newly confirmed Jira defect from this run; DB remains read-only. Since this run, remote branch also added ST-0276 as NOT_IMPLEMENTED, increasing registry to **276 cases / 153 IMPLEMENTED / 115 NOT_IMPLEMENTED / 8 REVIEW (55.43%)**. The old full run (275 cases, 95 PASS) and 0061's own 275-case runner snapshot remain unchanged. See `test/handoff/BATCH14_ST0061_PASS_20261111T120242294Z.md`.
+
+## Post-run evidence — 20261111T122312270Z and 20261111T122412231Z
+
+`FRMS-ST-0093` 1/1 PASS in 11.9 s, `FRMS-ST-0134` 1/1 PASS in 13.5 s, both one worker / zero retries / exit 0 (USER_REPORTED_RUNTIME_CONSOLE). These two additional distinct passes bring Batch 14 to **6/15**. Current source manifest subsequently grew to **279** with 4 supplemental defect/UI cases. The previous coverage validator failed exit 3 at 276 cases because it hardcoded 275 and rejected `Return Inspection`; a source repair is now pending local coverage verification. See `BATCH14_COVERAGE_FIX_AND_RERUNS_20261111.md`.
