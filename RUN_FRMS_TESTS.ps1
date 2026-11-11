@@ -2,7 +2,7 @@
 <#
   FRMS TEST_SWT read-only/validation automation runner.
   Uses the existing run-frms-tests.ps1 launcher. DOES NOT modify source/DB.
-  Snapshot fixture baseline: user-provided 2026-11-11T04:40:10Z PostgreSQL export.
+  Snapshot fixture baseline: user-provided 2026-11-11T06:30:28Z PostgreSQL export.
 
   Examples:
     .\RUN_FRMS_TESTS.cmd
@@ -112,11 +112,13 @@ try {
     Set-DefaultEnv 'FRMS_TEST_AVAILABLE_UNIT_RENT_VND' '3500'
 
     if (-not $LiveDiscoveryOnly) {
-        # 17 candidate fixtures independently supported by the Nov 11 DB snapshot.
+        # Snapshot-backed candidate fixtures from Nov 11 06:30:28Z DB export.
+        # FRMS-ST-0065 is strictly read-only: an ACTIVE assignment already exists.
         # Defaults are not current-runtime verification; discovery/test assertions must
         # validate ownership, facility, type, status and authorization again.
         $snapshotFixtures = [ordered]@{
             'FRMS_TEST_ACTIVE_CONTRACT_ID' = '91000000-0000-0000-0000-000000000001'
+            'FRMS_TEST_ASSIGNABLE_RESERVATION_ID' = 'f1112fee-e99f-4094-879a-563ddd1f8f81'
             'FRMS_TEST_AVAILABLE_PHYSICAL_UNIT_ID' = 'fa72ca32-22d6-496c-aca2-20e64c040de7'
             'FRMS_TEST_CUSTOMER_2_INVOICE_ID' = '83000000-0000-0000-0000-000000000003'
             'FRMS_TEST_CUSTOMER_2_RESERVATION_ID' = '81000000-0000-0000-0000-000000000002'
@@ -140,11 +142,11 @@ try {
         Set-DefaultEnv 'FRMS_TEST_TERMINATED_CONTRACT_ID' 'b2447e82-3493-44e7-8678-cd9255ea8d72'
     }
 
-    # Reject specific known-ineligible assignable IDs from this snapshot.
+    # Reject known-ineligible candidates; the newly eligible READ-ONLY ST-0065 fixture
+    # is intentionally not rejected. It has an existing ACTIVE assignment.
     # Other custom values are left untouched but MUST be runtime verified.
     $knownIneligible = @(
         'b370c765-adb7-4e16-aa19-54caf7d5b788',
-        'f1112fee-e99f-4094-879a-563ddd1f8f81',
         'bc9b2c4c-9d74-4f16-b0d6-73156a42fe85'
     )
     if ($env:FRMS_TEST_ASSIGNABLE_RESERVATION_ID -in $knownIneligible) {
@@ -153,8 +155,10 @@ try {
     }
 
     # Intentionally NOT invented from the snapshot:
-    # - FRMS_TEST_ASSIGNABLE_RESERVATION_ID: no eligible F01 tuple on Nov 11;
-    #   remains SKIPPED/Blocked unless a subsequently VERIFIED pair is configured.
+    # - FRMS_TEST_ASSIGNABLE_RESERVATION_ID: snapshot has an F01 matching tuple,
+    #   but it is already linked by an ACTIVE assignment; read-only checks ONLY.
+    # - FRMS_TEST_STAFF_HANDOVER_VISIT_ID: currently CHECKED_IN, not SCHEDULED;
+    #   FRMS-ST-0067 cannot use it for a pre-check-in fixture.
     # - FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE, FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL:
     #   excluded PII; existing API discovery must verify they do not exist.
     # - FRMS_TEST_NO_CCCD_PHONE/PASSWORD, COMPLETED_CONTRACT_ID: not established.
@@ -167,9 +171,9 @@ try {
         Write-Warning 'Fixture defaults are from Nov 11, 2026. They MUST match current API/DB state to be valid.'
     }
     if (-not $env:FRMS_TEST_ASSIGNABLE_RESERVATION_ID) {
-        Write-Warning 'FRMS-ST-0065 is expected to be SKIPPED/Blocked: no verified assignable Reservation F01 tuple; never fabricate an ID.'
+        Write-Warning 'FRMS-ST-0065 fixture not set. Set a verified F01 matching reservation for read-only checks; never fabricate an ID.'
     } else {
-        Write-Warning 'A custom assignable reservation ID is present; validate CHECKED_IN Visit and matching AVAILABLE unit before counting PASS.'
+        Write-Warning 'FRMS-ST-0065 matching Reservation candidate configured; verify Manager F01 GET, CHECKED_IN Visit, matching AVAILABLE Unit and ACTIVE assignment before PASS. No save/release.'
     }
     if (-not $StartBackend -and $Mode -notin @('coverage')) {
         Write-Host 'Safety default: the FRMS API must already be healthy at http://127.0.0.1:5164/health.'

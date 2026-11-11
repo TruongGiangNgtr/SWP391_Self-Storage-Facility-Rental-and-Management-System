@@ -122,7 +122,9 @@
       "authorization": "PENDING_RUNTIME",
       "new_assignment_eligibility": "NOT_ESTABLISHED",
       "read_only_FRMS_ST_0065": "MAY_BE_USABLE_AFTER_ROLE_AND_ORACLE_REVIEW",
-      "wrapper_guard": "RUN_FRMS_TESTS.ps1 currently clears this reservation from FRMS_TEST_ASSIGNABLE_RESERVATION_ID"
+      "wrapper_guard": "resolved: RUN_FRMS_TESTS.ps1 no longer rejects f1112fee; snapshot default configured",
+      "test_implementation": "GET Reservation + StorageUnit + ACTIVE assignment and UI headings; no PUT/DELETE",
+      "runtime_execution": "PENDING_RUNTIME"
     }
   },
   "coverage": {
@@ -236,7 +238,9 @@
     "inner_launcher": "run-frms-tests.ps1",
     "coverage_manifest": "tests/system/manifest/cases.json",
     "report_root": "tests/system/reports",
-    "jira_defect_policy": "independently confirmed product defects only"
+    "jira_defect_policy": "independently confirmed product defects only",
+    "st0065_cmd": "RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0065 -Workers 1 -Retries 0 -SkipCatalogDiscovery",
+    "st0065_data_source": "snapshot 2026-11-11T06:30:28Z, already ACTIVE handover assignment; no new assignment operations"
   },
   "safety": {
     "mode": "no application-state writes",
@@ -251,7 +255,7 @@
   },
   "known_blockers": [
     "FRMS_TEST_STAFF_HANDOVER_VISIT_ID (SCHEDULED precondition absent)",
-    "FRMS_TEST_ASSIGNABLE_RESERVATION_ID (launcher guard / runtime role pending)",
+    "FRMS-ST-0065: candidate configured, still needs current Manager F01 GET/assignment state + UI runtime verification",
     "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE",
     "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL"
   ],
@@ -271,7 +275,8 @@
     "The committed wrapper does not contain the dedicated negative-fixture installer hook.",
     "profile.md updated from second sanitized snapshot but contains no new runtime PASS evidence.",
     "An ACTIVE handover assignment already links the new F01 matching Reservation and Unit; do not create/release assignments on shared data.",
-    "Zero RESERVATION/SCHEDULED Visits in snapshot; previously configured Staff handover Visit is now CHECKED_IN."
+    "Zero RESERVATION/SCHEDULED Visits in snapshot; previously configured Staff handover Visit is now CHECKED_IN.",
+    "ST0065 snapshot fixture now configured in wrapper for read-only matching test; actual PASS remains unverified."
   ],
   "tools": [
     {

@@ -12,6 +12,7 @@ This directory is **`test/handoff/` (singular)** as requested. Executable tests 
 4. [EVIDENCE.md](EVIDENCE.md) — verified snapshot facts, historical test execution and open discrepancies
 5. [RUNBOOK.md](RUNBOOK.md) — exact Windows CMD commands, CI/runner behavior, reports and safe diagnostics
 6. [NEXT_STEPS.md](NEXT_STEPS.md) — prioritized backlog and acceptance gates
+7. [FRMS-ST-0065.md](FRMS-ST-0065.md) — ready-to-run read-only Manager F01 test data and exact commands
 
 ## Canonical source files (do not duplicate or overwrite)
 

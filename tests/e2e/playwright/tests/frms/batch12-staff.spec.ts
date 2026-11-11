@@ -44,13 +44,37 @@ test('FRMS-ST-0063 - AVAILABLE physical unit is eligible for handover pool',asyn
 
 
 test('FRMS-ST-0065 - Matching physical unit and reservation unit type are verified',async({request,page})=>{
-  const reservationId=fixture('FRMS_TEST_ASSIGNABLE_RESERVATION_ID'),unitId=fixture('FRMS_TEST_AVAILABLE_PHYSICAL_UNIT_ID')
+  // Read-only: the snapshot candidate already has an ACTIVE HandoverUnitAssignment.
+  // GET checks only. Never PUT/DELETE an assignment to manufacture a fixture.
+  const reservationId=fixture('FRMS_TEST_ASSIGNABLE_RESERVATION_ID')
+  const unitId=fixture('FRMS_TEST_AVAILABLE_PHYSICAL_UNIT_ID')
+  const facilityId=fixture('FRMS_TEST_HANOI_FACILITY_ID')
   const reservation=await getAs(request,'FACILITY_MANAGER',`/api/v1/reservations/${reservationId}`)
-  expect(reservation.status()).toBe(200)
-  const data=(await reservation.json() as {data?:{unitTypeId?:string}}).data
+  if(reservation.status()!==200)
+    throw new Error(`FRMS_FIXTURE_MISSING: Manager F01 reservation detail HTTP ${reservation.status()}.`)
+  const data=(await reservation.json() as {data?:{
+    reservationId?:string,facilityId?:string,unitTypeId?:string,status?:string,
+    reservationVisit?:{visitType?:string,status?:string}|null
+  }}).data
+  if(!data||data.reservationId!==reservationId||data.facilityId!==facilityId||
+      data.status!=='CONFIRMED'||data.reservationVisit?.visitType!=='RESERVATION'||
+      data.reservationVisit?.status!=='CHECKED_IN')
+    throw new Error('FRMS_FIXTURE_MISSING: Reservation must be CONFIRMED with a CHECKED_IN RESERVATION Visit in Manager F01 facility.')
   const unit=await managerGetUnit(request,unitId)
-  expect(data?.unitTypeId).toBeTruthy()
-  expect(unit.unitTypeId).toBe(data?.unitTypeId)
+  if(unit.storageUnitId!==unitId||unit.status!=='AVAILABLE'||
+      unit.facilityId!==data.facilityId||!data.unitTypeId||unit.unitTypeId!==data.unitTypeId)
+    throw new Error('FRMS_FIXTURE_MISSING: physical unit must be AVAILABLE and match Reservation Facility and UnitType.')
+  const assignment=await getAs(request,'FACILITY_MANAGER',
+    `/api/v1/reservations/${reservationId}/handover-unit-assignment`)
+  if(assignment.status()!==200)
+    throw new Error(`FRMS_FIXTURE_MISSING: Manager F01 assignment detail HTTP ${assignment.status()}.`)
+  const assigned=(await assignment.json() as {data?:{
+    reservationId?:string,storageUnitId?:string,status?:string
+  }|null}).data
+  if(!assigned||assigned.status!=='ACTIVE'||assigned.reservationId!==reservationId||
+      assigned.storageUnitId!==unitId)
+    throw new Error('FRMS_FIXTURE_MISSING: expected ACTIVE assignment linking the selected Reservation and AVAILABLE matching Unit.')
+  expect(unit.unitTypeId).toBe(data.unitTypeId)
   await visitAs(page,'FACILITY_MANAGER','/manager/handover-unit-selection')
   await expect(page.getByRole('heading',{name:'Available Matching Units'})).toBeVisible()
 })

@@ -105,7 +105,7 @@ The export reports one `assignable_manager_f01` triple. Cross-checking raw safe 
 
 This **proves a matching tuple exists in the snapshot**, not that a *new* assignment can be performed. The frontend `HandoverUnitSelectionPage.tsx` filters `CONFIRMED`, `RESERVATION` Visit `CHECKED_IN`, and same-facility/same-type `AVAILABLE` units, and also reads the current Assignment. The committed `FRMS-ST-0065` test checks the read-only UnitType match and a visible heading, **not** assignment creation. After authenticated Manager F01 GET verification and SRS oracle review, the tuple may be useful for that read-only assertion, but **do not save or release assignments**.
 
-**Launcher conflict:** `RUN_FRMS_TESTS.ps1` still lists this new matching Reservation ID `f1112fee-e99f-4094-879a-563ddd1f8f81` under `knownIneligible` from the earlier snapshot and clears `FRMS_TEST_ASSIGNABLE_RESERVATION_ID` if provided. That hardcoded guard must be reviewed separately before relying on this fixture; the profile update makes **no launcher changes**.
+**Launcher fix prepared:** `RUN_FRMS_TESTS.ps1` now includes `FRMS_TEST_ASSIGNABLE_RESERVATION_ID=f1112fee-e99f-4094-879a-563ddd1f8f81` as a snapshot default and removes this ID from the previous `knownIneligible` list. The existing `FRMS_TEST_AVAILABLE_PHYSICAL_UNIT_ID=fa72ca32-22d6-496c-aca2-20e64c040de7` and F01 Facility ID already match. **Runtime validation is still pending.** `FRMS-ST-0065` now uses only GET requests and page navigation to verify the Reservation, RESERVATION/CHECKED_IN Visit, AVAILABLE matching Unit, and the pre-existing ACTIVE Assignment. Do not use this fixture for a NEW assignment or save/release.
 
 Alternative Reservation `b370c765-adb7-4e16-aa19-54caf7d5b788` remains CONFIRMED + CHECKED_IN but its F01 UnitType `...0002` has 2 IN_USE + 1 INSPECTION and **0 AVAILABLE** physical units. It does not satisfy the matching-available-unit requirement.
 
@@ -141,7 +141,7 @@ These **17** environment defaults were cross-referenced with the new export, but
 | `FRMS_TEST_STAFF_OWN_REFERENCE_ID` | `0c5eb20c-ec50-4e2f-a633-e0cea07eeadf` | CHECKED_IN Visit, Staff F01 |
 | `FRMS_TEST_STAFF_SCOPE_DATE` | `2026-12-01` | 2026-12-01; needs current work-list confirmation |
 
-Additional defaults: `FRMS_TEST_OTHER_FACILITY_SCOPE_DATE=2026-12-05`; `FRMS_TEST_TERMINATED_CONTRACT_ID=b2447e82-3493-44e7-8678-cd9255ea8d72` (TERMINATED). `FRMS_TEST_ASSIGNABLE_RESERVATION_ID` and the two unregistered-identity keys are **not set** from the committed wrapper.
+Additional defaults: `FRMS_TEST_OTHER_FACILITY_SCOPE_DATE=2026-12-05`; `FRMS_TEST_TERMINATED_CONTRACT_ID=b2447e82-3493-44e7-8678-cd9255ea8d72` (TERMINATED). **The wrapper now additionally sets `FRMS_TEST_ASSIGNABLE_RESERVATION_ID` for the read-only ST-0065 scenario.** The two unregistered-identity keys are still not configured by snapshot defaults.
 
 ## 7. Unit Type reference data (2026-11-10 API reference)
 
@@ -220,7 +220,7 @@ Do not start a backend against shared Supabase merely to run the wrapper: Reserv
 
 ## 10. Next acceptance checks
 
-1. Check the **current** Manager F01 GET responses for the matching tuple and its existing ACTIVE assignment; decide the scope of read-only `FRMS-ST-0065`, review stale launcher `knownIneligible` guard. No save/release POST.
+1. **ST-0065 fixture prepared in runner and read-only test assertions updated.** Run the case with Manager F01 against the authorized API; verify current Reservation, Visit, Unit and ACTIVE Assignment via GET. The outdated `knownIneligible` guard was removed for the verified snapshot ID. No save/release PUT/DELETE.
 2. Keep scheduled Reservation Visit tests Blocked; the new snapshot has none. Do not repurpose CHECKED_IN visits as SCHEDULED.
 3. Verify F32 foreign Visit access and F01 denial using correct Visit date; avoid false positives from mismatched dates.
 4. Verify the two nonexistent login identifiers from a complete Admin directory, without logging existing user details.
@@ -231,8 +231,17 @@ Do not start a backend against shared Supabase merely to run the wrapper: Reserv
 - DB snapshot inputs (user-uploaded; **not in Git**): `FRMS_PROFILE_SAFE_20261111T063028Z.zip`, `FRMS_PROFILE_SUMMARY_20261111T063028Z.json`.
 - Requirements/oracles: `docs/FRMS_SRS_V11.md` and `tests/system/manifest/cases.json`.
 - Actual UI rule: `frontend/src/features/handover-unit-selection/HandoverUnitSelectionPage.tsx`.
-- Runner and fixture defaults: `RUN_FRMS_TESTS.ps1`, `run-frms-tests.ps1`, `tests/system/scripts/batch12-discover.mjs`.
+- Runner and fixture defaults: `RUN_FRMS_TESTS.ps1`, `run-frms-tests.ps1`, `tests/system/scripts/batch12-discover.mjs`; case source: `tests/e2e/playwright/tests/frms/batch12-staff.spec.ts`. Scenario instructions: `test/handoff/FRMS-ST-0065.md`.
 - Automation manual and history: `tests/system/README.md`, `tests/system/PATCH_HISTORY.md`.
 - Structured handoff: `test/handoff/context.json`, `fixtures.json`, `EVIDENCE.md`, `HANDOFF.md`, `NEXT_STEPS.md`.
 
 This profile supersedes the previous stale **30 implemented / 20 PASS / 1 worker** snapshot narrative. Updates to `TEST_SWT` should be **one commit per coherent change batch**. No documentation update is proof of a runtime PASS.
+
+### ST-0065 prepared command (CMD)
+
+```bat
+.\RUN_FRMS_TESTS.cmd -AuditOnly
+.\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0065 -Workers 1 -Retries 0 -SkipCatalogDiscovery
+```
+
+The wrapper supplies the snapshot Reservation and matching AVAILABLE Unit automatically. API role/permissions and current state are **not** guaranteed. `-SkipCatalogDiscovery` skips unrelated catalogue fixture lookups, not the Batch 12 discovery pass. Runtime output must be checked in `tests/system/reports/<run-id>/summary.md` and `results.json`. The previous historical PASS count remains 51/51.

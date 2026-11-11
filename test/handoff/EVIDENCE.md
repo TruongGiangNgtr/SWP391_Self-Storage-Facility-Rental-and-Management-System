@@ -27,7 +27,7 @@ Evidence levels: `REPO_VERIFIED` (committed TEST_SWT source), `SNAPSHOT_VERIFIED
 
 The export's `assignable_manager_f01.candidateCount=1` matches Reservation `f1112fee-e99f-4094-879a-563ddd1f8f81`, Visit `6855fba5-942c-40a4-bf22-5658ca3be00c`, physical Unit `fa72ca32-22d6-496c-aca2-20e64c040de7` in Facility 01 and UnitType `b1000000-0000-0000-0000-000000000001`. **Crucially**, `HandoverUnitAssignment` row `d9e3672e-9708-46de-96a9-72a860f55065` has Status ACTIVE for the same Reservation and Unit.
 
-This triple can support a *read-only matching-UnitType investigation* after Manager F01 access and oracle approval. It cannot be assumed to allow a *new* assignment; never call save/release to test eligibility on shared Supabase. The current wrapper intentionally clears that ID from `FRMS_TEST_ASSIGNABLE_RESERVATION_ID` because of an outdated earlier-snapshot exclusion. Document and review this launcher conflict before tests.
+This triple can support a *read-only matching-UnitType investigation* after Manager F01 access and oracle approval. It cannot be assumed to allow a *new* assignment; never call save/release to test eligibility on shared Supabase. The wrapper has now been corrected to provide this ID as a read-only ST-0065 snapshot default and not reject it. The Playwright case verifies the existing ACTIVE assignment via GET. Live Manager F01 access and test PASS are still pending.
 
 Earlier Reservation `b370c765-adb7-4e16-aa19-54caf7d5b788` still has no matching AVAILABLE UnitType ...0002 in Facility 01 (2 IN_USE, 1 INSPECTION).
 
@@ -38,7 +38,7 @@ The old `FRMS_TEST_STAFF_HANDOVER_VISIT_ID` is now CHECKED_IN. Remaining four sc
 ## Source discrepancies and validation rules
 
 - `frontend/src/features/handover-unit-selection/HandoverUnitSelectionPage.tsx` filters Reservation CONFIRMED, Visit RESERVATION/CHECKED_IN, matching AVAILABLE Unit; it also reads existing assignments.
-- `tests/e2e/playwright/tests/frms/batch12-staff.spec.ts` implements `FRMS-ST-0065` with GET and UI heading; it does not create assignments.
+- `tests/e2e/playwright/tests/frms/batch12-staff.spec.ts` implements `FRMS-ST-0065` with GET Reservation, Unit, ACTIVE Assignment, and Manager UI heading; it does not create/release assignments.
 - The canonical discovery still defaults Staff F02 for cross-facility search, while wrapper supplies F32.
 - A snapshot ID is not evidence of current API role authorization or application truth; live tests may alter data or be blocked by the active launcher.
 - No new runtime Playwright PASS was produced during profile maintenance. Export ZIP and summary are **not committed** to public Git; only minimal test metadata is recorded.

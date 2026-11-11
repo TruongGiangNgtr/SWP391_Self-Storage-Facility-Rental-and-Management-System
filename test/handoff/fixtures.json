@@ -12,10 +12,10 @@
     },
     {
       "name": "FRMS_TEST_ASSIGNABLE_RESERVATION_ID",
-      "value": null,
-      "evidence": "new snapshot contains a matching CONFIRMED+CHECKED_IN+AVAILABLE F01 triple, but already ACTIVE assignment and launcher knownIneligible guard",
+      "value": "f1112fee-e99f-4094-879a-563ddd1f8f81",
+      "evidence": "read-only F01 matching triple and ACTIVE assignment from 2026-11-11T06:30:28Z snapshot; hardcoded runner default",
       "runtime_verified": false,
-      "state": "PENDING_RUNTIME_AND_LAUNCHER_REVIEW",
+      "state": "CONFIGURED_SNAPSHOT_CANDIDATE_RUNTIME_PENDING",
       "candidate": {
         "reservationId": "f1112fee-e99f-4094-879a-563ddd1f8f81",
         "visitId": "6855fba5-942c-40a4-bf22-5658ca3be00c",
@@ -25,8 +25,8 @@
         "existingAssignmentId": "d9e3672e-9708-46de-96a9-72a860f55065",
         "existingAssignmentStatus": "ACTIVE"
       },
-      "allowed_use": "read-only matching relation only after authenticated Manager F01 and approved testcase oracle",
-      "forbidden_use": "do not perform new assignment save/release as a diagnostic"
+      "allowed_use": "FRMS-ST-0065 GET-only verification of existing ACTIVE assignment + matching UnitType after Manager F01 authorization",
+      "forbidden_use": "never PUT assignment, DELETE assignment, or claim eligible for new assignment"
     },
     {
       "name": "FRMS_TEST_AVAILABLE_PHYSICAL_UNIT_ID",
@@ -180,7 +180,7 @@
     }
   ],
   "rules": {
-    "FRMS_TEST_ASSIGNABLE_RESERVATION_ID": "One snapshot matching F01 CONFIRMED Reservation + CHECKED_IN Reservation Visit + AVAILABLE matching StorageUnit exists, but is already linked to an ACTIVE assignment. Do not treat as eligible for a NEW assignment. Read-only ST-0065 needs Manager F01 API/approved oracle; wrapper currently hard-rejects the ID.",
+    "FRMS_TEST_ASSIGNABLE_RESERVATION_ID": "Snapshot candidate CONFIGURED for GET-only ST-0065. Existing ACTIVE assignment links Reservation to AVAILABLE unit. Requires Manager F01 live access and same statuses; no creation/release; not a new-assignment fixture.",
     "FRMS_TEST_OTHER_FACILITY_REFERENCE_ID": "Visit ID of Facility32, not facility ID; verify F32 allow/F01 deny under authenticated API and work-item boundaries.",
     "FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE": "verify syntactically valid, absent from *every page* of Admin directory immediately before test; don't create account.",
     "FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL": "verify syntactically valid, absent from *every page* of Admin directory immediately before test; don't create account.",

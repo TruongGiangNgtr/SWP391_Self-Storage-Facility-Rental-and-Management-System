@@ -79,13 +79,13 @@ The wrapper defaults to demo identifiers from the existing source; actual secret
 ## 6. Missing fixtures and what to do
 
 ```text
-FRMS_TEST_ASSIGNABLE_RESERVATION_ID     New matching F01 tuple exists, but ACTIVE assignment + stale launcher guard + Manager API pending (FRMS-ST-0065)
+FRMS_TEST_ASSIGNABLE_RESERVATION_ID     CONFIGURED for read-only ST-0065; ACTIVE assignment exists, Manager runtime verification pending
 FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE  Must verify absent via complete Admin directory (FRMS-ST-0199)
 FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL  Must verify absent via complete Admin directory (FRMS-ST-0203)
 FRMS_TEST_STAFF_HANDOVER_VISIT_ID     CHECKED_IN now; no RESERVATION/SCHEDULED Visit in snapshot for pre-check-in tests
 ```
 
-Do **not** replace missing fixtures with unrelated UUIDs or invented unregistered identities. The new matching F01 Reservation is already linked to an ACTIVE HandoverUnitAssignment; only consider read-only matching assertions after Manager API and oracle review. The current wrapper hard-rejects its ID from an earlier snapshot. No assignment mutation is allowed. If a newly authorized, isolated test DB is provisioned, build a deterministic fixture factory and validate same Facility + UnitType + Visit status, then rerun case and record evidence.
+Do **not** replace missing fixtures with unrelated UUIDs or invented unregistered identities. The new matching F01 Reservation is already linked to an ACTIVE HandoverUnitAssignment; only consider read-only matching assertions after Manager API and oracle review. The wrapper now accepts and provides this exact Reservation ID; actual current state is checked by the read-only testcase. No assignment mutation is allowed. If a newly authorized, isolated test DB is provisioned, build a deterministic fixture factory and validate same Facility + UnitType + Visit status, then rerun case and record evidence.
 
 The active discovery code may still use Staff F02 by default even though the fixture uses Staff F32. An F32 dedicated patch exists outside the canonical script; **check installed source before reapplying**. `FRMS_TEST_OTHER_FACILITY_REFERENCE_ID` is a Visit ID with reference date `2026-12-05`.
 
@@ -107,3 +107,12 @@ The repository includes `test/tools/FRMS_DB_PROFILE_EXPORT/` (Python + psycopg).
 Never push `.env`, database connections, raw dumps, emails/phones, credentials, JWTs or exported snapshot ZIPs. Sanitized snapshots still contain business IDs and should be shared only with authorized reviewers.
 
 **DB profile exporter report location (from `RUN_EXPORT.cmd`):** `test/reports/db-profile/` (inside this repository, ignored by `test/reports/.gitignore`). The exporter generates `FRMS_PROFILE_SAFE_<UTC>.zip` and `FRMS_PROFILE_SUMMARY_<UTC>.json` there. Invocation: `.\test\tools\FRMS_DB_PROFILE_EXPORT\RUN_EXPORT.cmd`. To override the location, append `--out "D:\safe-output"`. This directory is **not** `tests/system/reports/`, which stores Playwright test evidence. If invoking Python directly, include `--out ".\test\reports\db-profile"`; otherwise Python still defaults to the home directory.
+
+## 9. FRMS-ST-0065 prepared case
+
+```bat
+.\RUN_FRMS_TESTS.cmd -AuditOnly
+.\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0065 -Workers 1 -Retries 0 -SkipCatalogDiscovery
+```
+
+The wrapper supplies F01 Facility `f0000000-0000-0000-0000-000000000001`, Reservation `f1112fee-e99f-4094-879a-563ddd1f8f81`, physical Unit `fa72ca32-22d6-496c-aca2-20e64c040de7`, Manager F01 demo identity. The test checks GET reservation/visit/unit/active assignment and then the Manager page, without assignment writes. When preconditions changed, `FRMS_FIXTURE_MISSING` is normalized as Blocked. For detailed API/data evidence, see [FRMS-ST-0065.md](FRMS-ST-0065.md).

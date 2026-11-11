@@ -64,7 +64,7 @@ The user uploaded **`FRMS_PROFILE_SAFE_20261111T063028Z.zip`** and **`FRMS_PROFI
 
 **Manager F01 matching candidate found:** Reservation `f1112fee-e99f-4094-879a-563ddd1f8f81` CONFIRMED, Visit `6855fba5-942c-40a4-bf22-5658ca3be00c` RESERVATION/CHECKED_IN, physical Unit `fa72ca32-22d6-496c-aca2-20e64c040de7` AVAILABLE and matching UnitType ...0001. However, an **existing ACTIVE** assignment `d9e3672e-9708-46de-96a9-72a860f55065` already binds these exact records. It is a **snapshot-confirmed matching tuple**, not proven eligible for *new* assignment. `FRMS-ST-0065` currently makes only read-only matching/UI checks; authenticate Manager F01 and approve the testcase oracle before using the candidate. Never send assignment save/release as a diagnostic.
 
-**Launcher conflict:** current `RUN_FRMS_TESTS.ps1` still includes `f1112fee-e99f-4094-879a-563ddd1f8f81` in `knownIneligible` based on the earlier snapshot and clears the custom `FRMS_TEST_ASSIGNABLE_RESERVATION_ID`. This is a stale guard to review separately. The profile/handoff update **does not change test code or launcher**.
+**Launcher/test fix applied:** `RUN_FRMS_TESTS.ps1` now supplies `FRMS_TEST_ASSIGNABLE_RESERVATION_ID=f1112fee-e99f-4094-879a-563ddd1f8f81` by default and no longer rejects it. `FRMS-ST-0065` now validates Reservation, Visit, Unit, and the existing ACTIVE HandoverUnitAssignment using only GET requests, then checks the Manager page. **Live Manager F01 authentication and result remain unverified.** See [FRMS-ST-0065.md](FRMS-ST-0065.md).
 
 **Scheduled-Visit fixture is now invalid:** `FRMS_TEST_STAFF_HANDOVER_VISIT_ID=6855fba5-942c-40a4-bf22-5658ca3be00c` is now CHECKED_IN, **not SCHEDULED**. No RESERVATION/SCHEDULED Visits exist among the 21 snapshot Visits. Keep any before-check-in dependent scenario Blocked until a real eligible Visit exists.
 
@@ -109,10 +109,12 @@ Root `profile.md` has now been updated from the second sanitized snapshot and cu
 
 ## 8. Next priorities
 
-See [NEXT_STEPS.md](NEXT_STEPS.md). Most immediate: resolve negative fixture verification safely, reconcile F32 cross-facility discovery/STAFF test versions, validate 101 testcase discovery and run evidence; verify the new read-only F01 matching tuple and stale launcher guard, while keeping any new assignment operations prohibited on shared data. Scheduled Visit tests have no valid fixture in this snapshot.
+See [NEXT_STEPS.md](NEXT_STEPS.md). Most immediate: resolve negative fixture verification safely, reconcile F32 cross-facility discovery/STAFF test versions, validate 101 testcase discovery and run evidence; run the newly configured read-only `FRMS-ST-0065` and check evidence, while prohibiting new assignment operations on shared data. Scheduled Visit tests have no valid fixture in this snapshot.
 
 ## 9. PowerShell cleanup decision (2026-11-11)
 
 The obsolete `APPLY_FRMS_PATCHES_TEST_SWT.ps1` was removed because its required old patch files are absent from `TEST_SWT` and patches 01–03 are already integrated. The supported command remains `.\\RUN_FRMS_TESTS.cmd`.
 
 Keep **both** `RUN_FRMS_TESTS.ps1` (safe environment/fixture wrapper) and `run-frms-tests.ps1` (Playwright/system-test launcher): the CMD entrypoint depends on both. Also keep `backend/scripts/PostgreSql-Local.ps1` for local PostgreSQL lifecycle. The older `backend/tests/Frms.IntegrationTests/Verify-CreateReservation.ps1` targets legacy SQL Server with write operations and hardcoded paths; it is unrelated to the current automated PostgreSQL suite, retained for historical continuity only. Do not execute it on shared Supabase. This cleanup did not execute tests or validate new PASS results.
+
+**Targeted ST-0065 execution:** `.\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0065 -Workers 1 -Retries 0 -SkipCatalogDiscovery`. The historical 51/51 PASS result is unchanged until new Playwright evidence exists.
