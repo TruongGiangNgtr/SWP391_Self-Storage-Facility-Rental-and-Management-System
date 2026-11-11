@@ -16,6 +16,8 @@
 | --- | --- |
 | `RUN_FRMS_TESTS.cmd`, `RUN_FRMS_TESTS.ps1` | Preferred Windows entrypoint; configures test process and snapshot-based fixture defaults |
 | `run-frms-tests.ps1` | Underlying launcher, preflight, catalogue/fixture discovery and report execution |
+
+The two root PowerShell scripts are **both required**: `RUN_FRMS_TESTS.cmd` invokes `RUN_FRMS_TESTS.ps1`, which configures the safe Testing environment and snapshot candidates, then invokes `run-frms-tests.ps1` for API preflight, discovery, Playwright execution and reports. Deleting either breaks the current one-command runner.
 | `tests/e2e/playwright/tests/frms/` | Playwright test specifications and helpers |
 | `tests/system/manifest/cases.json` | Testcase registry and implementation mapping |
 | `tests/system/scripts/` | Coverage, preflight, discovery, execution and Jira report scripts |
@@ -103,3 +105,16 @@ Only independently confirmed, reproducible product defects with an accepted expe
 - [SRS](../../docs/FRMS_SRS_V11.md), [API](../../docs/FRMS_API_V11.md), [Data Dictionary](../../docs/FRMS_Data_Dictionary_V11.md): normative requirements and implementation contracts.
 - [PATCH_HISTORY.md](PATCH_HISTORY.md): collapsed history of Patch 01–12 and launcher refinements.
 - `profile.md`: older environment notes; the registry and latest independently observed runtime logs take precedence for coverage and PASS counts.
+
+## PowerShell cleanup inventory (2026-11-11)
+
+The obsolete root `APPLY_FRMS_PATCHES_TEST_SWT.ps1` was deleted: it required three `01–03_*.patch` files, but **no `.patch` file remains** on the tracked branch, and those old patch stages are already integrated. Do not use or re-create this installer just to run tests.
+
+Other PowerShell files intentionally retained:
+
+- `RUN_FRMS_TESTS.ps1`: **ACTIVE**, invoked by `RUN_FRMS_TESTS.cmd`; sets safety flags, demo identities and snapshot candidate fixtures.
+- `run-frms-tests.ps1`: **ACTIVE**, invoked by the wrapper; runs preflight, fixture discovery and tests and produces reports.
+- `backend/scripts/PostgreSql-Local.ps1`: independent local PostgreSQL/Docker administration helper, unrelated to the FRMS test launcher.
+- `backend/tests/Frms.IntegrationTests/Verify-CreateReservation.ps1`: **legacy SQL Server** test verification script with hardcoded Windows paths and write operations against a legacy test database. Not part of the current PostgreSQL Playwright test run. Do **not** run against shared Supabase. Kept to preserve existing historical test artifacts/references.
+
+No test code, launcher code or backend code was modified by this cleanup. Do not interpret static cleanup as a runtime test PASS.

@@ -11,7 +11,33 @@
     "reviewed_head": "145e9f965f3acd607f884ebb69567218af1a8147",
     "handoff_root": "test/handoff",
     "tests_root": "tests",
-    "root_readme": "README.md"
+    "root_readme": "README.md",
+    "powershell_inventory": {
+      "cleanup_date": "2026-11-11",
+      "removed": [
+        {
+          "path": "APPLY_FRMS_PATCHES_TEST_SWT.ps1",
+          "reason": "requires missing 01-03 patch files; stages already integrated"
+        }
+      ],
+      "active_runner_chain": [
+        "RUN_FRMS_TESTS.cmd",
+        "RUN_FRMS_TESTS.ps1",
+        "run-frms-tests.ps1"
+      ],
+      "retained_backend_scripts": [
+        {
+          "path": "backend/scripts/PostgreSql-Local.ps1",
+          "purpose": "local PostgreSQL Docker helper; not a test launcher"
+        },
+        {
+          "path": "backend/tests/Frms.IntegrationTests/Verify-CreateReservation.ps1",
+          "purpose": "historical SQL Server verification, hardcoded paths and writes; not current PostgreSQL test suite",
+          "safety": "never run against shared Supabase"
+        }
+      ],
+      "runtime_test_evidence": "none; cleanup only"
+    }
   },
   "state": {
     "branch_protection_note": "Never modify main; retain only one commit per coherent batch",

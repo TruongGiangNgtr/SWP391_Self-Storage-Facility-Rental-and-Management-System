@@ -106,3 +106,9 @@ Root `profile.md` on the tracked branch predates the 2026-11-11 full snapshot an
 ## 8. Next priorities
 
 See [NEXT_STEPS.md](NEXT_STEPS.md). Most immediate: resolve negative fixture verification safely, reconcile F32 cross-facility discovery/STAFF test versions, validate 101 testcase discovery and run evidence; leave the assignment case blocked until genuine test data become eligible.
+
+## 9. PowerShell cleanup decision (2026-11-11)
+
+The obsolete `APPLY_FRMS_PATCHES_TEST_SWT.ps1` was removed because its required old patch files are absent from `TEST_SWT` and patches 01–03 are already integrated. The supported command remains `.\\RUN_FRMS_TESTS.cmd`.
+
+Keep **both** `RUN_FRMS_TESTS.ps1` (safe environment/fixture wrapper) and `run-frms-tests.ps1` (Playwright/system-test launcher): the CMD entrypoint depends on both. Also keep `backend/scripts/PostgreSql-Local.ps1` for local PostgreSQL lifecycle. The older `backend/tests/Frms.IntegrationTests/Verify-CreateReservation.ps1` targets legacy SQL Server with write operations and hardcoded paths; it is unrelated to the current automated PostgreSQL suite, retained for historical continuity only. Do not execute it on shared Supabase. This cleanup did not execute tests or validate new PASS results.
