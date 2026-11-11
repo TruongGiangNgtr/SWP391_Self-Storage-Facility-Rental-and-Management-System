@@ -259,22 +259,48 @@ function Resolve-CatalogFixture {
 }
 
 function Resolve-VerifiedNegativeLoginFixtures {
-    # Complete Admin directory enumeration, authenticated and read-only.
+    # Verify absent identifiers from a complete Admin directory, not from guesses.
     $verifier = Join-Path $Repo 'tests\system\scripts\batch12-verify-unregistered.mjs'
-    $negativeKeys = @('FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE', 'FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL')
+    $keys = @('FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE', 'FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL')
     $verified = $false
-    $reason = 'Verifier unavailable or did not return a valid result'
+    $reason = 'Verifier script is missing'
     if (Test-Path -LiteralPath $verifier -PathType Leaf) {
         try {
             $raw = (& node $verifier | Out-String).Trim()
             if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($raw)) {
-                throw 'Verifier process failed'
+                throw 'Negative-login verifier did not return a valid result'
             }
             $result = $raw | ConvertFrom-Json -ErrorAction Stop
             if ($result.verified -eq $true) {
                 $phone = [string]$result.fixtures.FRMS_TEST_UNREGISTERED_CUSTOMER_PHONE
                 $email = [string]$result.fixtures.FRMS_TEST_UNREGISTERED_EMPLOYEE_EMAIL
-                if ($phone -notmatch '^0[0-9]{9}
+                if ($phone -notmatch '^0[0-9]{9}$' -or
+                    $email -notmatch '^[^\s@]+@[^\s@]+\.[^\s@]+$') {
+                    throw 'Verifier returned invalid identifier formats'
+                }
+                [Environment]::SetEnvironmentVariable($keys[0], $phone, 'Process')
+                [Environment]::SetEnvironmentVariable($keys[1], $email, 'Process')
+                $verified = $true
+                Write-Host ('Verified negative login fixtures: phone and email absent from ' +
+                    $result.accountCount + ' complete Admin account records; no values logged.')
+            } else {
+                $reason = [string]$result.reason
+            }
+        } catch {
+            $reason = $_.Exception.Message
+        }
+    }
+    if (-not $verified) {
+        # User-supplied overrides are also untrusted until directory verification.
+        foreach ($key in $keys) {
+            [Environment]::SetEnvironmentVariable($key, $null, 'Process')
+        }
+        Write-Warning ('Unregistered login fixtures not verified (' + $reason +
+            '). FRMS-ST-0199 and FRMS-ST-0203 remain Blocked.')
+    }
+}
+
+function Resolve-Batch12Fixtures {
     $scriptFile = Join-Path $Repo 'tests\system\scripts\batch12-discover.mjs'
     if (-not (Test-Path -LiteralPath $scriptFile)) {
         Write-Warning 'Batch 12 fixture discovery script not found; missing fixtures remain blocked.'
@@ -327,199 +353,14 @@ try {
         }
         if ($Mode -in @('all','case','area')) {
             Resolve-Batch12Fixtures
-            # Only negative-login cases need this additional authenticated Admin scan.
+            # Run full Admin directory verification only for negative login cases
+            # (and all/area runs). No product data is written.
             if ($Mode -ne 'case' -or $CaseId -in @('FRMS-ST-0199','FRMS-ST-0203')) {
                 Resolve-VerifiedNegativeLoginFixtures
             }
             & node (Join-Path $Repo 'tests\system\scripts\batch12-env-audit.mjs') | Out-Host
             if ($LASTEXITCODE -ne 0) { throw 'Batch 12 mandatory environment audit failed.' }
         }
-        if ($InstallBrowser) {
-            $browser = Run-Pnpm @('--dir','tests/e2e/playwright','exec','playwright','install','chromium')
-            if ($browser -ne 0) { throw 'Playwright Chromium installation failed.' }
-        }
-        switch ($Mode) {
-            'preflight' { $exitCode = 0 }
-            'catalog-probe' {
-                if (-not (Test-Path 'tests\system\scripts\probe-catalog.mjs')) {
-                    throw 'Catalog probe is missing. Apply Patch 06 before using -Mode catalog-probe.'
-                }
-                $exitCode = Run-Pnpm @('run','test:frms:catalog-probe')
-            }
-            'all' { $exitCode = Run-Pnpm @('run','test:frms:all') }
-            'case' { $exitCode = Run-Pnpm @('run','test:frms:case','--','--id',$CaseId) }
-            'area' { $exitCode = Run-Pnpm @('run','test:frms:all','--','--area',$Area) }
-        }
-    }
-} catch {
-    [Console]::Error.WriteLine("FRMS launcher error: " + $_.Exception.Message)
-    $exitCode = 2
-} finally {
-    if ($null -ne $backendProcess) {
-        $backendProcess.Refresh()
-        if (-not $backendProcess.HasExited) {
-            Write-Host "Stopping backend process tree PID=$($backendProcess.Id)..."
-            & taskkill.exe /PID $backendProcess.Id /T /F 2>$null | Out-Null
-        }
-    }
-    Write-Host "FRMS test launcher finished: exit code $exitCode."
-}
-exit $exitCode
- -or
-                    $email -notmatch '^[^\s@]+@[^\s@]+\.[^\s@]+
-    $scriptFile = Join-Path $Repo 'tests\system\scripts\batch12-discover.mjs'
-    if (-not (Test-Path -LiteralPath $scriptFile)) {
-        Write-Warning 'Batch 12 fixture discovery script not found; missing fixtures remain blocked.'
-        return
-    }
-    try {
-        $rawJson = & node $scriptFile
-        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($rawJson)) { throw 'Node discovery failed.' }
-        $result = $rawJson | ConvertFrom-Json
-        $count = 0
-        foreach ($item in $result.fixtures.PSObject.Properties) {
-            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($item.Name, 'Process'))) {
-                [Environment]::SetEnvironmentVariable($item.Name, [string]$item.Value, 'Process')
-                $count++
-            }
-        }
-        Write-Host "Batch 12 fixture discovery: $count verified value(s) supplied to this launcher process."
-        foreach ($item in $result.roles.PSObject.Properties) {
-            $state = if ($item.Value) { "verified" } else { "unavailable" }
-            Write-Host "  $($item.Name): $state"
-        }
-        foreach ($note in @($result.notes)) { Write-Warning "Batch 12 fixture: $note" }
-        & node (Join-Path $Repo 'tests\system\scripts\batch12-env-audit.mjs') | Out-Host
-        if ($LASTEXITCODE -ne 0) { throw 'Batch 12 mandatory environment audit failed.' }
-    } catch {
-        Write-Warning ("Batch 12 fixture discovery unavailable: " + $_.Exception.Message)
-        Write-Warning 'Unresolved fixtures remain SKIPPED/Blocked, not PASS.'
-    }
-}
-
-try {
-    Set-Location -LiteralPath $Repo
-    Assert-Prerequisites
-    if ($Mode -eq 'case' -and [string]::IsNullOrWhiteSpace($CaseId)) { throw 'Supply -CaseId for -Mode case.' }
-    if ($Mode -eq 'area' -and [string]::IsNullOrWhiteSpace($Area)) { throw 'Supply -Area for -Mode area.' }
-    if ($Mode -in @('all','case','area')) { Assert-RunnerSupportsWorkers }
-    if ($Mode -eq 'coverage') {
-        $exitCode = Run-Pnpm @('run','test:frms:coverage')
-    } else {
-        Setup-TestEnvironment
-        New-Item -ItemType Directory -Force -Path $Reports | Out-Null
-        Start-BackendIfNeeded
-        $preflight = Run-Pnpm @('run','test:frms:preflight')
-        if ($preflight -ne 0) { throw 'FRMS preflight failed.' }
-        if (-not $SkipCatalogDiscovery -and $Mode -in @('all','case','area')) {
-            Resolve-CatalogFixture
-        }
-        if ($Mode -in @('all','case','area')) { Resolve-Batch12Fixtures }
-        if ($InstallBrowser) {
-            $browser = Run-Pnpm @('--dir','tests/e2e/playwright','exec','playwright','install','chromium')
-            if ($browser -ne 0) { throw 'Playwright Chromium installation failed.' }
-        }
-        switch ($Mode) {
-            'preflight' { $exitCode = 0 }
-            'catalog-probe' {
-                if (-not (Test-Path 'tests\system\scripts\probe-catalog.mjs')) {
-                    throw 'Catalog probe is missing. Apply Patch 06 before using -Mode catalog-probe.'
-                }
-                $exitCode = Run-Pnpm @('run','test:frms:catalog-probe')
-            }
-            'all' { $exitCode = Run-Pnpm @('run','test:frms:all') }
-            'case' { $exitCode = Run-Pnpm @('run','test:frms:case','--','--id',$CaseId) }
-            'area' { $exitCode = Run-Pnpm @('run','test:frms:all','--','--area',$Area) }
-        }
-    }
-} catch {
-    [Console]::Error.WriteLine("FRMS launcher error: " + $_.Exception.Message)
-    $exitCode = 2
-} finally {
-    if ($null -ne $backendProcess) {
-        $backendProcess.Refresh()
-        if (-not $backendProcess.HasExited) {
-            Write-Host "Stopping backend process tree PID=$($backendProcess.Id)..."
-            & taskkill.exe /PID $backendProcess.Id /T /F 2>$null | Out-Null
-        }
-    }
-    Write-Host "FRMS test launcher finished: exit code $exitCode."
-}
-exit $exitCode
-) {
-                    throw 'Verified response has invalid identifier formats'
-                }
-                [Environment]::SetEnvironmentVariable($negativeKeys[0], $phone, 'Process')
-                [Environment]::SetEnvironmentVariable($negativeKeys[1], $email, 'Process')
-                $verified = $true
-                Write-Host ("Verified negative login fixtures: phone and email absent from " +
-                    $result.accountCount + " complete Admin account records; no values logged.")
-            } else {
-                $reason = [string]$result.reason
-            }
-        } catch {
-            $reason = $_.Exception.Message
-        }
-    }
-    if (-not $verified) {
-        # A caller override must also be verified; otherwise SKIP both negative cases.
-        foreach ($key in $negativeKeys) {
-            [Environment]::SetEnvironmentVariable($key, $null, 'Process')
-        }
-        Write-Warning ("Unregistered login fixtures not verified (" + $reason +
-            "). FRMS-ST-0199 and FRMS-ST-0203 remain Blocked.")
-    }
-}
-
-function Resolve-Batch12Fixtures {
-    $scriptFile = Join-Path $Repo 'tests\system\scripts\batch12-discover.mjs'
-    if (-not (Test-Path -LiteralPath $scriptFile)) {
-        Write-Warning 'Batch 12 fixture discovery script not found; missing fixtures remain blocked.'
-        return
-    }
-    try {
-        $rawJson = & node $scriptFile
-        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($rawJson)) { throw 'Node discovery failed.' }
-        $result = $rawJson | ConvertFrom-Json
-        $count = 0
-        foreach ($item in $result.fixtures.PSObject.Properties) {
-            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($item.Name, 'Process'))) {
-                [Environment]::SetEnvironmentVariable($item.Name, [string]$item.Value, 'Process')
-                $count++
-            }
-        }
-        Write-Host "Batch 12 fixture discovery: $count verified value(s) supplied to this launcher process."
-        foreach ($item in $result.roles.PSObject.Properties) {
-            $state = if ($item.Value) { "verified" } else { "unavailable" }
-            Write-Host "  $($item.Name): $state"
-        }
-        foreach ($note in @($result.notes)) { Write-Warning "Batch 12 fixture: $note" }
-        & node (Join-Path $Repo 'tests\system\scripts\batch12-env-audit.mjs') | Out-Host
-        if ($LASTEXITCODE -ne 0) { throw 'Batch 12 mandatory environment audit failed.' }
-    } catch {
-        Write-Warning ("Batch 12 fixture discovery unavailable: " + $_.Exception.Message)
-        Write-Warning 'Unresolved fixtures remain SKIPPED/Blocked, not PASS.'
-    }
-}
-
-try {
-    Set-Location -LiteralPath $Repo
-    Assert-Prerequisites
-    if ($Mode -eq 'case' -and [string]::IsNullOrWhiteSpace($CaseId)) { throw 'Supply -CaseId for -Mode case.' }
-    if ($Mode -eq 'area' -and [string]::IsNullOrWhiteSpace($Area)) { throw 'Supply -Area for -Mode area.' }
-    if ($Mode -in @('all','case','area')) { Assert-RunnerSupportsWorkers }
-    if ($Mode -eq 'coverage') {
-        $exitCode = Run-Pnpm @('run','test:frms:coverage')
-    } else {
-        Setup-TestEnvironment
-        New-Item -ItemType Directory -Force -Path $Reports | Out-Null
-        Start-BackendIfNeeded
-        $preflight = Run-Pnpm @('run','test:frms:preflight')
-        if ($preflight -ne 0) { throw 'FRMS preflight failed.' }
-        if (-not $SkipCatalogDiscovery -and $Mode -in @('all','case','area')) {
-            Resolve-CatalogFixture
-        }
-        if ($Mode -in @('all','case','area')) { Resolve-Batch12Fixtures }
         if ($InstallBrowser) {
             $browser = Run-Pnpm @('--dir','tests/e2e/playwright','exec','playwright','install','chromium')
             if ($browser -ne 0) { throw 'Playwright Chromium installation failed.' }

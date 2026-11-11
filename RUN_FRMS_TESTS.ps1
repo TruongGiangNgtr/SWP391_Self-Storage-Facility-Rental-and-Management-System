@@ -52,6 +52,18 @@ function Require-File([string]$File, [string]$Description) {
 try {
     Set-Location -LiteralPath $Repo
     Require-File $Launcher 'Main FRMS launcher'
+    # Fail early if the child launcher contains malformed PowerShell syntax.
+    # This also runs in -AuditOnly mode; it never starts the backend.
+    $parseTokens = $null
+    $parseErrors = $null
+    [System.Management.Automation.Language.Parser]::ParseFile(
+        $Launcher, [ref]$parseTokens, [ref]$parseErrors) | Out-Null
+    if ($parseErrors.Count -gt 0) {
+        $first = $parseErrors[0]
+        throw ("Main FRMS launcher syntax error at line " +
+            $first.Extent.StartLineNumber + ": " + $first.Message)
+    }
+    Write-Host 'PowerShell launcher syntax: OK.'
     Require-File $Audit 'Batch 12 environment audit'
     Require-File $Coverage 'Coverage validator'
     if (-not (Get-Command node -ErrorAction SilentlyContinue)) { throw 'Node.js is not available in PATH.' }
