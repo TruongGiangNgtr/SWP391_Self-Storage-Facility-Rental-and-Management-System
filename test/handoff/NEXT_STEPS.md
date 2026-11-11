@@ -171,3 +171,10 @@ User CMD logs show `FRMS-ST-0093` (`20261111T122312270Z`, 11.9s) and `FRMS-ST-01
 ### First action after supplemental registry coverage patch
 
 Pull `TEST_SWT` on a clean worktree, run `.\\RUN_FRMS_TESTS.cmd -Mode coverage` and verify 279 registered (275 baseline + 4 supplemental), 153 implemented, 118 outstanding, 8 review and exit 0. This is not yet independently runtime-confirmed. Continue read-only targeted `FRMS-ST-0091` and `FRMS-ST-0092`; missing live financial partitions are Blocked, not PASS. Do not use shared Supabase for upload or state-mutating defect cases ST-0276..0278.
+
+## Batch 14: coverage verified and ST-0091/ST-0092 targeted PASS — 2026-11-11
+
+User CMD output confirmed `.\RUN_FRMS_TESTS.cmd -Mode coverage` **PASS, exit 0** using the 279-case snapshot (275 baseline + 4 Supplemental), 153 implemented / 118 not implemented / 8 review. `FRMS-ST-0091` run `20261111T125511933Z` **1/1 PASS** (14.0s) and `FRMS-ST-0092` run `20261111T125616085Z` **1/1 PASS** (19.2s), both 1 worker, 0 retries, exit 0. Batch 14 therefore has **8/15 unique targeted PASS**, seven without runtime evidence. These frontend checks do **not** independently verify a Day-7/Day-8 late-fee formula; SRS approval remains pending. The old full run is still 95 PASS in its 275-case snapshot; do not merge targeted totals into it. Safe read-only DB settings unchanged. Asynchronous manual supplement additions after the 279-case run have already increased the registry to **at least 281** (ST-0280 and ST-0281 added); use live manifest/context for current counts. Full evidence: `test/handoff/BATCH14_COVERAGE_PASS_AND_ST0091_ST0092_20261111.md`.
+
+Next safe read-only Batch14 test candidates: `FRMS-ST-0094`, `FRMS-ST-0243`; other pending: `0116`, `0117`, `0118`, `0122`, `0244`. Those require authentic paid/overdue invoice, completed Inspection, pending Damage or settlement partition; classify absent fixture as Blocked. Four earlier patched cases `0067/0071/0109/0188` remain deferred. Do not run data-writing evidence uploads on shared Supabase.
+
