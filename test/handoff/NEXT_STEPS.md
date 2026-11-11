@@ -66,3 +66,22 @@ The `TEST_SWT` registry now contains **275 unique cases: 138 IMPLEMENTED (50.18%
 **Evidence: REPO_VERIFIED_SOURCE_MAPPING_ONLY; PENDING_RUNTIME**. No new Playwright runtime PASS, TypeScript compilation, approved SRS oracle or Jira defect was produced by this change. Historical 51/51 and individual user-reported ST-0199, ST-0203, ST-0065, ST-0165 remain separate evidence. Both new access Visit creation cases require an isolated disposable DB and `isolatedWrite()`; all new shared-safe cases are authentication/GET/browser-only. Foreign physical Unit tests require an authenticated real foreign Manager positive control; do not invent fixtures. Missing preconditions remain Blocked.
 
 P0: Verify updated TEST_SWT local source, run `.\RUN_FRMS_TESTS.cmd -Mode coverage` and selected read-only Batch 13 tests; archive `summary.md`/`results.json`; classify fixture gaps as Blocked. Do not execute write-gated Access Visit tests on shared Supabase.
+
+## Batch 13 coverage validation and first runtime failure (2026-11-11)
+
+**Coverage audit:** Windows `.\\RUN_FRMS_TESTS.cmd -Mode coverage` returned `exit code 0`; `validate-coverage.mjs` printed **275 registered / 275 unique / 138 implemented / 8 review / 129 outstanding** and `Registry structure and executable mappings valid`. Evidence: `USER_REPORTED_RUNTIME_CONSOLE`; 50.18% means implementation mapping only, **not** runtime PASS.
+
+**FRMS-ST-0183-B** — run `20261111T084456202Z`, 1 worker, 0 retries, **1 executed / 1 failed**, runner and wrapper exit code **1**. The first page-header assertion in `batch13-pricing.spec.ts:11` failed with Playwright **strict mode violation**: `getByRole('heading', {name:'Unit Type Pricing'})` matched both page `<h1>Unit Type Pricing</h1>` and `<h2>Global Unit Type Pricing Registry</h2>`. The frontend implementation was not shown to be defective; the test did not reach the numeric input validator. **Classify as `AUTOMATION_DEFECT` / `USER_REPORTED_RUNTIME_CONSOLE`, not confirmed product defect, and do not import to Jira.** The log reports Jira CSV **0 independently confirmed defects**.
+
+**Fix in TEST_SWT:** select exactly the page heading with `page.getByRole('heading',{name:'Unit Type Pricing',exact:true,level:1})`; source reviewed against frontend heading markup. Similar Batch 13 heading checks were reviewed for this substring ambiguity; no other confirmed duplicate was identified from supplied source. This is a code-only oracle fix, not a new PASS. **Rerun required** after pulling the patch and inspect `tests/system/reports/<new-run-id>/summary.md` and `results.json`. Historical 51/51 plus earlier separately reported ST-0065, ST-0165, ST-0199 and ST-0203 remain unchanged. No app, DB, or `main` change.
+
+### Next targeted verification after locator fix
+
+```bat
+git status --short
+git pull --ff-only origin TEST_SWT
+.\\RUN_FRMS_TESTS.cmd -Mode coverage
+.\\RUN_FRMS_TESTS.cmd -Mode case -CaseId FRMS-ST-0183-B -Workers 1 -Retries 0 -SkipCatalogDiscovery
+```
+
+Read the new report rather than reusing `20261111T084456202Z`. If it passes, test the other four Batch 13 Pricing cases individually (some require unavailable isolated fixtures) and only then proceed to a broader read-only run. Missing fixture is Blocked/Skipped; new failures must be diagnosed before Jira.

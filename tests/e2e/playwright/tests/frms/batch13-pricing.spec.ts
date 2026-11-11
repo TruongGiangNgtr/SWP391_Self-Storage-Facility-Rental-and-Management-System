@@ -8,7 +8,7 @@ test.use({trace:'off'})
 async function priceEditor(page:Page){
   const name=fixture('FRMS_TEST_PRICING_UNIT_TYPE_NAME')
   await visitAs(page,'BUSINESS_OPERATIONS_MANAGER','/business/unit-types')
-  await expect(page.getByRole('heading',{name:'Unit Type Pricing'})).toBeVisible({timeout:45000})
+  await expect(page.getByRole('heading',{name:'Unit Type Pricing',exact:true,level:1})).toBeVisible({timeout:45000})
   const table=page.getByRole('table',{name:'Unit type pricing registry'})
   await expect(table).toBeVisible()
   await page.getByRole('searchbox',{name:'Search unit types by name, size or description'}).fill(name)
