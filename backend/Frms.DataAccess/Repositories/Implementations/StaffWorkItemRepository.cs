@@ -25,10 +25,11 @@ internal sealed class StaffWorkItemRepository(
         int TotalItems)> GetWorkItemsAsync(
             Guid facilityId,
             Guid employeeId,
-            DateOnly date,
+            DateOnly? date,
             int page,
             int pageSize,
-            CancellationToken cancellationToken) {
+            CancellationToken cancellationToken,
+            bool includeHistory = false) {
         // Build a common scalar projection before UNION ALL, so PostgreSQL
         // filters/scopes, counts, sorts and pages the complete combined dataset.
         var reservationVisits =
@@ -41,8 +42,8 @@ internal sealed class StaffWorkItemRepository(
                 on customer.UserAccountId equals account.UserAccountId
             where reservation.FacilityId == facilityId
                 && visit.VisitType == "RESERVATION"
-                && visit.VisitDate == date
-                && (visit.Status == "SCHEDULED" || visit.Status == "CHECKED_IN")
+                && (!date.HasValue || visit.VisitDate == date.Value)
+                && (includeHistory || visit.Status == "SCHEDULED" || visit.Status == "CHECKED_IN")
             select new {
                 WorkType = "RESERVATION_VISIT",
                 ReferenceId = visit.VisitId,
@@ -65,8 +66,8 @@ internal sealed class StaffWorkItemRepository(
                 on customer.UserAccountId equals account.UserAccountId
             where contract.FacilityId == facilityId
                 && (visit.VisitType == "ACCESS" || visit.VisitType == "RETURN")
-                && visit.VisitDate == date
-                && (visit.Status == "SCHEDULED" || visit.Status == "CHECKED_IN")
+                && (!date.HasValue || visit.VisitDate == date.Value)
+                && (includeHistory || visit.Status == "SCHEDULED" || visit.Status == "CHECKED_IN")
             select new {
                 WorkType = visit.VisitType == "ACCESS" ? "ACCESS_VISIT" : "RETURN_VISIT",
                 ReferenceId = visit.VisitId,
@@ -85,7 +86,8 @@ internal sealed class StaffWorkItemRepository(
                 on inspection.ContractId equals contract.ContractId
             where contract.FacilityId == facilityId
                 && (inspection.Status == "PENDING"
-                    || (inspection.Status == "IN_PROGRESS" && inspection.EmployeeId == employeeId))
+                    || (inspection.Status == "IN_PROGRESS" && inspection.EmployeeId == employeeId)
+                    || (includeHistory && inspection.Status == "COMPLETED" && inspection.EmployeeId == employeeId))
             select new {
                 WorkType = "INSPECTION",
                 ReferenceId = inspection.InspectionId,
@@ -104,7 +106,7 @@ internal sealed class StaffWorkItemRepository(
                 on ticket.ContractId equals contract.ContractId
             where contract.FacilityId == facilityId
                 && ticket.AssignedEmployeeId == employeeId
-                && (ticket.Status == "OPEN" || ticket.Status == "IN_PROGRESS")
+                && (includeHistory || ticket.Status == "OPEN" || ticket.Status == "IN_PROGRESS")
             select new {
                 WorkType = "SUPPORT_TICKET",
                 ReferenceId = ticket.SupportTicketId,
@@ -126,7 +128,7 @@ internal sealed class StaffWorkItemRepository(
 
         var items = await allItems
             .OrderBy(x => x.ScheduledDate.HasValue ? 0 : 1)
-            .ThenBy(x => x.ScheduledDate)
+            .ThenByDescending(x => x.ScheduledDate)
             .ThenBy(x => x.WorkType)
             .ThenBy(x => x.ReferenceId)
             .Skip((int)skip)
