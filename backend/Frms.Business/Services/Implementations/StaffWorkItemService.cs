@@ -16,7 +16,9 @@ internal sealed class StaffWorkItemService(
         DateOnly? date,
         int page,
         int pageSize,
-        CancellationToken cancellationToken = default) {
+        CancellationToken cancellationToken = default,
+        bool includeHistory = false,
+        bool allDates = false) {
         if (page < 1 || pageSize is < 1 or > 100) {
             throw new BusinessException(
                 "INVALID_PAGINATION",
@@ -59,7 +61,8 @@ internal sealed class StaffWorkItemService(
         var businessToday = DateOnly.FromDateTime(
             clock.ToBusinessTime(clock.UtcNow).Date);
 
-        var selectedDate = date ?? businessToday;
+        // Preserve legacy daily behavior unless allDates is explicitly requested.
+        var selectedDate = date ?? (allDates ? (DateOnly?)null : businessToday);
 
         var (items, totalItems) =
             await repository.GetWorkItemsAsync(
@@ -68,7 +71,8 @@ internal sealed class StaffWorkItemService(
                 selectedDate,
                 page,
                 pageSize,
-                cancellationToken);
+                cancellationToken,
+                includeHistory);
 
         return new StaffWorkItemPageResult(
             items.Select(x => new StaffWorkItemResult(
