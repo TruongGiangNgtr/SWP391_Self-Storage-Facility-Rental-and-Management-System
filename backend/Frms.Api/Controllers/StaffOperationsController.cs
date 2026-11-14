@@ -22,12 +22,16 @@ public sealed class StaffOperationsController(IHandoverService handoverService,I
             [FromQuery] DateOnly? date,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
-            CancellationToken cancellationToken = default) {
+            CancellationToken cancellationToken = default,
+            [FromQuery] bool includeHistory = false,
+            [FromQuery] bool allDates = false) {
         var result = await staffWorkItemService.ListAsync(
             date,
             page,
             pageSize,
-            cancellationToken);
+            cancellationToken,
+            includeHistory,
+            allDates);
 
         var data = result.Items.Select(x =>
             new StaffWorkItemResponse(
