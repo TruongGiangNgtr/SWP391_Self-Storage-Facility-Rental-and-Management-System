@@ -12,8 +12,9 @@ public interface IStaffWorkItemRepository {
         int TotalItems)> GetWorkItemsAsync(
         Guid facilityId,
         Guid employeeId,
-        DateOnly date,
+        DateOnly? date,
         int page,
         int pageSize,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        bool includeHistory = false);
 }
