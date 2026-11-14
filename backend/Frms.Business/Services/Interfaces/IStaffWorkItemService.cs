@@ -7,5 +7,7 @@ public interface IStaffWorkItemService {
         DateOnly? date,
         int page,
         int pageSize,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        bool includeHistory = false,
+        bool allDates = false);
 }
