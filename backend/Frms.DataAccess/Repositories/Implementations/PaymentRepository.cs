@@ -136,6 +136,7 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(session.PaymentUrl);
         if (session.PaymentUrl.Length > 2048) throw new ArgumentOutOfRangeException(nameof(session));
+        if (session.QrCode?.Length > 2048) throw new ArgumentOutOfRangeException(nameof(session));
         if (session.TransactionCode is not null
             && (string.IsNullOrWhiteSpace(session.TransactionCode) || session.TransactionCode.Length > 150))
             throw new ArgumentException("Invalid gateway reference length.", nameof(session));
@@ -163,14 +164,15 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
                     await transaction.CommitAsync(cancellationToken);
                     return new(PaymentAttemptOutcome.ReferenceConflict, null);
                 }
-                // Use a DbCommand to keep the provider URL out of EF command logging.
+                // Use a DbCommand to keep checkout data out of EF command logging.
                 await ExecuteAsync("""
                     UPDATE public."Payment" SET "TransactionCode" = COALESCE(@Reference, "TransactionCode"),
-                        "PaymentUrl" = @Url, "PaymentUrlExpiresAt" = @ExpiresAt
+                        "PaymentUrl" = @Url, "PaymentUrlExpiresAt" = @ExpiresAt, "QrCode" = @QrCode
                     WHERE "PaymentId" = @Id
                     """, [Parameter("@Reference", NpgsqlDbType.Varchar, session.TransactionCode, 150),
                         Parameter("@Url", NpgsqlDbType.Varchar, session.PaymentUrl, 2048),
                         Parameter("@ExpiresAt", NpgsqlDbType.TimestampTz, session.ExpiresAt?.UtcDateTime),
+                        Parameter("@QrCode", NpgsqlDbType.Varchar, session.QrCode, 2048),
                         Parameter("@Id", NpgsqlDbType.Uuid, paymentId)], cancellationToken);
             }
             await transaction.CommitAsync(cancellationToken);
@@ -229,7 +231,8 @@ public sealed class PaymentRepository(FrmsDbContext database) : IPaymentReposito
         if (detail is null) return new(PaymentAttemptOutcome.NotFound, null);
         var expiry = Utc(payment.PaymentUrlExpiresAt);
         if (detail.Status == "PENDING" && expiry <= now) outcome = PaymentAttemptOutcome.SessionExpired;
-        return new(outcome, new PaymentAttemptRecord(detail, payment.IdempotencyKey, payment.PaymentUrl, expiry, payment.ProviderOrderCode));
+        return new(outcome, new PaymentAttemptRecord(detail, payment.IdempotencyKey, payment.PaymentUrl, expiry,
+            payment.ProviderOrderCode, payment.QrCode));
     }
 
     private async Task ExecuteAsync(string sql, NpgsqlParameter[] parameters, CancellationToken cancellationToken,

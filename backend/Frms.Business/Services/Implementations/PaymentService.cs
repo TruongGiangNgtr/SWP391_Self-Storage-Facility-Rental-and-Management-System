@@ -77,7 +77,7 @@ public sealed class PaymentService(
             try
             {
                 saved = await repository.SaveSessionAsync(attempt.Detail.PaymentId,
-                    new(session.TransactionCode, session.PaymentUrl, session.ExpiresAt?.ToUniversalTime()),
+                    new(session.TransactionCode, session.PaymentUrl, session.ExpiresAt?.ToUniversalTime(), session.QrCode),
                     clock.UtcNow, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
@@ -94,7 +94,7 @@ public sealed class PaymentService(
             }
             var current = await ReloadAttemptAsync(invoiceId, command.IdempotencyKey, cancellationToken);
             return current.Outcome == PaymentStartOutcome.Terminal ? current
-                : current with { Outcome = PaymentStartOutcome.ReferenceConflict, PaymentUrl = null, PaymentUrlExpiresAt = null };
+                : current with { Outcome = PaymentStartOutcome.ReferenceConflict, PaymentUrl = null, PaymentUrlExpiresAt = null, QrCode = null };
         }
         LogSessionFailure(
             provider.Outcome == PaymentGatewayCreationOutcome.SessionCreated
@@ -206,7 +206,8 @@ public sealed class PaymentService(
         return new(detail.PaymentId, detail.InvoiceId, detail.Amount, detail.PaymentMethod, detail.Status,
             usable ? attempt.PaymentUrl : null,
             usable ? PaymentStartOutcome.SessionAvailable : PaymentStartOutcome.SessionUnavailable,
-            usable ? attempt.PaymentUrlExpiresAt : null);
+            usable ? attempt.PaymentUrlExpiresAt : null,
+            QrCode: usable ? attempt.QrCode : null);
     }
 
     private static PaymentAttemptRecord RequireAttempt(PaymentAttemptResult result) => result.Outcome switch

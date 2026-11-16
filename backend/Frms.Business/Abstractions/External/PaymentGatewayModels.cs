@@ -31,7 +31,8 @@ public sealed record PaymentGatewayRequest(
 public sealed record PaymentGatewaySession(
     [property: JsonIgnore] string PaymentUrl,
     string? TransactionCode,
-    DateTimeOffset? ExpiresAt)
+    DateTimeOffset? ExpiresAt,
+    [property: JsonIgnore] string? QrCode = null)
 {
     public override string ToString() => nameof(PaymentGatewaySession);
 }

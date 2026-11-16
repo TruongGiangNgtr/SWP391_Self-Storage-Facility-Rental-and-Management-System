@@ -25,6 +25,7 @@ public sealed class Payment
     [System.Text.Json.Serialization.JsonIgnore]
     public string? PaymentUrl { get; set; }
     public DateTime? PaymentUrlExpiresAt { get; set; }
+    public string? QrCode { get; set; }
     public required string Status { get; set; }
     public DateTime? PaidAt { get; set; }
     public DateTime CreatedAt { get; set; }

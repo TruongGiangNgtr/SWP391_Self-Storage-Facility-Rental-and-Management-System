@@ -39,7 +39,9 @@ public sealed record InvoicePayOsPaymentResponse(
     decimal Amount,
     string PaymentMethod,
     string Status,
-    string? PaymentUrl)
+    string? PaymentUrl,
+    string? QrCode = null,
+    DateTimeOffset? ExpiresAt = null)
 {
     public override string ToString() => $"InvoicePayOsPaymentResponse {{ PaymentId = {PaymentId}, Status = {Status} }}";
 }

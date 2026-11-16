@@ -25,7 +25,8 @@ public sealed record PaymentDetailRecord(
 /// <summary>Internal PAY-001 session data, released by Business only after ownership validation.</summary>
 public sealed record PaymentAttemptRecord(
     PaymentDetailRecord Detail, [property: JsonIgnore] Guid IdempotencyKey,
-    [property: JsonIgnore] string? PaymentUrl, DateTimeOffset? PaymentUrlExpiresAt, long? ProviderOrderCode = null)
+    [property: JsonIgnore] string? PaymentUrl, DateTimeOffset? PaymentUrlExpiresAt, long? ProviderOrderCode = null,
+    [property: JsonIgnore] string? QrCode = null)
 {
     // Provider redirect URLs can carry sensitive session data.
     public override string ToString() => $"PaymentAttempt {{ PaymentId = {Detail.PaymentId} }}";
@@ -39,7 +40,8 @@ public enum PaymentAttemptOutcome
 /// <summary>A conflict never exposes the attempt held by another Invoice.</summary>
 public sealed record PaymentAttemptResult(PaymentAttemptOutcome Outcome, PaymentAttemptRecord? Attempt);
 
-public sealed record PaymentSessionRecord(string? TransactionCode, [property: JsonIgnore] string PaymentUrl, DateTimeOffset? ExpiresAt)
+public sealed record PaymentSessionRecord(string? TransactionCode, [property: JsonIgnore] string PaymentUrl, DateTimeOffset? ExpiresAt,
+    [property: JsonIgnore] string? QrCode = null)
 {
     public override string ToString() => nameof(PaymentSessionRecord);
 }

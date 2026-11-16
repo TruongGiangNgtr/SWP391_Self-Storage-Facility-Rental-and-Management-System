@@ -102,7 +102,10 @@ public sealed class PayOsPaymentGateway(HttpClient http, IOptions<PayOsOptions> 
                 expires = DateTimeOffset.FromUnixTimeSeconds(seconds);
             }
             if (expires <= clock.UtcNow) return Unavailable("response_expired", request, httpStatus, providerCode);
-            return new(PaymentGatewayCreationOutcome.SessionCreated, new(url, null, expires), null);
+            var qrCode = Text(data, "qrCode");
+            if (string.IsNullOrWhiteSpace(qrCode) || System.Text.Encoding.UTF8.GetByteCount(qrCode) > 2048)
+                qrCode = null;
+            return new(PaymentGatewayCreationOutcome.SessionCreated, new(url, null, expires, qrCode), null);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException or FormatException or InvalidOperationException or OverflowException or ArgumentOutOfRangeException)

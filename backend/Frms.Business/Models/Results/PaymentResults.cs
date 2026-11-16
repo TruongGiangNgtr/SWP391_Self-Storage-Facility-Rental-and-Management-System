@@ -24,7 +24,8 @@ public sealed record InvoicePaymentStartResult(
     [property: System.Text.Json.Serialization.JsonIgnore] string? PaymentUrl,
     PaymentStartOutcome Outcome,
     DateTimeOffset? PaymentUrlExpiresAt,
-    bool NewlyInitiated = false)
+    bool NewlyInitiated = false,
+    [property: System.Text.Json.Serialization.JsonIgnore] string? QrCode = null)
 {
     public override string ToString() => $"InvoicePaymentStartResult {{ PaymentId = {PaymentId}, Status = {Status}, Outcome = {Outcome} }}";
 }

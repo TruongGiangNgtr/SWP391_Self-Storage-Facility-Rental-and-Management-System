@@ -43,7 +43,7 @@ public sealed class PaymentsController(IPaymentService service) : ControllerBase
                     "The payment session is temporarily unavailable. Start a new payment attempt.",
                     HttpContext.TraceIdentifier));
         var response = new ApiResponse<InvoicePayOsPaymentResponse>(new(result.PaymentId, result.InvoiceId,
-            result.Amount, result.PaymentMethod, result.Status, result.PaymentUrl));
+            result.Amount, result.PaymentMethod, result.Status, result.PaymentUrl, result.QrCode, result.PaymentUrlExpiresAt));
         return result.NewlyInitiated && result.Outcome == PaymentStartOutcome.SessionAvailable
             ? CreatedAtAction(nameof(GetPayment), new { paymentId = result.PaymentId }, response) : Ok(response);
     }

@@ -80,6 +80,7 @@ internal static class FrmsModelConfiguration
             // SRS 0.0.2 / Data Dictionary 4.13 specify nvarchar(2048).
             e.Property(x => x.PaymentUrl).HasMaxLength(2048);
             Utc(e.Property(x => x.PaymentUrlExpiresAt));
+            e.Property(x => x.QrCode).HasMaxLength(2048);
             Utc(e.Property(x => x.PaidAt));
             Utc(e.Property(x => x.CreatedAt)).HasDefaultValueSql("clock_timestamp()");
         });

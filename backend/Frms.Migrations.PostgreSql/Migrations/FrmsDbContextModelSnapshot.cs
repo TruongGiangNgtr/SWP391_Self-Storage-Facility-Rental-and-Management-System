@@ -934,6 +934,11 @@ namespace Frms.Migrations.PostgreSql.Migrations
                     b.Property<long?>("ProviderOrderCode")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("QrCode")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .UseCollation("frms_ci_as");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
